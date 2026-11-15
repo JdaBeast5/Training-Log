@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.558';
+const APP_VERSION = '3.559';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9210,6 +9210,9 @@ const WHATS_NEW = {
   '3.558': { headline: 'Stuck on a lift? The app says so', points: [
     'When a lift sits at the same weight for three sessions without your reps climbing, the exercise now tells you, with three ways to break the plateau: drop to the bottom of the rep range and add a set, swap to a variation, or add a small 2.5 lb jump. Nothing changes until you choose.',
   ]},
+  '3.559': { headline: 'No weight box on bodyweight moves', points: [
+    'Bird Dog, Dead Bug, Side Plank, Bodyweight Squat, Jump Squat, Bicycle Crunch, Single-Leg Bound and every push-up, pull-up, dip, row and squat in the Bodyweight program no longer ask for a weight, so logging your reps finishes the set and starts the rest timer. Wall Balls and Sled Pull, which do take load, now have a weight box. Your old entries are unchanged.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -10219,7 +10222,7 @@ const programs = {
         label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
         exercises:[
           {name:'Depth Jump', sets:'4×5'},
-          {name:'Single-Leg Bound', sets:'3×6/leg'},
+          {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
           {name:'Deadlift', sets:'4×5'},
           {name:'Bulgarian Split Squat', sets:'3×8/leg'},
         ]
@@ -10264,10 +10267,10 @@ const programs = {
       d1: {
         label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
         exercises:[
-          {name:'McGill Curl-up', sets:'3×8-10'},
-          {name:'Bird Dog', sets:'3×8/side'},
-          {name:'Side Plank', sets:'3×30-45s/side'},
-          {name:'Dead Bug', sets:'3×10/side'},
+          {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+          {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+          {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+          {name:'Dead Bug', sets:'3×10/side', noWeight:true},
           {name:'Ab Wheel Rollout', sets:'3×8-10'},
         ]
       },
@@ -10306,8 +10309,8 @@ const programs = {
       d6: {
         label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
         exercises:[
-          {name:'Bird Dog', sets:'3×10/side'},
-          {name:'Side Plank', sets:'3×30-45s/side'},
+          {name:'Bird Dog', sets:'3×10/side', noWeight:true},
+          {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
           {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
           {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
         ]
@@ -10325,19 +10328,19 @@ const programs = {
       d1: {
         label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
         exercises:[
-          {name:'Push-up', sets:'4×AMRAP'},
-          {name:'Pike Push-up', sets:'3×10-12'},
-          {name:'Decline Push-up', sets:'3×12-15'},
-          {name:'Triceps Dip', sets:'3×12-15'},
+          {name:'Push-up', sets:'4×AMRAP', noWeight:true},
+          {name:'Pike Push-up', sets:'3×10-12', noWeight:true},
+          {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+          {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
           {name:'Plank', sets:'3×45s', noWeight:true},
         ]
       },
       d2: {
         label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
         exercises:[
-          {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
-          {name:'Chin-up', sets:'3×AMRAP'},
-          {name:'Inverted Row', sets:'3×12-15'},
+          {name:'Pull-ups (or assisted)', sets:'4×AMRAP', noWeight:true},
+          {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+          {name:'Inverted Row', sets:'3×12-15', noWeight:true},
           {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
         ]
       },
@@ -10363,11 +10366,11 @@ const programs = {
         // Glute Bridge stays: both patterns are needed, one does not replace
         // the other.
         exercises:[
-          {name:'Bodyweight Squat', sets:'4×20-25'},
-          {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-          {name:'Glute Bridge', sets:'3×15-20'},
-          {name:'Nordic Curl', sets:'3×5-8'},
-          {name:'Calf Raise', sets:'3×20-25'},
+          {name:'Bodyweight Squat', sets:'4×20-25', noWeight:true},
+          {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+          {name:'Glute Bridge', sets:'3×15-20', noWeight:true},
+          {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
+          {name:'Calf Raise', sets:'3×20-25', noWeight:true},
         ]
       },
       d5: {
@@ -10375,8 +10378,8 @@ const programs = {
         exercises:[
           {name:'Burpees', sets:'4×30-45s', noWeight:true},
           {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
-          {name:'Jump Squat', sets:'3×6-8'},
-          {name:'Push-up to Plank', sets:'3×10'},
+          {name:'Jump Squat', sets:'3×6-8', noWeight:true},
+          {name:'Push-up to Plank', sets:'3×10', noWeight:true},
         ]
       },
       d6: {
@@ -10384,7 +10387,7 @@ const programs = {
         exercises:[
           {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
           {name:'Plank', sets:'3×45-60s', noWeight:true},
-          {name:'Bicycle Crunch', sets:'3×15/side'},
+          {name:'Bicycle Crunch', sets:'3×15/side', noWeight:true},
           {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
         ]
       },
@@ -10404,7 +10407,7 @@ const programs = {
           {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
           {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
           {name:'Push-up', sets:'3×15'},
-          {name:'Bodyweight Squat', sets:'3×20'},
+          {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
         ]
       },
       d2: {
@@ -10413,7 +10416,7 @@ const programs = {
           {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
           {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
           {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-          {name:'Bodyweight Squat', sets:'3×20'},
+          {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
         ]
       },
       d3: {
@@ -10597,7 +10600,7 @@ const programs = {
           {name:'Recovery Jog', sets:'20 min', noWeight:true},
           {name:'Back Squat', sets:'3×5'},
           {name:'Romanian Deadlift', sets:'3×6'},
-          {name:'Single-Leg Bound', sets:'3×6/leg'},
+          {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
           {name:'Push-up', sets:'3×15'},
         ]
       },
@@ -10646,7 +10649,7 @@ const programs = {
         label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
         exercises:[
           {name:'Pistol Squat', sets:'3×5-8/leg'},
-          {name:'Jump Squat', sets:'3×6-8'},
+          {name:'Jump Squat', sets:'3×6-8', noWeight:true},
           {name:'Nordic Curl', sets:'3×5-8'},
           {name:'Calf Raise', sets:'3×20-25'},
         ]
@@ -11078,7 +11081,7 @@ const programs = {
           {name:'Power Clean', sets:'5×3'},
           {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
           {name:'Box Jump', sets:'4×5'},
-          {name:'Single-Leg Bound', sets:'3×5/leg'},
+          {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
         ]
       },
       d3: {
@@ -11216,14 +11219,14 @@ const programs = {
         exercises:[
           {name:'Back Squat', sets:'4×6'},
           {name:'Sled Push', sets:'5×20m'},
-          {name:'Sled Pull', sets:'5×20m', noWeight:true},
+          {name:'Sled Pull', sets:'5×20m'},
           {name:'Romanian Deadlift', sets:'3×8'},
         ]},
       d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
         note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
       d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
         exercises:[
-          {name:'Wall Balls', sets:'5×15', noWeight:true},
+          {name:'Wall Balls', sets:'5×15'},
           {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
           {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
           {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
@@ -11232,7 +11235,7 @@ const programs = {
         exercises:[
           {name:'Warm-up Jog', sets:'10 min', noWeight:true},
           {name:'400m Repeats', sets:'4×400m', noWeight:true},
-          {name:'Wall Balls', sets:'4×15', noWeight:true},
+          {name:'Wall Balls', sets:'4×15'},
           {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
         ]},
       d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
@@ -11240,7 +11243,7 @@ const programs = {
           {name:'Farmers Carry (Heavy)', sets:'4×40m'},
           {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
           {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
-          {name:'Wall Balls', sets:'3×20', noWeight:true},
+          {name:'Wall Balls', sets:'3×20'},
         ]},
       d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
         note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
@@ -12859,7 +12862,7 @@ const WATERSPORTS_STYLES = {
         label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
         exercises:[
           {name:'Depth Jump', sets:'3×5'},
-          {name:'Jump Squat', sets:'3×8'},
+          {name:'Jump Squat', sets:'3×8', noWeight:true},
           {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
         ]
@@ -13054,7 +13057,7 @@ const WATERSPORTS_STYLES = {
       d4: {
         label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
         exercises:[
-          {name:'Jump Squat', sets:'3×8'},
+          {name:'Jump Squat', sets:'3×8', noWeight:true},
           {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
           {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
           {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
@@ -18070,7 +18073,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d5: { label:'Day 5', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Depth Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
             {name:'Deadlift', sets:'4×5'},
             {name:'Bulgarian Split Squat', sets:'3×8/leg'},
           ]
@@ -18114,7 +18117,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d4: { label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Depth Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
             {name:'Deadlift', sets:'4×5'},
             {name:'Bulgarian Split Squat', sets:'3×8/leg'},
           ]
@@ -18168,7 +18171,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d4: { label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Depth Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
             {name:'Deadlift', sets:'4×5'},
             {name:'Bulgarian Split Squat', sets:'3×8/leg'},
           ]
@@ -18205,9 +18208,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Full-Body Bodyweight', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'Push-up', sets:'3×AMRAP'},
-            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
-            {name:'Bodyweight Squat', sets:'3×20-25'},
+            {name:'Push-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20-25', noWeight:true},
             {name:'Plank', sets:'2×45s', noWeight:true},
           ]
         },
@@ -18231,9 +18234,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Full Body A — Push Led', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'Push-up', sets:'3×AMRAP'},
-            {name:'Bodyweight Squat', sets:'3×20-25'},
-            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20-25', noWeight:true},
+            {name:'Inverted Row', sets:'3×12-15', noWeight:true},
             {name:'Plank', sets:'2×45s', noWeight:true},
           ]
         },
@@ -18241,9 +18244,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
         d3: { label:'Day 3', sub:'Full Body B — Pull Led', plate:'p-blue', plateNum:'20', duration:'~40 min',
           exercises:[
-            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
             {name:'Hollow Body Hold', sets:'2×20-30s', noWeight:true},
           ]
         },
@@ -18263,10 +18266,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
-            {name:'Push-up', sets:'4×AMRAP'},
-            {name:'Pike Push-up', sets:'3×10-12'},
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Push-up', sets:'4×AMRAP', noWeight:true},
+            {name:'Pike Push-up', sets:'3×10-12', noWeight:true},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
             {name:'Plank', sets:'3×45s', noWeight:true},
           ]
         },
@@ -18274,9 +18277,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
         d3: { label:'Day 3', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
           exercises:[
-            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Inverted Row', sets:'3×12-15', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
           ]
         },
@@ -18284,11 +18287,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
         d5: { label:'Day 5', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
-            {name:'Bodyweight Squat', sets:'4×20-25'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Glute Bridge', sets:'3×15-20'},
-            {name:'Nordic Curl', sets:'3×5-8'},
-            {name:'Calf Raise', sets:'3×20-25'},
+            {name:'Bodyweight Squat', sets:'4×20-25', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Glute Bridge', sets:'3×15-20', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
+            {name:'Calf Raise', sets:'3×20-25', noWeight:true},
           ]
         },
         d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -18303,10 +18306,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
-            {name:'Push-up', sets:'4×AMRAP'},
-            {name:'Pike Push-up', sets:'3×10-12'},
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Push-up', sets:'4×AMRAP', noWeight:true},
+            {name:'Pike Push-up', sets:'3×10-12', noWeight:true},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
             {name:'Plank', sets:'3×45s', noWeight:true},
           ]
         },
@@ -18314,9 +18317,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
         d3: { label:'Day 3', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
           exercises:[
-            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Inverted Row', sets:'3×12-15', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
           ]
         },
@@ -18324,19 +18327,19 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
         d5: { label:'Day 5', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
-            {name:'Bodyweight Squat', sets:'4×20-25'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Glute Bridge', sets:'3×15-20'},
-            {name:'Nordic Curl', sets:'3×5-8'},
-            {name:'Calf Raise', sets:'3×20-25'},
+            {name:'Bodyweight Squat', sets:'4×20-25', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Glute Bridge', sets:'3×15-20', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
+            {name:'Calf Raise', sets:'3×20-25', noWeight:true},
           ]
         },
         d6: { label:'Day 6', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
           exercises:[
             {name:'Burpees', sets:'4×30-45s', noWeight:true},
             {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
-            {name:'Jump Squat', sets:'3×6-8'},
-            {name:'Push-up to Plank', sets:'3×10'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
+            {name:'Push-up to Plank', sets:'3×10', noWeight:true},
           ]
         },
         d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -18351,18 +18354,18 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
-            {name:'Push-up', sets:'4×AMRAP'},
-            {name:'Pike Push-up', sets:'3×10-12'},
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Push-up', sets:'4×AMRAP', noWeight:true},
+            {name:'Pike Push-up', sets:'3×10-12', noWeight:true},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
             {name:'Plank', sets:'3×45s', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
           exercises:[
-            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Inverted Row', sets:'3×12-15', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
           ]
         },
@@ -18370,35 +18373,35 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
         d4: { label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
-            {name:'Bodyweight Squat', sets:'4×20-25'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Glute Bridge', sets:'3×15-20'},
-            {name:'Nordic Curl', sets:'3×5-8'},
-            {name:'Calf Raise', sets:'3×20-25'},
+            {name:'Bodyweight Squat', sets:'4×20-25', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Glute Bridge', sets:'3×15-20', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
+            {name:'Calf Raise', sets:'3×20-25', noWeight:true},
           ]
         },
         d5: { label:'Day 5', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
           exercises:[
             {name:'Burpees', sets:'4×30-45s', noWeight:true},
             {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
-            {name:'Jump Squat', sets:'3×6-8'},
-            {name:'Push-up to Plank', sets:'3×10'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
+            {name:'Push-up to Plank', sets:'3×10', noWeight:true},
           ]
         },
         d6: { label:'Day 6', sub:'Core & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
           exercises:[
             {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
             {name:'Plank', sets:'3×45-60s', noWeight:true},
-            {name:'Bicycle Crunch', sets:'3×15/side'},
+            {name:'Bicycle Crunch', sets:'3×15/side', noWeight:true},
             {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
           ]
         },
         d7: { label:'Day 7', sub:'Unilateral & Isometric Progressions', plate:'p-off', plateNum:'5', duration:'~35 min',
           exercises:[
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
           ]
         },
       }
@@ -18409,18 +18412,18 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
-            {name:'Push-up', sets:'4×AMRAP'},
-            {name:'Pike Push-up', sets:'3×10-12'},
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Push-up', sets:'4×AMRAP', noWeight:true},
+            {name:'Pike Push-up', sets:'3×10-12', noWeight:true},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Triceps Dip', sets:'3×12-15', noWeight:true},
             {name:'Plank', sets:'3×45s', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
           exercises:[
-            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Inverted Row', sets:'3×12-15', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
           ]
         },
@@ -18428,35 +18431,35 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
-            {name:'Bodyweight Squat', sets:'4×20-25'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Glute Bridge', sets:'3×15-20'},
-            {name:'Nordic Curl', sets:'3×5-8'},
-            {name:'Calf Raise', sets:'3×20-25'},
+            {name:'Bodyweight Squat', sets:'4×20-25', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Glute Bridge', sets:'3×15-20', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
+            {name:'Calf Raise', sets:'3×20-25', noWeight:true},
           ]
         },
         d5: { label:'Day 5', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
           exercises:[
             {name:'Burpees', sets:'4×30-45s', noWeight:true},
             {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
-            {name:'Jump Squat', sets:'3×6-8'},
-            {name:'Push-up to Plank', sets:'3×10'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
+            {name:'Push-up to Plank', sets:'3×10', noWeight:true},
           ]
         },
         d6: { label:'Day 6', sub:'Core & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
           exercises:[
             {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
             {name:'Plank', sets:'3×45-60s', noWeight:true},
-            {name:'Bicycle Crunch', sets:'3×15/side'},
+            {name:'Bicycle Crunch', sets:'3×15/side', noWeight:true},
             {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
           ]
         },
         d7: { label:'Day 7', sub:'Unilateral & Isometric Progressions', plate:'p-off', plateNum:'5', duration:'~35 min',
           exercises:[
-            {name:'Decline Push-up', sets:'3×12-15'},
-            {name:'Chin-up', sets:'3×AMRAP'},
-            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
-            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Decline Push-up', sets:'3×12-15', noWeight:true},
+            {name:'Chin-up', sets:'3×AMRAP', noWeight:true},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8', noWeight:true},
           ]
         },
       }
@@ -18555,7 +18558,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
           exercises:[
             {name:'Pistol Squat', sets:'3×5-8/leg'},
-            {name:'Jump Squat', sets:'3×6-8'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
             {name:'Nordic Curl', sets:'3×5-8'},
             {name:'Calf Raise', sets:'3×20-25'},
           ]
@@ -18601,7 +18604,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d6: { label:'Day 6', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
           exercises:[
             {name:'Pistol Squat', sets:'3×5-8/leg'},
-            {name:'Jump Squat', sets:'3×6-8'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
             {name:'Nordic Curl', sets:'3×5-8'},
             {name:'Calf Raise', sets:'3×20-25'},
           ]
@@ -18645,7 +18648,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
           exercises:[
             {name:'Pistol Squat', sets:'3×5-8/leg'},
-            {name:'Jump Squat', sets:'3×6-8'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
             {name:'Nordic Curl', sets:'3×5-8'},
             {name:'Calf Raise', sets:'3×20-25'},
           ]
@@ -18699,7 +18702,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
           exercises:[
             {name:'Pistol Squat', sets:'3×5-8/leg'},
-            {name:'Jump Squat', sets:'3×6-8'},
+            {name:'Jump Squat', sets:'3×6-8', noWeight:true},
             {name:'Nordic Curl', sets:'3×5-8'},
             {name:'Calf Raise', sets:'3×20-25'},
           ]
@@ -18733,10 +18736,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Full Coverage', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'2×8-10'},
+            {name:'McGill Curl-up', sets:'2×8-10', noWeight:true},
             {name:'Pallof Press', sets:'2×10/side'},
             {name:'Farmer\'s Carry', sets:'3×30yd'},
-            {name:'Bird Dog', sets:'2×10/side'},
+            {name:'Bird Dog', sets:'2×10/side', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -18759,10 +18762,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'3×8-10'},
-            {name:'Bird Dog', sets:'3×8/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
-            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+            {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+            {name:'Dead Bug', sets:'3×10/side', noWeight:true},
             {name:'Ab Wheel Rollout', sets:'3×8-10'},
           ]
         },
@@ -18793,10 +18796,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'3×8-10'},
-            {name:'Bird Dog', sets:'3×8/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
-            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+            {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+            {name:'Dead Bug', sets:'3×10/side', noWeight:true},
             {name:'Ab Wheel Rollout', sets:'3×8-10'},
           ]
         },
@@ -18833,10 +18836,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'3×8-10'},
-            {name:'Bird Dog', sets:'3×8/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
-            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+            {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+            {name:'Dead Bug', sets:'3×10/side', noWeight:true},
             {name:'Ab Wheel Rollout', sets:'3×8-10'},
           ]
         },
@@ -18881,10 +18884,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'3×8-10'},
-            {name:'Bird Dog', sets:'3×8/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
-            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+            {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+            {name:'Dead Bug', sets:'3×10/side', noWeight:true},
             {name:'Ab Wheel Rollout', sets:'3×8-10'},
           ]
         },
@@ -18917,8 +18920,8 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         },
         d6: { label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
           exercises:[
-            {name:'Bird Dog', sets:'3×10/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Bird Dog', sets:'3×10/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
             {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
           ]
@@ -18939,10 +18942,10 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
-            {name:'McGill Curl-up', sets:'3×8-10'},
-            {name:'Bird Dog', sets:'3×8/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
-            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'McGill Curl-up', sets:'3×8-10', noWeight:true},
+            {name:'Bird Dog', sets:'3×8/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
+            {name:'Dead Bug', sets:'3×10/side', noWeight:true},
             {name:'Ab Wheel Rollout', sets:'3×8-10'},
           ]
         },
@@ -18975,8 +18978,8 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         },
         d6: { label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
           exercises:[
-            {name:'Bird Dog', sets:'3×10/side'},
-            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Bird Dog', sets:'3×10/side', noWeight:true},
+            {name:'Side Plank', sets:'3×30-45s/side', noWeight:true},
             {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
             {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
           ]
@@ -19002,7 +19005,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'6×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'3×1min', noWeight:true},
             {name:'Push-up', sets:'2×15'},
-            {name:'Bodyweight Squat', sets:'2×20'},
+            {name:'Bodyweight Squat', sets:'2×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19028,7 +19031,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Push-up', sets:'3×15'},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19038,7 +19041,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -19060,7 +19063,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Push-up', sets:'3×15'},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19070,7 +19073,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -19097,7 +19100,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Push-up', sets:'3×15'},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19107,7 +19110,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -19141,7 +19144,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Push-up', sets:'3×15'},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
@@ -19149,7 +19152,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19178,7 +19181,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'3×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
       }
@@ -19192,7 +19195,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Push-up', sets:'3×15'},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
@@ -19200,7 +19203,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -19229,7 +19232,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
             {name:'Jump Rope — Boxer Skip', sets:'3×1min', noWeight:true},
-            {name:'Bodyweight Squat', sets:'3×20'},
+            {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
           ]
         },
       }
@@ -19670,7 +19673,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Recovery Jog', sets:'20 min', noWeight:true},
             {name:'Back Squat', sets:'3×5'},
             {name:'Romanian Deadlift', sets:'3×6'},
-            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
             {name:'Push-up', sets:'3×15'},
           ]
         },
@@ -19718,7 +19721,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Recovery Jog', sets:'20 min', noWeight:true},
             {name:'Back Squat', sets:'3×5'},
             {name:'Romanian Deadlift', sets:'3×6'},
-            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Single-Leg Bound', sets:'3×6/leg', noWeight:true},
             {name:'Push-up', sets:'3×15'},
           ]
         },
@@ -21183,7 +21186,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Power Clean', sets:'5×3'},
             {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
             {name:'Box Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×5/leg'},
+            {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -21221,7 +21224,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Power Clean', sets:'5×3'},
             {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
             {name:'Box Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×5/leg'},
+            {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -21267,7 +21270,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Power Clean', sets:'5×3'},
             {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
             {name:'Box Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×5/leg'},
+            {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -21322,7 +21325,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Power Clean', sets:'5×3'},
             {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
             {name:'Box Jump', sets:'4×5'},
-            {name:'Single-Leg Bound', sets:'3×5/leg'},
+            {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
@@ -21370,7 +21373,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Warm-up Jog', sets:'8 min', noWeight:true},
             {name:'Tempo Run', sets:'12 min', noWeight:true},
-            {name:'Wall Balls', sets:'3×15', noWeight:true},
+            {name:'Wall Balls', sets:'3×15'},
             {name:'Sled Push', sets:'3×20m'},
           ]
         },
@@ -21406,7 +21409,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Back Squat', sets:'4×6'},
             {name:'Sled Push', sets:'5×20m'},
-            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Sled Pull', sets:'5×20m'},
             {name:'Romanian Deadlift', sets:'3×8'},
           ]
         },
@@ -21436,7 +21439,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Back Squat', sets:'4×6'},
             {name:'Sled Push', sets:'5×20m'},
-            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Sled Pull', sets:'5×20m'},
             {name:'Romanian Deadlift', sets:'3×8'},
           ]
         },
@@ -21446,7 +21449,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Warm-up Jog', sets:'10 min', noWeight:true},
             {name:'400m Repeats', sets:'4×400m', noWeight:true},
-            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Wall Balls', sets:'4×15'},
             {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
           ]
         },
@@ -21474,7 +21477,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Back Squat', sets:'4×6'},
             {name:'Sled Push', sets:'5×20m'},
-            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Sled Pull', sets:'5×20m'},
             {name:'Romanian Deadlift', sets:'3×8'},
           ]
         },
@@ -21482,7 +21485,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
         d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
-            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Wall Balls', sets:'5×15'},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
             {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
@@ -21492,7 +21495,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Warm-up Jog', sets:'10 min', noWeight:true},
             {name:'400m Repeats', sets:'4×400m', noWeight:true},
-            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Wall Balls', sets:'4×15'},
             {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
           ]
         },
@@ -21520,7 +21523,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Back Squat', sets:'4×6'},
             {name:'Sled Push', sets:'5×20m'},
-            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Sled Pull', sets:'5×20m'},
             {name:'Romanian Deadlift', sets:'3×8'},
           ]
         },
@@ -21528,7 +21531,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
         d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
-            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Wall Balls', sets:'5×15'},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
             {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
@@ -21538,7 +21541,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Warm-up Jog', sets:'10 min', noWeight:true},
             {name:'400m Repeats', sets:'4×400m', noWeight:true},
-            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Wall Balls', sets:'4×15'},
             {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
           ]
         },
@@ -21547,7 +21550,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Farmers Carry (Heavy)', sets:'4×40m'},
             {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
             {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
-            {name:'Wall Balls', sets:'3×20', noWeight:true},
+            {name:'Wall Balls', sets:'3×20'},
           ]
         },
         d7: { label:'Day 7', sub:'Easy Aerobic Engine', plate:'p-off', plateNum:'5', duration:'~30 min',
@@ -21574,7 +21577,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Back Squat', sets:'4×6'},
             {name:'Sled Push', sets:'5×20m'},
-            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Sled Pull', sets:'5×20m'},
             {name:'Romanian Deadlift', sets:'3×8'},
           ]
         },
@@ -21582,7 +21585,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here, even at 7 days selected.' },
         d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
-            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Wall Balls', sets:'5×15'},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
             {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
@@ -21592,7 +21595,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Warm-up Jog', sets:'10 min', noWeight:true},
             {name:'400m Repeats', sets:'4×400m', noWeight:true},
-            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Wall Balls', sets:'4×15'},
             {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
           ]
         },
@@ -21601,7 +21604,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Farmers Carry (Heavy)', sets:'4×40m'},
             {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
             {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
-            {name:'Wall Balls', sets:'3×20', noWeight:true},
+            {name:'Wall Balls', sets:'3×20'},
           ]
         },
         d7: { label:'Day 7', sub:'Easy Aerobic Engine', plate:'p-off', plateNum:'5', duration:'~30 min',
@@ -24493,7 +24496,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics + Posterior Shoulder Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
-              {name:'Jump Squat', sets:'2×8'},
+              {name:'Jump Squat', sets:'2×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'2×5/leg', noWeight:true},
               {name:'Band External Rotation', sets:'2×15'},
             ]
@@ -24519,7 +24522,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
               {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
             ]
@@ -24551,7 +24554,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
               {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
             ]
@@ -24589,7 +24592,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
               {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
             ]
@@ -24635,7 +24638,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
               {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
             ]
@@ -24690,7 +24693,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
               {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
             ]
@@ -25365,7 +25368,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
           d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
               {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
@@ -25411,7 +25414,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
           d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
               {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
@@ -25466,7 +25469,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             note:'Shoulder, thoracic spine and hip mobility, 20-25 minutes. The rotational push-pull stroke loads exactly these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
-              {name:'Jump Squat', sets:'3×8'},
+              {name:'Jump Squat', sets:'3×8', noWeight:true},
               {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
               {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
               {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
@@ -33432,7 +33435,7 @@ const BODY_GOAL_FOCUS = [
     {name:'Box Jump', sets:'3×5'},
   ]},
   {pattern:/toned & lean|lean & toned/i, label:'Toning Focus', exercises:[
-    {name:'Bodyweight Squat', sets:'3×20'},
+    {name:'Bodyweight Squat', sets:'3×20', noWeight:true},
     {name:'Push-up', sets:'3×12-15', noWeight:true},
   ]},
 ];
@@ -45082,7 +45085,7 @@ const SUB_NECK_ISO     = {name:'Neck Isometric (hand resistance)', why:'loads th
 // v3.526 (BL-75): not for a resting shoulder. A loaded vest or backpack presses
 // on the shoulders through its straps, so a resting shoulder gets no swap.
 const SUB_VEST_CARRY = {name:'Vest or Backpack Walk (hands free)', why:'keeps the braced walk under load with nothing in your hands', for:['Hands/Fingers','Elbow/Wrist']};
-const SUB_BIRD_DOG   = {name:'Bird Dog', why:"keeps the bracing with no load on your spine, and it's one of Care's own lower-back moves", for:['Lower Back']};
+const SUB_BIRD_DOG   = {name:'Bird Dog', why:"keeps the bracing with no load on your spine, and it's one of Care's own lower-back moves", for:['Lower Back'], noWeight:true};
 const SUB_LYING_RAISE  = {name:'Lying Leg Raise (floor)', why:'trains the same hip flexion with no hanging on your grip or shoulders', for:['Hands/Fingers','Elbow/Wrist','Shoulder']};
 const EXERCISE_SUBSTITUTE_OVERRIDE = {
   'Eccentric Heel Drop': SUB_CALF_HOLD, 'Calf Raise': SUB_CALF_HOLD, 'Standing Calf Raise': SUB_CALF_HOLD,
