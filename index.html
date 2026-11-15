@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.554';
+const APP_VERSION = '3.555';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9197,6 +9197,9 @@ const WHATS_NEW = {
   ]},
   '3.554': { headline: 'Take a deload in one tap', points: [
     'When your logs show effort climbing while your lifts stall, Today\'s Priorities now says so and offers "Take it this week". One tap turns on the same deload switch that\'s in Settings, and your suggested weights and warm-ups lighten right away.',
+  ]},
+  '3.555': { headline: 'Deload weeks shorten your long cardio too', points: [
+    'A deload week already cut your sets. Now it also trims long runs and rides by about 30% (a 45-60 min long run becomes 30-40 min), so the lightest week is actually light. Warm-ups, cool-downs and Medical programs keep their usual length.',
   ]},
 };
 
@@ -27312,9 +27315,29 @@ function applyAccumulationAccessory(exercises, week, program, dayId){
   return [...exercises, {...bonus, accumulatedAccessory: true}];
 }
 
-function applyDeloadVolumeReduction(exercises){
+// v3.555 (BL-48): the deload also shortens duration-only cardio. Cutting
+// 6×400m to 3×400m while the 90-minute Long Ride stays full kept the week's
+// biggest aerobic load; a deload typically cuts volume by about 30-50%
+// [BELL23]. A cardio row whose sets is a pure duration ("45-60 min") gets
+// its minutes × 0.7, rounded to 5. Warm-up and cool-down rows keep their
+// length (the same name test as isWarmupOrCooldownUnit), and the clinical
+// plans (program 'medical') keep their authored durations.
+const DELOAD_DURATION_FACTOR = 0.7;
+function deloadDuration(sets){
+  const m = /^(\d+)(?:\s*-\s*(\d+))?\s*min\b/.exec(sets || '');
+  if(!m) return null;
+  const cut = (n)=> Math.max(5, Math.round(Number(n) * DELOAD_DURATION_FACTOR / 5) * 5);
+  const lo = cut(m[1]), hi = m[2] != null ? cut(m[2]) : null;
+  return `${hi != null && hi !== lo ? `${lo}-${hi}` : lo} min${sets.slice(m[0].length)}`;
+}
+function applyDeloadVolumeReduction(exercises, program){
   return exercises.map(ex=>{
-    if(!hasNumericSetPrefix(ex.sets)) return ex;
+    if(!hasNumericSetPrefix(ex.sets)){
+      if(program === 'medical' || /warm.?up|cool.?down/i.test(ex.name || '')) return ex;
+      if((exerciseInfo[ex.name] || {}).category !== 'cardio') return ex;
+      const sets = deloadDuration(ex.sets);
+      return sets && sets !== ex.sets ? {...ex, sets} : ex;
+    }
     const current = parseSetCount(ex.sets);
     const reduced = Math.max(1, Math.round(current * 0.55));
     if(reduced >= current) return ex;
@@ -29416,7 +29439,7 @@ async function renderWorkout(){
   document.getElementById('exerciseList').dataset.deload = inDeloadWeek ? '1' : ''; // read by the set chips (v3.303)
   const mesoWeek = await getMesocycleWeek();
   if(inDeloadWeek){
-    fullExercises = applyDeloadVolumeReduction(fullExercises);
+    fullExercises = applyDeloadVolumeReduction(fullExercises, activeProgram);
   } else {
     // Accumulation and deload are mutually exclusive by construction (week 5 is
     // the deload), but branching rather than sequencing makes that explicit —
