@@ -672,7 +672,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (27821–27853), `sw.js`, `test-rest-units.js` (new).
 - **Risk:** the rest timer, and the session time estimate (`parseEstimatedMinutes`, 26501, reads `getDefaultRestSeconds`). Guards: the seven suites that extract the real `getDefaultRestSeconds` and `getRestReasonLabel` (`test-auto-check-sets.js`, `test-backdating-rest-timer-suppression.js`, `test-fallback-entry-consolidation.js`, `test-partial-set-reactions.js`, `test-set-next-button.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`) and `test-lb-per-kg-consolidation.js` (Back Squat 3×5 = 109 kcal through the rest time: strength tier, unchanged at 240 s, so it should hold). If the unit branch reads `exerciseInfo` categories it already has them in those sandboxes; if it reads anything new (a sprint name list), guard it with `typeof` as BL-57 does.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the tip reference corrected (the old 33132 line is the plyometrics tip at 33328); the seven extracting suites named. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.556, PR #131). Shoulder counts as isolation for the high-rep rest (Lateral Raise 75 s).
 
 ### BL-15: The decrease signal waits for two short sessions (M-2)
 - **Why:** signal 2 in `analyzeProgressionSignal` (27616–27626) drops the load 7.5% after one session below the rep floor. Coached rules wait for repeated failure: Starting Strength resets after 3 stalls, and GZCLP changes the scheme first [PRAC].

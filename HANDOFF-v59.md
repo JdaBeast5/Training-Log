@@ -1202,3 +1202,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 79: BL-48 (v3.555, PR #130, 2026-11-15)
 - **What:** `deloadDuration(sets)` and `applyDeloadVolumeReduction(exercises, program)` (cardio durations × 0.7, rounded to 5; warm-up/cool-down and medical excluded). 219/219.
+
+## Addendum 80: BL-14 (v3.556, PR #131, 2026-11-15)
+- **What:** `NON_REP_UNITS`, `prescriptionCount`, `restUnitKind`, `REST_BY_UNIT`; `getRepRangeTier` returns null for unit counts (inline regex); endurance rest 120/75. 220/220.

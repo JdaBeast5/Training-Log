@@ -66,7 +66,7 @@ test('criterion 3 (BL-57 not shipped): real rest is 90 s for Jump Squat 3×6-8 (
       jsOld: rest('Jump Squat', '3×12-15'), jsNew: rest('Jump Squat', '3×6-8'),
       slb: [['3×6', '3×6/leg'], ['3×5/side', '3×5/leg'], ['2×5/side', '2×5/leg']].map(([a, b]) => [rest('Single-Leg Bound', a), rest('Single-Leg Bound', b)]),
     });`);
-  assert.strictEqual(r.jsOld, 60);
+  assert.strictEqual(r.jsOld, 75, 'v3.556 (BL-14): endurance-tier isolation rest rose from 60 to 75 s');
   assert.strictEqual(r.jsNew, 90, 'the 90 s BL-57 asks for');
   // Every real Jump Squat slot, as shipped, gets 90 s.
   const js = SLOTS.filter(s => s.name === 'Jump Squat');
