@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.557';
+const APP_VERSION = '3.558';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9206,6 +9206,9 @@ const WHATS_NEW = {
   ]},
   '3.557': { headline: 'Sensible rest for yoga, mobility, jumps and swims', points: [
     'Yoga holds and flows like "5 breaths ×3" and Tai Chi forms used to get 4 minutes of rest; now 30 seconds. Mobility and technique drills like Hip CARs rest 45 seconds, jumps 90 (heavy jumps 2 minutes), and 100 m swim repeats 20 seconds, as their own cue says.',
+  ]},
+  '3.558': { headline: 'Stuck on a lift? The app says so', points: [
+    'When a lift sits at the same weight for three sessions without your reps climbing, the exercise now tells you, with three ways to break the plateau: drop to the bottom of the rep range and add a set, swap to a variation, or add a small 2.5 lb jump. Nothing changes until you choose.',
   ]},
 };
 
@@ -28216,6 +28219,22 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
     return {
       type: 'increase', stepLb: bump,
       message: `Every set hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double progression: you've outgrown this rep range at this weight).`
+    };
+  }
+
+  // v3.558 (BL-26, Fitbod's top complaint): a plateau is named, not silent.
+  // Three sessions at the same weight with the reps at that weight not
+  // rising, below RPE 9 (RPE 9+ with no progress is still the deload signal
+  // above), and not already at the top (that's an increase). GZCLP changes
+  // the scheme before cutting load [PRAC], so the badge offers three choices
+  // as text and nothing changes automatically. After the clinical gate, which
+  // has returned already on the clinical plans.
+  const flat3 = !!s2 && [s0, s1, s2].every(s=> s.weight != null && s.weight === s0.weight && s.minRepsAtTop != null);
+  if(flat3 && s0.minRepsAtTop <= s2.minRepsAtTop && !(s0.avgRpe != null && s0.avgRpe >= 9) && !allAtTop(s0)){
+    const bottom = bottomRepTarget != null ? bottomRepTarget : s0.minRepsAtTop;
+    return {
+      type: 'stall',
+      message: `Stuck at ${fmtWeight(s0.weight)} for 3 sessions (${s0.minRepsAtTop} reps). Three ways to break it: drop to the bottom of the range (${bottom} reps) and add a set; swap variation (see substitutes); or micro-load +2.5 lb.`
     };
   }
 

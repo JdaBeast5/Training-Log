@@ -1208,3 +1208,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 81: BL-57 (v3.557, PR #132, 2026-11-15)
 - **What:** `restUnitKind` kinds flow/multiplier/swimShort/swimLong/jump/jumpHeavy/mobility; `getRepRangeTier` null for trailing multipliers. 221/221.
+
+## Addendum 82: BL-26 (v3.558, PR #133, 2026-11-15)
+- **What:** `stall` signal in `analyzeProgressionSignal` (after the clinical gate); badge text only. 221/221.

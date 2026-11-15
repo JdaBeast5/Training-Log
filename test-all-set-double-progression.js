@@ -222,4 +222,40 @@ test('BL-24: Medical and Senior never scale: a 300×12 Back Squat at RPE 7 on Me
   assert.notStrictEqual(r.loadStep, r.scaled);
 });
 
+// v3.558 (BL-26): a plateau is named with three choices; nothing changes
+// automatically. Sabotage: remove the RPE exclusion and criterion 2 fails.
+const ROW = {name: 'Barbell Row', sets: '4×6-8'};
+const flat = (rpe) => [sess('2026-11-01', 185, [6, 6, 6, 6], rpe), sess('2026-11-04', 185, [6, 6, 6, 6], rpe), sess('2026-11-07', 185, [6, 6, 6, 6], rpe)];
+test('BL-26 criteria 1 and 3: three flat sessions (6, 6, 6 at 185 on 4×6-8, RPE 8) give stall; the badge names all three options; the field suggests nothing new', (assert)=>{
+  const r = row(flat(8), ROW, 'pull', 'strength');
+  assert.strictEqual(r.signal, 'stall');
+  for(const opt of ['drop to the bottom of the range', 'add a set', 'swap variation (see substitutes)', 'micro-load +2.5 lb']) assert.ok(r.badge.includes(opt), opt);
+  assert.ok(r.sug == null || r.sug.weight === 185, 'the same weight as last time (the field ghosts it): ' + JSON.stringify(r.sug));
+});
+
+test('BL-26 criterion 2: three flat sessions at RPE 9+ are still deload; rising reps are no stall', (assert)=>{
+  assert.strictEqual(row(flat(9.5), ROW, 'pull', 'strength').signal, 'deload');
+  // Only the newest session at RPE 9+: not all three, so no deload either; still no stall.
+  const lastHard = [sess('2026-11-01', 185, [6, 6, 6, 6], 8), sess('2026-11-04', 185, [6, 6, 6, 6], 8), sess('2026-11-07', 185, [6, 6, 6, 6], 9.5)];
+  assert.notStrictEqual(row(lastHard, ROW, 'pull', 'strength').signal, 'stall');
+  const rising = [sess('2026-11-01', 185, [6, 6, 6, 6], 8), sess('2026-11-04', 185, [7, 6, 6, 6], 8), sess('2026-11-07', 185, [7, 7, 7, 7], 8)];
+  assert.notStrictEqual(row(rising, ROW, 'pull', 'strength').signal, 'stall');
+});
+
+test('BL-26 criteria 4 and 5: the fit check counts a stall as hold (ratios unchanged); on Medical the fixture gives null', (assert)=>{
+  const [r] = runSandbox([...chunks, extractConst(src, 'PROGRAM_FIT_MIN_SAMPLE'), extractFunction(src, 'buildProgramFitInsight')], `
+    const past = buildPastSessions(${JSON.stringify(flat(8))});
+    const counts = {increase: 1, decrease: 0, deload: 0, hold: 0, total: 0};
+    const sig = analyzeProgressionSignal(past, ${JSON.stringify(ROW)}, 'pull', 'strength');
+    for(let i = 0; i < 4; i++){ counts.total++; if(sig && sig.type === 'increase') counts.increase++; else if(sig && sig.type === 'decrease') counts.decrease++; else if(sig && sig.type === 'deload') counts.deload++; else counts.hold++; }
+    const asHold = {increase: 1, decrease: 0, deload: 0, hold: 4, total: 4};
+    __capture.push({counts, same: JSON.stringify(buildProgramFitInsight(counts)) === JSON.stringify(buildProgramFitInsight(asHold)),
+      medical: analyzeProgressionSignal(past, ${JSON.stringify(ROW)}, 'pull', 'medical')});`);
+  assert.strictEqual(r.counts.hold, 4);
+  assert.ok(r.same);
+  assert.strictEqual(r.medical, null);
+  const body = extractFunction(src, 'computeProgramFitTrend');
+  assert.match(body, /else if\(signal && signal\.type==='deload'\) deload\+\+;\s*else hold\+\+;/, 'a stall falls to the hold branch');
+});
+
 run();
