@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.556';
+const APP_VERSION = '3.557';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9203,6 +9203,9 @@ const WHATS_NEW = {
   ]},
   '3.556': { headline: 'Rest times that fit the work', points: [
     'The rest timer used to read "6×2min" or "6×40yd" as reps, so a 2-minute bag round got 4 minutes of rest and short sprints got 1. Now rounds rest 60 s (jump rope 45 s), short sprints and max holds 2 minutes, and conditioning intervals 90 s. High-rep compound lifts rest 2 minutes, and high-rep isolation 75 s.',
+  ]},
+  '3.557': { headline: 'Sensible rest for yoga, mobility, jumps and swims', points: [
+    'Yoga holds and flows like "5 breaths ×3" and Tai Chi forms used to get 4 minutes of rest; now 30 seconds. Mobility and technique drills like Hip CARs rest 45 seconds, jumps 90 (heavy jumps 2 minutes), and 100 m swim repeats 20 seconds, as their own cue says.',
   ]},
 };
 
@@ -28393,6 +28396,9 @@ function getRepRangeTier(setsStr){
   // Inline, so suites that extract this one function keep their sandboxes
   // (the same unit list as NON_REP_UNITS).
   if(/×\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*(?:s|secs?|seconds?|min|mins|minutes?|m|km|mi|yds?|yards?|rounds?|breaths?|steps?)\b/i.test(setsStr || '')) return null;
+  // v3.557 (BL-57): "5 breaths ×3", "6 reps ×3", "3-5 min ×3": the count
+  // comes first and the multiplier after, so the "×3" is not a rep count.
+  if(/^\d+(?:-\d+)?\s*(?:reps?|breaths?|min)[^×]*×\s*\d+\s*$/i.test(setsStr || '')) return null;
   const m = (setsStr||'').match(/×\s*(\d+)\s*(?:-\s*(\d+))?/);
   if(!m) return null;
   const lo = Number(m[1]);
@@ -28463,16 +28469,28 @@ function rirLabelHtml(ex, program, inDeload){
 function restUnitKind(ex){
   const sets = (ex && ex.sets) || '';
   const name = (ex && ex.name) || '';
-  const c = prescriptionCount(sets);
-  if(!c || !c.unit || !NON_REP_UNITS.test(c.unit)) return null;
   const cat = ((exerciseInfo[name] || {}).category) || null;
+  // v3.557 (BL-57, audit D-6/D-11), checked before the unit branch:
+  // trailing multipliers (yoga holds and flows, Tai Chi forms), swim repeats
+  // (their own cue says 15-30 s), plyometrics (full recovery), and mobility
+  // and technique drills (never the strength tier's 4 minutes).
+  const trailing = /^\d+(?:-\d+)?\s*(reps?|breaths?|min)[^×]*×\s*\d+\s*$/i.exec(sets);
+  if(trailing) return /^reps?$/i.test(trailing[1]) ? 'multiplier' : 'flow';
+  const swim = /\d+\s*×\s*(\d+)\s*m\b/i.exec(sets);
+  if(swim && /swim/i.test(name)) return Number(swim[1]) <= 200 ? 'swimShort' : 'swimLong';
+  if(cat === 'jump') return /^(?:Depth Jump|Trap Bar Jump Squat)$/.test(name) ? 'jumpHeavy' : 'jump';
+  const c = prescriptionCount(sets);
+  const unitKind = c && c.unit && NON_REP_UNITS.test(c.unit);
+  const mobility = ((cat === 'core' || cat === 'shoulder') && ex.noWeight)
+    || (typeof EXERCISE_MOVE !== 'undefined' && EXERCISE_MOVE[name] === 'mobility');
+  if(!unitKind) return mobility ? 'mobility' : null;
   const secs = /^s|^sec/.test(c.unit), dist = /^(?:m|yds?|yards?)$/.test(c.unit);
   if(/jump rope/i.test(name)) return 'jumpRope';
   if(/\brounds?\b/i.test(sets) || cat === 'punch' || cat === 'kick') return 'rounds';
   if((dist && c.hi <= 40) || (secs && c.hi <= 20 && (/sprint/i.test(name) || cat === 'cardio' || cat === 'jump'))) return 'sprint';
   if(secs && (cat === 'pull' || cat === 'push' || cat === 'shoulder')) return 'hold';
   if(cat === 'cardio' || /sprint|interval|row|erg|run|bike|ski|swim/i.test(name)) return 'interval';
-  return null;
+  return mobility ? 'mobility' : null;
 }
 const REST_BY_UNIT = {
   jumpRope: {sec: 45, label: 'Jump rope · short reset'},
@@ -28480,6 +28498,13 @@ const REST_BY_UNIT = {
   sprint: {sec: 120, label: 'Sprints · near-full recovery'},
   hold: {sec: 120, label: 'Max holds · near-full recovery'},
   interval: {sec: 90, label: 'Intervals · partial recovery'},
+  flow: {sec: 30, label: 'Flow · move on when ready'},
+  multiplier: {sec: 60, label: 'Rounds of reps · short reset'},
+  swimShort: {sec: 20, label: 'Swim repeats · short rest'},
+  swimLong: {sec: 30, label: 'Longer swim repeats · short rest'},
+  jump: {sec: 90, label: 'Plyometrics · full recovery'},
+  jumpHeavy: {sec: 120, label: 'Heavy plyometrics · full recovery'},
+  mobility: {sec: 45, label: 'Mobility · easy pace'},
 };
 
 function getDefaultRestSeconds(ex){
