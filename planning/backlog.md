@@ -1747,7 +1747,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (program data: `core` 10071, `bodyweight` 10132, and every other program carrying the listed names; the day-count variants from 16241, notably `bodyweight` 17861 and `core` 18389; the `*_STYLES` tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
 - **Risk:** an owner who logs weighted push-ups in the Bodyweight program loses the field there. That's the owner's call. Placed before BL-11 (slot 26a), because BL-11's rep progression applies to rows without a weight.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 2–4 made real invocations (criterion 4 makes the Sled/Wall Balls change checkable). `test-partial-set-reactions.js:136` is still the reps-alone `noWeight` case. Scope unchanged.
-- **Status:** ready (owner yes 2026-11-08: "56 a"). Slot 26a, before BL-11.
+- **Status:** done (v3.559, PR #134).
 
 ### BL-57: The rest parser reads trailing multipliers, per-side mobility and swim repeats correctly (D-6, D-11; after BL-14)
 - **Why:**

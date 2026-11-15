@@ -1211,3 +1211,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 82: BL-26 (v3.558, PR #133, 2026-11-15)
 - **What:** `stall` signal in `analyzeProgressionSignal` (after the clinical gate); badge text only. 221/221.
+
+## Addendum 83: BL-56 (v3.559, PR #134, 2026-11-15)
+- **What:** noWeight data sweep (165 added, 19 removed from Wall Balls/Sled Pull). 222/222. BL-11 (next) applies to these rows.
