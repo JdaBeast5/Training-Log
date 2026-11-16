@@ -1327,3 +1327,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **For BL-20:** the ledger can now read `calf` and `isolation-leg`; 'Calves' has no `VOLUME_LANDMARKS` entry by design.
 - **Open for the auditor:** Band Dislocates as a Face Pull / Rear Delt Fly swap.
 - **Next:** BL-20 (56), then BL-33, BL-31. UX-04 onward waits on the owner's look at UX-03.
+
+## Addendum 108: BL-33 (v3.584, PR #160, stacked on #157–#159, 2026-11-16)
+- **What:** `getMesocycleWeek` = completed 7-day blocks with ≥ 2 `activity-dates` + 1 (local `MIN_SESSIONS`, so extracting suites need nothing new).
+- **Held:** BL-20 needs UX-05's `var(--spot)`; BL-31 needs BL-20. Both wait on the owner's look at UX-03 → UX-04 → UX-05.
+- **Next non-UX candidates past slot 58:** Phase 3 (BIZ-02 onward) — check each for owner-only questions before building.
