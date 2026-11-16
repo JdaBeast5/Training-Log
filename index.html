@@ -101,7 +101,7 @@
     --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
     --radius-card:28px;
     /* v3.288: where floating things start, so they sit above the bottom tab bar */
-    --above-bar:calc(var(--nav-rail-h, 64px) + env(safe-area-inset-bottom, 0px) + 10px);
+    --above-bar:calc(var(--nav-rail-h, 84px) + 10px); /* v3.585 (UX-04): the bar's measured height now includes the home-indicator area */
     --surface:#17191D;
     --surface2:#1F2226;
     --line:#26292F;
@@ -2755,18 +2755,21 @@
        here (blur only on fixed/sticky chrome). --nav-rail-h is still published
        from this element and now means "how much the bottom bar covers": body
        padding and the two floating buttons clear it with that measured number. */
+    /* v3.585 (UX-04, Apple HIG tab bar): no longer a floating glass pill. An
+       opaque bar across the bottom, --surface-1 with a 1px top rule, its
+       own padding covering the home-indicator area (84px tall on an iPhone:
+       50 for the tabs, 34 for the indicator). Side safe areas pad the row. */
     position:fixed; top:auto; z-index:30;
-    /* v3.489: the floating bar clears each side's safe area on its own. */
-    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
-    border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
-    box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
+    left:0; right:0; bottom:0;
+    border-radius:0; border:0; border-top:1px solid var(--rule);
+    box-shadow:none;
+    padding-left:calc(env(safe-area-inset-left, 0px)); padding-right:calc(env(safe-area-inset-right, 0px)); padding-bottom:calc(env(safe-area-inset-bottom, 0px));
     overflow:hidden;
     /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
        scroll visibly past the ends of the bar. Out and back in the same
        amount, so the row's own content does not move — the sum-to-zero trick
        the coloured set rows already use. */
-    background:var(--nav-glass-bg);
-    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    background:var(--surface-1);
     /* --nav-search-w declared here rather than on .nav-pills-scroll: it's
        consumed by two things now (the scroller's scroll-padding-left, and
        .nav-pill-search's width) that both need it, and a custom property
@@ -2780,7 +2783,9 @@
      This is deliberately the same box model the single .nav-pills div used
      to have; only the sticky/background/margin half moved out to the shell. */
   .nav-pills-scroll{
-    display:flex; gap:6px;
+    /* v3.585 (UX-04): five equal columns (it was a scrolling flex row). With
+       the row never overflowing, the edge fades below never apply. */
+    display:grid; grid-template-columns:repeat(5, 1fr); gap:0;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
     /* HANDOFF v31: settles the rail on a pill boundary after a drag or the
        programmatic scrollIntoView on tab switch, instead of stopping
@@ -2801,7 +2806,7 @@
        it tells every scroll-into-view in this container to keep that much
        clear. The alternative — special-casing the first pill in JS — would be
        a second rule about the same overlap. */
-    padding:6px;
+    padding:6px 6px 0;
   }
   .nav-pills-scroll::-webkit-scrollbar{display:none;}
 
@@ -3130,6 +3135,21 @@
   .gsearch-hit-tab{ color:var(--text-muted); font-size:12.5px; }
   .gsearch-hit-chev{ color:var(--text-muted); flex:0 0 auto; display:flex; }
   .nav-pill.active{background:var(--pill-active-bg); border-color:var(--pill-active-bg); color:var(--pill-active-ink);} /* v3.288: the selected tab is the one white pill in the glass bar (concept A); v3.478: through tokens, so in light mode it is the one ink pill */
+  /* v3.585 (UX-04): the five tabs (world.css .tabbar/.tab). Scoped to the
+     bar's row: the More sheet's list rows share .nav-pill and keep their
+     look. Five equal columns, a 24px outline icon over an 11px label;
+     resting tabs in --text-3, the selected one in ink with its icon filled.
+     48px tall, over HIG's 44. */
+  .nav-pills-scroll > .nav-pill{
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:3px;
+    min-height:48px; padding:4px 0 0; border:0; border-radius:var(--r-control);
+    background:transparent; color:var(--text-3);
+    font-size:11px; font-weight:500; letter-spacing:.01em; line-height:1.2;
+  }
+  .nav-pills-scroll > .nav-pill.active{background:transparent; border-color:transparent; color:var(--text);}
+  .tab-i{width:24px; height:24px; flex:none; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round;}
+  .tab-i .tab-dot{fill:currentColor; stroke:none;}
+  .nav-pill[aria-current="page"] .tab-i .fillable{fill:currentColor;}
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -5849,10 +5869,14 @@
        guess broke on a real device). -->
   <div class="nav-pills">
     <div class="nav-pills-scroll" id="navPillsScroll">
-      <button class="nav-pill active" id="navToday">Today</button>
-      <button class="nav-pill" id="navLog">Log</button>
-      <button class="nav-pill" id="navAnalysis">Analysis</button>
-      <button class="nav-pill" id="navHistory">History</button>
+      <!-- v3.585 (UX-04, Apple HIG tab bar): an icon and a label per tab, from
+           the mock-ups (tools/design/today.html). Log is labelled Food and
+           Analysis Progress; the IDs and showView wiring are unchanged. The
+           selected tab carries aria-current="page" (switchView sets it). -->
+      <button class="nav-pill active" id="navToday" aria-current="page"><svg class="tab-i" aria-hidden="true" viewBox="0 0 24 24"><rect class="fillable" x="3" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="18" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="6" y="6" width="3" height="12" rx="1"/><rect class="fillable" x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</button>
+      <button class="nav-pill" id="navLog"><svg class="tab-i" aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11M16 21V3c2.5 1 3.5 4 3.5 7H16"/></svg>Food</button>
+      <button class="nav-pill" id="navAnalysis"><svg class="tab-i" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7"/></svg>Progress</button>
+      <button class="nav-pill" id="navHistory"><svg class="tab-i" aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>History</button>
       <!-- Tab-layout audit (v3.160, option #2): Care/Coach/Learn moved into
            navMoreOverlay below, reached through this one pill instead of
            three, so the main rail fits without a horizontal scroll on a
@@ -5860,7 +5884,7 @@
            there — this doesn't remove a destination, just relocates three
            of them, same reasoning wireSettings() already uses to reparent
            cards into Settings. -->
-      <button type="button" class="nav-pill" id="navMore">More</button>
+      <button type="button" class="nav-pill" id="navMore"><svg class="tab-i" aria-hidden="true" viewBox="0 0 24 24"><circle class="tab-dot" cx="5" cy="12" r="1.3"/><circle class="tab-dot" cx="12" cy="12" r="1.3"/><circle class="tab-dot" cx="19" cy="12" r="1.3"/></svg>More</button>
     </div>
 
     <!-- The fade on .nav-pills-scroll's right edge signals more tabs exist,
@@ -5912,7 +5936,7 @@
   </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
-    <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Analysis.</div>
+    <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Progress.</div>
     <div id="todayInsightsList"></div>
   </div>
   <div id="profileCardTopSlot"></div>
@@ -7733,7 +7757,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.584';
+const APP_VERSION = '3.585';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9308,6 +9332,9 @@ const WHATS_NEW = {
   ]},  '3.584': { headline: 'Weeks off don\'t bring the deload closer', points: [
     'Your training block now counts only the weeks you trained at least twice. A week off no longer moves you toward the deload week.',
     'Because of that, the week number on Today may change once with this update.',
+  ]},  '3.585': { headline: 'A clearer tab bar', points: [
+    'The tab bar now runs across the bottom of the screen, with an icon over each name, and the tab you\'re on is marked in white.',
+    'Log is now called Food, and Analysis is now called Progress. They\'re in the same places and hold the same things.',
   ]},
 };
 
@@ -34956,7 +34983,7 @@ const TIPS_BY_PROGRAM = {
     "<b>Peak, don't grind.</b> Taper volume before testing a max rather than grinding heavy every session.",
     "<b>Learn to brace without a belt first,</b> then add it as a tool for near-maximal work.",
     "<b>Protein + adequate carbs.</b> Carbs fuel the CNS output heavy singles/doubles/triples demand.",
-    "<b>Track your estimated 1RM.</b> Use the Analysis tab's trend to see real strength progress, not just weight moved.",
+    "<b>Track your estimated 1RM.</b> Use the Progress tab's trend to see real strength progress, not just weight moved.",
   ],
   yoga: [
     "<b>Breath leads movement.</b> If you're holding your breath, you're forcing the pose — back off until it flows again.",
@@ -41214,7 +41241,7 @@ function switchView(active, opts){
   const views = {today:'todayView', log:'logView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
   const pills = {today:'navToday', log:'navLog', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
   // v3.289 (Glass & glow): the header's large title names the view you are in.
-  const titles = {today:'Today', log:'Log', analysis:'Analysis', history:'History', care:'Care', coach:'Coach', learn:'Learn'};
+  const titles = {today:'Today', log:'Food', analysis:'Progress', history:'History', care:'Care', coach:'Coach', learn:'Learn'}; // v3.585 (UX-04): the tabs' own names
   const titleEl = document.getElementById('viewTitle');
   if(titleEl && titles[active]) titleEl.textContent = titles[active];
   // v3.305 (2.0, Apple HIG large titles): every other view's title stands
@@ -41258,7 +41285,10 @@ function switchView(active, opts){
     } else {
       viewEl.style.display = 'none';
     }
-    document.getElementById(pills[key]).classList.toggle('active', key===active);
+    const pillEl = document.getElementById(pills[key]);
+    pillEl.classList.toggle('active', key===active);
+    // v3.585 (UX-04): the selected tab is announced as the current page.
+    if(key===active) pillEl.setAttribute('aria-current', 'page'); else pillEl.removeAttribute('aria-current');
   });
 
   // Care/Coach/Learn live inside the "More" sheet now (tab-layout audit,
@@ -41269,7 +41299,10 @@ function switchView(active, opts){
   // hardcoding the three keys a second time, so a future tab moved into or
   // out of the sheet only has to update MOVED_TO_MORE below.
   const moreTrigger = document.getElementById('navMore');
-  if(moreTrigger) moreTrigger.classList.toggle('active', MOVED_TO_MORE.includes(active));
+  if(moreTrigger){
+    moreTrigger.classList.toggle('active', MOVED_TO_MORE.includes(active));
+    if(MOVED_TO_MORE.includes(active)) moreTrigger.setAttribute('aria-current', 'page'); else moreTrigger.removeAttribute('aria-current');
+  }
 
   // Bring the active pill into the horizontal scroll. Seven pills do not fit
   // on a phone, so the rail can be showing Today..History while you are on
@@ -50011,7 +50044,7 @@ const GLOBAL_SEARCH_SECTION_LIMIT = 10;
 const GLOBAL_SEARCH_TECHNIQUE_LIMIT = 10;
 
 const SEARCH_TAB_LABELS = {
-  today:'Today', log:'Log', analysis:'Analysis', history:'History',
+  today:'Today', log:'Food', analysis:'Progress', history:'History', // v3.585 (UX-04): as the tabs read
   care:'Care', coach:'Coach', learn:'Learn',
 };
 

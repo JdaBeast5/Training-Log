@@ -109,11 +109,14 @@ test('REAL invocation (v3.482): .view-enter comes off when the view\'s fade-in e
 // as one material; the bottom tab bar keeps the heavier glass.
 // 2026-11-16 (v3.580, UX-03, flat ground): the status strip is the ground too;
 // the tab bar keeps its glass (UX-04 owns it).
-test('REAL source (v3.580, UX-03): the status-bar strip is flat ground with no blur; the tab bar keeps --nav-glass-bg', (assert)=>{
+// 2026-11-16 (v3.585, UX-04): the tab bar is opaque now (--surface-1, no blur).
+test('REAL source (v3.580, UX-03; v3.585, UX-04): the status-bar strip is flat ground with no blur; the tab bar is opaque --surface-1', (assert)=>{
   const scrim = extractRuleBlock(src, '.status-scrim');
   assert.match(scrim, /background:var\(--ground\);/);
   assert.doesNotMatch(scrim, /backdrop-filter/);
-  assert.match(extractRuleBlock(src, '.nav-pills'), /background:var\(--nav-glass-bg\);/);
+  const bar = extractRuleBlock(src, '.nav-pills');
+  assert.match(bar, /background:var\(--surface-1\);/);
+  assert.doesNotMatch(bar, /backdrop-filter/);
 });
 
 run();

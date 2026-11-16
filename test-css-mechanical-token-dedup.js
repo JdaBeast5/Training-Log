@@ -253,32 +253,20 @@ test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exact
 
 // v3.299: +1 site for each token — the set sheet (Option 2's logger) is fixed
 // chrome made of the same glass as the tab bar (see test-set-sheet.js).
-test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrences (5 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
-  // 2026-11-16 (v3.580, UX-03, flat ground): blur stays only on the tab bar (.nav-pills, 2 prefixed declarations);
-  // the set sheet, status strip, jump rail and pull-refresh indicator went flat.
-  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 2);
-  // 2026-10-28 (v3.482): .analysis-index moved to its own lighter --index-glass-bg
-  // (test-analysis-index-visual-weight.js).
-  // 2026-11-02 (v3.483): .status-scrim joined the rail on --index-glass-bg.
-  // 2026-11-16 (v3.580, UX-03, flat ground): the set sheet is --surface-1 now; only the tab bar reads it.
-  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 1);
+// 2026-11-16 (v3.585, UX-04): the tab bar, the last reader of both tokens, is
+// opaque now (--surface-1, no blur). Nothing reads them; they stay declared
+// until UX-15's token sweep retires unused tokens.
+test('sabotage-relevant: var(--glass-blur) and var(--nav-glass-bg) have no call sites left (the tab bar went opaque in UX-04)', (assert)=>{
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 0);
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 0);
+  assert.strictEqual(extractCustomProp(rootBlock, 'glass-blur'), 'blur(18px) saturate(160%)', 'still declared (UX-15 retires it)');
+  assert.strictEqual(extractCustomProp(rootBlock, 'nav-glass-bg'), 'rgba(10,11,13,0.72)', 'still declared (UX-15 retires it)');
 });
 
-test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{
-  const blur = extractCustomProp(rootBlock, 'glass-blur');
-  const navBg = extractCustomProp(rootBlock, 'nav-glass-bg');
-  assert.strictEqual(blur, 'blur(18px) saturate(160%)', 'sanity: token holds the known pre-conversion literal');
-  assert.strictEqual(navBg, 'rgba(10,11,13,0.72)', 'sanity: token holds the known pre-conversion literal');
-
-  // 2026-10-28 (v3.482): .analysis-index left this pair for its own lighter glass.
-  // 2026-11-02 (v3.483): .status-scrim moved to --index-glass-bg too.
-  for(const selector of ['.nav-pills']){
-    let block = extractRuleBlock(src, selector);
-    block = resolveToken(block, 'glass-blur', blur);
-    block = resolveToken(block, 'nav-glass-bg', navBg);
-    assert.ok(block.includes('background:rgba(10,11,13,0.72);'), `${selector} must resolve to the exact pre-conversion background, got: ${block}`);
-    assert.ok(block.includes('backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);'), `${selector} must resolve to the exact pre-conversion backdrop-filter pair, got: ${block}`);
-  }
+test('REAL source (v3.585, UX-04): .nav-pills is opaque --surface-1 with no backdrop-filter', (assert)=>{
+  const block = extractRuleBlock(src, '.nav-pills');
+  assert.ok(block.includes('background:var(--surface-1);'), block);
+  assert.doesNotMatch(block, /backdrop-filter/);
 });
 
 // 2026-11-16 (v3.580, UX-03, flat ground): the indicator is a solid --surface-1 with no blur.

@@ -31,13 +31,18 @@ function extractRuleBlock(source, selector){
   return m[0].replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
-test('sabotage-relevant: .nav-pills-scroll gap is tightened from the original 8px', (assert)=>{
+// 2026-11-16 (v3.585, UX-04): the tab bar is five equal grid columns now, so
+// the gap between tabs is 0 (each tab's own 48px box is its spacing).
+test('sabotage-relevant: .nav-pills-scroll is five equal columns with no gap (UX-04; it was a flex row with a tightened gap)', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pills-scroll');
-  const m = block.match(/gap:(\d+)px;/);
-  assert.ok(m, '.nav-pills-scroll must declare a real gap');
-  assert.ok(Number(m[1]) < 8, `gap should be reduced below the original 8px, got ${m[1]}px`);
+  assert.match(block, /display:grid; grid-template-columns:repeat\(5, 1fr\); gap:0;/);
 });
 
+// 2026-11-16 (v3.585, UX-04): the tests below pin the BASE .nav-pill and
+// .nav-pill.active rules, which now style only the More sheet's list rows
+// (they share the class). The tab bar's own tabs are .nav-pills-scroll >
+// .nav-pill: ink label and filled icon when selected, no pill
+// (test-tab-bar.js).
 // v3.288 (Glass & glow): inside the floating glass tab bar a resting tab is just
 // its label (no fill, no highlight); the selected tab is the white pill.
 test('sabotage-relevant: .nav-pill has no drop-shadow and, since v3.288, no inset highlight either — a resting tab is just its label', (assert)=>{
