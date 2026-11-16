@@ -1227,3 +1227,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** built-in rows key by `__srcIndex ?? i` (also the empty-slug fallback). Removing, reordering or trimming no longer shifts history.
 - **Not moved:** sets logged while shifted stay where saved (owner (a)). Check-box `completed[i]` stays render-indexed (flagged in spec).
 - **Next:** BL-36, then BL-35.
+
+## Addendum 87: BL-36 (v3.563, PR #139, stacked on #138, 2026-11-16)
+- **What:** Drop Landing (stick it) 3×5 appended to wakeboarding d1 and kiteAssisted d2; library entry (jump, 4 cues) and EXERCISE_MOVE icon.
+- **Open for the owner:** the 10 day-count variant days with Depth Jump don't get the drill (asserted unchanged).
+- **Next:** BL-35.

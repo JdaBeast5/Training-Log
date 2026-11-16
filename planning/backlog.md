@@ -1117,7 +1117,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Appended slot indexes are not unique across day-count variants (`exKey` has no day-count segment), so a person who later switches day count may see another exercise's history at that index. That's existing behaviour for every appended slot, not new here.
 - **Alignment note (2026-11-07):** the prerequisite *rule* now lives in BL-05's Depth Jump cue ("first 4 weeks: do Drop Landing 3×5 instead"), because an appended drill comes **after** the depth jumps, the wrong order for a prerequisite (exercise-auditor N5). This item only makes the drill loggable.
 - **Spec refresh (2026-11-08):** owner decision D4 (2026-11-07) approved this item, so it's `ready` at roadmap slot 9. Added: the library entry, the `jump` category, the `Files:` re-pin and criterion 3. **Open for the owner, not blocking:** the item names only the base days, so people on another day count get the cue but no loggable drill. Covering the 10 variant days would be a follow-up item.
-- **Status:** ready (after BL-72) (owner 2026-11-08: BL-72 protects custom, body-goal and bonus history before any exercise is added to a day).
+- **Status:** done (v3.563, PR #139)
 
 ### BL-37: Rebuild the low day-count variants (H-3)
 - **Why:**
