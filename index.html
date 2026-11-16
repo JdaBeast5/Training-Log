@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.564';
+const APP_VERSION = '3.565';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9228,6 +9228,10 @@ const WHATS_NEW = {
     'Grappling\'s neck work is now a 4-way neck isometric: press your head into your hand or a band, front, back and each side, 15 s each at about half effort.',
     'It starts with a fresh history. Your neck bridge sets aren\'t moved: swap the exercise back to Neck Bridges to see them and keep logging there.',
     'If you had removed neck bridges from a day, the isometric stays off that day too.',
+  ]},  '3.565': { headline: 'Workout times count the work', points: [
+    'The time shown on Today now counts the work, not just the rest: distance intervals use a realistic pace (an 8×100 m swim is about 18 minutes, not 8), reps take time, and lifting days include a few minutes for the warm-up ramp.',
+    'Rest is counted between sets rather than after the last one, so the 30- and 45-minute session lengths trim to a closer fit.',
+    'The calorie estimate for a session moves with it: lifting days read a little lower, swim, row and run intervals higher.',
   ]},
 };
 
@@ -27098,9 +27102,38 @@ function parseEstimatedMinutes(ex, setCount){
     return workMin + restMin;
   }
 
+  // v3.565 (BL-63): distance intervals ("8×100m", "6×400m", "3×20yd/side",
+  // "5 km") count the WORK, from a per-activity pace, plus a short rest:
+  // before this they counted rest only (8×100m swim = 8 min). Paces: swim
+  // 2:00/100 m, row 2:05/500 m, ski 2:10/500 m, sled and carry 0.5 min per
+  // 20 m, anything else a 6 min/km run.
+  const distMatch = setsStr.match(/(?:(\d+)\s*×\s*)?(\d+(?:\.\d+)?)\s*(km|m|yd)\b/i);
+  if(distMatch){
+    const name = (typeof ex === 'object' && ex && ex.name) || '';
+    const reps = distMatch[1] ? Number(distMatch[1]) : 1;
+    const unit = distMatch[3].toLowerCase();
+    const metres = Number(distMatch[2]) * (unit === 'km' ? 1000 : unit === 'yd' ? 0.9144 : 1);
+    const sides = /\/\s*(side|leg)/i.test(setsStr) ? 2 : 1;
+    const isSwim = /swim/i.test(name);
+    const minPerMetre = isSwim ? 2 / 100
+      : /row/i.test(name) ? (125 / 60) / 500
+      : /ski/i.test(name) ? (130 / 60) / 500
+      : /sled|carry|farmer|yoke|walk/i.test(name) || unit === 'yd' ? 0.5 / 20
+      : 6 / 1000;
+    const restMin = Math.max(0, reps - 1) * (isSwim ? 0.25 : 1);
+    return reps * metres * sides * minPerMetre + restMin;
+  }
+
   const count = setCount || parseSetCount(setsStr);
   const exObj = typeof ex === 'object' ? ex : null;
-  return count * (getDefaultRestSeconds(exObj) / 60);
+  // v3.565 (BL-63): rep sets count the reps too, 3 s each at the top of the
+  // range (twice for /side or /leg), and rest falls BETWEEN sets (count - 1),
+  // as in the rounds branch above: EXERCISE_TRANSITION_MINUTES already covers
+  // moving on after the last set.
+  const repMatch = setsStr.match(/×\s*(\d+)(?:\s*-\s*(\d+))?/);
+  const topRep = repMatch ? Number(repMatch[2] || repMatch[1]) : 0;
+  const repSides = /\/\s*(side|leg)/i.test(setsStr) ? 2 : 1;
+  return Math.max(0, count - 1) * (getDefaultRestSeconds(exObj) / 60) + count * topRep * repSides * 3 / 60;
 }
 
 function estimateExerciseCalories(ex, weightLb){
@@ -27175,8 +27208,15 @@ function unitMinutes(unit){
   return unit.reduce((sum,ex)=> sum + parseEstimatedMinutes(ex, parseSetCount(ex.sets)), 0) + EXERCISE_TRANSITION_MINUTES;
 }
 
+// v3.565 (BL-63): plus one warm-up ramp allowance per day, when the day has a
+// compound lift (the warm-up ramp is built for the first one).
+const WARMUP_RAMP_MINUTES = 4;
 function totalMinutesForUnits(units){
-  return units.reduce((sum,u)=> sum + unitMinutes(u), 0);
+  const hasCompound = units.some(u => u.some(ex => {
+    const info = typeof exerciseInfo !== 'undefined' && exerciseInfo[ex.name];
+    return info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
+  }));
+  return units.reduce((sum,u)=> sum + unitMinutes(u), 0) + (hasCompound ? WARMUP_RAMP_MINUTES : 0);
 }
 
 // Warm-up and cool-down entries share the exact same generic category

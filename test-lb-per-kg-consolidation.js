@@ -29,11 +29,11 @@ const targetsChunks = [extractConst(src, 'LB_PER_KG'), extractFunction(src, 'com
 
 const { test, run } = makeRunner('test-lb-per-kg-consolidation.js');
 
-test('estimateExerciseCalories: Back Squat, 200 lb, 3x5 -> 109 kcal (captured from the real pre-refactor function)', (assert)=>{
+test('estimateExerciseCalories: Back Squat, 200 lb, 3x5 -> 79 kcal (re-captured from the real function at v3.565, BL-63: rest between sets plus rep time; was 109)', (assert)=>{
   const [result] = runSandbox(calorieChunks, `
     __capture.push(estimateExerciseCalories({name:'Back Squat', sets:'3×5'}, 200));
   `);
-  assert.strictEqual(result, 109);
+  assert.strictEqual(result, 79);
 });
 
 test('computeTargets: male maintain profile matches the real function\'s current output exactly', (assert)=>{
