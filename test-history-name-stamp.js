@@ -168,7 +168,7 @@ test('a warm-up logged first (real saveExWarmupSet) creates today\'s entry stamp
 
 test('History (real buildExerciseHistoryHtml) lists every entry and labels one stamped as another exercise', async (assert)=>{
   const log = [{date: '2026-11-02', n: 'Squat', sets: [{weight: 225, reps: 8}]}, {date: '2026-11-05', n: 'Incline DB Press', sets: [{weight: 50, reps: 8}]}, {date: '2026-11-07', sets: [{weight: 55, reps: 8}]}];
-  const HIST = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'metresPerDisplayUnit', 'buildExerciseHistoryHtml'];
+  const HIST = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'metresPerDisplayUnit', 'slugifyExerciseName', 'slotIdOf' /* v3.561 (BL-72) */, 'buildExerciseHistoryHtml'];
   const { window } = runJsdom('<div id="h"></div>', `
     var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd5', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
     async function getExLog(){ return ${JSON.stringify(log)}; }`, HIST.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }));

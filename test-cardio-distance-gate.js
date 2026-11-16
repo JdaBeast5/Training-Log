@@ -28,6 +28,7 @@ function cardioRow(ex, withDistanceInput){
     </div><button class="add-set-btn">Add Set</button></div></div>`;
   const globals = `
     window.exKey = ()=> 'ex:test:d1:0'; window.activeProgram = 'running'; window.activeDay = 'd1'; window.selectedLogDate = '2026-11-10';
+    window.slotIdOf = (ex, i)=> i; // v3.561 (BL-72): built-in rows keep their render index
     window.subVariantOf = ()=> undefined; window.isBarbellExercise = ()=> false; window.escapeHtml = (s)=> String(s);
     window.icon = (n)=> '<svg></svg>'; window.saveExSet = async ()=> ({isPR:false}); window.getFallbackPriorEntry = async ()=> null;
     window.renderWorkout = async ()=>{}; window.refreshSessionSummary = async ()=>{}; window.getDefaultRestSeconds = ()=> 90;

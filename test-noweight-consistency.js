@@ -46,6 +46,7 @@ test('criterion 4: Sled Push, Sled Pull and Wall Balls agree: none is noWeight i
 function globalsFor(isDistance){
   return `
     window.exKey = ()=> 'ex:test:d1:0';
+    window.slotIdOf = (ex, i)=> i; // v3.561 (BL-72): built-in rows keep their render index
     window.activeProgram = 'strength';
     window.activeDay = 'd1';
     window.selectedLogDate = '2026-01-01';
@@ -113,7 +114,7 @@ test('criterion 2: the real wireSetsBlock on the real Bodyweight d1 Push-up slot
 });
 
 test('criterion 3: an old weighted Push-up entry still prints its weight in the real buildExerciseHistoryHtml', async (assert)=>{
-  const HIST = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'metresPerDisplayUnit', 'buildExerciseHistoryHtml'];
+  const HIST = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'metresPerDisplayUnit', 'slugifyExerciseName', 'slotIdOf' /* v3.561 (BL-72) */, 'buildExerciseHistoryHtml'];
   const { window } = runJsdom('<div id="h"></div>', `
     var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
     async function getExLog(){ return [{date: '2026-10-01', sets: [{weight: 25, reps: 12}]}]; }`, HIST.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }));

@@ -49,6 +49,7 @@ function bodyHtml(){
 function globalsFor(isDistance){
   return `
     window.exKey = ()=> 'ex:test:d1:0';
+    window.slotIdOf = (ex, i)=> i; // v3.561 (BL-72): built-in rows keep their render index
     window.activeProgram = 'strength';
     window.activeDay = 'd1';
     window.selectedLogDate = '2026-01-01';
