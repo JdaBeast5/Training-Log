@@ -69,7 +69,7 @@ test('applyExerciseSubs swaps in the stored substitute and tags __originalName/_
   const chunks = [
     withMockStorage({ 'exercise-sub:strength:d1:0': 'Front Squat' }),
     ...staticChunks,
-    extractFunction(src, 'applyExerciseSubs'),
+    extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs'),
   ];
   const [exercises] = await runSandboxAsync(chunks, `
     var exercises = [{name:'Back Squat', sets:3}];
@@ -83,7 +83,7 @@ test('applyExerciseSubs swaps in the stored substitute and tags __originalName/_
 });
 
 test('applyExerciseSubs leaves a slot alone when no substitute is stored', async (assert)=>{
-  const chunks = [withMockStorage({}), ...staticChunks, extractFunction(src, 'applyExerciseSubs')];
+  const chunks = [withMockStorage({}), ...staticChunks, extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs')];
   const [exercises] = await runSandboxAsync(chunks, `
     var exercises = [{name:'Back Squat'}];
     await applyExerciseSubs(exercises, 'strength', 'd1');
@@ -100,7 +100,7 @@ test('applyExerciseSubs never touches custom exercises or body-goal-focus additi
   const chunks = [
     withMockStorage({ 'exercise-sub:strength:d1:0': 'Front Squat', 'exercise-sub:strength:d1:1': 'Front Squat' }),
     ...staticChunks,
-    extractFunction(src, 'applyExerciseSubs'),
+    extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs'),
   ];
   const [exercises] = await runSandboxAsync(chunks, `
     var exercises = [
@@ -118,7 +118,7 @@ test('applyExerciseSubs skips slots whose exercise has no entry in EXERCISE_SUBS
   const chunks = [
     withMockStorage({ 'exercise-sub:strength:d1:0': 'Something Else' }),
     ...staticChunks,
-    extractFunction(src, 'applyExerciseSubs'),
+    extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs'),
   ];
   const [exercises] = await runSandboxAsync(chunks, `
     var exercises = [{name:'Totally Made Up Exercise'}];
@@ -145,7 +145,7 @@ test('every EXERCISE_SUBS entry has exactly 2 distinct alternates, and never lis
 // ---- v3.534 (BL-73): a stored substitute applies only if it is listed for
 // the slot's current exercise (real applyExerciseSubs, real EXERCISE_SUBS).
 async function subsRun(store, exercises){
-  const [out] = await runSandboxAsync([withMockStorage(store), ...staticChunks, extractFunction(src, 'applyExerciseSubs')], `
+  const [out] = await runSandboxAsync([withMockStorage(store), ...staticChunks, extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs')], `
     var exercises = ${JSON.stringify(exercises)};
     await applyExerciseSubs(exercises, 'strength', 'd1');
     __capture.push(exercises);`);
@@ -168,7 +168,7 @@ test('BL-73 criterion 2: a listed substitute still applies exactly as before (In
 });
 
 test('BL-73: nothing stored is deleted; the unlisted choice is still in storage after the read', async (assert)=>{
-  const [r] = await runSandboxAsync([withMockStorage({ 'exercise-sub:strength:d1:0': 'Front Squat' }), ...staticChunks, extractFunction(src, 'applyExerciseSubs')], `
+  const [r] = await runSandboxAsync([withMockStorage({ 'exercise-sub:strength:d1:0': 'Front Squat' }), ...staticChunks, extractFunction(src, 'slotIdOf') /* v3.561 (BL-72) */, extractFunction(src, 'applyExerciseSubs')], `
     await applyExerciseSubs([{name:'Bench Press'}], 'strength', 'd1');
     const got = await window.storage.get('exercise-sub:strength:d1:0');
     __capture.push(got && got.value);`);

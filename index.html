@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.560';
+const APP_VERSION = '3.561';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -7723,7 +7723,7 @@ const APP_NAME = 'Platestep';
 // v3.547 (MKT-03): the name as a file-name stem ('platestep'): lower-cased,
 // spaces as hyphens. Share cards use it; MKT-20 reuses it for the backup.
 function appSlug(){ return APP_NAME.toLowerCase().replace(/\s+/g, '-'); }
-const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
+const SCHEMA_VERSION = 9; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
 // One short entry per APP_VERSION bump, written for the person USING the
@@ -9216,6 +9216,10 @@ const WHATS_NEW = {
   '3.560': { headline: 'Bodyweight moves progress too', points: [
     'When every set of a bodyweight move hits the top of its range two sessions in a row, the reps box now suggests one more rep per set, and holds suggest 5 seconds more. Past 15 reps or a 60-second hold, it suggests a harder variation instead. Medical and Senior programs keep their own pace.',
   ]},
+  '3.561': { headline: 'Your own exercises keep their history', points: [
+    'Custom exercises, goal-focus extras and bonus exercises now keep their logged sets even when a day\'s built-in exercises change.',
+    'Existing sets are moved to the new storage once, on this update, after a full copy is kept as a backup (it\'s included when you export your data).',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -9314,6 +9318,7 @@ function blobToBase64(blob){
   });
 }
 
+let trailingSlotsMovePending = false; // v3.561 (BL-72): set by runMigrations, cleared by finishTrailingSlotsMove
 async function runMigrations(){
   let version = 0;
   try{
@@ -9619,15 +9624,166 @@ async function runMigrations(){
   // loadSupplementTakenState() both read either shape transparently on
   // every access, same treatment as the v2 exercise-log shape change above.
 
+  // v9 (v3.561, BL-72): custom, body-goal focus and bonus rows moved from
+  // render-index keys to stable name keys (slotIdOf). Their existing logs are
+  // moved once, here, after a full copy is saved to migration-backup-v9
+  // (owner, 2026-11-16). See migrateTrailingSlotsV9.
+  // The move itself runs from init once styles, the day-count layout and
+  // custom programs are loaded (finishTrailingSlotsMove); until it succeeds,
+  // the stamp below stays at the old version so the next launch retries it.
+  if(version < 9) trailingSlotsMovePending = true;
+
   if(version < SCHEMA_VERSION){
     // Held back if the photo move didn't finish, so the next launch retries it.
     // Every other migration above is idempotent, so re-running them costs
     // nothing; silently marking v6 done with photos still in localStorage would
     // leave them stranded there forever, which is the failure worth avoiding.
     if(photoMigrationComplete){
-      try{ await window.storage.set('meta:schemaVersion', String(SCHEMA_VERSION)); }catch(e){}
+      // v9 (BL-72): stamp 8 until the trailing-slot move has completed.
+      const stamp = trailingSlotsMovePending ? Math.min(SCHEMA_VERSION, 8) : SCHEMA_VERSION;
+      if(stamp > version){ try{ await window.storage.set('meta:schemaVersion', String(stamp)); }catch(e){} }
     }
   }
+}
+
+// v3.561 (BL-72): moves each trailing row's positional history to its stable
+// key. For every day that can have trailing rows (each stored custom-ex: list,
+// every day of a body-goal-focus program, every bonus-accessory day), the day
+// length L comes from the layout active now (the stored day-count pref, and
+// the custom list's own style), and the trailing rows sit at L, L+1, … in
+// renderWorkout's order: [...focus, ...custom, bonus]. For each, the log at
+// the positional key, its :sub: siblings and its exercise-sub: selection move
+// to the stable key.
+//   Backup first (owner, 2026-11-16): every source value is copied into
+//   migration-backup-v9 ({key: value}, kept and included in exports) BEFORE
+//   anything moves; if that copy can't be written, nothing moves.
+//   Idempotent and crash-safe: the target gets only entries whose date it
+//   lacks, is written, and only then is the source deleted; a re-run after a
+//   crash merges nothing new and finishes the delete.
+//   Positions below L (built-in rows) are never touched. Logs from a day count
+//   or style that isn't active now can't be attributed, so they stay as they are.
+const MIGRATION_BACKUP_V9_KEY = 'migration-backup-v9';
+const TRAILING_STYLE_TABLES = () => ({combat: COMBAT_STYLES, cycling: CYCLING_STYLES, watersports: WATERSPORTS_STYLES, medical: MEDICAL_STYLES});
+function trailingDaysFor(program, style, dayCount){
+  const styles = TRAILING_STYLE_TABLES()[program];
+  const variants = PROGRAM_DAY_COUNT_VARIANTS[program];
+  if(styles){
+    const v = dayCount != null && variants && variants[style] ? variants[style][dayCount] : null;
+    return v ? v.days : ((styles[style] || {}).days || null);
+  }
+  const v = dayCount != null && variants ? variants[dayCount] : null;
+  const base = (typeof DAYS_PER_WEEK_ORIGINAL !== 'undefined' && DAYS_PER_WEEK_ORIGINAL[program]) || programs[program];
+  return v ? v.days : ((base || {}).days || null);
+}
+function trailingDayFor(program, style, dayId, dayCount){
+  const days = trailingDaysFor(program, style, dayCount);
+  return (days && days[dayId]) || null;
+}
+function trailingExKey(program, style, dayId, idx, suffix){
+  return style ? `ex:${program}:${style}:${dayId}:${idx}${suffix || ''}` : `ex:${program}:${dayId}:${idx}${suffix || ''}`;
+}
+function trailingSubKey(program, style, dayId, idx){
+  return program === 'medical' ? `exercise-sub:${program}:${style}:${dayId}:${idx}` : `exercise-sub:${program}:${dayId}:${idx}`;
+}
+// Runs the v9 move once its inputs are loaded; on success stamps schema 9.
+async function finishTrailingSlotsMove(){
+  if(!trailingSlotsMovePending) return;
+  let ok = false;
+  try{ ok = await migrateTrailingSlotsV9(); }catch(e){ ok = false; }
+  if(!ok) return; // the backup couldn't be written: nothing moved; retried next launch
+  trailingSlotsMovePending = false;
+  try{ await window.storage.set('meta:schemaVersion', String(SCHEMA_VERSION)); }catch(e){}
+}
+// Returns true when the move is complete (or there was nothing to move),
+// false when the backup couldn't be written (nothing moved).
+async function migrateTrailingSlotsV9(){
+  const get = async (k)=>{ try{ const r = await window.storage.get(k); return r && r.value != null ? r.value : null; }catch(e){ return null; } };
+  const list = async (prefix)=>{ try{ const r = await window.storage.list(prefix); return (r && r.keys) || []; }catch(e){ return []; } };
+  let dayCount = null;
+  { const v = await get('days-per-week-pref'); const n = v ? parseInt(v, 10) : NaN; if(n >= 1 && n <= 7) dayCount = n; }
+  let bodyGoal = '';
+  { const v = await get('user-profile'); try{ bodyGoal = v ? (JSON.parse(v).bodyGoal || '') : ''; }catch(e){} }
+
+  // The days to cover: (program, style, dayId).
+  const days = new Map();
+  const addDay = (program, style, dayId)=> days.set(`${program}|${style || ''}|${dayId}`, {program, style: style || null, dayId});
+  for(const key of await list('custom-ex:')){
+    const parts = key.split(':');
+    // A user-built program's key is itself 'custom:<id>' (custom-ex:custom:<id>:<day>).
+    if(parts.length === 4 && parts[1] === 'custom') addDay(`custom:${parts[2]}`, null, parts[3]);
+    else if(parts.length === 4) addDay(parts[1], parts[2], parts[3]);
+    else if(parts.length === 3) addDay(parts[1], null, parts[2]);
+  }
+  for(const program of FOCUS_ELIGIBLE_PROGRAMS){
+    for(const dayId of Object.keys(trailingDaysFor(program, null, dayCount) || {})) addDay(program, null, dayId);
+  }
+  for(const [program, pool] of Object.entries(ACCUMULATION_ACCESSORY_POOL)) for(const dayId of Object.keys(pool)) addDay(program, null, dayId);
+
+  // Plan every move first.
+  const moves = []; // {src, dst}
+  for(const {program, style, dayId} of days.values()){
+    const day = trailingDayFor(program, style, dayId, dayCount);
+    if(!day || !Array.isArray(day.exercises)) continue;
+    const L = day.exercises.length;
+    const focus = bodyGoal ? getBodyGoalFocusExercises(bodyGoal, program, day) : [];
+    let custom = [];
+    { const v = await get(style ? `custom-ex:${program}:${style}:${dayId}` : `custom-ex:${program}:${dayId}`); try{ custom = v ? JSON.parse(v) : []; }catch(e){ custom = []; } }
+    const bonus = (ACCUMULATION_ACCESSORY_POOL[program] || {})[dayId];
+    const trailing = [
+      ...focus.map(ex=> ({...ex, isBodyGoalFocus: true})),
+      ...(Array.isArray(custom) ? custom : []).map(ex=> ({...ex, isCustom: true})),
+      ...(bonus ? [{...bonus, accumulatedAccessory: true}] : []),
+    ];
+    trailing.forEach((ex, k)=>{
+      const pos = L + k, stable = slotIdOf(ex, pos);
+      if(stable === pos || !ex.name) return;
+      moves.push({src: trailingExKey(program, style, dayId, pos), dst: trailingExKey(program, style, dayId, stable), program, style, dayId, pos, stable, slug: slugifyExerciseName(ex.name)});
+    });
+  }
+  // Expand :sub: siblings and selections, then keep only sources that exist.
+  const plan = [];
+  const exKeys = await list('ex:'); // one scan, filtered in memory below
+  for(const m of moves){
+    if(await get(m.src) != null) plan.push({src: m.src, dst: m.dst, kind: 'log', slug: m.slug});
+    for(const k of exKeys.filter(k=> k.startsWith(m.src + ':sub:'))) plan.push({src: k, dst: m.dst + k.slice(m.src.length), kind: 'log', slug: k.slice((m.src + ':sub:').length)});
+    const selSrc = trailingSubKey(m.program, m.style, m.dayId, m.pos);
+    if(await get(selSrc) != null) plan.push({src: selSrc, dst: trailingSubKey(m.program, m.style, m.dayId, m.stable), kind: 'selection'});
+  }
+  if(!plan.length) return true;
+
+  // Backup: every source value, merged into any earlier backup. No backup, no move.
+  let backup = {};
+  { const v = await get(MIGRATION_BACKUP_V9_KEY); try{ backup = v ? JSON.parse(v) : {}; }catch(e){ backup = {}; } }
+  for(const step of plan){ const v = await get(step.src); if(v != null && !(step.src in backup)) backup[step.src] = v; }
+  try{
+    await window.storage.set(MIGRATION_BACKUP_V9_KEY, JSON.stringify(backup));
+    if(await get(MIGRATION_BACKUP_V9_KEY) == null) return false;
+  }catch(e){ return false; }
+
+  for(const step of plan){
+    try{
+      const raw = await get(step.src);
+      if(raw == null) continue;
+      if(step.kind === 'selection'){
+        if(await get(step.dst) == null) await window.storage.set(step.dst, raw);
+        await window.storage.delete(step.src);
+        continue;
+      }
+      let src = [], dst = [];
+      try{ src = JSON.parse(raw); }catch(e){ continue; } // unreadable: leave it where it is
+      try{ const d = await get(step.dst); dst = d ? JSON.parse(d) : []; }catch(e){ continue; }
+      // BL-51 name stamps: an entry stamped as another exercise isn't this
+      // row's, so it stays where it is.
+      const mine = src.filter(e=> e && (e.n == null || slugifyExerciseName(e.n) === step.slug));
+      const others = src.filter(e=> e && !(e.n == null || slugifyExerciseName(e.n) === step.slug));
+      const have = new Set(dst.map(e=> e && e.date));
+      const merged = [...dst, ...mine.filter(e=> !have.has(e.date))].sort((a, b)=> a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+      await window.storage.set(step.dst, JSON.stringify(merged));
+      if(others.length) await window.storage.set(step.src, JSON.stringify(others));
+      else await window.storage.delete(step.src);
+    }catch(e){}
+  }
+  return true;
 }
 
 // [MULTI-USER BOOTSTRAP] ---------------------------------------------------
@@ -14802,7 +14958,7 @@ async function getSessionHeadsUpInsight(){
       if(hits.length && !isReliefForAllHits(ex.name, hits)) flagged = true; // v3.523 (BL-70): relief moves aren't flagged
     }
     if(!flagged){
-      const log = entriesForExercise(await getExLog(activeDay, idx, subVariantOf(ex)), ex.name); // v3.535 (BL-51)
+      const log = entriesForExercise(await getExLog(activeDay, slotIdOf(ex, idx), subVariantOf(ex)), ex.name); // v3.535 (BL-51); v3.561 slotIdOf (BL-72)
       const pastSessions = buildPastSessions(log);
       const signal = analyzeProgressionSignal(pastSessions, ex, info.category, activeProgram);
       if(signal && (signal.type==='decrease' || signal.type==='deload')) flagged = true;
@@ -27498,6 +27654,27 @@ function slugifyExerciseName(name){
 // that slot, exactly like switching back to the original exercise resumes
 // its own separate history rather than inheriting whatever the substitute
 // logged.
+// v3.561 (BL-72, owner "1 yes" 2026-11-08): stable history keys for rows
+// that trail the authored day. Custom, body-goal focus and bonus (peak-week
+// accessory) rows used to be keyed by render index, so their history moved
+// whenever anything ahead of them changed (a built-in exercise added, the
+// body goal changed, a custom row removed). They now key by name, with a
+// prefix that keeps a custom "Cable Fly" and the bonus Cable Fly apart.
+// Built-in rows keep their render index, unchanged. Every exKey / getExLog /
+// saveEx* / subSelectionKey caller passes slotIdOf(ex, i); data-ex-idx in
+// the DOM stays the render index.
+function slotIdOf(ex, i){
+  if(!ex) return i;
+  // The row's own name, never a swapped-in substitute's (applyExerciseSubs
+  // renames the row and keeps the original in __originalName).
+  const slug = slugifyExerciseName(ex.__originalName || ex.name || '');
+  if(!slug) return i; // a name with no letters or digits keeps its position rather than share 'c-'
+  if(ex.isCustom) return 'c-' + slug;
+  if(ex.isBodyGoalFocus) return 'f-' + slug;
+  if(ex.accumulatedAccessory) return 'a-' + slug;
+  return i;
+}
+
 function exKey(program, dayId, idx, subVariant){
   const suffix = subVariant ? `:sub:${slugifyExerciseName(subVariant)}` : '';
   if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}${suffix}`;
@@ -27535,7 +27712,7 @@ async function applyExerciseSubs(exercises, program, dayId){
     if(!EXERCISE_SUBS[ex.name]) return;
     let subName = null;
     try{
-      const res = await window.storage.get(subSelectionKey(program, dayId, i));
+      const res = await window.storage.get(subSelectionKey(program, dayId, slotIdOf(ex, i))); // v3.561 (BL-72)
       if(res && res.value) subName = res.value;
     }catch(e){}
     // v3.534 (BL-73): apply a stored choice only if it is a listed substitute
@@ -27783,7 +27960,7 @@ async function openExerciseSubModal(idx, ex){
   const options = [baseName, ...alts];
   const rows = await Promise.all(options.map(async (name)=>{
     const variant = (name === baseName) ? undefined : name;
-    const log = await getExLog(activeDay, idx, variant);
+    const log = await getExLog(activeDay, slotIdOf(ex, idx), variant); // v3.561 (BL-72)
     return {name, isDefault: name === baseName, summary: formatLastLoggedSummary(entriesForExercise(log, name))}; // v3.535 (BL-51)
   }));
 
@@ -27809,9 +27986,9 @@ async function openExerciseSubModal(idx, ex){
           // Reverting to the default exercise — clear the selection entirely
           // rather than storing the default's own name, so a future
           // EXERCISE_SUBS edit can't strand an old explicit "default" value.
-          await window.storage.delete(subSelectionKey(activeProgram, activeDay, idx));
+          await window.storage.delete(subSelectionKey(activeProgram, activeDay, slotIdOf(ex, idx)));
         } else {
-          await window.storage.set(subSelectionKey(activeProgram, activeDay, idx), chosenName);
+          await window.storage.set(subSelectionKey(activeProgram, activeDay, slotIdOf(ex, idx)), chosenName);
         }
       }catch(e){}
       closeExerciseSubModal();
@@ -28301,7 +28478,7 @@ async function computeProgramFitTrend(){
       if(ex.noWeight) continue; // no meaningful weight-based progression signal for bodyweight/time-based entries
       const info = exerciseInfo[ex.name];
       if(!info) continue;
-      const log = entriesForExercise(await getExLog(dayId, idx, subVariantOf(ex)), ex.name); // v3.535 (BL-51)
+      const log = entriesForExercise(await getExLog(dayId, slotIdOf(ex, idx), subVariantOf(ex)), ex.name); // v3.535 (BL-51); v3.561 slotIdOf (BL-72)
       const pastSessions = buildPastSessions(log);
       if(pastSessions.length < 2) continue; // a fit judgement needs two sessions per lift (the signal itself can increase from one, BL-08)
       total++;
@@ -29626,7 +29803,7 @@ async function renderWorkout(){
   // needed anywhere else in this function.
   await applyExerciseSubs(renderExercises, activeProgram, activeDay);
 
-  const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i, subVariantOf(ex))));
+  const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, slotIdOf(ex, i), subVariantOf(ex)))); // v3.561 (BL-72)
   // v3.535 (BL-51): what suggestions read; today's sets still come from logs[i].
   const ownLogs = logs.map((log, i)=> entriesForExercise(log, renderExercises[i] && renderExercises[i].name));
   const restingRegions = await getRestingRegions();
@@ -29652,7 +29829,7 @@ async function renderWorkout(){
     const log = ownLogs[i];
     const hasOwnPrior = log.some(e=> e.date !== selectedLogDate);
     if(hasOwnPrior) return null; // has its own history at this exact slot — no fallback needed
-    return await getFallbackPriorEntry(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
+    return await getFallbackPriorEntry(ex.name, exKey(activeProgram, activeDay, slotIdOf(ex, i), subVariantOf(ex)));
   }));
 
   const exercisePieces = [];
@@ -32556,7 +32733,7 @@ async function openExerciseHistory(exIdx, ex){
 // v3.499: what the exercise history sheet shows, as HTML, so the open-screen
 // details pane on Today (renderExerciseDetail) shows the same thing.
 async function buildExerciseHistoryHtml(exIdx, ex, opts){
-  const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
+  const log = await getExLog(activeDay, slotIdOf(ex, exIdx), subVariantOf(ex)); // v3.561 (BL-72)
   const sessions = (log || [])
     .map(normalizeExEntry)
     .filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null || s.distance!=null))
@@ -32834,7 +33011,7 @@ async function checkWhatsNew(){
 }
 
 async function refreshSessionSummary(row, exIdx, ex){
-  const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
+  const log = await getExLog(activeDay, slotIdOf(ex, exIdx), subVariantOf(ex)); // v3.561 (BL-72)
   const todayEntry = log.find(e=>e.date===selectedLogDate);
   const todayVolume = todayEntry ? volumeOf(todayEntry) : 0;
   const todayTop = todayEntry ? topSetOf(todayEntry) : null;
@@ -32948,6 +33125,8 @@ function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
 function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
+  // v3.561 (BL-72): the storage slot; exIdx stays the render index for the DOM.
+  const slot = slotIdOf(ex, exIdx);
 
   // WHAT SHAPE A ROW IN THIS BLOCK HAS. Derived once, here, because more than
   // one thing in this function builds a row: the add-set button builds a whole
@@ -32965,7 +33144,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const sameAsLastBtn = block.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .same-as-last-btn`);
   if(sameAsLastBtn){
     sameAsLastBtn.addEventListener('click', async ()=>{
-      const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+      const key = exKey(activeProgram, activeDay, slot, subVariant);
       let log = [];
       try{
         const item = await window.storage.get(key);
@@ -32998,7 +33177,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         // "is there anything worth copying?" test — otherwise Same as Last
         // would skip every run and swim in the log.
         if(s.weight==null && s.reps==null && s.distance==null) continue;
-        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '', subVariant, s.distance ?? '', undefined, ex.name);
+        await saveExSet(activeDay, slot, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '', subVariant, s.distance ?? '', undefined, ex.name);
       }
       renderWorkout();
     });
@@ -33013,7 +33192,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
 
   async function deleteSet(setRow){
     const setIdx = Number(setRow.dataset.setIdx);
-    const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+    const key = exKey(activeProgram, activeDay, slot, subVariant);
     let log = [];
     try{
       const item = await window.storage.get(key);
@@ -33052,7 +33231,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   async function hideWarmupStep(rowEl){
     const label = rowEl.dataset.stepLabel;
     if(!label) return;
-    const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+    const key = exKey(activeProgram, activeDay, slot, subVariant);
     let preDeleteSnapshot = null;
     try{
       const item = await window.storage.get(key);
@@ -33064,10 +33243,10 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     // anywhere in the file — the identical unbound-identifier shape that made
     // the drop button inert for four versions, caught here by the reachability
     // suite written for that one.
-    const log = await getExLog(activeDay, exIdx, subVariant);
+    const log = await getExLog(activeDay, slot, subVariant);
     const entry = log.find(e=> e.date === selectedLogDate);
     const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
-    await saveExWarmupSkipped(activeDay, exIdx, already.concat([label]), subVariant, ex.name);
+    await saveExWarmupSkipped(activeDay, slot, already.concat([label]), subVariant, ex.name);
     await renderWorkout();
 
     showUndoToast('Warm-up step hidden', async ()=>{
@@ -33099,7 +33278,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // distance saved earlier on this set is kept rather than erased.
       const distValM = !dInput ? undefined : (distValRaw === '' ? '' : toCanonicalMetres(distValRaw));
       const noteVal = nInput ? nInput.value : '';
-      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant, distValM, noteVal, ex.name);
+      const result = await saveExSet(activeDay, slot, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant, distValM, noteVal, ex.name);
       // An empty row is an empty row whichever of its fields exist — a cardio
       // set with only a distance is still a logged set, so distance joins the
       // "is there anything here?" test rather than being ignored by it.
@@ -33154,7 +33333,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const fromDistance = !!(evt && dInput && evt.target === dInput);
       if(isRealSet && !fromDistance && !isSupersetLeadIn && !isBackdating()){
         const restTarget = getDefaultRestSeconds(ex);
-        restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
+        restTargetBySlot[exKey(activeProgram, activeDay, slot, subVariant)] = restTarget;
         startRestTimer(restTarget, getRestReasonLabel(ex));
       }
       if(isRealSet && !fromDistance){
@@ -33246,7 +33425,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         const dw = rowEl.querySelector('.drop-weight');
         const dr = rowEl.querySelector('.drop-reps');
         const wLb = (dw && dw.value !== '') ? toCanonicalLb(dw.value) : '';
-        await saveExDropSet(activeDay, exIdx, setIdx, di, wLb, dr ? dr.value : '', subVariant, ex.name);
+        await saveExDropSet(activeDay, slot, setIdx, di, wLb, dr ? dr.value : '', subVariant, ex.name);
         dropBtn.classList.toggle('has-drops', dropWrap.querySelectorAll('.drop-set-row').length > 0);
       };
       const wireDropRow = (rowEl)=>{
@@ -33279,14 +33458,14 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const warmupStrip = block.querySelector('.warmup-strip');
   if(warmupStrip && warmupStrip.querySelector('.warmup-set-row')){
     warmupStrip._skipAll = async ()=>{
-      const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+      const key = exKey(activeProgram, activeDay, slot, subVariant);
       let snapshot = null;
       try{ const item = await window.storage.get(key); snapshot = (item && item.value) ? item.value : null; }catch(e){}
       const labels = [...warmupStrip.querySelectorAll('.warmup-set-row')].map(r=> r.dataset.stepLabel).filter(Boolean);
-      const log = await getExLog(activeDay, exIdx, subVariant);
+      const log = await getExLog(activeDay, slot, subVariant);
       const entry = log.find(e=> e.date === selectedLogDate);
       const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
-      await saveExWarmupSkipped(activeDay, exIdx, already.concat(labels), subVariant, ex.name);
+      await saveExWarmupSkipped(activeDay, slot, already.concat(labels), subVariant, ex.name);
       await renderWorkout();
       showUndoToast('Warm-up skipped', async ()=>{
         if(snapshot != null){ try{ await window.storage.set(key, snapshot); }catch(e){} }
@@ -33298,7 +33477,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const warmupRestoreBtn = block.querySelector('.warmup-restore-btn');
   if(warmupRestoreBtn){
     warmupRestoreBtn.addEventListener('click', async ()=>{
-      await saveExWarmupSkipped(activeDay, exIdx, [], subVariant, ex.name);
+      await saveExWarmupSkipped(activeDay, slot, [], subVariant, ex.name);
       await renderWorkout();
     });
   }
@@ -33328,7 +33507,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const stepIdx = Number(row.dataset.stepIdx);
       const wRaw = wInput ? wInput.value : '';
       const wLb = wRaw === '' ? '' : toCanonicalLb(wRaw);
-      await saveExWarmupSet(activeDay, exIdx, stepIdx, wLb, rInput ? rInput.value : '', doneInput && doneInput.checked, subVariant, ex.name);
+      await saveExWarmupSet(activeDay, slot, stepIdx, wLb, rInput ? rInput.value : '', doneInput && doneInput.checked, subVariant, ex.name);
     };
     [wInput, rInput].forEach(el=>{ if(el) el.addEventListener('change', save); });
     // The ramp is exactly when you are loading and unloading the bar, so this
@@ -48844,6 +49023,7 @@ if(activeUserId){
     // Before loadActiveProgram, which silently falls back to the default for a
     // key it does not recognise.
     await loadAndInstallCustomPrograms();
+    await finishTrailingSlotsMove(); // v3.561 (BL-72): needs the styles, day count and custom programs above
     await loadActiveProgram();
     // Computed once, after activeProgram is actually loaded, and shared by both
     // calls below — this both avoids redundant computation and fixes a prior
