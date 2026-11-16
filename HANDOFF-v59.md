@@ -1242,3 +1242,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** parseEstimatedMinutes distance branch (per-activity pace) and rep time with rest between sets; WARMUP_RAMP_MINUTES = 4 in totalMinutesForUnits. Calories re-pinned (Back Squat 3×5 @200 lb: 79).
 - **Note:** all-days share under 0.6× authored is 17.7% (short mobility/Pilates/yoga/medical days); lifting/cardio days 4.7%. Sprint yards use the sled pace (0.5 min/20 m), an overestimate for short sprints; flag if it matters.
 - **Next:** MKT-01 per the roadmap.
+
+## Addendum 90: MKT-01 (v3.566, PR #142, 2026-11-16)
+- **What:** `computeWeekStreak` (Monday-Sunday weeks, threshold max(2, daysPerWeekPref - 1)); milestones [4, 8, 12, 26, 52] weeks via `week-streak-last-celebrated`; badge "N wk" with aria-label. `computeStreak` stays for the coach context.
+- **Open for the owner:** summit note says no confetti; criterion 1 keeps the celebration. One line to drop.
