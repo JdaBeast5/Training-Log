@@ -3097,7 +3097,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** the 5-second banner hold applies whenever there's share data (`holdMs`, 29662), so the session banner stays up longer. That's intended; check it doesn't cover Gym mode's exit control in the harness's `gym-*` state.
 - **Summit note (summit 2026-11-07):** Put the stats in a named pure builder (e.g. `sessionShareStats`) that UX-09's Share calls. Ship directly before UX-09a, so only the banner wiring is temporary (summit §1.4).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The old test plan drove a handler that lives inside `renderWorkout`; the builder now reads the rendered list and storage, so it's driven for real, and the wiring is a one-site call count. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.581, PR #157). Built ahead of slot 49 while UX-04+ waits on the owner's on-device look at UX-03. Flagged: the day label isn't on the card (stats cards draw no detail line, and criterion 2 fixes the labels); recommend UX-09a adds it. `test-superset-field-chaining.js` gained one boundary stub.
 
 ### MKT-05: Share a finished training block
 - **Why:** finishing a 4–6 week block is the moment lifters actually post ("finished my first block of…"). The app knows when a block ends (`cycleWeekOf`, 26723, and `isDeloadWeek`, 14915) but marks it with nothing. Graduation celebrations exist only for rehab and postpartum programs (15590, 15921), which must not get a share button.
