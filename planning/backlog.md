@@ -768,7 +768,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** the food log. Guarded by `test-food-log-portions.js`, `test-food-log-macro-expand.js`, `test-log-2-0.js`, `test-food-add-confirmation-pop.js`, `test-barcode-my-foods-cache.js` (also extracts `addFoodToLog`) and `test-visual-polish-audit-fixes.js` (66–104: the quick-add row's computed layout, which sits right below the chips).
 - **Tools:** `impeccable harden`, `apple-hig`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: re-adding a logged multiple through `addFoodToLog(item, 1)` would count usage under "Bagel ×3", which the function's own comment forbids, so the item adds `relogFoodEntry` (BL-19 reuses it); "count" is now days, so one big day can't dominate; criteria are real events. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.574, PR #150)
 
 ### BL-19: "Repeat yesterday" adds single items, even after you've started the day
 - **Why:** Repeat yesterday exists (button `#repeatYesterdayBtn` 6316, `updateRepeatYesterdayVisibility` 37880, handler 37898). It hides once anything is logged and copies all or nothing. The research's "missing" verdict missed it. Extending it beats a parallel feature (CLAUDE.md, "Consolidate duplication").

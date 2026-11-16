@@ -1277,3 +1277,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 97: BIZ-03 (v3.573, PR #149, 2026-11-16)
 - **What:** `#calHeroEstimate` under the calorie hero; `profileBodySaved` (storage `profile-body-saved`) loaded in `loadProfile`, set only by `#pfSave`. UX-13 must keep this line (summit note).
 - **Next:** BL-18 (slot 35).
+
+## Addendum 98: BL-18 (v3.574, PR #150, 2026-11-16)
+- **What:** `buildRecentFoods`, `relogFoodEntry` (BL-19 reuses it), `renderFoodRecents` (called from `loadFoodLog`), `#foodRecents` chips; the search input handler hides them.
+- **Flag (tooling):** `tools/visual/fixture-store.json` holds 8 training weeks, so the MKT-01 celebration covers every harness state; store `week-streak-last-celebrated: "8"` in the fixture to clear it.
+- **Next:** BL-19 (slot 36).
