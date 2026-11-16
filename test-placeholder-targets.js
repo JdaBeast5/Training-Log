@@ -42,7 +42,7 @@ async function mount({store = {}, eaten = 0} = {}){
     async function renderProgramRec(){} async function renderProgramSelector(){} function renderWorkout(){} function renderWater(){} function renderCycleTracking(){}
     function toggleConditionTrackerCards(){} function renderTodayInsights(){} function loadFoodLog(){} function updateHideAvoidedToggleVisibility(){} function renderFoodItems(){}`,
     [USER_PROFILE, FLAG_LET, extractConst(src, 'LB_PER_KG'),
-     ...['computeTargets', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'toCanonicalLb', 'readValidAge', 'readGoalWeight', 'loadProfile', 'saveProfile', 'renderCalHero', 'applyTargetsToUI'].map(f => extractFunction(src, f)),
+     ...['computeTargets', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'toCanonicalLb', 'readValidAge', 'readGoalWeight', 'loadProfile', 'saveProfile', 'isPlaceholderBody' /* v3.577 */, 'renderCalHero', 'applyTargetsToUI'].map(f => extractFunction(src, f)),
      wiring('pfSave'),
      `window.__boot = (async () => { await loadProfile(); targets = computeTargets(userProfile); document.getElementById('calHero').dataset.eaten = '${eaten}'; applyTargetsToUI(); })();
       window.__state = () => ({profile: userProfile, cal: computeTargets(userProfile).cal});`]);
