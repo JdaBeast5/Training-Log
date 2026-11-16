@@ -3918,6 +3918,10 @@
   .food-recents{display:flex; gap:8px; overflow-x:auto; margin:0 0 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
   .food-recents[hidden]{display:none;}
   .food-recent-chip{min-height:44px; color:var(--text);}
+  /* v3.575 (BL-19): the prior day's items, one Add each. */
+  .repeat-yesterday-list{display:flex; flex-direction:column; gap:6px; padding-bottom:10px;}
+  .repeat-yesterday-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13.5px; color:var(--text);}
+  .repeat-yesterday-row .food-cat-btn{min-height:44px; min-width:64px;}
   .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
   .food-item-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -6410,7 +6414,9 @@
       <!-- v3.428: what you have eaten comes first, under the totals it adds up to;
            adding and browsing follow. It sat below the whole food library. -->
       <div class="section-label">Eaten</div>
-      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;" aria-expanded="false" aria-controls="repeatYesterdayWrap">Repeat yesterday</button>
+      <!-- v3.575 (BL-19): on a day that has started, the button opens the prior day's items, each with its own Add. -->
+      <div class="expand-wrap" id="repeatYesterdayWrap"><div><div id="repeatYesterdayList" class="repeat-yesterday-list"></div></div></div>
       <div class="food-log-list" id="foodLogList"></div>
 
       <div class="section-divider"></div>
@@ -7727,7 +7733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.574';
+const APP_VERSION = '3.575';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9272,6 +9278,9 @@ const WHATS_NEW = {
   ]},  '3.574': { headline: 'One-tap recent foods', points: [
     'Under the food search, your most-eaten foods from the last two weeks sit as chips. One tap logs one, at the portion you last had.',
     'They step aside while you type a search.',
+  ]},  '3.575': { headline: 'Add from yesterday', points: [
+    'Once you\'ve started a day, the Repeat yesterday button becomes Add from yesterday: tap it to see yesterday\'s foods and add any one of them in a tap.',
+    'On an empty day it still copies the whole day, as before.',
   ]},
 };
 
@@ -39329,36 +39338,60 @@ async function loadFoodLog(){
   renderFoodRecents(); // v3.574 (BL-18): the chips follow the day being logged
 }
 
-// Only shown when the currently-viewed date's log is genuinely empty (no
-// point once you've already started logging something different for that
-// day) and the day before it actually has entries worth copying. "Yesterday"
-// here means "the day before whichever date is selected" — so this still
-// works sensibly while backdating, not just for the real current day.
+// The prior day ("yesterday" relative to whichever date is selected, so it
+// works while backdating too). On an empty day the button copies the whole
+// prior day, as it always has. v3.575 (BL-19): once the day has started, the
+// same button reads "Add from yesterday" and opens the prior day's items,
+// each with one Add that goes through BL-18's relogFoodEntry (a multiple
+// re-adds as the same portion, counted under its base name). The prior day's
+// record is only read, never written.
+let repeatPriorItems = [];
 async function updateRepeatYesterdayVisibility(){
   const btn = document.getElementById('repeatYesterdayBtn');
   if(!btn) return;
-  if(todaysFoodLog.length > 0){
-    btn.style.display = 'none';
-    return;
-  }
+  const wrap = document.getElementById('repeatYesterdayWrap');
+  const hide = ()=>{ btn.style.display = 'none'; if(wrap) wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); };
   try{
     const priorDay = dateKeyMinusDays(selectedLogDate, 1);
     const res = await window.storage.get(`foodlog:${priorDay}`);
     const priorLog = res && res.value ? JSON.parse(res.value) : [];
-    btn.textContent = isBackdating() ? `Repeat ${formatLogDateLabel(priorDay)}` : 'Repeat yesterday';
-    btn.style.display = priorLog.length > 0 ? '' : 'none';
+    repeatPriorItems = priorLog;
+    if(!priorLog.length){ hide(); return; }
+    const started = todaysFoodLog.length > 0;
+    const when = isBackdating() ? formatLogDateLabel(priorDay) : 'yesterday';
+    btn.textContent = started ? `Add from ${when}` : (isBackdating() ? `Repeat ${when}` : 'Repeat yesterday');
+    btn.style.display = '';
+    if(!started && wrap){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    if(wrap && wrap.classList.contains('open')) renderRepeatYesterdayList();
   }catch(e){
-    btn.style.display = 'none';
+    hide();
   }
+}
+
+function renderRepeatYesterdayList(){
+  const list = document.getElementById('repeatYesterdayList');
+  if(!list) return;
+  list.innerHTML = repeatPriorItems.map((item, i)=> `<div class="repeat-yesterday-row"><span>${escapeHtml(item.name)} · ${Math.round(Number(item.cal) || 0)} cal</span>`
+    + `<button type="button" class="food-cat-btn" data-repeat-item="${i}" aria-label="Add ${escapeHtml(item.name)}">Add</button></div>`).join('');
 }
 
 document.getElementById('repeatYesterdayBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('repeatYesterdayBtn');
+  const wrap = document.getElementById('repeatYesterdayWrap');
   try{
     const priorDay = dateKeyMinusDays(selectedLogDate, 1);
     const res = await window.storage.get(`foodlog:${priorDay}`);
     const priorLog = res && res.value ? JSON.parse(res.value) : [];
     if(priorLog.length === 0) return;
+    if(todaysFoodLog.length > 0){
+      // v3.575 (BL-19): a started day picks items; nothing is added by this tap.
+      repeatPriorItems = priorLog;
+      const open = !wrap.classList.contains('open');
+      if(open) renderRepeatYesterdayList();
+      wrap.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      return;
+    }
     // Copy the items, not a reference — the viewed day's log needs to be
     // freely editable/removable from here without ever touching the prior
     // day's actual saved record.
@@ -39368,6 +39401,12 @@ document.getElementById('repeatYesterdayBtn').addEventListener('click', async ()
     btn.style.display = 'none';
     renderTodayInsights();
   }catch(e){}
+});
+
+document.getElementById('repeatYesterdayList').addEventListener('click', (e)=>{
+  const add = e.target.closest('[data-repeat-item]');
+  const item = add && repeatPriorItems[Number(add.dataset.repeatItem)];
+  if(item) relogFoodEntry(item);
 });
 
 function computeTodaysFoodTotals(){
