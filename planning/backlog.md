@@ -2850,7 +2850,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `sw.js` (version), `index.html` (`APP_VERSION` 7625 and the `WHATS_NEW` entry only, 7643), `test-free-list-guard.js` (new).
 - **Risk:** false positives on words like "progress" or "protein". The word-boundary regex and the named allowlist handle them; the test prints any match.
 - **Spec refresh 3 (2026-11-09, against v3.528):** ran the regex over the real v3.528 markup: 5 false positives, all the class `usda-key-upgrade-toggle`, so the allowlist is now exact instead of "for example". "Rendering the real Today" can't be done in jsdom (`renderWorkout`), so the criteria now name the four renderers that can be driven, plus a stated source scan of `renderWorkout`. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.571, PR #147)
 
 ### BIZ-20: The founding-member promise
 - **Why:**
