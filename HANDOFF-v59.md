@@ -1295,3 +1295,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `estimateExpenditure` (pure; window from when both logs started, ≤28 days before today, ≥14), `renderExpenditureLine` into `#expenditureLine` from `refreshBodyHealthTrends`; `isPlaceholderBody()` shared with BIZ-03.
 - **Note:** BL-27 can't start until 21 days after this merges.
 - **Next:** check the roadmap after slot 38 (38a BL-43 etc.).
+
+## Addendum 102: BL-43 (v3.578, PR #154, 2026-11-16)
+- **What:** `longestRunFrom`/`longestRunLast30Days`, `runningProgressionBadge` (Long Run cap, 400m ladder, Tempo +2/wk), one gated call in `renderWorkout`.
+- **Not built:** step 5 hard-share check (flagged in the PR).
+- **Next:** Phase 2 starts at slot 39 (BIZ-05), but the roadmap says "Before slot 39: the mock-ups are re-rendered, and Playwright WebKit is approved (D10)". Check those preconditions before building.

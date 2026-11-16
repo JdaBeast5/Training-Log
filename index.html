@@ -7737,7 +7737,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.577';
+const APP_VERSION = '3.578';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9291,6 +9291,9 @@ const WHATS_NEW = {
   ]},  '3.577': { headline: 'Your burn, from your own logs', points: [
     'Under the weight trend, Analysis now estimates how many calories you burn a day from what you\'ve logged: your average intake and your weight trend, beside the formula figure.',
     'It needs two weeks of food on most days and a couple of weigh-ins a week, and says what\'s missing until then. Your targets don\'t change.',
+  ]},  '3.578': { headline: 'Running that progresses', points: [
+    'On the Running program, the Long Run shows a cap 10% over your longest run of the last 30 days: the single big jump is what raises injury risk.',
+    '400m Repeats add reps once you\'ve logged every one (4, 5, 6, then 8), and the Tempo Run grows by 2 minutes a build week, up to 30. Deload weeks keep it easy.',
   ]},
 };
 
@@ -30111,6 +30114,8 @@ async function renderWorkout(){
   }));
 
   const exercisePieces = [];
+  // v3.578 (BL-43): the Long Run cap reads the last 30 days of runs, once.
+  const runLongestM = (activeProgram === 'running' && renderExercises.some(e=> e && e.name === 'Long Run')) ? await longestRunLast30Days() : 0;
 
   renderExercises.forEach((ex,i)=>{
     const isSupersetTop = !!ex.superTag;
@@ -30179,6 +30184,7 @@ async function renderWorkout(){
       const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote, prior});
       badge = badgeInfo.html;
       if(!badge && repSug) badge = `<div class="progress-badge">${repSug.harder ? escapeHtml(repSug.words) : `Every set hit the top twice: try ${repSug.value} ${repSug.unit === 's' ? 's' : 'reps'} per set.`}</div>`;
+      if(!badge && activeProgram === 'running') badge = runningProgressionBadge(ex, {week: mesoWeek, inDeloadWeek, longestM: runLongestM, prior}); // v3.578 (BL-43)
 
       // THE FIRST TWO EXERCISES OF THE DAY, unconditionally.
       //
@@ -32964,6 +32970,64 @@ function wireGymMode(){
 // contribute nothing rather than breaking the sum.
 function distanceOf(entry){
   return (entry.sets||[]).reduce((sum,s)=> sum + (s.distance!=null ? s.distance : 0), 0);
+}
+
+// v3.578 (BL-43, owner (a) 2026-11-09): running progression from your own
+// logs, as render-time suggestions only (nothing is stored), on the Running
+// program in build weeks 1-4 (a deload week shows none).
+//   Long Run: a cap 10% over your longest run in the last 30 days (the single-
+//     session spike is what raises injury risk [FRA25]), snapped to 0.5 km or
+//     0.25 mi; with no logged run, the authored minutes stand alone.
+//   400m Repeats: count before pace. Every prescribed rep logged last time
+//     moves up the 4 -> 5 -> 6 -> 8 ladder; above 8, longer reps (text only).
+//     Fewer holds. No per-rep time is stored, so no pace rule (owner (a)).
+//   Tempo Run: +2 min a build week from the authored minutes, up to 30.
+const RUNNING_PROGRESSION_NAMES = ['Easy Run', 'Long Run', 'Tempo Run', 'Recovery Jog', 'Warm-up Jog', 'Cool-down Jog', 'Strides', '400m Repeats'];
+const REPEATS_LADDER = [4, 5, 6, 8];
+// The longest single run, in metres, logged in the 30 days before todayKey
+// (today itself isn't counted: it's the run being capped).
+function longestRunFrom(corpus, todayKey){
+  const cutoff = dateKeyMinusDays(todayKey, 30);
+  let longest = 0;
+  for(const {exDef, log} of corpus || []){
+    if(!exDef || !RUNNING_PROGRESSION_NAMES.includes(exDef.name)) continue;
+    for(const entry of log || []){
+      if(!entry || entry.date < cutoff || entry.date >= todayKey) continue;
+      longest = Math.max(longest, distanceOf(entry));
+    }
+  }
+  return longest;
+}
+async function longestRunLast30Days(){
+  try{ return longestRunFrom(await readExCorpus(), selectedLogDate); }catch(e){ return 0; }
+}
+function runningProgressionBadge(ex, {week, inDeloadWeek, longestM, prior}){
+  if(!ex || inDeloadWeek) return '';
+  const wk = cycleWeekOf(week || 1);
+  if(wk > 4) return '';
+  if(ex.name === 'Long Run'){
+    if(!(longestM > 0)) return '';
+    const km = distanceUnit === 'km';
+    const step = km ? 0.5 : 0.25;
+    const cap = Math.round((longestM * 1.1) / (km ? 1000 : 1609.344) / step) * step;
+    return `<div class="progress-badge">Today's cap: <b>${Number(cap.toFixed(2))} ${km ? 'km' : 'mi'}</b> (10% over your longest run in 30 days).</div>`;
+  }
+  if(ex.name === 'Tempo Run'){
+    const base = Number((/(\d+)\s*min/.exec(ex.sets || '') || [])[1]);
+    if(!base) return '';
+    const mins = Math.min(30, base + 2 * (wk - 1));
+    return mins > base ? `<div class="progress-badge">Tempo this week: <b>${mins} min</b> (+2 min a build week, up to 30).</div>` : '';
+  }
+  if(ex.name === '400m Repeats'){
+    if(!prior) return '';
+    const prescribed = parseSetCount(ex.sets);
+    const done = (prior.sets || []).filter(st => Number(st.distance) > 0).length;
+    if(done < prescribed) return `<div class="progress-badge">Last time ${done} of ${prescribed} reps: hold at <b>${prescribed}×400m</b>.</div>`;
+    const next = REPEATS_LADDER.find(n => n > done);
+    return next ? `<div class="progress-badge">Every rep logged last time: try <b>${next}×400m</b> today.</div>`
+      : `<div class="progress-badge">Every rep logged at ${done}: move to 800s or 1 km reps.</div>`;
+  }
+  return '';
 }
 
 // Total duration, in minutes, but ONLY when the middle numeric field of this
