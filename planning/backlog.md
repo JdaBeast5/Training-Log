@@ -413,7 +413,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (`slotIdOf`, beside `exKey` 27064; `APP_VERSION` 7625; `WHATS_NEW` 7643), `sw.js`, `test-stable-trailing-keys.js`. Guards: everything BL-72 names, with its re-pinned `slotIdOf = (ex, i)=> i` stubs (they don't exercise this line).
 - **Risk:** the owner's past shifted sets stay under the shifted keys (option (a)). The What's New line says history now follows each exercise even after you remove or reorder one.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the `?? i` fallback, the swap-follows-history note, the check-box flag, and per-criterion real invocations added. Scope unchanged.
-- **Status:** ready (after BL-72; owner chose **(a)** on 2026-11-08: switch now, past shifted sets stay where they are). Build as soon as BL-72 has merged.
+- **Status:** done (v3.562, PR #138)
 
 ### BL-75: No carry swap for a resting shoulder (BL-71 follow-up)
 - **Why:** since v3.525, carries with only Shoulder resting suggest "Vest or Backpack Walk (hands free)", but a loaded vest or backpack presses on the shoulders and traps through its straps. Flagged on PR #89. The owner left it to the builder's recommendation on 2026-11-08 ("I'll let you recommend it and go"). The recommendation is no swap: the caution still shows, and nothing suggested loads the resting area. Bird Dog doesn't fit either, since it bears weight on the shoulders.
