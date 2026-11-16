@@ -6377,6 +6377,8 @@
       <span class="cal-hero-num" id="calHeroNum">2650</span>
       <span class="cal-hero-unit" id="calHeroUnit">cal left of 2650</span>
     </div>
+    <!-- v3.573 (BIZ-03): says the target is a placeholder until a body is saved (renderCalHero). -->
+    <div class="history-hint" id="calHeroEstimate" hidden></div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
       <div class="macro-label">Calories</div>
@@ -7719,7 +7721,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.572';
+const APP_VERSION = '3.573';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9259,6 +9261,8 @@ const WHATS_NEW = {
     'Behind the scenes: a check that keeps everything you use today free. Nothing on screen changes.',
   ]},  '3.572': { headline: 'Saved files, one name', points: [
     'Behind the scenes: every saved file takes its name from one place; old backups still restore.',
+  ]},  '3.573': { headline: 'Calorie targets say when they\'re an estimate', points: [
+    'Until you add your age and height in Profile, the calorie target on Log says it\'s an estimate for a 30-year-old at 5\'8", and the weight it used. Save your Profile once and the line goes.',
   ]},
 };
 
@@ -33955,11 +33959,18 @@ let userProfile = {
   cycleTrackingEnabled:true,
 };
 
+// v3.573 (BIZ-03): true once the profile form has been saved (window.storage
+// 'profile-body-saved'). Only #pfSave sets it; renderCalHero reads it.
+let profileBodySaved = false;
 async function loadProfile(){
   try{
     const res = await window.storage.get('user-profile');
     if(res && res.value) userProfile = {...userProfile, ...JSON.parse(res.value)};
     invalidateFoodPrefCache();
+  }catch(e){}
+  try{
+    const flag = await window.storage.get('profile-body-saved');
+    profileBodySaved = !!(flag && flag.value);
   }catch(e){}
 }
 
@@ -35658,6 +35669,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     avoidFoods: document.getElementById('pfAvoidFoods').value.trim(),
   };
   await saveProfile();
+  // v3.573 (BIZ-03): the person has saved their body, so the target is theirs.
+  profileBodySaved = true;
+  try{ await window.storage.set('profile-body-saved', '1'); }catch(e){}
   targets = computeTargets(userProfile);
   applyTargetsToUI();
   renderHeader();
@@ -39396,6 +39410,20 @@ function renderCalHero(){
   hero.classList.toggle('is-over', left < 0);
   document.getElementById('calHeroNum').textContent = Math.abs(left);
   document.getElementById('calHeroUnit').textContent = `cal ${left < 0 ? 'over' : 'left of'} ${targets.cal}`;
+  // v3.573 (BIZ-03): before anyone saves their body in Profile, the target is
+  // computeTargets run on the defaults, so it says so. "Never saved" can't be
+  // read from user-profile (a weigh-in and a migration both write it), so the
+  // line shows while age and height still equal the defaults (30, 5'8") and
+  // the profile form has never been saved (profileBodySaved, set only by
+  // #pfSave). The numbers come from userProfile, so they can't drift from
+  // what computeTargets used.
+  const est = document.getElementById('calHeroEstimate');
+  if(est){
+    const p = userProfile;
+    const placeholder = !profileBodySaved && Number(p.age) === 30 && Number(p.heightFt) === 5 && Number(p.heightIn) === 8;
+    est.hidden = !placeholder;
+    est.textContent = placeholder ? `Estimate for a ${p.age}-year-old, ${p.heightFt}'${p.heightIn}", ${fmtWeight(p.weight)}. Add yours in Profile.` : '';
+  }
 }
 
 function updateBars(v){
