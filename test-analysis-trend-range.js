@@ -21,7 +21,7 @@
 // bug this change would otherwise introduce, (5) the wrapper functions
 // actually read the live select's value, and (6) the real change-event
 // listener re-renders via the real refreshBodyHealthTrends.
-const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const analysisViewHtml = extractElementById(src, 'analysisView');
@@ -265,6 +265,8 @@ test('REAL invocation: dispatching a real "change" event on #analysisTrendRange 
     toDisplayWeightSrc, trimUnitNumSrc, fmtWeightSrc, renderSparklineSrc,
     averageByDaySrc, categorizeBPSrc, categorizeGlucoseSrc, computeWaterTargetSrc,
     renderDayValueTrendSrc, renderNutritionTrendSrc, renderWaterTrendSrc, renderSleepTrendSrc, renderBPTrendSrc, renderGlucoseTrendSrc,
+    // v3.577 (BL-17): refreshBodyHealthTrends also renders the expenditure line.
+    extractConst(src, 'EXPENDITURE_KCAL_PER_LB'), extractFunction(src, 'estimateExpenditure'), extractFunction(src, 'renderExpenditureLine'),
     refreshBodyHealthTrendsSrc, rangeChangeWiringSrc,
   ]);
   const sel = document.getElementById('analysisTrendRange');
