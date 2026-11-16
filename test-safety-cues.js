@@ -104,7 +104,9 @@ test('BL-06 criterion 2: no other exercise\'s cue count changed (snapshot from v
   const edited = {'Depth Jump': 3, 'Rear Naked Choke Drill': 1, 'Armbar from Guard Drill': 1, 'Clinch Knee Drills': 1,
                   'Neck Bridges': 1}; // v3.528 (BL-05b)
   // Exercises added since the snapshot are outside it: v3.563 (BL-36) Drop Landing; v3.564 (BL-35) the neck isometric.
-  const added = ['Drop Landing (stick it)', '4-Way Neck Isometric (hand or band)'];
+  const added = ['Drop Landing (stick it)', '4-Way Neck Isometric (hand or band)',
+    // v3.570 (BL-60): 12 entries, 3 cues each.
+    'Single-Leg Calf Raise', 'Heel Walk', 'Banded Dorsiflexion', 'Push-up (partial range)', 'Machine Chest Press', 'Landmine Press', 'Chest-Supported Row', 'Wall Sit', 'Leg Press (light, partial depth)', 'Step-Up (low box)', 'Grip Strengthening (light)', 'Shadowboxing (no resistance)'];
   const changed = Object.keys(now).filter(k => !added.includes(k) && now[k] !== before(k) + (edited[k] || 0));
   assert.deepStrictEqual(changed, []);
   assert.strictEqual(Object.keys(now).length, 321 + added.length, 'no other exercise added or removed');
