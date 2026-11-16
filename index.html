@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.561';
+const APP_VERSION = '3.562';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9219,6 +9219,9 @@ const WHATS_NEW = {
   '3.561': { headline: 'Your own exercises keep their history', points: [
     'Custom exercises, goal-focus extras and bonus exercises now keep their logged sets even when a day\'s built-in exercises change.',
     'Existing sets are moved to the new storage once, on this update, after a full copy is kept as a backup (it\'s included when you export your data).',
+  ]},  '3.562': { headline: 'History follows each exercise', points: [
+    'Removing or reordering an exercise on a day no longer shifts the later exercises onto their neighbour\'s history: each keeps its own.',
+    'Sets you logged while a day had an exercise removed stay where they were saved.',
   ]},
 };
 
@@ -27668,11 +27671,18 @@ function slotIdOf(ex, i){
   // The row's own name, never a swapped-in substitute's (applyExerciseSubs
   // renames the row and keeps the original in __originalName).
   const slug = slugifyExerciseName(ex.__originalName || ex.name || '');
-  if(!slug) return i; // a name with no letters or digits keeps its position rather than share 'c-'
+  if(!slug) return ex.__srcIndex ?? i; // a name with no letters or digits keeps its position rather than share 'c-'
   if(ex.isCustom) return 'c-' + slug;
   if(ex.isBodyGoalFocus) return 'f-' + slug;
   if(ex.accumulatedAccessory) return 'a-' + slug;
-  return i;
+  // v3.562 (BL-74, owner (a) 2026-11-08): a built-in row keys by its AUTHORED
+  // position (__srcIndex, tagged in renderWorkout before overrides and
+  // session-length trimming move rows), so removing or reordering an exercise
+  // no longer shifts every later row onto its neighbour's history. Rows with
+  // no tag (copies of the authored list, as in the heads-up and fit check)
+  // are already in authored order. Past sets logged while shifted stay where
+  // they are.
+  return ex.__srcIndex ?? i;
 }
 
 function exKey(program, dayId, idx, subVariant){

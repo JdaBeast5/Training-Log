@@ -207,4 +207,50 @@ test('criterion 4(d), a real crash: the write to the target fails once; nothing 
   assert.ok(!('ex:strength:d1:7' in store));
 });
 
+// v3.562 (BL-74, owner (a)): built-in rows key by their authored position.
+// Sabotage: return i instead of __srcIndex → criteria 1-3 fail; drop "?? i" →
+// criterion 4 fails.
+const L74 = [extractFunction(src, 'applyExOverrides'), extractFunction(src, 'applySessionLengthLimit'), extractFunction(src, 'groupIntoUnits'),
+  extractFunction(src, 'isWarmupOrCooldownUnit'), extractFunction(src, 'totalMinutesForUnits'), extractFunction(src, 'unitMinutes')];
+async function rendered(store, overrides, minutes){
+  return sandbox(store, `
+    ${L74.join('\n')}
+    function parseEstimatedMinutes(){ return 10; } function getDefaultRestSeconds(){ return 60; } function getRepRangeTier(){ return null; }
+    let full = programs.strength.days.d1.exercises.map((ex, idx) => ({...ex, __srcIndex: idx}));
+    full = applyExOverrides(full, ${JSON.stringify(overrides || {})});
+    ${minutes ? `full = applySessionLengthLimit(full, ${minutes}).exercises;` : ''}
+    __out = await Promise.all(full.map(async (ex, i) => ({name: ex.name, slot: slotIdOf(ex, i), log: (await getExLog('d1', slotIdOf(ex, i))).map(e => e.date)})));`);
+}
+test('BL-74 criteria 1 and 2: after a real removal the row at render index 1 resolves to 2 and reads d1:2; after a reorder the first row resolves to 3', async (assert)=>{
+  const [r] = [await rendered({'ex:strength:d1:1': log('2026-10-01'), 'ex:strength:d1:2': log('2026-10-02')}, {'1': {name: 'Barbell Row', removed: true}})];
+  assert.strictEqual(r[1].name, 'Overhead Press');
+  assert.strictEqual(r[1].slot, 2);
+  assert.deepStrictEqual(r[1].log, ['2026-10-02'], 'reads ex:strength:d1:2, not d1:1');
+  const re = await rendered({}, {'3': {name: 'Lat Pulldown', order: 0}});
+  assert.strictEqual(re[0].name, 'Lat Pulldown');
+  assert.strictEqual(re[0].slot, 3);
+});
+
+test('BL-74 criteria 4 and 5: a row with no __srcIndex resolves to i; custom, focus and bonus prefixes win over __srcIndex', async (assert)=>{
+  const r = await sandbox({}, `__out = [slotIdOf({name: 'Bench Press'}, 4), slotIdOf({name: 'Dips', isCustom: true, __srcIndex: 7}, 9),
+    slotIdOf({name: 'Lateral Raise', isBodyGoalFocus: true, __srcIndex: 6}, 6), slotIdOf({name: 'Bench Press', __srcIndex: 0}, 2)];`);
+  assert.deepStrictEqual(r, [4, 'c-dips', 'f-lateral-raise', 0]);
+});
+
+test('BL-74 criterion 3: a 30-minute limit that drops the leading warm-up keeps the main exercise on its authored key', async (assert)=>{
+  const r = await sandbox({'ex:strength:d1:1': log('2026-10-03')}, `
+    ${L74.join('\n')}
+    function parseEstimatedMinutes(){ return 10; } function getDefaultRestSeconds(){ return 60; } function getRepRangeTier(){ return null; }
+    function hasNumericSetPrefix(s){ return /^\\d+×/.test(s || ''); } function parseSetCount(s){ return parseInt(s, 10); } function replaceSetCount(s, n){ return String(s).replace(/^\\d+/, n); }
+    const SESSION_LENGTH_SET_FLOOR = 2, EXERCISE_TRANSITION_MINUTES = 1;
+    const full = [{name: 'Warm-up Jog', sets: '10 min'}, {name: 'Bench Press', sets: '4×4-6'}, {name: 'Barbell Row', sets: '4×6-8'}, {name: 'Cool-down Walk', sets: '10 min'}].map((ex, idx) => ({...ex, __srcIndex: idx}));
+    const kept = applySessionLengthLimit(full, 30).exercises;
+    __out = await Promise.all(kept.map(async (ex, i) => ({name: ex.name, slot: slotIdOf(ex, i), log: (await getExLog('d1', slotIdOf(ex, i))).map(e => e.date)})));`);
+  assert.ok(!r.some(x => x.name === 'Warm-up Jog'), 'anchor: the warm-up was dropped ' + JSON.stringify(r.map(x => x.name)));
+  const bench = r.find(x => x.name === 'Bench Press');
+  assert.strictEqual(r.indexOf(bench), 0, 'anchor: Bench Press now renders first');
+  assert.strictEqual(bench.slot, 1);
+  assert.deepStrictEqual(bench.log, ['2026-10-03']);
+});
+
 run();

@@ -1222,3 +1222,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 85: BL-72 (v3.561, PR #137, 2026-11-16)
 - **What:** `slotIdOf`; SCHEMA_VERSION 9; `migrateTrailingSlotsV9` (backup `migration-backup-v9` first) run by `finishTrailingSlotsMove` from init after custom programs load; `trailingSlotsMovePending` holds the stamp at 8 until success.
 - **Warning:** any new key-reading/writing call for a row must pass `slotIdOf(ex, i)`; suites stubbing key functions need a `slotIdOf` stub. BL-74 and BL-36 are now unblocked.
+
+## Addendum 86: BL-74 (v3.562, PR #138, 2026-11-16)
+- **What:** built-in rows key by `__srcIndex ?? i` (also the empty-slug fallback). Removing, reordering or trimming no longer shifts history.
+- **Not moved:** sets logged while shifted stay where saved (owner (a)). Check-box `completed[i]` stays render-indexed (flagged in spec).
+- **Next:** BL-36, then BL-35.
