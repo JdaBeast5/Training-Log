@@ -99,9 +99,40 @@ test('REAL source: saved files carry the app name — the shared image and the b
   assert.strictEqual(files.length, 3, 'anchor: the three places the app names a saved file (the third is the symptom summary, which never carried the app name)');
   // v3.547 (MKT-03): <slug>-<kind>-<date>.png (platestep-pr-2026-11-30.png).
   assert.ok(files.some(l => l.includes('new File([blob], `${appSlug()}-${cardData.kind || \'card\'}-${getTodayKey()}.png`')), 'the shared image is platestep-<kind>-<date>.png');
-  assert.ok(files.some(l => l.includes('a.download = `${APP_NAME.toLowerCase()}-backup-')), 'the backup is platestep-backup-…');
+  // v3.572 (MKT-20): the backup takes the same appSlug() as the card.
+  assert.ok(files.some(l => l.includes('a.download = `${appSlug()}-backup-')), 'the backup is platestep-backup-…');
   assert.ok(!files.some(l => /training-log/.test(l)), 'no old name in either');
   assert.ok(!src.includes("fillText('TRAINING LOG'"), 'the hard-coded card footer is gone');
+});
+
+// v3.572 (MKT-20): no string literal outside comments carries the old name,
+// apart from an explicit allowlist measured at v3.528:
+//   - the What's New history (past entries name what the app was called);
+//   - the Diagnostics cache-name reads ('training-log-v…' is the cache prefix,
+//     which keeps its name on purpose: renaming it strands installed copies);
+//   - the AI cross-metric prompt's lower-case "training-log data", left as it
+//     is (2026-11-16) because that prompt sits in the "fixed, unverified live"
+//     AI internals (CLAUDE.md).
+// Sabotage: restore the training-log-backup- literal and this fails.
+test('MKT-20 criterion 4: no non-comment line names Training Log, TRAINING LOG or training-log, apart from the allowlist', (assert)=>{
+  const lines = src.split('\n');
+  // Lines inside /* ... */ blocks are comments.
+  const inBlock = new Array(lines.length).fill(false);
+  let open = false;
+  lines.forEach((l, i) => { const starts = l.includes('/*'), ends = l.includes('*/'); if(open || starts) inBlock[i] = true; if(starts && !ends) open = true; if(ends) open = false; });
+  const wnStart = lines.findIndex(l => /^const WHATS_NEW = \{/.test(l));
+  const wnEnd = lines.findIndex((l, i) => i > wnStart && /^\};/.test(l));
+  assert.ok(wnStart > 0 && wnEnd > wnStart, 'anchor: the What\'s New object');
+  const hits = [];
+  lines.forEach((l, i) => {
+    if(!/Training Log|TRAINING LOG|training-log/.test(l)) return;
+    if(inBlock[i] || /^\s*\/\//.test(l)) return;
+    if(i > wnStart && i < wnEnd) return;                        // What's New history
+    if(/training-log data across/.test(l)) return;              // the AI prompt (allowlisted, see above)
+    if(/'training-log-v'|'training-log-'/.test(l)) return;      // Diagnostics cache-name reads
+    hits.push(`${i + 1}: ${l.trim().slice(0, 120)}`);
+  });
+  assert.deepStrictEqual(hits, []);
 });
 
 run();
