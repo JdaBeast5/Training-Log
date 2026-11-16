@@ -627,7 +627,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Flagged, not in scope:** the `bodyweight` insight (28600) also says "slow the eccentric", but as an intensity lever without load, not a growth claim. Left alone.
 - **Risk:** overview length caps. Guarded by `test-concise-overviews.js` and `test-program-overview.js`.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; each string's container named; the audit rewrite quoted; criteria made real reads and one real render. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.568, PR #144). Criterion 3 pinned: the cycling FTP "6-8 weeks" tip and the Care sleep card's growth-hormone line remain (out of scope; the sleep card flagged as a follow-up).
 
 ### BL-13: The menstrual-cycle card stops prescribing phase-based training (SAF-7)
 - **Why:** `CYCLE_PHASES[*].training` (`index.html` 39093, 39101, 39109, 39117) presents the follicular phase as "a strong window" and suggests testing heavy lifts at ovulation. An umbrella review finds no consistent phase effect [MC23].

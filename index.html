@@ -7719,7 +7719,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.567';
+const APP_VERSION = '3.568';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9244,6 +9244,10 @@ const WHATS_NEW = {
   ]},  '3.567': { headline: 'More Year in Lifting cards', points: [
     'From 1 December, History shows your Year in Lifting: weeks trained, your biggest strength gain, your most-trained muscle group and your longest run of training weeks, each with its own Share button.',
     'Everything is worked out on your phone from your logged sets. No body weight, food or sleep goes on a card.',
+  ]},  '3.568': { headline: 'Bodybuilding copy that matches the plan', points: [
+    'The Bodybuilding overview now says what the split does: most muscles get one hard session a week plus indirect work. Pick Strength & Size if you want each muscle twice.',
+    'Its tips now match the app: deload every 4–6 weeks (the app schedules every 5th), and sleep 7–9 hours because short sleep lowers performance and recovery.',
+    'The hypertrophy insight no longer says slow lowering builds more muscle: rep speeds from about half a second to 8 seconds grow muscle similarly.',
   ]},
 };
 
@@ -10214,7 +10218,7 @@ const programs = {
   },
 
   bodybuilding: {
-    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation', overview: 'A five-day body-part split — chest/triceps, back/biceps, shoulders/abs, legs, and an arms-and-detail day — with high accessory volume and isolation work. Every muscle is trained at least twice a week, not the old-school once. Pick it if visible size and shape matter more to you than your total on the big three.',
+    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation', overview: 'A five-day body-part split — chest/triceps, back/biceps, shoulders/abs, legs, and an arms-and-detail day — with high accessory volume and isolation work. Pick it if visible size and shape matter more to you than your total on the big three. Most muscles get one hard session a week plus indirect work; pick Strength & Size if you want each muscle twice.',
     days: {
       d1: {
         label:'Day 1', sub:'Chest & Triceps', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -29770,7 +29774,7 @@ const DEFAULT_INSIGHTS_BY_PROGRAM = {
   athletic: '<b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
   core: '<b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
   mobility: '<b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
-  bodybuilding: '<b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
+  bodybuilding: '<b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Rep speed from about 0.5-8 s grows muscle similarly; control the weight and take sets close to failure.',
 };
 
 function renderDayInsight(day){
@@ -34663,9 +34667,9 @@ const TIPS_BY_PROGRAM = {
     "<b>Mind-muscle connection over raw weight.</b> Control the tempo, feel the target muscle working, not just moving the bar.",
     "<b>Spread protein across meals.</b> 4-5 protein-containing meals beats one huge dose for muscle protein synthesis.",
     "<b>Progressive volume, not just load.</b> Add a set or rep before adding weight — hypertrophy responds to volume as much as intensity.",
-    "<b>Sleep 7-9 hrs.</b> Growth hormone release peaks in deep sleep, directly supporting repair.",
+    "<b>Sleep 7–9 hrs:</b> short sleep lowers training performance and recovery.",
     "<b>Track physique photos monthly.</b> The mirror lies day to day; consistent-lighting photos show the real change.",
-    "<b>Deload every 6-8 weeks.</b> A lighter week prevents joint wear from constant high-volume training.",
+    "<b>Deload every 4–6 weeks (the app schedules every 5th).</b> A lighter week prevents joint wear from constant high-volume training.",
     "<b>Posing practice counts as training.</b> Use the Posing Practice card to build muscle control and stage presence.",
   ],
   oly: [

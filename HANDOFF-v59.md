@@ -1250,3 +1250,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 91: MKT-06b (v3.567, PR #143, 2026-11-16)
 - **What:** `yearRecapDetailsFrom` (weeks, top e1RM gain excluding oly/jump/throw, top VOLUME_LANDMARKS group, longest counted-week run), `yearRecapCards`, `computeYearRecapCards`, `renderYearRecapHistory` (History, in season, per-card Share; none under medical). MKT-01's rule is shared through `weekStreakNeed` and `weekTrainingCounts`.
 - **Next:** BL-12 per the roadmap.
+
+## Addendum 92: BL-12 (v3.568, PR #144, 2026-11-16)
+- **What:** four bodybuilding copy fixes (overview, deload tip, sleep tip, hypertrophy insight). `test-copy-truth.js`.
+- **Flagged:** the Care sleep card (static markup) still says growth hormone peaks in deep sleep; candidate one-line follow-up.
+- **Next:** the next ready item in the Unified build sequence after slot 30.
