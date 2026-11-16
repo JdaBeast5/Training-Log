@@ -181,4 +181,57 @@ test('REAL invocation: holding a chip opens the sheet even when an ancestor stop
   assert.strictEqual(window.__opened.row, doc.querySelector('.set-row'));
 });
 
+// ---- v3.579 (BIZ-05): a starting-load hint on an exercise's very first set.
+// renderWorkout stamps data-first-time on the block when the exercise has no
+// history anywhere; openSetSheet shows firstSetHint (BL-10's words) until a
+// set in that block has reps. Real openSetSheet, firstSetHint and
+// targetRirLabel with the real exerciseInfo.
+// Sabotage: drop the "no logged rows" check and the second case fails.
+const { extractConst } = require('./testHelpers.js');
+const HINT_CHUNKS = [extractConst(src, 'exerciseInfo'), ...['RIR_TARGETS', 'RIR_SPEED_CATEGORIES', 'RIR_NO_LABEL_CATEGORIES', 'RIR_NO_LABEL_NAME', 'COMPOUND_CATEGORIES', 'NON_REP_UNITS'].map(c => extractConst(src, c)),
+  ...['prescriptionCount', 'getRepRangeTier', 'targetRirLabel', 'firstSetHint'].map(n => extractFunction(src, n))];
+function mountFirst(listHtml){
+  const { window } = runJsdom(`<div id="exerciseList">${listHtml}</div>${SHEET}`, `
+    var weightUnit = 'lb', distanceUnit = 'km', activeProgram = 'strength';
+    window.requestAnimationFrame = fn => fn();
+    function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; } function isBarbellExercise(){ return true; } function isDumbbellExercise(){ return false; }
+    function renderAllSetChips(){} function setExerciseBlockOpen(){} function showUndoToast(){}
+  `, [STATE, ...HINT_CHUNKS, ...FNS, WIRE, 'window.__open = openSetSheet; window.__hint = firstSetHint;']);
+  const $ = id => window.document.getElementById(id);
+  return { window, $, open: () => window.__open(window.document.querySelector('.set-row'), null) };
+}
+const benchBlock = (firstTime, reps = '') => row('Bench Press', {r: reps}).replace('<div class="exercise-block">', `<div class="exercise-block"${firstTime ? ' data-first-time="1"' : ''}>`).replace('<span>4×6-8</span>', '<span>4×4-6</span>');
+
+test('BIZ-05 criterion 1: a first-time Bench Press 4×4-6 block with nothing logged shows the real firstSetHint under the target', (assert)=>{
+  const ui = mountFirst(benchBlock(true));
+  ui.open();
+  const want = ui.window.__hint({name: 'Bench Press', sets: '4×4-6'}, 'strength');
+  assert.strictEqual(want, 'First time: pick a weight where you’d stop 2–3 reps short; last set 1–2');
+  assert.strictEqual(ui.$('setSheetHint').hidden, false);
+  assert.strictEqual(ui.$('setSheetHint').textContent, want);
+});
+
+test('BIZ-05 criteria 2 and 3: once a row in the block has reps the hint hides; a block without data-first-time never shows it', (assert)=>{
+  const logged = mountFirst(benchBlock(true, '5'));
+  logged.open();
+  assert.strictEqual(logged.$('setSheetHint').hidden, true);
+  const known = mountFirst(benchBlock(false));
+  known.open();
+  assert.strictEqual(known.$('setSheetHint').hidden, true);
+});
+
+test('BIZ-05 criterion 4: firstSetHint is empty for Easy Run 25-30 min, Plank 3×45s and a noWeight row, and carries BL-10\'s words for Bench Press', (assert)=>{
+  const ui = mountFirst(benchBlock(true));
+  const h = ui.window.__hint;
+  assert.deepStrictEqual([h({name: 'Easy Run', sets: '25-30 min'}, 'running'), h({name: 'Plank', sets: '3×45s'}, 'strength'), h({name: 'Push-up', sets: '3×8-12', noWeight: true}, 'strength')], ['', '', '']);
+  assert.ok(h({name: 'Bench Press', sets: '4×4-6'}, 'strength').endsWith('stop 2–3 reps short; last set 1–2'));
+});
+
+test('BIZ-05 criterion 5: renderWorkout sets data-first-time at exactly one site, from noPrior = !prior (comments stripped)', (assert)=>{
+  const body = extractFunction(src, 'renderWorkout').split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  assert.strictEqual((body.match(/dataset\.firstTime\s*=/g) || []).length, 1);
+  assert.match(body, /if\(piece\.noPrior\) row\.dataset\.firstTime = '1';/);
+  assert.strictEqual((body.match(/noPrior = !prior;/g) || []).length, 1);
+});
+
 run();
