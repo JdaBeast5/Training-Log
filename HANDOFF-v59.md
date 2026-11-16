@@ -1273,3 +1273,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 96: MKT-20 (v3.572, PR #148, 2026-11-16)
 - **What:** backup file name via `appSlug()`; `test-app-file-names.js`; old-name literal guard in `test-app-rename.js` (allowlist: What's New history, Diagnostics cache reads, the AI prompt).
 - **Next:** BIZ-03 (slot 34, the food lane).
+
+## Addendum 97: BIZ-03 (v3.573, PR #149, 2026-11-16)
+- **What:** `#calHeroEstimate` under the calorie hero; `profileBodySaved` (storage `profile-body-saved`) loaded in `loadProfile`, set only by `#pfSave`. UX-13 must keep this line (summit note).
+- **Next:** BL-18 (slot 35).
