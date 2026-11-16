@@ -1232,3 +1232,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** Drop Landing (stick it) 3×5 appended to wakeboarding d1 and kiteAssisted d2; library entry (jump, 4 cues) and EXERCISE_MOVE icon.
 - **Open for the owner:** the 10 day-count variant days with Depth Jump don't get the drill (asserted unchanged).
 - **Next:** BL-35.
+
+## Addendum 88: BL-35 (v3.564, PR #140, stacked on #139, 2026-11-16)
+- **What:** 6 grappling neck slots → '4-Way Neck Isometric (hand or band)' 4×15s with `legacyName`/`legacySets`. `subVariantOf` gives the isometric its own `:sub:` key; swap-back to Neck Bridges uses the plain key (old sets) with 3×8. `parseExKey` names the plain key Neck Bridges. `applyExOverrides` honours a saved Neck Bridges removal/order. Location index uses legacyName.
+- **Warning:** any new key path for a row must use `subVariantOf(ex)` (not `__isSubbed` directly) or a legacy slot will read the wrong key.
+- **Flagged:** parseExKey base-days-only on variants; SUB_NECK_ISO name; Chin Tucks swap keeps 4×15s.
