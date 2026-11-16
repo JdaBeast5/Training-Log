@@ -74,16 +74,14 @@ test('regression guard: .nav-pill itself is completely untouched by this change 
 // translucent"). The sticky jump rail used the nav bar's glass (72% near-
 // black), which over the dark page read as a solid band. It has its own,
 // much lighter glass, keeping the blur that holds the chips legible.
-test('REAL source (v3.482): the jump rail is light glass (30% dark, 40% white in light mode) and keeps its blur', (assert)=>{
+// 2026-11-16 (v3.580, UX-03, flat ground): the rail's glass is retired. It is
+// the flat ground with no blur (UX-03 criterion 2 keeps blur only on the tab
+// bar and Gym mode). This reverses v3.482's translucent rail, on purpose; the
+// PR says so.
+test('REAL source (v3.580, UX-03): the jump rail is flat ground, no blur', (assert)=>{
   const block = extractRuleBlock(src, '.analysis-index');
-  assert.match(block, /background:var\(--index-glass-bg\);/);
-  assert.match(block, /backdrop-filter:var\(--glass-blur\);/, 'still blurred');
-  const root = src.slice(src.indexOf(':root{'), src.indexOf('\n  }', src.indexOf(':root{')));
-  const alpha = Number((root.match(/--index-glass-bg:rgba\(10,11,13,([\d.]+)\);/) || [])[1]);
-  const navAlpha = Number((root.match(/--nav-glass-bg:rgba\(10,11,13,([\d.]+)\);/) || [])[1]);
-  assert.strictEqual(alpha, 0.30);
-  assert.ok(alpha < navAlpha / 2, 'well under the nav bar\'s glass');
-  assert.match(src, /body:not\(\.gym-mode\)\{[\s\S]*?--index-glass-bg:rgba\(var\(--surface-rgb\),0\.40\);/, 'its light-mode value');
+  assert.match(block, /background:var\(--ground\);/);
+  assert.doesNotMatch(block, /backdrop-filter/);
 });
 
 // v3.482, part two: the glass only worked once the view stopped holding
@@ -109,10 +107,12 @@ test('REAL invocation (v3.482): .view-enter comes off when the view\'s fade-in e
 // v3.483 — The strip behind the clock and battery (.status-scrim) takes the
 // rail's lighter glass, so the two strips at the top of a scrolled page read
 // as one material; the bottom tab bar keeps the heavier glass.
-test('REAL source (v3.483): the status-bar strip and the jump rail share --index-glass-bg; the tab bar keeps --nav-glass-bg', (assert)=>{
+// 2026-11-16 (v3.580, UX-03, flat ground): the status strip is the ground too;
+// the tab bar keeps its glass (UX-04 owns it).
+test('REAL source (v3.580, UX-03): the status-bar strip is flat ground with no blur; the tab bar keeps --nav-glass-bg', (assert)=>{
   const scrim = extractRuleBlock(src, '.status-scrim');
-  assert.match(scrim, /background:var\(--index-glass-bg\);/);
-  assert.match(scrim, /backdrop-filter:var\(--glass-blur\);/, 'still blurred');
+  assert.match(scrim, /background:var\(--ground\);/);
+  assert.doesNotMatch(scrim, /backdrop-filter/);
   assert.match(extractRuleBlock(src, '.nav-pills'), /background:var\(--nav-glass-bg\);/);
 });
 

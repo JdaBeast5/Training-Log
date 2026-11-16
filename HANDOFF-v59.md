@@ -1304,3 +1304,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 103: BIZ-05 (v3.579, PR #155, 2026-11-16)
 - **What:** `firstSetHint` (BL-10's words), `data-first-time` stamp from `noPrior` in `renderWorkout`, `#setSheetHint` in `openSetSheet`. UX-06a's cover must reuse `firstSetHint`.
 - **Next:** UX-03 (slot 40). After it merges, the roadmap needs the owner to look on device before UX-04 builds on it.
+
+## Addendum 104: UX-03 (v3.580, PR #156, 2026-11-16)
+- **What:** aliases are literal targets; `body:not(.gym-mode)` points today's names (`--bg`, `--surface`, `--line`, `--text-muted`, glass tokens) at them, `:root` keeps Gym's values. `--cta-gradient-*` gone (ink primaries, spot fills), `--aura:none`, halos removed, blur only on `.nav-pills` + Gym rules, launch on `--ground`, manifest/metas `#0C0C0D`/`#F3F3F1`.
+- **Spot blue:** dark `:root --spot-blue` is the literal `#2C5BD8` (UX-05 re-points the rest of the inks). Found by the criterion-4 contrast pass; white on `#5B7CFF` was 3.6:1.
+- **Contrast pass:** the harness still has none; a scratch Playwright script compared every visible text node (4 views × 2 themes) against Branch-1. Worth folding into `tools/visual/` when D10/axe lands.
+- **Unused now:** `--index-glass-bg` (left in place; flag, not removed).
+- **Next:** the owner looks on device before UX-04 (roadmap). Don't build UX-04 until the owner answers; continue with any later item that doesn't depend on UX-03's look.

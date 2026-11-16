@@ -62,13 +62,11 @@ test('REAL :root: the glass tokens exist and are built from the shared rgb token
   }
 });
 
-test('REAL CSSOM: the aura is one fixed, non-interactive layer behind everything, hidden in gym mode', (assert)=>{
-  const a = only('body::before');
-  assert.strictEqual(a.getPropertyValue('position'), 'fixed');
-  assert.strictEqual(a.getPropertyValue('pointer-events'), 'none');
-  assert.strictEqual(a.getPropertyValue('z-index'), '-1');
-  assert.strictEqual(a.getPropertyValue('background'), 'var(--aura)');
-  assert.strictEqual(only('body.gym-mode::before').getPropertyValue('display'), 'none');
+// 2026-11-16 (v3.580, UX-03, flat ground): the aura layer is retired. No body::before paints a halo; --aura is
+// none; the page is the flat ground.
+test('REAL CSSOM (v3.580, UX-03): no aura layer: no body::before rule, --aura is none, still no background-attachment', (assert)=>{
+  assert.strictEqual(allStyleRules().filter(r => r.selectorText === 'body::before').length, 0);
+  assert.strictEqual(only(':root').getPropertyValue('--aura').trim(), 'none');
   assert.doesNotMatch(only('body').cssText, /background-attachment/, 'no background-attachment:fixed (iOS ignores it)');
 });
 

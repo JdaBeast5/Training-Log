@@ -25,6 +25,9 @@ const lightRoots = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.
   .flatMap(r => [...r.cssRules]).filter(r => r.selectorText === 'body:not(.gym-mode)'); // v3.480: on body, not :root
 const darkRoot = rules.find(r => r.selectorText === ':root');
 const tok = (rule, name) => rule.style.getPropertyValue(name).trim();
+// 2026-11-16 (v3.580, UX-03, flat ground): light tokens now point at the v2 aliases (--bg: var(--ground)), whose
+// literal targets live in the same light rule; contrast is measured on that.
+const res = (rule, name) => { let v = tok(rule, name); for(let k = 0; k < 4; k++){ const m = /^var\((--[a-z0-9-]+)\)$/.exec(v); if(!m) break; v = tok(rule, m[1]) || tok(darkRoot, m[1]); } return v; };
 
 function hexRgb(h){ const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
 function lum([r, g, b]){ const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); }
@@ -44,9 +47,12 @@ test('REAL CSSOM (v3.477): ink tints, white glass, light page; text readable on 
   const light = lightRoots[0];
   assert.strictEqual(tok(light, '--surface-white-rgb'), '17,18,22', 'tints and hairlines become ink');
   assert.strictEqual(tok(light, '--surface-rgb'), '255,255,255');
-  assert.match(tok(light, '--glass-fill'), /rgba\(var\(--surface-rgb\)/, 'glass stays white');
+  // 2026-11-16 (v3.580, UX-03, flat ground): the glass is flat: cards are the white --surface-1.
+  assert.strictEqual(tok(light, '--glass-fill'), 'var(--surface-1)', 'cards are flat white');
+  assert.strictEqual(res(light, '--glass-fill'), '#FFFFFF');
   assert.match(tok(light, '--sheen'), /rgba\(var\(--surface-rgb\)/);
-  const bg = tok(light, '--bg'), card = tok(light, '--surface'), text = tok(light, '--text'), muted = tok(light, '--text-muted');
+  const bg = res(light, '--bg'), card = res(light, '--surface'), text = res(light, '--text'), muted = res(light, '--text-muted');
+  assert.deepStrictEqual([bg, card], ['#F3F3F1', '#FFFFFF'], 'the target ground and surface');
   for(const [fg, back, name] of [[text, bg, 'text on page'], [text, card, 'text on card'], [muted, bg, 'muted on page'], [muted, card, 'muted on card']]){
     assert.ok(contrast(fg, back) >= 4.5, `${name}: ${contrast(fg, back).toFixed(2)}:1`);
   }
@@ -55,7 +61,9 @@ test('REAL CSSOM (v3.477): ink tints, white glass, light page; text readable on 
 test('REAL markup (v3.477): the browser chrome follows the appearance', (assert)=>{
   const doc = new JSDOM(html).window.document;
   const metas = [...doc.querySelectorAll('meta[name="theme-color"]')].map(m => [m.getAttribute('media'), m.getAttribute('content')]);
-  assert.deepStrictEqual(metas, [['(prefers-color-scheme: dark)', '#050507'], ['(prefers-color-scheme: light)', tok(lightRoots[0], '--bg')]]);
+  // 2026-11-16 (v3.580, UX-03, flat ground): both metas are the target grounds.
+  assert.deepStrictEqual(metas, [['(prefers-color-scheme: dark)', '#0C0C0D'], ['(prefers-color-scheme: light)', res(lightRoots[0], '--bg')]]);
+  assert.strictEqual(res(lightRoots[0], '--bg'), '#F3F3F1');
 });
 
 // v3.478 — The selected tab. It was the one white pill in the glass bar —
@@ -67,7 +75,7 @@ test('REAL CSSOM (v3.478): the active tab pill is ink in light mode and still re
   assert.strictEqual(tok(light, '--pill-active-bg'), '#111216');
   assert.strictEqual(tok(light, '--pill-active-ink'), '#FFFFFF');
   assert.ok(contrast(tok(light, '--pill-active-ink'), tok(light, '--pill-active-bg')) >= 4.5, 'label on pill');
-  assert.ok(contrast(tok(light, '--pill-active-bg'), tok(light, '--bg')) >= 3, 'pill against the page');
+  assert.ok(contrast(tok(light, '--pill-active-bg'), res(light, '--bg')) >= 3, 'pill against the page');
 });
 
 // v3.479 — Accents as text. Yellow, green, orange, teal and even red and blue
@@ -81,7 +89,7 @@ test('REAL CSSOM (v3.479): every accent reads at 4.5:1 on the light page and on 
     const hex = tok(light, `--plate-${a}`);
     assert.match(hex, /^#[0-9A-Fa-f]{6}$/, a);
     assert.notStrictEqual(hex, tok(darkRoot, `--plate-${a}`), `${a} has its own light shade`);
-    for(const [back, name] of [[tok(light, '--bg'), 'page'], [tok(light, '--surface'), 'card']]){
+    for(const [back, name] of [[res(light, '--bg'), 'page'], [res(light, '--surface'), 'card']]){
       assert.ok(contrast(hex, back) >= 4.5, `${a} on ${name}: ${contrast(hex, back).toFixed(2)}:1`);
     }
     assert.strictEqual(tok(light, `--plate-${a}-rgb`), '', `${a}'s rgb twin is untouched`);
@@ -116,7 +124,8 @@ test('REAL CSSOM (v3.481): the rest timer, the gym offer and the Up next wells r
   assert.match(tok(darkRoot, '--float-panel-fill'), /rgba\(38,\s*42,\s*49,\s*0\.94\)/);
   assert.match(tok(darkRoot, '--well-fill'), /overlay-black-rgb/);
   const light = lightRoots[0];
-  for(const t of ['--rest-timer-fill', '--float-panel-fill']) assert.match(tok(light, t), /var\(--surface-rgb\)/, `${t} is white in light`);
+  // 2026-11-16 (v3.580, UX-03, flat ground): the floating panels are the solid white --surface-1 in light.
+  for(const t of ['--rest-timer-fill', '--float-panel-fill']) assert.strictEqual(res(light, t), '#FFFFFF', `${t} is white in light`);
   assert.match(tok(light, '--well-fill'), /var\(--surface-white-rgb\)/, 'the well is an ink tint in light');
   const all = []; const walk = list => { for(const r of list){ if(r.type === 1) all.push(r); else if(r.cssRules) walk(r.cssRules); } }; walk(rules);
   // .gym-dock only exists in gym mode, which keeps the dark design (v3.480).

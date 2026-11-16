@@ -3502,7 +3502,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** TOOL-01's harness with **WebKit** (D10); `Skill: impeccable` (`audit`, Markdown fallback). After it merges, **the owner looks on his phone before the next UX item builds on it.**
 - **Risk:** visual, everywhere at once. That's why it's one version on its own and easy to revert. Guarded by `test-css-mechanical-token-dedup.js` and the `--rim` notes in CLAUDE.md. About ten suites need deliberate re-pins (listed above); a re-pin that isn't on that list is a sign something outside scope moved.
 - **Spec refresh 3 (2026-11-09, against v3.528):** counts re-measured; the manifest's `theme_color` is `#14171A`; the launch, aura and button lines located. The re-pin list was found by grepping all 204 suites for the retired tokens. Checked against `design-vision.md` §3.2 and §3.5a and `world.css`: target grounds `#0C0C0D` / `#F3F3F1`. WebKit: see the UX rules above. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.580, PR #156). Flagged: the dark --spot-blue took its #2C5BD8 target ahead of UX-05 (white on the flat chip was 3.6:1 on #5B7CFF); Gym mode's next-set chip and Log button went flat (criterion 1); the Analysis jump rail lost the translucency the owner asked for in v3.482. The owner looks on device before UX-04.
 
 ### UX-04: The tab bar: opaque, labelled, Today · Food · Progress · History · More
 - **Why:**

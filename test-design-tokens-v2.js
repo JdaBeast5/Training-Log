@@ -61,15 +61,19 @@ test('criterion 1: every new token is defined in the dark :root and in the light
   assert.deepStrictEqual(missLight, [], 'light');
 });
 
-test('aliases point at today\'s values, so nothing changes: each colour alias is the same var() in both themes', (assert)=>{
-  const ALIAS = {'--ground': 'var(--bg)', '--surface-1': 'var(--surface)', '--surface-2': 'var(--surface2)', '--rule': 'var(--line)',
-    '--rule-strong': 'var(--line-bright)', '--text-2': 'var(--text-muted)', '--text-3': 'var(--text-muted)', '--r-sheet': 'var(--radius-card)',
-    ...Object.fromEntries(INKS.map(i => ['--spot-' + i, `var(--plate-${i})`]))};
-  for(const [t, v] of Object.entries(ALIAS)){
-    assert.strictEqual(darkRoot.style.getPropertyValue(t).trim(), v, 'dark ' + t);
-    assert.strictEqual(lightRule.style.getPropertyValue(t).trim(), v, 'light ' + t);
+// 2026-11-16 (v3.580, UX-03, flat ground): the colour aliases for ground, surfaces, rules and text now hold
+// their literal targets (the values each block's comment records); the spot
+// inks still point at today's plate colours (UX-05 re-points those).
+test('UX-03: ground, surface, rule and text aliases hold their target values in both themes; spot inks still alias the plates', (assert)=>{
+  for(const [theme, rule] of [['dark', darkRoot], ['light', lightRule]]){
+    const t = targets(theme);
+    for(const k of ['--ground', '--surface-1', '--surface-2', '--rule', '--rule-strong', '--text-2', '--text-3']){
+      assert.strictEqual(rule.style.getPropertyValue(k).trim().toUpperCase(), t[k], `${theme} ${k}`);
+    }
+    // the dark spot blue is the one exception: it holds its target (criterion 4, below)
+    for(const i of INKS) if(!(theme === 'dark' && i === 'blue')) assert.strictEqual(rule.style.getPropertyValue('--spot-' + i).trim(), `var(--plate-${i})`, `${theme} spot-${i}`);
   }
-  assert.strictEqual(darkRoot.style.getPropertyValue('--radius-card').trim(), '28px', 'the r-sheet target equals today');
+  assert.strictEqual(darkRoot.style.getPropertyValue('--r-sheet').trim(), 'var(--radius-card)');
 });
 
 test('criterion 2: target contrast ≥ 4.5:1 in both themes: on-ink on spot-ink, white on deep-ink, and text, text-2, text-3 on ground', (assert)=>{
@@ -108,10 +112,74 @@ test('criterion 4: the Sash mark\'s hexes (header mark, the five launch layers, 
   assert.deepStrictEqual(fills([icon.documentElement]), want, 'option-b.svg');
 });
 
-test('nothing reads the new tokens yet: no var(--new-token) outside the two declaration blocks', (assert)=>{
-  const outside = CSS.replace(SRC.dark, '').replace(SRC.light, '') + html.replace(/<style>[\s\S]*?<\/style>/g, '');
-  const used = TOKENS.filter(t => outside.includes(`var(${t})`) || outside.includes(`var(${t},`));
-  assert.deepStrictEqual(used, []);
+// ---- v3.580 (UX-03): flat ground everywhere. Real CSSOM over the real
+// <style>; Gym mode (out of scope until UX-17) is allowlisted by selector.
+// Sabotage: restore a --cta-gradient button rule and criterion 1 fails;
+// restore a halo and criterion 5 fails.
+const GYM = (sel) => /gym-mode|gym-dock|gym-finishing/.test(sel || '');
+function allStyleRules(list){ return [...list].flatMap(r => r.style && r.selectorText != null ? [r] : (r.cssRules ? allStyleRules(r.cssRules) : [])); } // a style rule carries an empty cssRules list in this jsdom, so check style first
+const STYLE_RULES = allStyleRules(rules);
+
+test('UX-03 criterion 1: no rule\'s background uses a --cta-gradient token, and none is declared', (assert)=>{
+  const hits = STYLE_RULES.filter(r => /--cta-gradient/.test(r.style.getPropertyValue('background') + r.style.getPropertyValue('background-image'))).map(r => r.selectorText);
+  assert.deepStrictEqual(hits, []);
+  assert.strictEqual(STYLE_RULES.filter(r => r.style.getPropertyValue('--cta-gradient-blue') || r.style.getPropertyValue('--cta-gradient-green')).length, 0);
+  assert.ok(STYLE_RULES.length > 1000, 'anchor: rules parsed ' + STYLE_RULES.length);
+});
+
+test('UX-03 criterion 2: backdrop-filter is left only on the tab bar (.nav-pills) and Gym mode\'s own rules (out of scope)', (assert)=>{
+  const blurred = STYLE_RULES.filter(r => r.style.getPropertyValue('backdrop-filter') || r.style.getPropertyValue('-webkit-backdrop-filter')).map(r => r.selectorText);
+  assert.deepStrictEqual(blurred.filter(sel => !GYM(sel)), ['.nav-pills']);
+  assert.ok(blurred.filter(GYM).length <= 2, 'gym mode: ' + blurred.filter(GYM).join(', '));
+});
+
+test('UX-03 criterion 5: no rule outside Gym mode paints a radial-gradient; --aura is none in both themes', (assert)=>{
+  const radial = STYLE_RULES.filter(r => !GYM(r.selectorText) && /radial-gradient/.test(r.style.cssText)).map(r => r.selectorText);
+  assert.deepStrictEqual(radial, []);
+  assert.strictEqual(darkRoot.style.getPropertyValue('--aura').trim(), 'none');
+  assert.strictEqual(lightRule.style.getPropertyValue('--aura').trim(), 'none');
+});
+
+test('UX-03 criterion 6: the launch paints var(--ground) in both themes; "Create my profile" (a .save-btn) is flat ink', (assert)=>{
+  const launch = STYLE_RULES.filter(r => r.selectorText === '.launch').map(r => ({bg: r.style.getPropertyValue('background'), media: r.parentRule && r.parentRule.media ? r.parentRule.media.mediaText : ''})).filter(x => x.bg);
+  assert.deepStrictEqual(launch.filter(x => !x.media).map(x => x.bg), ['var(--ground)'], 'the launch ground');
+  assert.ok(!launch.some(x => /gradient/.test(x.bg)), 'no halo in any branch: ' + JSON.stringify(launch));
+  assert.ok(launch.filter(x => x.media).every(x => /prefers-contrast/.test(x.media)), 'only the Increase Contrast branches override it');
+  const doc = new JSDOM(html).window.document;
+  assert.ok(doc.getElementById('newUserCreateBtn').classList.contains('save-btn'), 'anchor: the button is a .save-btn');
+  const save = STYLE_RULES.find(r => r.selectorText === '.save-btn');
+  assert.strictEqual(save.style.getPropertyValue('background'), 'var(--text)');
+  assert.strictEqual(save.style.getPropertyValue('color'), 'var(--ground)');
+  const darkGround = darkRoot.style.getPropertyValue('--ground').trim(), lightGround = lightRule.style.getPropertyValue('--ground').trim();
+  assert.ok(contrast(darkGround, '#F2F2F0') >= 4.5 && contrast(lightGround, '#111112') >= 4.5, 'ink label on the ink button reads in both themes');
+});
+
+test('UX-03 criterion 7: manifest.json\'s colours and both theme-color metas equal the target ground of their theme', (assert)=>{
+  const m = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'));
+  assert.deepStrictEqual([m.theme_color, m.background_color], ['#0C0C0D', '#0C0C0D']);
+  const doc = new JSDOM(html).window.document;
+  const metas = Object.fromEntries([...doc.querySelectorAll('meta[name="theme-color"]')].map(e => [e.getAttribute('media'), e.getAttribute('content')]));
+  assert.deepStrictEqual(metas, {'(prefers-color-scheme: dark)': targets('dark')['--ground'], '(prefers-color-scheme: light)': targets('light')['--ground']});
+});
+
+test('UX-03: every screen but Gym mode reads the targets: body:not(.gym-mode) points today\'s names at the aliases; :root keeps Gym mode\'s values', (assert)=>{
+  const flat = rules.find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+  assert.ok(flat, 'the dark flat-ground rule');
+  const want = {'--bg': 'var(--ground)', '--surface': 'var(--surface-1)', '--surface2': 'var(--surface-2)', '--line': 'var(--rule)', '--line-bright': 'var(--rule-strong)', '--text-muted': 'var(--text-2)', '--glass-fill': 'var(--surface-1)', '--glass-hair': 'var(--rule)'};
+  for(const [k, v] of Object.entries(want)) assert.strictEqual(flat.style.getPropertyValue(k).trim(), v, k);
+  assert.strictEqual(darkRoot.style.getPropertyValue('--bg').trim(), '#050507', 'Gym mode keeps its ground');
+});
+
+// UX-03 criterion 4 (contrast pass, worktree vs Branch-1) found one new failure: the
+// next-set chip, now flat spot blue, put white on the dark --plate-blue (#5B7CFF) at 3.6:1;
+// Gym mode shows the same chip, so the fix lives in :root.
+test('UX-03 criterion 4: the dark spot blue is its target (Gym mode included), so on-blue text on it clears 4.5:1', (assert)=>{
+  const flat = rules.find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+  assert.strictEqual(flat.style.getPropertyValue('--spot-blue'), '', 'no override outside Gym mode: one value for every screen');
+  const blue = darkRoot.style.getPropertyValue('--spot-blue').trim().toUpperCase();
+  assert.strictEqual(blue, targets('dark')['--spot-blue']);
+  const onBlue = darkRoot.style.getPropertyValue('--on-blue').trim();
+  assert.ok(contrast(onBlue, blue) >= 4.5, `on-blue on spot-blue ${contrast(onBlue, blue).toFixed(2)}`);
 });
 
 run();

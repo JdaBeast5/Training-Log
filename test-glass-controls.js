@@ -47,24 +47,30 @@ const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - 
 const GREEN_FILLS = ['.day-done-badge', '.supplement-row.done .supplement-check', '.grocery-item.done .grocery-check', '.program-rec-btn', '.recipe-log-btn, .supplement-add-btn'];
 const GLASS_SECONDARY = ['.switch-profile-btn', '.show-more-btn', '.custom-toggle', '.adapt-workout-toggle', '.reorder-btn', '.settings-cog'];
 
-test('REAL contrast, every stop: white text passes 4.5:1 on each colour of the primary gradient', (assert)=>{
-  const stops = hexes(resolve('--cta-gradient-blue'));
-  assert.ok(stops.length >= 2, `anchor: the primary is a real gradient (${stops.join(', ')})`);
-  for(const h of stops) assert.ok(contrast(h, '#ffffff') >= 4.5, `white on ${h} is ${contrast(h, '#ffffff').toFixed(2)}:1`);
+// 2026-11-16 (v3.580, UX-03, flat ground): the gradients are retired. The primary is ink (--text on --ground);
+// green fills are --spot-green with --on-green; the primary no longer glows
+// (--cta-glow is none on every screen but Gym mode).
+test('REAL contrast (v3.580, UX-03): the ink primary reads in both themes (dark #F2F2F0 / #0C0C0D, light #111112 / #F3F3F1)', (assert)=>{
+  assert.ok(contrast('#0c0c0d', '#f2f2f0') >= 4.5);
+  assert.ok(contrast('#f3f3f1', '#111112') >= 4.5);
 });
 
-test('REAL contrast: dark ink (--bg) on the green fill passes 4.5:1, which white never did', (assert)=>{
-  const green = resolve('--cta-gradient-green'), ink = resolve('--bg');
-  assert.ok(contrast(green, ink) >= 4.5, `${ink} on ${green}`);
-  assert.ok(contrast(green, '#ffffff') < 4.5, 'anchor: white on this green really fails');
-  for(const sel of GREEN_FILLS) assert.strictEqual(rule(sel).getPropertyValue('color'), 'var(--bg)', sel);
+test('REAL CSSOM + contrast (v3.580, UX-03): every green fill is --spot-green with --on-green ink, which reads', (assert)=>{
+  const green = resolve('--plate-green');
+  assert.ok(contrast(green, '#0c0c0d') >= 4.5, `#0C0C0D on ${green}`);
+  for(const sel of GREEN_FILLS){
+    assert.strictEqual(rule(sel).getPropertyValue('background'), 'var(--spot-green)', sel);
+    assert.strictEqual(rule(sel).getPropertyValue('color'), 'var(--on-green)', sel);
+  }
 });
 
-test('REAL CSSOM: the primary .save-btn is a glowing gradient pill — and nothing else on it (no gloss, no sheen stripe)', (assert)=>{
+test('REAL CSSOM (v3.580, UX-03): the primary .save-btn is a flat ink pill — no gradient, no glow, no gloss, no sheen stripe', (assert)=>{
   const b = rule('.save-btn');
-  assert.strictEqual(b.getPropertyValue('background'), 'var(--cta-gradient-blue)');
+  assert.strictEqual(b.getPropertyValue('background'), 'var(--text)');
+  assert.strictEqual(b.getPropertyValue('color'), 'var(--ground)');
   assert.strictEqual(b.getPropertyValue('border-radius'), 'var(--radius-pill)');
-  assert.strictEqual(b.getPropertyValue('box-shadow'), 'var(--cta-glow)');
+  const flat = allRules().find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+  assert.strictEqual(flat.style.getPropertyValue('--cta-glow').trim(), 'none', 'the glow is off outside Gym mode');
   assert.strictEqual(allRules().filter(r => r.selectorText === '.save-btn::after').length, 0);
   assert.strictEqual(root().getPropertyValue('--shine-gloss').trim(), 'none');
 });
