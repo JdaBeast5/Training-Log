@@ -123,11 +123,12 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - 38c. ~~**BL-47:** swimming CSS anchor and set progression~~ *(parked: owner no, 2026-11-08)*
 
 ### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 4 if approved)
-**Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.**
+**Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.** *(Done 2026-11-16: the owner looked at v3.584 on device and said go, and moved UX-16 up to right after UX-04, because the solid coach button covers buttons and text.)*
 
 39. BIZ-05: the first-set hint (also the cover's empty state)
 40. UX-03: flat ground everywhere, including the halos, the launch, "Create my profile", the manifest and `theme-color`. Gym mode is out of scope.
 41. UX-04: the tab bar
+41a. **UX-16: the coach button into the header** *(moved up from #62, owner 2026-11-16: "Go, and move coach up")*
 42. UX-05: the day sets the ink (reads `dayInk`; re-points `--plate-*`)
 43. **UX-13: Food in the world's ink** (moved from #59; asserts recents and BIZ-03's line, and tap parity)
 44. **UX-12: History as a month of plate blocks** (moved from #58)
@@ -149,7 +150,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 59. UX-10: Progress leads with the answer
 60. UX-14: the unfolded two-pane Today
 61. UX-11: the weekly recap sheet with the week strip
-62. UX-16: the coach button into the header *(owner yes 2026-11-07, D2)*
+62. ~~UX-16~~ *(moved to 41a, owner 2026-11-16)*
 
 ### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 5 if approved)
 **Hard gate:** before any Phase 5 public step:

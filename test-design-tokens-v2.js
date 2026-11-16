@@ -127,9 +127,10 @@ test('UX-03 criterion 1: no rule\'s background uses a --cta-gradient token, and 
   assert.ok(STYLE_RULES.length > 1000, 'anchor: rules parsed ' + STYLE_RULES.length);
 });
 
-test('UX-03 criterion 2: backdrop-filter is left only on the tab bar (.nav-pills) and Gym mode\'s own rules (out of scope)', (assert)=>{
+// 2026-11-16 (v3.585, UX-04): the tab bar went opaque, so outside Gym mode nothing blurs.
+test('UX-03 criterion 2 (UX-04): no rule outside Gym mode\'s own (out of scope) uses backdrop-filter; the tab bar is opaque', (assert)=>{
   const blurred = STYLE_RULES.filter(r => r.style.getPropertyValue('backdrop-filter') || r.style.getPropertyValue('-webkit-backdrop-filter')).map(r => r.selectorText);
-  assert.deepStrictEqual(blurred.filter(sel => !GYM(sel)), ['.nav-pills']);
+  assert.deepStrictEqual(blurred.filter(sel => !GYM(sel)), []);
   assert.ok(blurred.filter(GYM).length <= 2, 'gym mode: ' + blurred.filter(GYM).join(', '));
 });
 

@@ -109,13 +109,14 @@ test('.wrap actually APPLIES the tokens: right padding from --gutter-r, left fro
   assert.equal(resolve(padding[3], env, vars), 40, 'left padding');
 });
 
-test('the floating tab bar sits 12px in from each side\'s own inset', (assert)=>{
+// 2026-11-16 (v3.585, UX-04): the tab bar is no longer a floating pill 12px in;
+// it spans the screen edge to edge, and its row is padded by each side's inset.
+test('the tab bar spans edge to edge and pads its row by each side\'s own inset', (assert)=>{
   const b = ruleBlock('.nav-pills', 'position:fixed');
-  assert.equal(resolve(decl(b, 'left'), {left:0}, {}), 12, 'unchanged upright');
-  assert.equal(resolve(decl(b, 'right'), {right:0}, {}), 12);
-  const env = {left:40, right:24};
-  assert.equal(resolve(decl(b, 'left'), env, {}), 52);
-  assert.equal(resolve(decl(b, 'right'), env, {}), 36);
+  assert.equal(resolve(decl(b, 'left'), {left:40}, {}), 0);
+  assert.equal(resolve(decl(b, 'right'), {right:24}, {}), 0);
+  assert.equal(resolve(decl(b, 'padding-left'), {left:40}, {}), 40);
+  assert.equal(resolve(decl(b, 'padding-right'), {right:24}, {}), 24);
 });
 
 test('.analysis-index bleeds and re-pads by the same tokens', (assert)=>{

@@ -3525,7 +3525,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** muscle memory for the two renamed labels. The positions don't change. Guarded by `test-gym-offer-tab-leak.js` and `test-coach-tab-order.js`.
 - **Tools:** `Skill: apple-hig` (tab bar); TOOL-01's harness.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: the header title and the search tag still said "Log" and "Analysis", plus two in-app strings; they're now in scope (criteria 3–4). Three suites need re-pinning. Checked against `world.css` (`.tabbar`, `.tab`: 11 px labels, 48 px rows). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.585, PR #161). Bar measures 55 px + the home indicator (about 89 on an iPhone; mock 84). `--glass-blur` and `--nav-glass-bg` now unused (UX-15's sweep). Tab styles scoped to `.nav-pills-scroll > .nav-pill` because the More rows share the class.
 
 ### UX-05: The day sets the ink
 - **Why:** each program day already carries a plate (`plate:'p-red'`, 9716 onward), and `renderWorkout` already publishes `--day-hue` on `#workoutCard` (28725). The new world needs three values per day: `--spot`, `--on-spot` and `--spot-deep`. It also needs them on `<body>`, because the cover, the rest field, the finish screen and the charts all use them.
@@ -3787,7 +3787,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** it drops a feature: the draggable button and its remembered side (owner accepted, D2).
 - **Tools:** `Skill: apple-hig` (header controls); TOOL-01's harness.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The removal list is now explicit, a whole suite (`test-coach-fab-drag.js`) retires with the drag, and seven suites that pin the floating button are named for re-pinning. Criteria 3–5 added (target size, the removed code is really gone, an old stored position is cleaned up). Scope unchanged.
-- **Status:** ready (owner yes 2026-11-07, D2). The owner accepted losing the drag and its remembered side. *Original question:* "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?"
+- **Status:** ready (owner yes 2026-11-07, D2; **moved up to slot 41a, right after UX-04, owner 2026-11-16**: the coach button covers "Reorder days", "Log set" and text in the owner's screenshots). The owner accepted losing the drag and its remembered side. *Original question:* "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?"
 
 ### UX-17: Retire Gym mode once Today is the session
 - **Why:** after UX-06 to UX-08, Today is gym mode: the next set huge, one tap, rest on the cover. Keeping both doubles the surface to maintain, and gym mode's tests guard a second implementation.

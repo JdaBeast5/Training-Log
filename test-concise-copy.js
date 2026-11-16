@@ -37,7 +37,8 @@ function noteFor(anchor){
 
 // [anchor, max words, facts that must survive (regexes)]
 const NOTES = [
-  ['What needs attention today', 14, [/Insights &? ?Program Fit/, /Analysis/]],
+  // 2026-11-16 (v3.585, UX-04): the Analysis tab is labelled Progress now, so the hint names it.
+  ['What needs attention today', 14, [/Insights &? ?Program Fit/, /Progress/]],
   ['An empty program with as many days', 18, [/delete/]],
   ['Hot Yoga:', 24, [/doctor's clearance/, /heart|breathing|heat/]],
   ['surgical team', 34, [/doctor/, /never instead|not a replacement/, /medical history/]],

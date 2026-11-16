@@ -97,7 +97,8 @@ test('REAL invocation: switchView sets the large title to the view you switched 
 // 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
     [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
   assert.ok(!window.__err, window.__err);
-  assert.deepStrictEqual(Array.from(window.__seen), ['Today','Log','Analysis','History','Care','Coach','Learn']);
+  // 2026-11-16 (v3.585, UX-04): the titles follow the tabs, Log -> Food and Analysis -> Progress.
+  assert.deepStrictEqual(Array.from(window.__seen), ['Today','Food','Progress','History','Care','Coach','Learn']);
 });
 
 test('REAL source, comments stripped: renderWorkout publishes the day\'s plate colour as --day-hue on the workout card, and the hero title fades into it', (assert)=>{

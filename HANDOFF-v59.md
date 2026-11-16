@@ -1332,3 +1332,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `getMesocycleWeek` = completed 7-day blocks with ≥ 2 `activity-dates` + 1 (local `MIN_SESSIONS`, so extracting suites need nothing new).
 - **Held:** BL-20 needs UX-05's `var(--spot)`; BL-31 needs BL-20. Both wait on the owner's look at UX-03 → UX-04 → UX-05.
 - **Next non-UX candidates past slot 58:** Phase 3 (BIZ-02 onward) — check each for owner-only questions before building.
+
+## Addendum 109: UX-04 (v3.585, PR #161, 2026-11-16)
+- **Owner gate cleared:** the owner looked at UX-03 (v3.584) on device: "Go, and move coach up". UX-16 is now slot 41a (roadmap + backlog, planning commit on #161).
+- **What:** `.nav-pills` opaque `--surface-1` bar, edge to edge, `calc(env())` safe-area padding (jsdom drops bare `env()`); `.nav-pills-scroll` a 5-column grid; tabs `.nav-pills-scroll > .nav-pill` with `.tab-i` icons; `switchView` sets `aria-current`; titles/search labels Food, Progress; `--above-bar` = measured height + 10px.
+- **Next:** UX-16 (41a), then UX-05.
