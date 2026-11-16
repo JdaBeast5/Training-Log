@@ -1246,3 +1246,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 90: MKT-01 (v3.566, PR #142, 2026-11-16)
 - **What:** `computeWeekStreak` (Monday-Sunday weeks, threshold max(2, daysPerWeekPref - 1)); milestones [4, 8, 12, 26, 52] weeks via `week-streak-last-celebrated`; badge "N wk" with aria-label. `computeStreak` stays for the coach context.
 - **Open for the owner:** summit note says no confetti; criterion 1 keeps the celebration. One line to drop.
+
+## Addendum 91: MKT-06b (v3.567, PR #143, 2026-11-16)
+- **What:** `yearRecapDetailsFrom` (weeks, top e1RM gain excluding oly/jump/throw, top VOLUME_LANDMARKS group, longest counted-week run), `yearRecapCards`, `computeYearRecapCards`, `renderYearRecapHistory` (History, in season, per-card Share; none under medical). MKT-01's rule is shared through `weekStreakNeed` and `weekTrainingCounts`.
+- **Next:** BL-12 per the roadmap.
