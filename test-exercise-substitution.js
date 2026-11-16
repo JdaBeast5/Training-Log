@@ -191,7 +191,10 @@ const BL60 = [extractConst(src, 'exerciseInfo'), extractConst(src, 'EXERCISE_SUB
 // Every cross-group pair left at v3.528 after this item's three fixes (spec, measured).
 const CROSS_ALLOWED = ['Close-Grip Bench Press -> Dip (Bar/Ring)', 'Dip (Bar/Ring) -> Close-Grip Bench Press', 'Skull Crushers -> Close-Grip Bench Press',
   'Clean & Jerk -> Push Press', 'Clean Pull -> Deadlift', 'Snatch Pull -> Deadlift', 'Jerk Dip Squat -> Push Press', 'Jerk Dip Squat -> Front Squat',
-  'Overhead Squat -> Front Squat', 'Power Clean -> Front Squat'];
+  'Overhead Squat -> Front Squat', 'Power Clean -> Front Squat',
+  // 2026-11-16 (v3.583, BL-59, D-8): Band Dislocates moves to `core` (the audit's table), so its
+  // swaps with the shoulder moves cross groups now. The pairing itself is flagged for the auditor.
+  'Band Dislocates -> Face Pull', 'Face Pull -> Band Dislocates', 'Rear Delt Fly -> Band Dislocates'];
 
 test('BL-60 criterion 1: every EXERCISE_SUBS target shares its original\'s muscle group, except the named allowlist (the sweep prints any other pair)', (assert)=>{
   const [r] = runSandbox(BL60, `

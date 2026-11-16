@@ -7733,7 +7733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.582';
+const APP_VERSION = '3.583';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9301,6 +9301,10 @@ const WHATS_NEW = {
   ]},  '3.582': { headline: 'AI features say what they need first', points: [
     'Without an AI key, AI Cross-Metric Insights now sits at the end of Training Trends, and its button says it needs a key. Your programs and charts lead.',
     'Each AI feature now says, before you tap, what it sends to Anthropic using your key: Insights, Photo and Describe, and the coach.',
+  ]},  '3.583': { headline: 'Exercises counted where they belong', points: [
+    'Mobility holds and drills (Deep Squat Hold, Chair Pose, Chaturanga, Wall Slides) now count as Core, not as Quads or Chest work, and never get extra sets in an Accumulation week.',
+    'Band External Rotation, Band Pull-Apart and Scapular Retraction count toward shoulders, and calf work has its own Calves group (it was counted as Arms).',
+    'Past weeks\' Analysis group totals change to match; your logged sets don\'t.',
   ]},
 };
 
@@ -13554,6 +13558,7 @@ const CAT_TO_ICON = {
   push:'barbell', pull:'barbell', squat:'barbell', hinge:'barbell', lunge:'barbell',
   shoulder:'barbell', arms:'barbell', core:'core', jump:'bolt', oly:'bolt', throw:'bolt',
   punch:'fist', kick:'kick', cardio:'pulse',
+  calf:'barbell', 'isolation-leg':'barbell', // v3.583 (BL-59, M-8)
 };
 
 
@@ -27257,6 +27262,7 @@ function parseSetCount(setsStr){
 const CATEGORY_MET = {
   push:5.5, pull:5.5, squat:6, hinge:6, lunge:5.5, shoulder:5, arms:4,
   core:4, jump:8, oly:6.5, throw:5, punch:7.5, kick:8, cardio:7,
+  calf:4, 'isolation-leg':4, // v3.583 (BL-59, M-8): isolation work, like arms
 };
 
 // Per-set time is derived directly from getDefaultRestSeconds — the exact
@@ -28555,6 +28561,7 @@ function maxWeightEver(log, excludeDate){
 const CATEGORY_LOAD_INCREMENT = {
   squat:5, hinge:5, oly:5, lunge:5, push:5, pull:5,
   shoulder:2.5, arms:2.5, core:2.5, throw:5, punch:2.5, kick:2.5, jump:5, cardio:0,
+  calf:5, 'isolation-leg':5, // v3.583 (BL-59, M-8): a machine-stack step
 };
 const LOAD_INCREMENT_SCALE = {squat: 0.025, hinge: 0.025, lunge: 0.025, push: 0.02, pull: 0.02};
 
@@ -28925,7 +28932,9 @@ const RIR_TARGETS = {
 const RIR_SPEED_CATEGORIES = ['oly', 'jump', 'throw', 'punch', 'kick'];
 const RIR_NO_LABEL_CATEGORIES = ['cardio', 'core'];
 // Mobility filed under a lifting category (Shoulder CARs is 'shoulder').
-const RIR_NO_LABEL_NAME = /\bCARs\b|stretch|mobility|breathing/i;
+// v3.583 (BL-59): Scapular Retraction joins `shoulder`, but it is a squeeze
+// held for 5 s, not a set taken near failure.
+const RIR_NO_LABEL_NAME = /\bCARs\b|stretch|mobility|breathing|Scapular Retraction/i;
 function targetRirLabel(ex, program, inDeload){
   const sets = ex && ex.sets;
   const tier = getRepRangeTier(sets);
@@ -45849,6 +45858,7 @@ const CATEGORY_TO_REGIONS = {
   jump:['Knee','Ankle/Foot','Shins'], oly:['Shoulder','Lower Back','Knee'],
   throw:['Shoulder'], punch:['Shoulder','Elbow/Wrist'], kick:['Hip','Knee','Ankle/Foot'],
   cardio:['Ankle/Foot','Knee','Shins','IT Band/Outer Thigh'],
+  calf:['Ankle/Foot','Shins'], 'isolation-leg':['Knee'], // v3.583 (BL-59, M-8)
 };
 
 // v3.522 (BL-03, audit SAF-3): exercises whose category points at the wrong
@@ -45923,6 +45933,10 @@ const SUBSTITUTION_MAP = {
   punch: {alts:['Shadowboxing (no resistance)','Isometric Shoulder Hold'], why:'keeps technique sharp without impact loading'},
   kick: {alts:['Hip CARs','Pigeon Pose','Ankle Circles'], why:'keeps hip mobility without impact loading'},
   cardio: {alts:['Walking','Calf Stretch'], why:'keeps you moving at low impact'},
+  // v3.583 (BL-59, M-8). The calf moves are in EXERCISE_REGION_OVERRIDE, so
+  // their own swap list comes first; this is the category's fallback.
+  calf: {alts:['Ankle Circles','Calf Stretch'], why:'keeps the ankle moving without loading it'},
+  'isolation-leg': {alts:['Quad Set','Wall Sit','Terminal Knee Extension'], why:'keeps the quads working with less knee shear'},
 };
 
 // v3.524 (BL-04, SAF-3 part 2): exercise-specific swaps for every exercise in
@@ -47280,6 +47294,9 @@ const MUSCLE_GROUP_MAP = {
   jump:'Full Body / Power', oly:'Full Body / Power', throw:'Full Body / Power',
   punch:'Combat', kick:'Combat',
   cardio:'Cardio',
+  // v3.583 (BL-59, M-8): calf work was 'Arms'. 'Calves' has no volume
+  // landmark (none is invented); Leg Extension counts with the quads.
+  calf:'Calves', 'isolation-leg':'Legs (Quads)',
 };
 
 // Weekly direct+indirect set-count ranges commonly cited in hypertrophy

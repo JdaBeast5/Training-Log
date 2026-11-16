@@ -1321,3 +1321,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `placeAiInsightsCard(hasKey)` (first line of `renderAnalysis`): no key → the AI card moves before `#analysisExportBtn` (end of Training Trends, `group-collapsed` synced to that header), label "Add an AI key to use this"; key → back before `#mealTimingCard`. Disclosures (`.ai-disclosure`): `#crossInsightsDisclosure`, `#foodAiDisclosure` (Photo/Describe `aria-describedby`), coach empty state, `aiKeySetupPrompt` second sentence. `renderCoachChatLog(hasKey)`; only `false` adds "Needs your Anthropic key (Settings).".
 - **UX-10 relies on this** for "the AI card sorts below the evidence".
 - **Next non-UX items:** BL-59 (55a), BL-20, BL-33, BL-31. UX-04 onward waits on the owner's look at UX-03.
+
+## Addendum 107: BL-59 (v3.583, PR #159, stacked on #157 and #158, 2026-11-16)
+- **What:** `content-exercises.js` categories per D-8/M-8; new `calf` ('Calves', no landmark) and `isolation-leg` ('Legs (Quads)') in six category tables; Scapular Retraction in `RIR_NO_LABEL_NAME`.
+- **For BL-20:** the ledger can now read `calf` and `isolation-leg`; 'Calves' has no `VOLUME_LANDMARKS` entry by design.
+- **Open for the auditor:** Band Dislocates as a Face Pull / Rear Delt Fly swap.
+- **Next:** BL-20 (56), then BL-33, BL-31. UX-04 onward waits on the owner's look at UX-03.
