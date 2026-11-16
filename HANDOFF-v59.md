@@ -1310,4 +1310,4 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Spot blue:** dark `:root --spot-blue` is the literal `#2C5BD8` (UX-05 re-points the rest of the inks). Found by the criterion-4 contrast pass; white on `#5B7CFF` was 3.6:1.
 - **Contrast pass:** the harness still has none; a scratch Playwright script compared every visible text node (4 views × 2 themes) against Branch-1. Worth folding into `tools/visual/` when D10/axe lands.
 - **Unused now:** `--index-glass-bg` (left in place; flag, not removed).
-- **Next:** the owner looks on device before UX-04 (roadmap). Don't build UX-04 until he answers; continue with any later item that doesn't depend on UX-03's look.
+- **Next:** the owner looks on device before UX-04 (roadmap). Don't build UX-04 until the owner answers; continue with any later item that doesn't depend on UX-03's look.
