@@ -1300,3 +1300,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `longestRunFrom`/`longestRunLast30Days`, `runningProgressionBadge` (Long Run cap, 400m ladder, Tempo +2/wk), one gated call in `renderWorkout`.
 - **Not built:** step 5 hard-share check (flagged in the PR).
 - **Next:** Phase 2 starts at slot 39 (BIZ-05), but the roadmap says "Before slot 39: the mock-ups are re-rendered, and Playwright WebKit is approved (D10)". Check those preconditions before building.
+
+## Addendum 103: BIZ-05 (v3.579, PR #155, 2026-11-16)
+- **What:** `firstSetHint` (BL-10's words), `data-first-time` stamp from `noPrior` in `renderWorkout`, `#setSheetHint` in `openSetSheet`. UX-06a's cover must reuse `firstSetHint`.
+- **Next:** UX-03 (slot 40). After it merges, the roadmap needs the owner to look on device before UX-04 builds on it.

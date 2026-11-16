@@ -783,6 +783,7 @@
   .set-sheet-cancel{justify-self:start; background:none; border:0; color:var(--plate-blue); font-size:16px; padding:10px 4px; min-height:44px; cursor:pointer; font-family:var(--font-sans);}
   .set-sheet-title{font-size:16px; font-weight:650; text-align:center;}
   .set-sheet-sub{text-align:center; font-size:13px; color:var(--text-muted); margin:0 0 12px;}
+  .set-sheet-hint{text-align:center; font-size:13px; color:var(--text); margin:-6px 16px 12px; line-height:1.4;}
   .set-sheet-step{display:flex; align-items:center; gap:10px; margin-top:10px; padding:8px; border-radius:20px; background:rgba(var(--overlay-black-rgb),.32);}
   .set-sheet-step[hidden], .set-sheet-rpe[hidden], .set-sheet-note[hidden], .set-sheet-tools button[hidden]{display:none;}
   .set-sheet-pm{flex:0 0 56px; height:56px; border-radius:16px; border:0; background:rgba(var(--surface-white-rgb),.08); color:var(--text); font-size:26px; cursor:pointer;}
@@ -7368,6 +7369,8 @@
     <span class="set-sheet-bar-end" aria-hidden="true"></span>
   </div>
   <div class="set-sheet-sub" id="setSheetSub"></div>
+  <!-- v3.579 (BIZ-05): on an exercise's very first set, how to choose a weight (firstSetHint). -->
+  <p class="set-sheet-hint" id="setSheetHint" hidden></p>
   <div class="set-sheet-step" data-field="distance">
     <label class="set-sheet-value"><input type="number" inputmode="decimal" step="0.01" min="0" id="setSheetDistance" aria-label="Distance"><small id="setSheetDistanceUnit"></small></label>
   </div>
@@ -7737,7 +7740,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.578';
+const APP_VERSION = '3.579';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9294,6 +9297,8 @@ const WHATS_NEW = {
   ]},  '3.578': { headline: 'Running that progresses', points: [
     'On the Running program, the Long Run shows a cap 10% over your longest run of the last 30 days: the single big jump is what raises injury risk.',
     '400m Repeats add reps once you\'ve logged every one (4, 5, 6, then 8), and the Tempo Run grows by 2 minutes a build week, up to 30. Deload weeks keep it easy.',
+  ]},  '3.579': { headline: 'A hint for your first set', points: [
+    'The very first time you log an exercise, the set sheet says how to pick a weight: one you could lift a few more times, in the same words as the effort target on the row.',
   ]},
 };
 
@@ -28935,6 +28940,16 @@ function targetRirLabel(ex, program, inDeload){
   if(tier === 'strength') return RIR_TARGETS.strength;
   return COMPOUND_CATEGORIES.has(category) ? RIR_TARGETS.compound : RIR_TARGETS.isolation;
 }
+// v3.579 (BIZ-05): the starting-load hint on an exercise's very first set,
+// in BL-10's own words (one effort vocabulary). '' where BL-10 has no label
+// (cardio, timed, AMRAP) and for noWeight rows. UX-06a's cover reads this too.
+function firstSetHint(ex, program){
+  if(!ex || ex.noWeight) return '';
+  const t = targetRirLabel(ex, program);
+  if(!t) return '';
+  return 'First time: pick a weight where you’d ' + t.words.charAt(0).toLowerCase() + t.words.slice(1);
+}
+
 // The row's label markup: '' or one span showing short, read as words.
 // role="img" so VoiceOver reads the aria-label (the plain words), not the
 // visible RIR shorthand; a bare span's aria-label is ignored.
@@ -30139,6 +30154,7 @@ async function renderWorkout(){
     let setRowHtmlArr = [];
     let summaryHtml = '';
     let badge = '';
+    let noPrior = false; // v3.579 (BIZ-05)
     {
       const log = logs[i];
       // Own-slot history first; if there's genuinely none, fall back to the
@@ -30151,6 +30167,7 @@ async function renderWorkout(){
       const ownPrior = [...ownLogs[i]].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       const priorIsCrossProgram = !ownPrior && !!fallbackPriorEntries[i];
       const prior = ownPrior || fallbackPriorEntries[i] || null;
+      noPrior = !prior; // v3.579 (BIZ-05): no own-slot entry and no cross-program fallback
       const priorSourceProgram = priorIsCrossProgram ? fallbackPriorEntries[i].sourceProgram : null;
       const priorTop = prior ? sessionTopOf(prior) : null; // v3.537 (BL-77)
       const todayEntry = log.find(e=>e.date===selectedLogDate);
@@ -30471,6 +30488,7 @@ async function renderWorkout(){
       headerInnerHtml, sameAsLastHtml, warmupHtml, setRowHtmlArr, summaryHtml, badge,
       cautionHtml, detailsHtml: buildDetailsHtml(ex),
       fallbackEntry: fallbackPriorEntries[i],
+      noPrior,
     };
   });
 
@@ -30492,6 +30510,7 @@ async function renderWorkout(){
     const { ex, i } = piece;
     const row = document.createElement('div');
     row.className = 'exercise-block';
+    if(piece.noPrior) row.dataset.firstTime = '1'; // v3.579 (BIZ-05): read by openSetSheet
     const trackingHtml = `
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
           <div class="set-actions" data-ex-idx="${i}">${piece.sameAsLastHtml}</div>
@@ -32634,6 +32653,15 @@ function openSetSheet(row, chip){
   const presc = cb && cb.closest('.exercise').querySelector('.ex-sets > span');
   document.getElementById('setSheetTitle').textContent = `${owner} · Set ${setNum}`;
   document.getElementById('setSheetSub').textContent = v.why || (presc ? `Target ${presc.textContent.trim()}` : '');
+  // v3.579 (BIZ-05): the exercise has never been logged anywhere (renderWorkout
+  // stamps data-first-time) and no set in this block has reps yet.
+  const hintEl = document.getElementById('setSheetHint');
+  if(hintEl){
+    const fresh = !!(holder && holder.dataset.firstTime === '1') && ![...holder.querySelectorAll('.set-row .ex-reps')].some(inp => inp.value !== '');
+    const hint = fresh ? firstSetHint({name: owner, sets: presc ? presc.textContent.trim() : '', noWeight: !has('weight')}, activeProgram) : '';
+    hintEl.textContent = hint;
+    hintEl.hidden = !hint;
+  }
   for(const f of ['weight', 'distance', 'reps']){
     sheet.querySelector(`.set-sheet-step[data-field="${f}"]`).hidden = !has(f);
     const input = document.getElementById('setSheet' + f[0].toUpperCase() + f.slice(1));

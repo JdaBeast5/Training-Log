@@ -2582,7 +2582,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:** low. The string is BL-10's; don't write a second effort vocabulary.
 - **Summit note (summit 2026-11-07):** Pulled into Phase 2, before UX-06a. One string, shown in two places: the set sheet **and** the cover's empty state on a first-ever exercise. It reuses BL-10's wording (summit §1.2, R7).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: `openSetSheet` can't know "no history" from the row it gets, so the history check moves to `renderWorkout` (a one-site `data-first-time` stamp) and the sheet reads it; the hard-coded "about 3 more reps" string is replaced by `firstSetHint` over BL-10's `words`, so the two never disagree (strength-tier words say 2–3, not 3). Scope unchanged.
-- **Status:** ready (after BL-10)
+- **Status:** done (v3.579, PR #155). Superset pairs aren't stamped (one block, two exercises).
 
 ### BIZ-06: AI entry points say they need a key before the tap
 - **Why:**
