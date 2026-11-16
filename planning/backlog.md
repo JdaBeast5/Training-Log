@@ -2545,7 +2545,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:** nutrition hero layout. Guarded by `test-nutrition-default-open.js` and `test-nutrition-macro-bar-colors.js`.
 - **Summit note (summit 2026-11-07):** UX-13's Food summary must keep this line (add it to UX-13's checks).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: "the profile has never been saved" isn't observable (a weigh-in and a migration both write `user-profile`), so the rule is now the defaults plus a `window.storage` flag set only by the profile form. That's a namespaced preference, not a data-shape change, and it can't make the line reappear for an existing user. Criteria are real clicks on `#pfSave`. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.573, PR #149)
 
 ### BIZ-04: First backup reminder after 3 sessions, not 10
 - **Why:**
