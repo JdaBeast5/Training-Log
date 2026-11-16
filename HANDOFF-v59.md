@@ -1316,3 +1316,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `sessionShareStats(listEl, dateKey, program)` (pure async; SETS, LIFTS, MIN from the Gym clock or `workout-time:`, PRS dated today; `undefined` for clinical), passed awaited as the 5th argument of the one "Session complete!" `triggerCelebration` in `renderWorkout`. The call reads `document.getElementById('exerciseList')` so the handler runs outside the closure (test-superset-field-chaining drives it).
 - **For UX-09a:** reuse `sessionShareStats`; add the day label to the card there.
 - **Order note:** taken ahead of slots 41–48, which wait on the owner's on-device look at UX-03. Later non-UX items in sequence: BIZ-06 (55), BL-59 (55a), BL-20, BL-33, BL-31.
+
+## Addendum 106: BIZ-06 (v3.582, PR #158, stacked on #157, 2026-11-16)
+- **What:** `placeAiInsightsCard(hasKey)` (first line of `renderAnalysis`): no key → the AI card moves before `#analysisExportBtn` (end of Training Trends, `group-collapsed` synced to that header), label "Add an AI key to use this"; key → back before `#mealTimingCard`. Disclosures (`.ai-disclosure`): `#crossInsightsDisclosure`, `#foodAiDisclosure` (Photo/Describe `aria-describedby`), coach empty state, `aiKeySetupPrompt` second sentence. `renderCoachChatLog(hasKey)`; only `false` adds "Needs your Anthropic key (Settings).".
+- **UX-10 relies on this** for "the AI card sorts below the evidence".
+- **Next non-UX items:** BL-59 (55a), BL-20, BL-33, BL-31. UX-04 onward waits on the owner's look at UX-03.
