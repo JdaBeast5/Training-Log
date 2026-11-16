@@ -1938,7 +1938,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** how much the session-length cap trims changes for every program. Placed with BL-55 early in Phase 1 (slot 13d).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Criterion 4 was rewritten, because the suite it named tests layout, not the cap. The calorie re-pin was found.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; still no suite extracts `applySessionLengthLimit`, `unitMinutes` or `totalMinutesForUnits`. Scope unchanged.
-- **Status:** ready (owner 2026-11-16: "Yes on all three", taking the recommendation; build to it, it replaces the conflicting text above): rest between sets, and relax criterion 3 to "under 12%" (or measure it on lifting and cardio days only). Built work saved for reuse.
+- **Status:** done (v3.565, PR #141). Rest between sets; criterion 3 measured on lifting and cardio days (28/594 = 4.7%; all days 188/1065 = 17.7%, recorded).
 
 ### BL-64: Cue contradictions (C-4)
 - **Why:** these cues contradict the app's own squat cues, or the evidence:

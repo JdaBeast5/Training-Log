@@ -1237,3 +1237,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** 6 grappling neck slots → '4-Way Neck Isometric (hand or band)' 4×15s with `legacyName`/`legacySets`. `subVariantOf` gives the isometric its own `:sub:` key; swap-back to Neck Bridges uses the plain key (old sets) with 3×8. `parseExKey` names the plain key Neck Bridges. `applyExOverrides` honours a saved Neck Bridges removal/order. Location index uses legacyName.
 - **Warning:** any new key path for a row must use `subVariantOf(ex)` (not `__isSubbed` directly) or a legacy slot will read the wrong key.
 - **Flagged:** parseExKey base-days-only on variants; SUB_NECK_ISO name; Chin Tucks swap keeps 4×15s.
+
+## Addendum 89: BL-63 (v3.565, PR #141, 2026-11-16)
+- **What:** parseEstimatedMinutes distance branch (per-activity pace) and rep time with rest between sets; WARMUP_RAMP_MINUTES = 4 in totalMinutesForUnits. Calories re-pinned (Back Squat 3×5 @200 lb: 79).
+- **Note:** all-days share under 0.6× authored is 17.7% (short mobility/Pilates/yoga/medical days); lifting/cardio days 4.7%. Sprint yards use the sled pace (0.5 min/20 m), an overestimate for short sprints; flag if it matters.
+- **Next:** MKT-01 per the roadmap.
