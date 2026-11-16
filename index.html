@@ -6946,6 +6946,12 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2.5" x2="7" y2="5.5"/><line x1="13" y1="2.5" x2="13" y2="5.5"/></svg></span><span id="historyDayTitle">Day</span></div>
       <div id="historyDayBody"></div>
     </div>
+    <!-- v3.567 (MKT-06b): Year in Lifting, 1 December to 15 January only. -->
+    <div class="card" id="yearRecapHistoryCard" hidden>
+      <div class="card-title"><span id="yearRecapHistoryTitle">Your year in lifting</span></div>
+      <div class="history-hint">Each card shares on its own. Training numbers only, no body data.</div>
+      <div id="yearRecapHistoryList"></div>
+    </div>
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
       <div class="history-hint">Every PR you've hit, newest first.</div>
@@ -7713,7 +7719,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.566';
+const APP_VERSION = '3.567';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9235,6 +9241,9 @@ const WHATS_NEW = {
   ]},  '3.566': { headline: 'Your streak counts training weeks', points: [
     'Your streak now counts training weeks, so rest days never break it. A week counts with at least two sessions, or one fewer than the days a week you train.',
     'Milestones are 4, 8, 12, 26 and 52 weeks in a row. This week counts until Sunday is over.',
+  ]},  '3.567': { headline: 'More Year in Lifting cards', points: [
+    'From 1 December, History shows your Year in Lifting: weeks trained, your biggest strength gain, your most-trained muscle group and your longest run of training weeks, each with its own Share button.',
+    'Everything is worked out on your phone from your logged sets. No body weight, food or sleep goes on a card.',
   ]},
 };
 
@@ -14460,10 +14469,8 @@ async function computeWeekStreak(){
     dates = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){ return 0; }
   if(!dates.length) return 0;
-  const pref = (typeof daysPerWeekPref === 'number' && daysPerWeekPref >= 1) ? daysPerWeekPref : null;
-  const need = pref ? Math.max(2, pref - 1) : 2;
-  const perWeek = new Map();
-  for(const d of new Set(dates)){ const m = mondayOf(d); perWeek.set(m, (perWeek.get(m) || 0) + 1); }
+  const need = weekStreakNeed();
+  const perWeek = weekTrainingCounts(dates);
   const thisMonday = mondayOf(getTodayKey());
   let cursor = (perWeek.get(thisMonday) || 0) >= need ? thisMonday : dateKeyMinusDays(thisMonday, 7);
   let weeks = 0;
@@ -14472,6 +14479,20 @@ async function computeWeekStreak(){
     cursor = dateKeyMinusDays(cursor, 7);
   }
   return weeks;
+}
+
+// The training dates a week needs to count: max(2, days-per-week preference
+// - 1), or 2 when the preference is unset. Shared by the streak and the year
+// recap's longest run (v3.567, MKT-06b).
+function weekStreakNeed(){
+  const pref = (typeof daysPerWeekPref === 'number' && daysPerWeekPref >= 1) ? daysPerWeekPref : null;
+  return pref ? Math.max(2, pref - 1) : 2;
+}
+// Monday key -> distinct training dates that week.
+function weekTrainingCounts(dates){
+  const perWeek = new Map();
+  for(const d of new Set(dates || [])){ if(typeof d !== 'string') continue; const m = mondayOf(d); perWeek.set(m, (perWeek.get(m) || 0) + 1); }
+  return perWeek;
 }
 
 // v3.566 (MKT-01): milestones are weeks. The celebrated mark lives in its own
@@ -15170,6 +15191,110 @@ function yearRecapCard(r){
     {value: r.sets.toLocaleString('en-US'), label: 'SETS'},
     {value: String(r.sessions), label: 'SESSIONS'},
   ], kind:'year', dayId: activeDay};
+}
+
+// v3.567 (MKT-06b): the rest of the year's cards. Pure over the same inputs as
+// yearRecapFrom:
+//   weeks       distinct Monday-to-Sunday weeks holding a session;
+//   topLift     the biggest e1RM gain (the year's best minus its first
+//               session's best, Epley via estimated1RM), never an oly, jump or
+//               throw exercise (Epley isn't valid there, SAF-2);
+//   topGroup    the muscle group with the most logged sets (MUSCLE_GROUP_MAP,
+//               only the groups VOLUME_LANDMARKS describes: cardio, combat and
+//               power work aren't a muscle group);
+//   longestStreak the longest run of weeks that count for the streak
+//               (weekStreakNeed, weekTrainingCounts: MKT-01's rule), over the
+//               weeks that overlap the year.
+const YEAR_RECAP_NO_E1RM = ['oly', 'jump', 'throw'];
+function yearRecapDetailsFrom(year, dates, corpus){
+  const prefix = String(year) + '-';
+  const inYear = (d) => typeof d === 'string' && d.startsWith(prefix);
+  const setDates = new Set();
+  const groupSets = {};
+  let topLift = null;
+  for(const {exDef, log} of corpus || []){
+    const name = exDef && exDef.name;
+    const info = (name && exerciseInfo[name]) || {};
+    const group = MUSCLE_GROUP_MAP[info.category];
+    const e1rmOk = !!name && !YEAR_RECAP_NO_E1RM.includes(info.category);
+    let first = null, best = null;
+    const entries = (log || []).filter(e => e && inYear(e.date)).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    for(const entry of entries){
+      let dayBest = null;
+      for(const st of entry.sets || []){
+        if(!isLoggedSet(st)) continue;
+        setDates.add(entry.date);
+        if(group && VOLUME_LANDMARKS[group]) groupSets[group] = (groupSets[group] || 0) + 1;
+        const e = (e1rmOk && Number(st.weight) > 0) ? estimated1RM(Number(st.weight), Number(st.reps)) : null;
+        if(e != null && (dayBest == null || e > dayBest)) dayBest = e;
+      }
+      if(dayBest == null) continue;
+      if(first == null) first = dayBest;
+      if(best == null || dayBest > best) best = dayBest;
+    }
+    if(first != null && best - first > 0 && (!topLift || best - first > topLift.gainLb)) topLift = {name, gainLb: best - first};
+  }
+  const sessionDates = (dates || []).filter(d => inYear(d) && setDates.has(d));
+  const weeks = new Set(sessionDates.map(mondayOf)).size;
+  let topGroup = null;
+  for(const [g, n] of Object.entries(groupSets)) if(!topGroup || n > topGroup.sets) topGroup = {group: g, sets: n};
+  // Longest streak: walk the weeks that overlap the year, Monday by Monday.
+  const counts = weekTrainingCounts(dates), need = weekStreakNeed();
+  let longestStreak = 0, run = 0;
+  for(let m = mondayOf(`${year}-01-01`); m <= `${year}-12-31`; m = dateKeyMinusDays(m, -7)){
+    run = (counts.get(m) || 0) >= need ? run + 1 : 0;
+    if(run > longestStreak) longestStreak = run;
+  }
+  return {weeks, topLift, topGroup, longestStreak};
+}
+
+// Every card for the year, the summary first. A card with nothing to say
+// (no e1RM gain, no muscle-group sets, no counted week) is left out.
+function yearRecapCards(r, d){
+  const head = `${r.year} IN LIFTING`;
+  const card = (stats) => ({icon:'trophy', headline: head, stats, kind:'year', dayId: activeDay});
+  const cards = [yearRecapCard(r), card([{value: String(d.weeks), label: 'WEEKS TRAINED'}, {value: String(r.sessions), label: 'SESSIONS'}])];
+  if(d.topLift) cards.push(card([{value: '+' + fmtWeight(d.topLift.gainLb), label: 'BIGGEST E1RM GAIN'}, {value: d.topLift.name.toUpperCase(), label: 'LIFT'}]));
+  if(d.topGroup) cards.push(card([{value: d.topGroup.group.toUpperCase(), label: 'MOST-TRAINED'}, {value: d.topGroup.sets.toLocaleString('en-US'), label: 'SETS'}]));
+  if(d.longestStreak > 0) cards.push(card([{value: String(d.longestStreak), label: 'WEEKS IN A ROW'}]));
+  return cards;
+}
+
+async function computeYearRecapCards(year){
+  let dates = [], corpus = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    if(res && res.value) dates = JSON.parse(res.value);
+  }catch(e){}
+  try{ corpus = await readExCorpus(); }catch(e){}
+  const r = yearRecapFrom(year, dates, corpus);
+  return {recap: r, cards: yearRecapCards(r, yearRecapDetailsFrom(year, dates, corpus))};
+}
+
+// The History entry: in season (yearRecapYearFor) and with enough sessions,
+// every card as a row with its own Share button (none while a medical
+// program is active). Hiding the Priorities row doesn't hide this.
+let yearRecapHistoryCards = [];
+async function renderYearRecapHistory(){
+  const wrap = document.getElementById('yearRecapHistoryCard');
+  const list = document.getElementById('yearRecapHistoryList');
+  if(!wrap || !list) return;
+  const year = yearRecapYearFor(getTodayKey());
+  if(year == null){ wrap.hidden = true; return; }
+  const {recap, cards} = await computeYearRecapCards(year);
+  if(recap.sessions < YEAR_RECAP_MIN_DATES){ wrap.hidden = true; return; }
+  yearRecapHistoryCards = cards;
+  if(activeProgram !== 'medical') preloadShareCardFont();
+  document.getElementById('yearRecapHistoryTitle').textContent = `Your ${year} in lifting`;
+  list.innerHTML = cards.map((c, i) => `<div class="diag-row"><span>${c.stats.map(st => `<b>${escapeHtml(st.value)}</b> ${escapeHtml(st.label.toLowerCase())}`).join(' · ')}</span>`
+    + (activeProgram === 'medical' ? '' : `<button type="button" class="year-recap-btn" id="yearRecapCardBtn${i}" data-year-recap-card="${i}">Share</button>`) + `</div>`).join('');
+  list.onclick = (ev) => {
+    const btn = ev.target.closest('[data-year-recap-card]');
+    if(!btn || activeProgram === 'medical') return;
+    const c = yearRecapHistoryCards[Number(btn.dataset.yearRecapCard)];
+    if(c) shareCelebrationCard(c, btn.id);
+  };
+  wrap.hidden = false;
 }
 
 async function shareYearRecapCard(year){
@@ -41709,7 +41834,7 @@ const VIEW_RENDERERS = {
     loadFoodLog();
   },
   analysis: ()=>{ renderAnalysis(); },
-  history: ()=>{ renderHistory(); renderSavedWeeks(); renderPrTimeline(); },
+  history: ()=>{ renderHistory(); renderSavedWeeks(); renderPrTimeline(); renderYearRecapHistory(); }, // v3.567 (MKT-06b)
   care:    (intent)=>{ renderCare(); populateCareLibrarySelector(intent && intent.careArea); },
   coach:   ()=>{ renderCoach(); },
   learn:   ()=>{

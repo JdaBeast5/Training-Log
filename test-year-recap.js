@@ -66,8 +66,7 @@ test('criterion 1: a fixture year of 120 training dates gives sessions 120, and 
 // The card, drawn by the real share-card code with a recording canvas.
 const CARD_FNS = [...['programs', 'DAY_INKS', 'CUSTOM_PLATES', 'SHARE_CARD_INKS', 'SASH_ORDER', 'APP_NAME'].map(c => extractConst(src, c)),
   ...['dayInk', 'wrapCanvasText', 'celebrationIconPath', 'shareCardFootRow', 'drawSashMark', 'drawShareCardFoot', 'drawStoryCard', 'buildShareCardBlob'].map(f => extractFunction(src, f))];
-function drawCard(recap){
-  const [r] = runSandbox([`
+function drawCardSetup(){ return `
     var ICONS = {trophy: '<svg><path d="M8 4h8"/></svg>'}; var activeProgram = 'strength', activeDay = 'd2';
     function Path2D(){}
     var __text = [], __size = {w: 0, h: 0};
@@ -78,7 +77,9 @@ function drawCard(recap){
         if(typeof k === 'string' && /^create/.test(k)) return () => ({addColorStop(){}});
         if(k in t) return t[k];
         return () => {};
-      }, set(t, k, v){ t[k] = v; return true; }, has(t, k){ return k in t; } })}; __size = c; return c; } };`,
+      }, set(t, k, v){ t[k] = v; return true; }, has(t, k){ return k in t; } })}; __size = c; return c; } };`; }
+function drawCard(recap){
+  const [r] = runSandbox([drawCardSetup(),
     ...CARD_FNS, extractFunction(src, 'yearRecapCard')],
     `buildShareCardBlob(yearRecapCard(${JSON.stringify(recap)})); __capture.push({text: __text, w: __size.width, h: __size.height, card: yearRecapCard(${JSON.stringify(recap)})});`);
   return r;
@@ -206,6 +207,122 @@ test('review fixes: rest days marked done and weight-only days are not sessions;
   r.document.querySelector('[data-year-recap-share]').click(); await tick();
   assert.ok(r.__shared, 'shared');
   assert.strictEqual(r.__corpusReads, reads, 'no second scan between the tap and navigator.share');
+});
+
+// ---- v3.567 (MKT-06b): the remaining cards and the History entry.
+// Real yearRecapDetailsFrom, yearRecapCards, computeYearRecapCards and
+// renderYearRecapHistory, with MKT-01's real weekStreakNeed,
+// weekTrainingCounts and computeWeekStreak, the real estimated1RM, mondayOf,
+// MUSCLE_GROUP_MAP and VOLUME_LANDMARKS, and the real fmtWeight.
+// Sabotage: drop the oly/jump/throw exclusion and criterion 6b fails.
+const B_CHUNKS = [...['MUSCLE_GROUP_MAP', 'VOLUME_LANDMARKS', 'YEAR_RECAP_NO_E1RM', 'STREAK_MILESTONES'].map(c => extractConst(src, c)),
+  ...['dateKeyMinusDays', 'mondayOf', 'estimated1RM', 'weekStreakNeed', 'weekTrainingCounts', 'computeWeekStreak', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight',
+    'yearRecapDetailsFrom', 'yearRecapCards', 'computeYearRecapCards', 'renderYearRecapHistory', 'escapeHtml'].map(f => extractFunction(src, f))];
+const B_INFO = `var exerciseInfo = {'Back Squat': {category: 'squat'}, 'Bench Press': {category: 'push'}, 'Snatch': {category: 'oly'}, 'Box Jump': {category: 'jump'}, 'Barbell Row': {category: 'pull'}, 'Rowing Machine': {category: 'cardio'}};
+  var weightUnit = 'lb', daysPerWeekPref = null, LB_PER_KG = 2.20462;`;
+const add = (k, n) => { const d = new Date(k + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+// Mon/Wed/Fri over [from Monday, weeks).
+const mwf = (monday, weeks) => Array.from({length: weeks}, (_, w) => [0, 2, 4].map(o => add(monday, 7 * w + o))).flat();
+function fixtureB(){
+  // A 5-week run in February-March and a 13-week run from 5 October to 31 December.
+  const dates = [...mwf('2026-02-02', 5), ...mwf('2026-10-05', 13)];
+  const sq = (date, i) => ({date, sets: [{weight: 225 + i * 2, reps: 5}, {weight: 225 + i * 2, reps: 5}]});
+  const corpus = [
+    {exDef: {name: 'Back Squat'}, log: dates.map(sq)},
+    {exDef: {name: 'Snatch'}, log: [{date: dates[0], sets: [{weight: 60, reps: 3}]}, {date: dates[50], sets: [{weight: 200, reps: 3}]}]}, // a huge gain, but oly
+    {exDef: {name: 'Box Jump'}, log: [{date: dates[0], sets: [{weight: 10, reps: 3}]}, {date: dates[50], sets: [{weight: 300, reps: 3}]}]},
+    {exDef: {name: 'Barbell Row'}, log: dates.map(date => ({date, sets: [{weight: 135, reps: 8}, {weight: 135, reps: 8}, {weight: 135, reps: 8}]}))},
+    {exDef: {name: 'Rowing Machine'}, log: dates.map(date => ({date, sets: [{distance: 500}, {distance: 500}, {distance: 500}, {distance: 500}]}))},
+  ];
+  return {dates, corpus};
+}
+function mountB({today = '2026-12-31', program = 'strength', f = fixtureB(), pref = null} = {}){
+  return runJsdom(`<div id="yearRecapHistoryCard" hidden><span id="yearRecapHistoryTitle"></span><div id="yearRecapHistoryList"></div></div>`, `
+    window.__store = {'activity-dates': ${JSON.stringify(JSON.stringify(f.dates))}}; window.__fetches = 0; window.__shared = null;
+    window.storage = { get: async k => k in window.__store ? { value: window.__store[k] } : null, set: async () => {} };
+    window.fetch = async () => { window.__fetches++; return {}; };
+    window.readExCorpus = async () => ${JSON.stringify(f.corpus)};
+    window.getTodayKey = () => '${today}';
+    var activeProgram = '${program}', activeDay = 'd2';
+    window.shareCelebrationCard = async (card, btnId) => { window.__shared = {card, btnId}; };
+    window.preloadShareCardFont = () => {};
+    ${B_INFO} daysPerWeekPref = ${JSON.stringify(pref)};`, [...RECAP, ...B_CHUNKS]).window;
+}
+
+test('MKT-06b: weeks trained, the most-trained muscle group (sets), and the cards in order', async (assert)=>{
+  const w = mountB();
+  const {recap, cards} = json(await w.computeYearRecapCards(2026));
+  assert.strictEqual(recap.sessions, 53, 'anchor: 18 weeks x 3, less Friday 1 January 2027');
+  assert.deepStrictEqual(cards.map(c => c.stats[0].label), ['SETS', 'WEEKS TRAINED', 'BIGGEST E1RM GAIN', 'MOST-TRAINED', 'WEEKS IN A ROW']);
+  assert.deepStrictEqual(cards[1].stats, [{value: '18', label: 'WEEKS TRAINED'}, {value: '53', label: 'SESSIONS'}]);
+  // Back 3 sets x 53 = 159 beats Legs 2 x 53 = 106; the rower's 4 x 53 are cardio, not a muscle group.
+  assert.deepStrictEqual(cards[3].stats, [{value: 'BACK', label: 'MOST-TRAINED'}, {value: '159', label: 'SETS'}]);
+  assert.ok(cards.every(c => c.headline === '2026 IN LIFTING' && c.kind === 'year'));
+});
+
+test('MKT-06b criterion 6b: the e1RM card never names an oly, jump or throw exercise, even with a bigger Snatch gain', async (assert)=>{
+  const w = mountB();
+  const {cards} = json(await w.computeYearRecapCards(2026));
+  const lift = cards.find(c => c.stats[0].label === 'BIGGEST E1RM GAIN');
+  // Back Squat: first 225x5 = 263; the year's last session (index 52) 329x5 = 384. Gain 121 lb.
+  assert.deepStrictEqual(lift.stats, [{value: '+121 lb', label: 'BIGGEST E1RM GAIN'}, {value: 'BACK SQUAT', label: 'LIFT'}]);
+  assert.ok(!JSON.stringify(cards).match(/SNATCH|BOX JUMP/));
+});
+
+test('MKT-06b criterion 7b: the streak card equals the real computeWeekStreak\'s longest run over the fixture year (13, not the earlier 5)', async (assert)=>{
+  for(const pref of [null, 3]){
+    const w = mountB({pref});
+    const {cards} = json(await w.computeYearRecapCards(2026));
+    const streak = cards.find(c => c.stats[0].label === 'WEEKS IN A ROW');
+    const live = await w.computeWeekStreak(); // today 31 December: the run ending this week
+    assert.strictEqual(live, 13, 'anchor: the real streak at year end, preference ' + pref);
+    assert.strictEqual(streak.stats[0].value, String(live));
+  }
+  const early = mountB({today: '2026-03-08'}); // the Sunday ending the 5-week run
+  assert.strictEqual(await early.computeWeekStreak(), 5, 'anchor: the real streak at the end of the first run');
+});
+
+test('MKT-06b criterion 4 for every card: no body-weight, calorie or sleep value, and no load, on any card', async (assert)=>{
+  const w = mountB();
+  w.__store['weight-log'] = JSON.stringify([{date: '2026-11-30', weight: 182.4}]);
+  w.__store['sleep-log'] = JSON.stringify([{date: '2026-11-30', hours: 7.5}]);
+  const {recap, cards} = json(await w.computeYearRecapCards(2026));
+  for(const card of cards){
+    const [r] = runSandbox([drawCardSetup(), ...CARD_FNS], `buildShareCardBlob(${JSON.stringify(card)}); __capture.push(__text);`);
+    assert.ok(r.length >= 3, 'anchor: the card drew text');
+    const all = r.map(c => c.txt).join(' | ');
+    assert.ok(!/182\.4|2450|2,450|7\.5/.test(all), all);
+    assert.ok(!all.includes(String(recap.load)) && !all.includes(recap.load.toLocaleString('en-US')), 'no load: ' + all);
+  }
+});
+
+test('MKT-06b History entry: in season it lists every card with its own Share; out of season hidden; no Share under a medical program; no fetch', async (assert)=>{
+  const w = mountB({today: '2026-12-05'});
+  await w.renderYearRecapHistory();
+  const card = w.document.getElementById('yearRecapHistoryCard');
+  assert.strictEqual(card.hidden, false);
+  assert.strictEqual(w.document.getElementById('yearRecapHistoryTitle').textContent, 'Your 2026 in lifting');
+  const btns = [...w.document.querySelectorAll('[data-year-recap-card]')];
+  assert.strictEqual(btns.length, 5);
+  btns[2].click(); await tick();
+  assert.strictEqual(w.__shared.btnId, 'yearRecapCardBtn2');
+  assert.strictEqual(json(w.__shared.card).stats[0].label, 'BIGGEST E1RM GAIN');
+  assert.strictEqual(w.__fetches, 0);
+  const off = mountB({today: '2026-11-30'}); await off.renderYearRecapHistory();
+  assert.strictEqual(off.document.getElementById('yearRecapHistoryCard').hidden, true);
+  const med = mountB({today: '2026-12-05', program: 'medical'}); await med.renderYearRecapHistory();
+  assert.strictEqual(med.document.getElementById('yearRecapHistoryCard').hidden, false);
+  assert.strictEqual(med.document.querySelectorAll('[data-year-recap-card]').length, 0);
+  assert.strictEqual(med.document.querySelectorAll('#yearRecapHistoryList .diag-row').length, 5, 'the numbers still show');
+});
+
+test('MKT-06b criterion 7b: a 1-session week between two runs breaks the run, as it does for the real computeWeekStreak (10, not 5 + 1 + 10)', async (assert)=>{
+  const dates = [...mwf('2026-02-02', 5), '2026-03-11', ...mwf('2026-03-16', 10)];
+  const f = {dates, corpus: [{exDef: {name: 'Back Squat'}, log: dates.map(date => ({date, sets: [{weight: 225, reps: 5}]}))}]};
+  const w = mountB({f, today: '2026-05-24'});
+  const d = json(w.yearRecapDetailsFrom(2026, dates, f.corpus));
+  assert.strictEqual(await w.computeWeekStreak(), 10, 'anchor: the real streak on the Sunday ending the second run');
+  assert.strictEqual(d.longestStreak, 10);
 });
 
 run();

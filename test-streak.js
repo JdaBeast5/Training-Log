@@ -90,7 +90,7 @@ test('a gap in the middle of history only breaks the count at the gap — streak
 // Sabotage: make computeWeekStreak count consecutive days (return
 // computeStreak()) with the old day milestones, and criteria 1 and 2 fail.
 const { extractConst } = require('./testHelpers.js');
-const WEEK_CHUNKS = [extractFunction(src, 'dateKeyMinusDays'), extractFunction(src, 'mondayOf'), extractFunction(src, 'computeStreak'),
+const WEEK_CHUNKS = [extractFunction(src, 'dateKeyMinusDays'), extractFunction(src, 'mondayOf'), extractFunction(src, 'computeStreak'), extractFunction(src, 'weekStreakNeed'), extractFunction(src, 'weekTrainingCounts'),
   extractFunction(src, 'computeWeekStreak'), extractConst(src, 'STREAK_MILESTONES'), extractFunction(src, 'checkStreakMilestone')];
 function weekSetup(dates, pref, today){
   return `
