@@ -3914,6 +3914,10 @@
     font-family:var(--font-sans); font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .food-cat-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
+  /* v3.574 (BL-18): recent-food chips reuse the category chip, at a 44pt target. */
+  .food-recents{display:flex; gap:8px; overflow-x:auto; margin:0 0 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .food-recents[hidden]{display:none;}
+  .food-recent-chip{min-height:44px; color:var(--text);}
   .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
   .food-item-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -6412,6 +6416,8 @@
       <div class="section-divider"></div>
       <div class="section-label">Add a food</div>
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="Search any food or restaurant..." aria-label="Search any food or restaurant">
+      <!-- v3.574 (BL-18): one-tap recent foods, while the search box is empty (renderFoodRecents). -->
+      <div class="food-recents" id="foodRecents" role="group" aria-label="Recent foods" hidden></div>
       <div id="usdaKeySettingsSlot"></div>
 
       <div class="quick-add-row">
@@ -7721,7 +7727,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.573';
+const APP_VERSION = '3.574';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9263,6 +9269,9 @@ const WHATS_NEW = {
     'Behind the scenes: every saved file takes its name from one place; old backups still restore.',
   ]},  '3.573': { headline: 'Calorie targets say when they\'re an estimate', points: [
     'Until you add your age and height in Profile, the calorie target on Log says it\'s an estimate for a 30-year-old at 5\'8", and the weight it used. Save your Profile once and the line goes.',
+  ]},  '3.574': { headline: 'One-tap recent foods', points: [
+    'Under the food search, your most-eaten foods from the last two weeks sit as chips. One tap logs one, at the portion you last had.',
+    'They step aside while you type a search.',
   ]},
 };
 
@@ -38933,10 +38942,20 @@ document.getElementById('hideAvoidedToggle').addEventListener('click', async ()=
 // Only the render is deferred. Clearing the field renders straight away so the
 // category list snaps back rather than hanging for the debounce interval.
 let _foodSearchTimer = null;
+// v3.574 (BL-18): one tap on a recent chip logs it.
+document.getElementById('foodRecents').addEventListener('click', (e)=>{
+  const chip = e.target.closest('[data-recent]');
+  const entry = chip && foodRecents[Number(chip.dataset.recent)];
+  if(entry) relogFoodEntry(entry);
+});
+
 document.getElementById('foodSearchInput').addEventListener('input', (e)=>{
   currentSearchTerm = e.target.value.trim();
   const catsEl = document.getElementById('foodCats');
   catsEl.style.display = currentSearchTerm ? 'none' : '';
+  // v3.574 (BL-18): the recents row is for an empty search box only.
+  const recentsEl = document.getElementById('foodRecents');
+  if(recentsEl) recentsEl.hidden = !!currentSearchTerm || !foodRecents.length;
   clearTimeout(_foodSearchTimer);
   if(!currentSearchTerm){ renderFoodItems(); return; }
   _foodSearchTimer = setTimeout(renderFoodItems, 90);
@@ -39000,6 +39019,63 @@ function scaleFoodItem(item, qty){
     qty: q,
     baseName: item.name,
   };
+}
+
+// v3.574 (BL-18): one-tap recent foods. The 14 days before selectedLogDate
+// (the day being logged isn't counted), ranked by the number of DAYS a food
+// appears, then by how recently; de-duplicated on baseName || name; top 8.
+// Each chip is the food's most recent logged entry, so it repeats the portion
+// you last had. No new storage: it reads the foodlog:<date> keys.
+const FOOD_RECENTS_DAYS = 14, FOOD_RECENTS_MAX = 8;
+let foodRecents = [];
+async function buildRecentFoods(days = FOOD_RECENTS_DAYS){
+  const byFood = new Map();
+  for(let i = 1; i <= days; i++){
+    const key = dateKeyMinusDays(selectedLogDate, i);
+    let list = [];
+    try{
+      const res = await window.storage.get(`foodlog:${key}`);
+      if(res && res.value) list = JSON.parse(res.value);
+    }catch(e){}
+    const counted = new Set();
+    for(const entry of Array.isArray(list) ? list : []){
+      if(!entry || !entry.name) continue;
+      const food = entry.baseName || entry.name;
+      let r = byFood.get(food);
+      if(!r){ r = {days: 0, last: key, entry}; byFood.set(food, r); }
+      if(r.last === key) r.entry = entry; // the latest entry on its most recent day
+      if(!counted.has(food)){ counted.add(food); r.days++; }
+    }
+  }
+  return [...byFood.values()]
+    .sort((a, b)=> b.days - a.days || (a.last < b.last ? 1 : a.last > b.last ? -1 : 0))
+    .slice(0, FOOD_RECENTS_MAX).map(r => r.entry);
+}
+
+// The one re-add path for a logged entry (BL-19 reuses it). A logged multiple
+// ("Bagel ×3", qty 3) goes back through addFoodToLog as ONE portion of its
+// base food at the same qty, so the macros come out the same and usage counts
+// stay under "Bagel" (addFoodToLog's own rule). The logged time is dropped
+// (addFoodToLog stamps its own), and so is the source (it was cached into My
+// Foods the first time).
+async function relogFoodEntry(entry){
+  const q = Math.max(1, Math.round(Number(entry.qty) || 1));
+  const { time, qty, baseName, source, ...rest } = entry;
+  const base = {...rest, name: baseName || entry.name};
+  if(q > 1){
+    for(const k of ['cal', 'pro', 'fat', 'carb', 'sodium', 'fiber', 'calcium', 'potassium', 'folate', 'iron']){
+      if(typeof base[k] === 'number') base[k] = base[k] / q;
+    }
+  }
+  await addFoodToLog(base, q);
+}
+
+async function renderFoodRecents(){
+  const el = document.getElementById('foodRecents');
+  if(!el) return;
+  foodRecents = await buildRecentFoods();
+  el.innerHTML = foodRecents.map((e, i)=> `<button type="button" class="food-cat-btn food-recent-chip" data-recent="${i}" aria-label="Add ${escapeHtml(e.name)}">${escapeHtml(e.name)}</button>`).join('');
+  el.hidden = !foodRecents.length || !!currentSearchTerm;
 }
 
 async function addFoodToLog(item, qty){
@@ -39250,6 +39326,7 @@ async function loadFoodLog(){
   }catch(e){ todaysFoodLog = []; }
   renderFoodLog();
   updateRepeatYesterdayVisibility();
+  renderFoodRecents(); // v3.574 (BL-18): the chips follow the day being logged
 }
 
 // Only shown when the currently-viewed date's log is genuinely empty (no
