@@ -1858,7 +1858,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the existing substitution and swap tests guard it. Placed after BL-25 (slot 31a), with the other content fixes.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; the cue-count re-pin was found.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: (1) the old criterion 3 contradicts BL-73 (slot 8b, already ahead in the sequence), which stops applying a stored substitute that's no longer listed; the criterion and the Change line now follow BL-73. (2) The sweep's allowlist missed seven Olympic and triceps pairs that are cross-group today; they're named. (3) 9 alternatives lack entries, not 10. (4) The new calf and shin moves need `EXERCISE_REGION_OVERRIDE` lines, or a resting ankle isn't flagged on them. (5) `test-safety-cues.js`'s 321-exercise snapshot needs re-pinning too. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.570, PR #146). Criterion 2 reads "at least 3 cues" (Neck Bridges, a v3.564 swap-back, has 4).
 
 ### BL-61: Plyometric prescriptions match their cues (S-2, S-3)
 - **Why:**
