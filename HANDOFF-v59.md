@@ -1282,3 +1282,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `buildRecentFoods`, `relogFoodEntry` (BL-19 reuses it), `renderFoodRecents` (called from `loadFoodLog`), `#foodRecents` chips; the search input handler hides them.
 - **Flag (tooling):** `tools/visual/fixture-store.json` holds 8 training weeks, so the MKT-01 celebration covers every harness state; store `week-streak-last-celebrated: "8"` in the fixture to clear it.
 - **Next:** BL-19 (slot 36).
+
+## Addendum 99: BL-19 (v3.575, PR #151, 2026-11-16)
+- **What:** `updateRepeatYesterdayVisibility` shows "Add from yesterday" on a started day; the button toggles `#repeatYesterdayWrap` (expand-wrap) listing the prior day's items, each added through `relogFoodEntry`. `repeatPriorItems` holds the list.
+- **Next:** BL-16 (slot 37: trend weight).
