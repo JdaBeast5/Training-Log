@@ -1269,3 +1269,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `test-free-list-guard.js` scans static markup, four rendered views and renderWorkout's literals for lock/upgrade/Pro labels. Exact allowlist: `usda-key-upgrade-toggle` (5 buttons).
 - **Warning:** any new copy with "pro", "premium", "upgrade", "unlock" or "locked" as a whole word in markup or class names fails this guard.
 - **Next:** MKT-20 (slot 33).
+
+## Addendum 96: MKT-20 (v3.572, PR #148, 2026-11-16)
+- **What:** backup file name via `appSlug()`; `test-app-file-names.js`; old-name literal guard in `test-app-rename.js` (allowlist: What's New history, Diagnostics cache reads, the AI prompt).
+- **Next:** BIZ-03 (slot 34, the food lane).
