@@ -1218,3 +1218,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 84: BL-11 (v3.560, PR #135, 2026-11-15)
 - **What:** `suggestRepProgression(log, ex, program)`; one call per exercise in renderWorkout; reps placeholder + badge. 223/223.
 - **Pending:** BL-72/35/63 owner "yes" arrived via another session's relay; awaiting the owner's direct confirmation before recording.
+
+## Addendum 85: BL-72 (v3.561, PR #137, 2026-11-16)
+- **What:** `slotIdOf`; SCHEMA_VERSION 9; `migrateTrailingSlotsV9` (backup `migration-backup-v9` first) run by `finishTrailingSlotsMove` from init after custom programs load; `trailingSlotsMovePending` holds the stamp at 8 until success.
+- **Warning:** any new key-reading/writing call for a row must pass `slotIdOf(ex, i)`; suites stubbing key functions need a `slotIdOf` stub. BL-74 and BL-36 are now unblocked.
