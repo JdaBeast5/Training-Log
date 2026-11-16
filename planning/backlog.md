@@ -788,7 +788,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** the food log and the backdating label (37890). Guarded by `test-backdating.js` and `test-log-2-0.js`.
 - **Tools:** `impeccable clarify`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The row renderer changed from `buildFoodResultRows` (no add control) to BL-18's shared `relogFoodEntry`; criteria now name the three suites that extract the visibility function. Scope unchanged.
-- **Status:** ready (after BL-18)
+- **Status:** done (v3.575, PR #151)
 
 ### BL-20: Per-muscle weekly set ledger in Analysis (fractional counting)
 - **Why:**
