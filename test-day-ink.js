@@ -6,18 +6,26 @@
 // getDayPlateClass (which colours days by position from seven hues) is
 // untouched. UX-05 extends this file when the screens switch.
 //
+// 2026-11-16 (v3.587, UX-05): the screens switch. getDayPlateClass is now a
+// thin wrapper over dayInk (one rule), VIVID_PLATE_CLASSES is gone, and
+// applyDayInk puts the day's day-<ink> class on <body>. UX-01b's criterion 4
+// ("getDayPlateClass's source is byte-identical to v3.539") is retired on
+// purpose, and criterion 2's documented difference is gone.
+//
 // Real invocation: the real dayInk over the real programs, every *_STYLES
 // style and every PROGRAM_DAY_COUNT_VARIANTS day; the real getDayPlateClass.
 //
 // Sabotage: make dayInk return 'red' for everything, and criterion 1 fails
 // (Strength Day 2 is blue).
-const crypto = require('crypto');
-const { readIndexSource, extractFunction, extractConst, runSandbox, makeRunner } = require('./testHelpers.js');
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+const { readIndexSource, extractFunction, extractConst, runSandbox, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-day-ink.js');
-const DATA = ['programs', 'MEDICAL_STYLES', 'COMBAT_STYLES', 'CYCLING_STYLES', 'WATERSPORTS_STYLES', 'YOGA_STYLES', 'PROGRAM_DAY_COUNT_VARIANTS', 'DAY_INKS', 'VIVID_PLATE_CLASSES', 'CUSTOM_PLATES'].map(c => extractConst(src, c)).concat(["var activeProgram = 'strength';"]);
-const FNS = [extractFunction(src, 'dayInk'), extractFunction(src, 'getDayPlateClass')];
+const DATA = ['programs', 'MEDICAL_STYLES', 'COMBAT_STYLES', 'CYCLING_STYLES', 'WATERSPORTS_STYLES', 'YOGA_STYLES', 'PROGRAM_DAY_COUNT_VARIANTS', 'DAY_INKS', 'CUSTOM_PLATES'].map(c => extractConst(src, c)).concat(["var activeProgram = 'strength';"]);
+const FNS = [extractFunction(src, 'dayInk'), extractFunction(src, 'getDayPlateClass'), extractFunction(src, 'applyDayInk')];
 
 test('criterion 1: for every built-in day (programs, styles, day-count variants) dayInk returns one of the six inks and equals its plate code', (assert)=>{
   const [r] = runSandbox([...DATA, ...FNS], `
@@ -37,13 +45,15 @@ test('criterion 1: for every built-in day (programs, styles, day-count variants)
   assert.strictEqual(r.d2, 'blue', 'by id: Strength Day 2');
 });
 
-test('criterion 2: Strength & Size Day 5 is green by its plate, while getDayPlateClass colours it purple by position (documented difference)', (assert)=>{
+// 2026-11-16 (v3.587, UX-05): the documented difference is gone. Day 5 was
+// purple by position; its disc is now green, its own plate.
+test('criterion 2 (UX-05): Strength & Size Day 5 is green by its plate, and getDayPlateClass now agrees', (assert)=>{
   const [r] = runSandbox([...DATA, ...FNS], `
     var dayDefs = programs.strength.days, dayOrder = Object.keys(dayDefs);
     __capture.push({ink: dayInk('d5', 'strength'), cls: getDayPlateClass('d5'), plate: programs.strength.days.d5.plate});`);
   assert.strictEqual(r.plate, 'p-green');
   assert.strictEqual(r.ink, 'green');
-  assert.strictEqual(r.cls, 'p-purple');
+  assert.strictEqual(r.cls, 'p-green');
 });
 
 test('criterion 3: a rest day is off; a day with no plate takes the red, blue, yellow, green cycle by its place among training days; unknown days are off', (assert)=>{
@@ -76,18 +86,77 @@ test('the fallback follows the user\'s saved day order for the active program', 
   assert.deepStrictEqual(r, ['red', 'blue', 'yellow']);
 });
 
-// getDayPlateClass at v3.539 (the parent commit): sha256 of its source, and
-// its outputs for the strength days.
-const GET_DAY_PLATE_CLASS_SHA256 = '799a9b6e4cb469b3cd41b053a2171a899f67c62750ff587dcb72094017916388';
-test('criterion 4: no rendered change: getDayPlateClass\'s source is byte-identical to v3.539 and its strength outputs are unchanged', (assert)=>{
-  assert.strictEqual(crypto.createHash('sha256').update(extractFunction(src, 'getDayPlateClass')).digest('hex'), GET_DAY_PLATE_CLASS_SHA256);
-  const [r] = runSandbox([...DATA, ...FNS], `var dayDefs = programs.strength.days, dayOrder = Object.keys(dayDefs); __capture.push(dayOrder.map(id => id + ':' + getDayPlateClass(id)));`);
-  assert.deepStrictEqual(r, ['d1:p-red', 'd2:p-blue', 'd3:p-yellow', 'd4:p-green', 'd5:p-purple', 'd6:p-orange', 'd7:p-off']);
-  // The only caller is the share card (v3.547, MKT-03 criterion 6, re-pinned
-  // from 1): nothing on screen reads dayInk yet (comments stripped).
-  const code = src.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
-  assert.strictEqual((code.match(/\bdayInk\(/g) || []).length, 2, 'its declaration and drawStoryCard');
-  assert.match(extractFunction(src, 'drawStoryCard'), /dayInk\(cardData\.dayId \?\? activeDay, activeProgram\)/);
+// ---- v3.587 (UX-05): the day sets the ink ------------------------------
+const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+const RULES = (() => { const out = []; const walk = l => { for(const r of l){ if(r.style && r.selectorText) out.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  walk(new JSDOM(`<style>${CSS}</style>`).window.document.styleSheets[0].cssRules); return out; })();
+const ruleOf = sel => { const f = RULES.filter(r => r.selectorText === sel && !r.parentRule); if(f.length !== 1) throw new Error(sel + ': ' + f.length); return f[0].style; };
+
+test('UX-05 criterion 1: for every day of every program, style and day-count variant, applyDayInk leaves exactly one day-* class on body: day-<dayInk>', (assert)=>{
+  const { window } = runJsdom('', '', [...DATA, ...FNS, `
+    const bad = []; let n = 0;
+    const visit = (days) => { programs.__t = {days}; for(const id of Object.keys(days || {})){
+      n++; document.body.className = 'day-red other';
+      const ink = applyDayInk(id, '__t');
+      const dayCls = [...document.body.classList].filter(c => /^day-/.test(c));
+      if(dayCls.length !== 1 || dayCls[0] !== 'day-' + dayInk(id, '__t') || ink !== dayInk(id, '__t') || !document.body.classList.contains('other')) bad.push(id + ' ' + dayCls.join(','));
+    } };
+    for(const k of Object.keys(programs)) if(k !== '__t') visit(programs[k].days);
+    for(const T of [MEDICAL_STYLES, COMBAT_STYLES, CYCLING_STYLES, WATERSPORTS_STYLES, YOGA_STYLES]) for(const st of Object.values(T)) visit(st.days);
+    for(const v of Object.values(PROGRAM_DAY_COUNT_VARIANTS)) for(const x of Object.values(v)){ if(x && x.days) visit(x.days); else for(const y of Object.values(x || {})) visit(y.days); }
+    applyDayInk('d5', 'strength'); window.__d5 = document.body.className;
+    window.__r = {n, bad: bad.slice(0, 5), badCount: bad.length};`]);
+  assert.ok(window.__r.n >= 1900, 'days visited: ' + window.__r.n);
+  assert.strictEqual(window.__r.badCount, 0, window.__r.bad.join('; '));
+  assert.match(window.__d5, /\bday-green\b/, 'Strength & Size Day 5 is green (its own plate), not by position');
+});
+
+test('UX-05 criterion 2: CSSOM: each of the six .day-* rules declares --spot, --on-spot and --spot-deep; the four colour inks name their own tokens', (assert)=>{
+  for(const ink of ['red', 'blue', 'yellow', 'green', 'white', 'off']){
+    const st = ruleOf('.day-' + ink);
+    for(const p of ['--spot', '--on-spot', '--spot-deep']) assert.ok(st.getPropertyValue(p).trim(), `.day-${ink} ${p}`);
+    if(['red', 'blue', 'yellow', 'green'].includes(ink)){
+      assert.strictEqual(st.getPropertyValue('--spot').trim(), `var(--spot-${ink})`);
+      assert.strictEqual(st.getPropertyValue('--on-spot').trim(), `var(--on-${ink})`);
+      assert.strictEqual(st.getPropertyValue('--spot-deep').trim(), `var(--deep-${ink})`);
+    }
+  }
+  assert.strictEqual(ruleOf('.day-white').getPropertyValue('--spot-deep').trim(), 'var(--rule-strong)');
+  assert.strictEqual(ruleOf('.day-off').getPropertyValue('--spot-deep').trim(), 'var(--surface-2)');
+});
+
+test('UX-05 criterion 3: getDayPlateClass(id) is p- + dayInk(id, activeProgram) for every day (one rule)', (assert)=>{
+  const [r] = runSandbox([...DATA, ...FNS], `
+    const bad = [];
+    for(const k of Object.keys(programs)){ activeProgram = k; var dayDefs = programs[k].days || {}, dayOrder = Object.keys(dayDefs);
+      for(const id of dayOrder) if(getDayPlateClass(id) !== 'p-' + dayInk(id, k)) bad.push(k + ' ' + id); }
+    __capture.push(bad);`);
+  assert.deepStrictEqual(r, []);
+  assert.doesNotMatch(src, /VIVID_PLATE_CLASSES/, 'the position palette is gone');
+});
+
+// The --plate-* accents at v3.528 (and unchanged since): UX-05 does not re-point them.
+const PLATE_SNAPSHOT = {
+  dark: {'--plate-red': '#FF453A', '--plate-blue': '#5B7CFF', '--plate-yellow': '#F5C518', '--plate-green': '#32D74B', '--plate-purple': '#B26BFF', '--plate-orange': '#FF7A33', '--plate-teal': '#2FB8C4', '--plate-white': '#E4E7EB', '--plate-off': '#4A5057'},
+  light: {'--plate-red': '#D70015', '--plate-orange': '#B04400', '--plate-yellow': '#8F6200', '--plate-green': '#187A33', '--plate-teal': '#0B7480', '--plate-purple': '#8436D6', '--plate-blue': '#3A57E0'},
+};
+test('UX-05 criterion 4: the .p-red ... .p-white discs read var(--spot-...); every --plate-* accent keeps its value in both themes', (assert)=>{
+  for(const ink of ['red', 'blue', 'yellow', 'green', 'white']) assert.strictEqual(ruleOf('.p-' + ink).getPropertyValue('background').trim(), `var(--spot-${ink})`);
+  for(const gone of ['.p-purple', '.p-orange', '.p-teal']) assert.strictEqual(RULES.filter(r => r.selectorText === gone).length, 0, gone);
+  const root = RULES.find(r => r.selectorText === ':root');
+  const light = RULES.find(r => r.selectorText === 'body:not(.gym-mode)' && r.parentRule && r.parentRule.media && /light/.test(r.parentRule.media.mediaText));
+  for(const [k, v] of Object.entries(PLATE_SNAPSHOT.dark)) assert.strictEqual(root.style.getPropertyValue(k).trim(), v, 'dark ' + k);
+  for(const [k, v] of Object.entries(PLATE_SNAPSHOT.light)) assert.strictEqual(light.style.getPropertyValue(k).trim(), v, 'light ' + k);
+});
+
+test('UX-05 criterion 5: renderWorkout calls applyDayInk( exactly once, and --day-hue reads the ink, not getDayPlateClass(...).slice(2) (comments stripped)', (assert)=>{
+  const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  assert.strictEqual((fn.match(/\bapplyDayInk\(/g) || []).length, 1);
+  const hue = fn.split('\n').filter(l => /--day-hue/.test(l));
+  assert.strictEqual(hue.length, 1);
+  assert.match(hue[0], /'var\(--spot-' \+ dayInkName \+ '\)'/);
+  assert.doesNotMatch(hue[0], /getDayPlateClass/);
 });
 
 run();
