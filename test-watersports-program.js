@@ -402,4 +402,47 @@ test('loadActiveProgram migrates a stored "surfing" active-program (real for one
   assert.strictEqual(result.dayCount, 7, 'dayDefs must end up populated with real days, not the container\'s empty {} placeholder — proves loadWatersportsStyle running first actually mattered');
 });
 
+// v3.563 (BL-36, SAF-5 part 2): Drop Landing (stick it) is appended to the two
+// base landing days. Sabotage: drop the append and criterion 1 fails.
+const DROP = 'Drop Landing (stick it)';
+const BL36_BEFORE = {
+  wakeboarding: [['Depth Jump', '3×5'], ['Jump Squat', '3×8'], ['Single-Leg Bound', '3×5/leg'], ['Nordic Curl', '3×6-8']],
+  kiteAssisted: [['Depth Jump', '3×5'], ['Single-Leg Bound', '3×5/leg'], ['Nordic Curl', '3×6-8'], ['Deep Squat Hold', '2×30-45s']],
+};
+test('BL-36 criterion 1: Drop Landing ends wakeboarding d1 and kiteAssisted d2; every earlier exercise keeps its name, sets and index', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'WATERSPORTS_STYLES')], `
+    __capture.push({wake: WATERSPORTS_STYLES.wakeboarding.days.d1.exercises, kite: WATERSPORTS_STYLES.kiteAssisted.days.d2.exercises});`);
+  for(const [key, list] of [['wakeboarding', r.wake], ['kiteAssisted', r.kite]]){
+    assert.deepStrictEqual(list.slice(0, -1).map(e => [e.name, e.sets]), BL36_BEFORE[key], key + ' earlier rows unchanged');
+    assert.deepStrictEqual(list[list.length - 1], {name: DROP, sets: '3×5', noWeight: true}, key);
+  }
+});
+
+test('BL-36 criterion 2: the real buildDetailsHtml renders Drop Landing\'s cues (each at most 24 words), and it is a jump in the library', (assert)=>{
+  const w = runJsdom('<div id="host"></div>', `function getExerciseIcon(){ return '<svg></svg>'; }`,
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'exerciseInfo'), extractFunction(src, 'buildDetailsHtml')]).window;
+  const host = w.document.getElementById('host');
+  host.innerHTML = w.buildDetailsHtml({name: DROP});
+  const items = [...host.querySelectorAll('.ex-cues li')].map(li => li.textContent);
+  assert.strictEqual(items.length, 4, items.join(' | '));
+  assert.ok(items.some(t => /Stick it/.test(t)));
+  assert.ok(items.every(t => t.split(/\s+/).length <= 24));
+  const [cat] = runSandbox([extractConst(src, 'exerciseInfo'), extractConst(src, 'EXERCISE_MOVE')], `__capture.push([exerciseInfo[${JSON.stringify(DROP)}].category, EXERCISE_MOVE[${JSON.stringify(DROP)}]]);`);
+  assert.deepStrictEqual(cat, ['jump', 'jump']);
+});
+
+test('BL-36 criterion 3: the 10 day-count variant days that carry Depth Jump are unchanged in this version (no Drop Landing anywhere in the variants)', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS')], `
+    let depth = 0, drop = 0;
+    for(const key of ['wakeboarding', 'kiteAssisted']){
+      const variants = (PROGRAM_DAY_COUNT_VARIANTS.watersports || {})[key] || PROGRAM_DAY_COUNT_VARIANTS[key] || {};
+      for(const v of Object.values(variants)) for(const d of Object.values(v.days || v || {})) for(const e of (d && d.exercises) || []){
+        if(e.name === 'Depth Jump') depth++; if(e.name === ${JSON.stringify(DROP)}) drop++;
+      }
+    }
+    __capture.push({depth, drop});`);
+  assert.strictEqual(r.depth, 10, 'anchor: 10 variant days carry Depth Jump');
+  assert.strictEqual(r.drop, 0);
+});
+
 run();

@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.562';
+const APP_VERSION = '3.563';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9222,6 +9222,8 @@ const WHATS_NEW = {
   ]},  '3.562': { headline: 'History follows each exercise', points: [
     'Removing or reordering an exercise on a day no longer shifts the later exercises onto their neighbour\'s history: each keeps its own.',
     'Sets you logged while a day had an exercise removed stay where they were saved.',
+  ]},  '3.563': { headline: 'Drop Landing for wakeboarding and kite surfing', points: [
+    'The landing-mechanics days for Wakeboarding and Kite-Assisted Surfing now end with Drop Landing (stick it), 3×5, so you can log the drill the Depth Jump cue asks for.',
   ]},
 };
 
@@ -13027,6 +13029,7 @@ const WATERSPORTS_STYLES = {
           {name:'Jump Squat', sets:'3×8', noWeight:true},
           {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+          {name:'Drop Landing (stick it)', sets:'3×5', noWeight:true},
         ]
       },
       d2: {
@@ -13094,6 +13097,7 @@ const WATERSPORTS_STYLES = {
           {name:'Single-Leg Bound', sets:'3×5/leg', noWeight:true},
           {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
           {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+          {name:'Drop Landing (stick it)', sets:'3×5', noWeight:true},
         ]
       },
       d3: {
@@ -14068,7 +14072,7 @@ const EXERCISE_MOVE = {
   'Heavy Bag — Jab-Cross Combos':'punch', 'Heavy Bag — Power Hooks & Uppercuts':'punch', 'Heavy Bag — Speed Combos (light power, high output)':'punch',
   'Heavy Bag — Freestyle Flow (punches + kicks)':'punch', 'Shadowboxing w/ Footwork':'punch', 'Heavy Bag — Punch-Kick Combos':'punch',
   'Heavy Bag — Roundhouse Kicks (both legs)':'kick', 'Heavy Bag — Power Round Kicks':'kick', 'Heavy Bag — Teep + Knee Combos':'kick',
-  'Box Jump':'jump', 'Broad Jump':'jump', 'Depth Jump':'jump', 'Trap Bar Jump Squat':'jump', 'Burpees':'jump',
+  'Box Jump':'jump', 'Broad Jump':'jump', 'Depth Jump':'jump', 'Drop Landing (stick it)':'jump', 'Trap Bar Jump Squat':'jump', 'Burpees':'jump',
   'Med Ball Rotational Throw':'throw',
   'Sprint Intervals':'cardio', 'Agility Ladder':'cardio', 'Incline Walk':'cardio', 'Jump Rope (warm-up)':'cardio',
   'Cat-Cow Mobility':'mobility',
