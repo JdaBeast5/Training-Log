@@ -28,7 +28,7 @@ const { test, run } = makeRunner('test-concise-overviews.js');
 const MUST_KEEP = {
   // v3.317 — main programs, first batch
   'programs.strength': [/four-day/, /Powerbuilding/],
-  'programs.bodybuilding': [/five-day/, /twice a week/],
+  'programs.bodybuilding': [/five-day/, /one hard session a week/], // v3.568 (BL-12, H-4): was /twice a week/, a claim the split didn't meet
   'programs.oly': [/snatch and clean & jerk/, /coach/],
   'programs.athletic': [/full rest/, /bigger muscles/],
   'programs.combat': [/Tai Chi/, /not sparring instruction/, /fight safely/],
