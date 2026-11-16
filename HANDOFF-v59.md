@@ -1343,3 +1343,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Retired:** `test-coach-fab-drag.js` (named in `test-coach-header-button.js`).
 - **For UX-06a:** make the header buttons the mock's plain 44 px icon buttons (Search and Settings are 40 px circles).
 - **Next:** UX-05 (slot 42). Then BL-20 can build (its fill reads `var(--spot)`).
+
+## Addendum 111: UX-05 (v3.587, PR #163, stacked on #161–#162, 2026-11-16)
+- **What:** `.day-<ink>` rules (`--spot`, `--on-spot`, `--spot-deep`); `applyDayInk(dayId, program)` sets one `day-*` on body, called once in `renderWorkout`; `--day-hue` = `var(--spot-<ink>)`; `getDayPlateClass` wraps `dayInk`; `.p-*` read `--spot-*`; purple/orange/teal discs gone. `--plate-*` untouched (snapshot in test-day-ink.js).
+- **Watch:** no CSS comment may contain a literal `<body>` (test-launch.js finds the body by its first occurrence).
+- **Next:** UX-13 (slot 43) in sequence; BL-20 (slot 56) is now buildable on this stack.

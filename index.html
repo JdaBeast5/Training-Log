@@ -701,15 +701,27 @@
   .plate-label{font-size:11px; color:var(--text-muted); white-space:nowrap;}
   .tab.active .plate-label{color:var(--text);}
 
-  .p-red{background:var(--plate-red);}
-  .p-blue{background:var(--plate-blue);}
-  .p-yellow{background:var(--plate-yellow);}
-  .p-green{background:var(--plate-green);}
-  .p-purple{background:var(--plate-purple);}
-  .p-orange{background:var(--plate-orange);}
-  .p-teal{background:var(--plate-teal);}
-  .p-white{background:var(--plate-white);}
+  /* v3.587 (UX-05): the day discs read the spot inks, so a disc and the
+     cover it opens are one colour. The purple, orange and teal discs went
+     with position-based colouring: a day's ink is its own plate (dayInk). */
+  .p-red{background:var(--spot-red);}
+  .p-blue{background:var(--spot-blue);}
+  .p-yellow{background:var(--spot-yellow);}
+  .p-green{background:var(--spot-green);}
+  .p-white{background:var(--spot-white);}
   .p-off{background:var(--surface2); border-color:var(--line);}
+  /* v3.587 (UX-05): the day sets the ink. applyDayInk puts one day-INK
+     class on the body element; every surface that follows the day (the cover, rest,
+     the finish screen, charts) reads --spot, --on-spot and --spot-deep.
+     White and off have no deep ink of their own: a strong rule and the
+     raised surface stand in (design-engineer to confirm; they only show in
+     UX-08's rest drain). The --plate-* accents are not re-pointed. */
+  .day-red{--spot:var(--spot-red); --on-spot:var(--on-red); --spot-deep:var(--deep-red);}
+  .day-blue{--spot:var(--spot-blue); --on-spot:var(--on-blue); --spot-deep:var(--deep-blue);}
+  .day-yellow{--spot:var(--spot-yellow); --on-spot:var(--on-yellow); --spot-deep:var(--deep-yellow);}
+  .day-green{--spot:var(--spot-green); --on-spot:var(--on-green); --spot-deep:var(--deep-green);}
+  .day-white{--spot:var(--spot-white); --on-spot:var(--on-white); --spot-deep:var(--rule-strong);}
+  .day-off{--spot:var(--spot-off); --on-spot:var(--on-off); --spot-deep:var(--surface-2);}
 
   .workout-hero{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
   .workout-hero-plate-wrap{position:relative; flex:0 0 auto;}
@@ -7736,7 +7748,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.586';
+const APP_VERSION = '3.587';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9317,6 +9329,9 @@ const WHATS_NEW = {
   ]},  '3.586': { headline: 'The coach button moved to the top', points: [
     'The round coach button no longer floats over the screen. It\'s at the top now, next to Search and Settings, and opens the same chat.',
     'It can\'t be dragged around any more, so it never covers a button or what you\'re reading.',
+  ]},  '3.587': { headline: 'Each day keeps its own colour', points: [
+    'A day\'s colour now comes from the day itself, not its place in the week, so the day buttons match the day you open. Days 5 to 7 can share a colour with an earlier day.',
+    'The purple, orange and teal day buttons are gone; days use red, blue, yellow, green, white (light days) and grey (rest).',
   ]},
 };
 
@@ -27025,22 +27040,12 @@ function dayGlyphSvg(sub){
   return `<svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
 }
 
-// The static 'plate' field in each day's data only ever cycled through 4-5
-// colors, so a 7-day program could repeat a color (or collide two very
-// different days on the same muted grey). Color is now assigned by each
-// day's position within the CURRENT program, from a 7-color palette — so
-// every day in any program gets its own distinct color. The one exception:
-// a true full-rest day (no training at all) always stays the neutral grey
-// 'off' plate, since that's a meaningful distinction worth keeping, not
-// just another color slot.
-const VIVID_PLATE_CLASSES = ['p-red','p-blue','p-yellow','p-green','p-purple','p-orange','p-teal'];
+// v3.587 (UX-05): one rule for a day's colour. The disc class is the day's
+// ink (dayInk, below: its own plate, with the documented fallbacks), no
+// longer its position in a 7-colour palette, so days 5-7 can repeat an ink
+// (consensus decision 9) and a disc matches its cover.
 function getDayPlateClass(id){
-  const d = dayDefs[id];
-  if(!d) return 'p-off';
-  const isFullRest = d.rest && d.plateNum === 'OFF';
-  if(isFullRest) return 'p-off';
-  const idx = dayOrder.indexOf(id);
-  return VIVID_PLATE_CLASSES[(idx < 0 ? 0 : idx) % VIVID_PLATE_CLASSES.length];
+  return 'p-' + dayInk(id, activeProgram);
 }
 
 // v3.540 (UX-01b, owner decision D13): ONE day-to-ink rule, for the share
@@ -27052,7 +27057,14 @@ function getDayPlateClass(id){
 // green) by its place among the program's training days, in the user's saved
 // order for the active program. A day that can't be found is 'off'. Pure:
 // nothing renders from it yet, and getDayPlateClass above is unchanged.
+// v3.587 (UX-05): it renders now: getDayPlateClass and applyDayInk read it.
 const DAY_INKS = ['red', 'blue', 'yellow', 'green', 'white', 'off'];
+// v3.587 (UX-05): the day sets the ink. Exactly one day-<ink> class on <body>.
+function applyDayInk(dayId, program){
+  const ink = dayInk(dayId, program);
+  for(const i of DAY_INKS) document.body.classList.toggle('day-' + i, i === ink);
+  return ink;
+}
 function dayInk(dayOrId, program){
   const prog = program || (typeof activeProgram !== 'undefined' ? activeProgram : null);
   const days = (prog && programs[prog] && programs[prog].days) || {};
@@ -29995,7 +30007,9 @@ async function renderWorkout(){
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-hero-plate ' + dayPlateClass;
   // v3.289: the hero title's gradient fades into this day's own plate colour.
-  document.getElementById('workoutCard').style.setProperty('--day-hue', 'var(--plate-' + getDayPlateClass(activeDay).slice(2) + ')');
+  // v3.587 (UX-05): the day's ink, on <body> and as the hero's hue.
+  const dayInkName = applyDayInk(activeDay, activeProgram);
+  document.getElementById('workoutCard').style.setProperty('--day-hue', 'var(--spot-' + dayInkName + ')');
   iconEl.innerHTML = dayGlyphSvg(day.sub);
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.

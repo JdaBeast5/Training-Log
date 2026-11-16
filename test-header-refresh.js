@@ -105,11 +105,13 @@ test('REAL source, comments stripped: renderWorkout publishes the day\'s plate c
   const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
   const lines = fn.split('\n').filter(l => /--day-hue/.test(l));
   assert.strictEqual(lines.length, 1, 'exactly one place sets --day-hue (anchor)');
-  assert.match(lines[0], /getElementById\('workoutCard'\)\.style\.setProperty\('--day-hue', 'var\(--plate-' \+ getDayPlateClass\(activeDay\)\.slice\(2\) \+ '\)'\)/);
+  // 2026-11-16 (v3.587, UX-05): the hue is the day's spot ink (dayInk, via applyDayInk), not a
+  // position-based --plate-* colour; VIVID_PLATE_CLASSES is gone (test-day-ink.js covers the rule).
+  assert.match(lines[0], /getElementById\('workoutCard'\)\.style\.setProperty\('--day-hue', 'var\(--spot-' \+ dayInkName \+ '\)'\)/);
+  assert.match(fn, /const dayInkName = applyDayInk\(activeDay, activeProgram\);/);
   assert.match(only('.workout-hero-title').getPropertyValue('background'), /var\(--day-hue/);
-  // Every plate class the day can get has the matching colour token.
-  const classes = new Function(`${extractConst(src, 'VIVID_PLATE_CLASSES')}; return VIVID_PLATE_CLASSES;`)().concat(['p-off']);
-  for(const c of classes) assert.match(src, new RegExp(`--plate-${c.slice(2)}:#`), `--plate-${c.slice(2)} must exist`);
+  // Every ink a day can get has the matching spot token.
+  for(const ink of ['red', 'blue', 'yellow', 'green', 'white', 'off']) assert.match(src, new RegExp(`--spot-${ink}:`), `--spot-${ink} must exist`);
 });
 
 // v3.468 (owner: "Let's do them all", after a review): the line under the
