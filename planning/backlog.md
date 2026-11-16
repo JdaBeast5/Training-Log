@@ -716,7 +716,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** range filter and goal line. Guarded by the three suites above.
 - **Tools:** `dataviz`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Criterion 3's old fixture couldn't pass: an EMA lags a linear series, so a short series under-reads the slope; the fixture is now 60 days. Added: trend over all entries then cut to the range, the gap-aware α case, and the goal date reading the trend. The Hacker's Diet citation stays marked unverified until D10's paper-lookup is present (roadmap slot 37). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.576, PR #152). Pace uses the latest weigh-in ≥14 days back (both ends lag equally). Hacker's Diet citation still unverified.
 
 ### BL-17: Estimated expenditure from your own logs (read-only)
 - **Why:**
