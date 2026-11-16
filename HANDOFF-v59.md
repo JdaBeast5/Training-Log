@@ -1290,3 +1290,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 100: BL-16 (v3.576, PR #152, 2026-11-16)
 - **What:** `computeWeightTrend` (gap-aware EMA, alpha = 1 - 0.9^days), `.weight-trend-line` in `renderSparkline`, trend pace over 14+ days, `describeGoalPace` reads the trend. BL-17 must reuse `computeWeightTrend`.
 - **Next:** BL-17 (slot 38).
+
+## Addendum 101: BL-17 (v3.577, PR #153, 2026-11-16)
+- **What:** `estimateExpenditure` (pure; window from when both logs started, ≤28 days before today, ≥14), `renderExpenditureLine` into `#expenditureLine` from `refreshBodyHealthTrends`; `isPlaceholderBody()` shared with BIZ-03.
+- **Note:** BL-27 can't start until 21 days after this merges.
+- **Next:** check the roadmap after slot 38 (38a BL-43 etc.).

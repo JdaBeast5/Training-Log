@@ -743,7 +743,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** the Analysis weight card layout. Same guards as BL-16.
 - **Tools:** `dataviz`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Criterion 1's fixture now pre-settles the trend (otherwise BL-16's EMA lag under-reads the slope and the estimate misses by about 100 cal); the render site is `refreshBodyHealthTrends`, which already has both inputs; `tdee` already exists on `computeTargets`. Scope unchanged.
-- **Status:** ready (after BL-16)
+- **Status:** done (v3.577, PR #153). Merged 2026-11-16 or later: BL-27's "no sooner than 21 days after BL-17's merge" clock starts at the merge.
 
 ### BL-18: One-tap recent foods
 - **Why:**
