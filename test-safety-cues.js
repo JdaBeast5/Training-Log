@@ -136,4 +136,42 @@ test('BL-05b criteria 2-3 (re-pinned by BL-35): the 6 v3.527 Neck Bridges positi
   assert.ok(cue0.startsWith('Only with a coach'), 'every slot resolves to the one entry');
 });
 
+// ---- v3.569 (BL-25, audit §4 / L-1): exercise cue corrections, each a
+// rewrite of one existing cue in place (counts unchanged; the v3.526 snapshot
+// test above passes as it is). Sabotage: restore the Hip Thrust line and
+// criteria 1 and 2 fail.
+const BL25 = {
+  'Hip Thrust': 'Lock out and pause 1 s; squats and hip thrusts grow glutes about equally, so use whichever you can load and feel.',
+  'DB Curl': 'Lower under control in about 2 s; full stretch at the bottom with arms straight.',
+  'Leg Press': 'Lower as deep as your lower back stays flat on the pad.',
+  'Deadlift': 'Push the floor away; hips and shoulders rise together until the bar passes the knees.',
+  'Lateral Raise': 'Raise in the plane of the shoulder blade, slightly forward; stop at shoulder height.',
+  'Dragon Flag': 'Start with tuck or single-leg negatives; stop if your lower back arches off the bench.',
+  'Front Lever Hold': 'Progress tuck → advanced tuck → one leg → straddle; hold 10-15 s with straight arms.',
+  'Dip (Bar/Ring)': "Lower until your shoulder is level with your elbow, not deeper, unless that's comfortable.",
+  'L-sit Hold': 'Press the shoulders down hard; tuck sit first.',
+  'Muscle-up': 'Prerequisite: 10 strict pull-ups and 10 dips first; until then, practise the transition with a band.',
+};
+test('BL-25 criteria 1 and 4: each of the 10 exercises renders its new cue exactly once, at most 24 words, with its cue count unchanged', (assert)=>{
+  for(const [name, cue] of Object.entries(BL25)){
+    const items = renderCues(name);
+    assert.strictEqual(items.filter(t => t === cue).length, 1, name + ': ' + items.join(' | '));
+    assert.ok(cue.split(/\s+/).length <= 24, name);
+    assert.strictEqual(items.length, 3, name + ' keeps 3 cues');
+  }
+  assert.ok(renderCues('Front Lever Hold').includes('Too hard? Tuck the knees to the chest and extend one leg as you progress.'), 'BL-64\'s cue 2 is left as it was');
+});
+
+test('BL-25 criterion 2: none of the removed claims appears in any cue (Triceps Dip keeps its own "about 90°")', (assert)=>{
+  const [all] = runSandbox([extractConst(src, 'exerciseInfo')], `__capture.push(Object.entries(exerciseInfo).map(([k, v]) => [k, v.cues]));`);
+  const BAD = ['EMG research ranks', 'most of the growth', 'legs first', 'V-taper', 'Bruce Lee', 'Christopher Sommer', 'one of the most effective', 'one of the best pure ab', "If you're not there yet"];
+  const hits = [];
+  for(const [name, cues] of all) for(const c of cues){
+    for(const b of BAD) if(c.includes(b)) hits.push(name + ': ' + b);
+    if(name === 'Leg Press' && c.includes('about 90°')) hits.push('Leg Press: about 90°');
+  }
+  assert.deepStrictEqual(hits, []);
+  assert.ok(all.some(([n, cues]) => n === 'Triceps Dip' && cues.some(c => c.includes('about 90°'))), 'anchor: Triceps Dip keeps its own');
+});
+
 run();
