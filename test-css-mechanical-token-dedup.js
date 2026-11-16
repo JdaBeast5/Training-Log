@@ -178,16 +178,11 @@ test('REAL CASCADE: body.gym-mode .warmup-box resolves to the exact pre-conversi
 });
 
 // ── .vol-bar-fill: swapped to the already-existing --cta-gradient-blue ──
-test('REAL CASCADE: .vol-bar-fill now uses var(--cta-gradient-blue), which resolves to the exact literal it held before this pass', (assert)=>{
+// 2026-11-16 (v3.580, UX-03, flat ground): --cta-gradient-* are retired; the bar is the flat blue spot ink.
+test('REAL source (v3.580, UX-03): .vol-bar-fill is the flat --spot-blue, and no --cta-gradient token remains', (assert)=>{
   assert.strictEqual(countRuleOpenings(src, '.vol-bar-fill'), 1);
-  const ctaBlue = extractCustomProp(rootBlock, 'cta-gradient-blue');
-  // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
-  // v3.287 (Glass & glow): the deliberate gradient, every stop AA with white.
-  assert.strictEqual(ctaBlue, 'linear-gradient(135deg, #3860FF, #7A3CE0)', 'sanity: matches the known token value');
-  const block = extractRuleBlock(src, '.vol-bar-fill');
-  assert.match(block, /background:var\(--cta-gradient-blue\)/, 'expected .vol-bar-fill to reference the shared token, not a duplicate literal');
-  const resolved = resolveToken(block, 'cta-gradient-blue', ctaBlue);
-  assert.ok(resolved.includes(`background:${ctaBlue};`), 'resolved background must equal the exact pre-conversion literal');
+  assert.match(extractRuleBlock(src, '.vol-bar-fill'), /background:var\(--spot-blue\)/);
+  assert.doesNotMatch(src, /var\(--cta-gradient-|--cta-gradient-[a-z]+:/, 'no use and no declaration (the retirement comment may name it)');
 });
 
 // ── CTA gloss inset: 10 real call sites ─────────────────────────────────
@@ -259,11 +254,14 @@ test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exact
 // v3.299: +1 site for each token — the set sheet (Option 2's logger) is fixed
 // chrome made of the same glass as the tab bar (see test-set-sheet.js).
 test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrences (5 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
-  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 10);
+  // 2026-11-16 (v3.580, UX-03, flat ground): blur stays only on the tab bar (.nav-pills, 2 prefixed declarations);
+  // the set sheet, status strip, jump rail and pull-refresh indicator went flat.
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 2);
   // 2026-10-28 (v3.482): .analysis-index moved to its own lighter --index-glass-bg
   // (test-analysis-index-visual-weight.js).
   // 2026-11-02 (v3.483): .status-scrim joined the rail on --index-glass-bg.
-  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 2);
+  // 2026-11-16 (v3.580, UX-03, flat ground): the set sheet is --surface-1 now; only the tab bar reads it.
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 1);
 });
 
 test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{
@@ -283,20 +281,11 @@ test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve t
   }
 });
 
-test('REAL CASCADE: the pull-refresh indicator resolves to its exact pre-conversion backdrop-filter, but keeps its OWN (non-nav) background unchanged in COLOR — just resolved through --surface-rgb now, not var(--nav-glass-bg)', (assert)=>{
-  const blur = extractCustomProp(rootBlock, 'glass-blur');
-  // .pull-refresh-indicator's background was later (a separate, purely-
-  // mechanical dedup pass — see the --surface-rgb/--surface2-rgb tests
-  // below) swapped from its own literal rgba(23,25,29,0.72) to
-  // rgba(var(--surface-rgb),0.72), mirroring the existing --plate-*-rgb
-  // pattern. Its resolved color is unchanged; what matters here is that
-  // it stayed --surface-toned and did NOT become var(--nav-glass-bg) —
-  // that's still a genuinely different, darker background.
-  let block = extractRuleBlock(src, '.pull-refresh-indicator');
-  assert.doesNotMatch(block, /var\(--nav-glass-bg\)/, '.pull-refresh-indicator must not have been folded into the nav-specific background token');
-  assert.match(block, /background:rgba\(var\(--surface-rgb\),0\.72\);/, '.pull-refresh-indicator must reference --surface-rgb (its own --surface-toned background), not the near-black nav background');
-  block = resolveToken(block, 'glass-blur', blur);
-  assert.ok(block.includes('backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);'), `.pull-refresh-indicator must resolve to the exact pre-conversion backdrop-filter pair, got: ${block}`);
+// 2026-11-16 (v3.580, UX-03, flat ground): the indicator is a solid --surface-1 with no blur.
+test('REAL source (v3.580, UX-03): the pull-refresh indicator is solid --surface-1 with no blur', (assert)=>{
+  const block = extractRuleBlock(src, '.pull-refresh-indicator');
+  assert.match(block, /background:var\(--surface-1\);/);
+  assert.doesNotMatch(block, /backdrop-filter|var\(--nav-glass-bg\)/);
 });
 
 // ── --surface-rgb / --surface2-rgb: R/G/B-triplet decomposition ────────
@@ -316,10 +305,12 @@ test('sabotage-relevant: --surface-rgb and --surface2-rgb are each declared exac
 });
 
 test('sabotage-relevant: var(--surface-rgb) appears at exactly 6 real call sites, var(--surface2-rgb) at exactly 4', (assert)=>{
-  assert.strictEqual((src.match(/rgba\(var\(--surface-rgb\),/g) || []).length, 6);
+  // 2026-11-16 (v3.580, UX-03, flat ground): every translucent surface fill became solid (--surface-1 / --surface-2),
+  // so no dark call site remains; the tokens stay declared for the light block.
+  assert.strictEqual((src.match(/rgba\(var\(--surface-rgb\),/g) || []).length, 0);
   // 4, not the original 3 — .food-add-pop (v3.240's "+1" confirmation pop)
   // added one new legitimate rgba(var(--surface2-rgb),…) site.
-  assert.strictEqual((src.match(/rgba\(var\(--surface2-rgb\),/g) || []).length, 4);
+  assert.strictEqual((src.match(/rgba\(var\(--surface2-rgb\),/g) || []).length, 0);
 });
 
 test('sabotage-relevant: the neutral rgba(23,25,29,…)/rgba(31,34,38,…) literals are genuinely gone from the file, not just supplemented', (assert)=>{
@@ -327,31 +318,12 @@ test('sabotage-relevant: the neutral rgba(23,25,29,…)/rgba(31,34,38,…) liter
   assert.doesNotMatch(src, /rgba\(31,34,38,/, 'every rgba(31,34,38,…) site must now go through var(--surface2-rgb)');
 });
 
-test('REAL CASCADE: a representative sample of --surface-rgb/--surface2-rgb call sites resolve to their exact pre-conversion literal, each keeping its OWN alpha', (assert)=>{
-  const surfaceRgb = extractCustomProp(rootBlock, 'surface-rgb');
-  const surface2Rgb = extractCustomProp(rootBlock, 'surface2-rgb');
-
-  // .pull-refresh-indicator: 0.72 alpha, --surface
-  const pullRefreshBlock = resolveToken(extractRuleBlock(src, '.pull-refresh-indicator'), 'surface-rgb', surfaceRgb);
-  assert.ok(pullRefreshBlock.includes('background:rgba(23,25,29,0.72);'), `.pull-refresh-indicator must resolve to its exact original 0.72 alpha, got: ${pullRefreshBlock}`);
-
-  // .sub-modal-sheet-area (or whichever selector holds the 0.9 alpha,
-  // originally the highest of the 6 --surface sites — max-width:360px is
-  // this rule's other distinguishing declaration, used to disambiguate it
-  // from any other rule that might also reference --surface-rgb).
-  const highAlphaBlock = src.split('\n').find(line => line.includes('max-width:360px') && line.includes('--surface-rgb'));
-  assert.ok(highAlphaBlock, 'expected to find the 0.9-alpha --surface-rgb site (max-width:360px sheet)');
-  const resolvedHighAlpha = resolveToken(highAlphaBlock, 'surface-rgb', surfaceRgb);
-  assert.match(resolvedHighAlpha, /background:rgba\(23,25,29,0\.9\);/, `expected the 0.9-alpha site to resolve to its exact original alpha, got: ${resolvedHighAlpha}`);
-
-  // The four --surface2 sites keep their own distinct alphas (0.72, 0.78,
-  // 0.75, plus 0.85 from .food-add-pop — v3.240's "+1" confirmation pop,
-  // added after this pass).
-  const alphas = [...src.matchAll(/rgba\(var\(--surface2-rgb\),([\d.]+)\)/g)].map(m => m[1]);
-  assert.deepStrictEqual(alphas.sort(), ['0.72', '0.75', '0.78', '0.85'].sort(), 'the 4 --surface2-rgb sites must keep their own distinct original alphas, not collapse to one shared value');
-  for(const alpha of alphas){
-    assert.ok(`rgba(${surface2Rgb},${alpha})` === `rgba(31,34,38,${alpha})`, `--surface2-rgb must resolve to 31,34,38 regardless of which site's alpha is applied`);
-  }
+// 2026-11-16 (v3.580, UX-03, flat ground): the translucent sites this sample checked are solid now.
+test('REAL source (v3.580, UX-03): the formerly translucent panels are solid surfaces (pull-refresh, the 360px picker box, sticky day header, celebrate banner, undo toast, food-add pop)', (assert)=>{
+  assert.match(extractRuleBlock(src, '.pull-refresh-indicator'), /background:var\(--surface-1\);/);
+  const box = src.split('\n').find(line => line.includes('max-width:360px') && line.includes('background:'));
+  assert.ok(box && box.includes('background:var(--surface-1);'), box);
+  for(const sel of ['.sticky-day-header', '.celebrate-banner', '.undo-toast', '.food-add-pop']) assert.match(extractRuleBlock(src, sel), /background:var\(--surface-2\);/, sel);
 });
 
 run();

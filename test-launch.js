@@ -90,8 +90,12 @@ test('REAL invocation: without a tap it fades on its own once drawn — sooner u
 });
 
 test('REAL CSS: dark uses the app\'s own background; light, Increase Contrast and Reduce Motion each have their branch', (assert)=>{
-  assert.match(CSS, /\.launch\{[^}]*background:var\(--aura\), var\(--bg\)/);
-  assert.match(CSS, /@media \(prefers-color-scheme: light\)\{\s*\.launch\{[^}]*#F3F0EA/);
+  // 2026-11-16 (v3.580, UX-03, flat ground): the launch is the flat --ground in
+  // both themes (the light tokens set it), so the light branch with its halos
+  // and porcelain #F3F0EA is gone.
+  assert.match(CSS, /\.launch\{[^}]*background:var\(--ground\);/);
+  assert.doesNotMatch(CSS, /@media \(prefers-color-scheme: light\)\{\s*\.launch\{/);
+  assert.doesNotMatch(CSS, /#F3F0EA/);
   assert.match(CSS, /@media \(prefers-contrast: more\)\{\s*\.launch\{background:var\(--bg\);\}/);
   const reduce = CSS.slice(CSS.indexOf('@media (prefers-reduced-motion: reduce){\n    .launch-layer'));
   assert.match(reduce, /\.launch-layer\{opacity:1; transform:none; animation:none;\}/, 'the mark is shown finished, not animated');

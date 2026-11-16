@@ -152,11 +152,11 @@ test('REAL CASCADE: the background light (--aura, on body::before) is built from
   const body = extractRuleBlock(src, 'body');
   assert.doesNotMatch(body, /rgba\(91,\s*124,\s*255,|rgba\(245,\s*197,\s*24,/, 'no literal blue/yellow in body{}');
   assert.match(body, /background:var\(--bg\);/);
-  const aura = src.match(/--aura:([^;]*);/)[1];
-  assert.match(aura, /rgba\(var\(--plate-red-rgb\),/);
-  assert.match(aura, /rgba\(var\(--plate-blue-rgb\),/);
-  assert.match(aura, /rgba\(var\(--plate-purple-rgb\),/);
-  assert.doesNotMatch(aura, /rgba\(\d/, 'no literal rgba() stops in --aura');
+  // 2026-11-16 (v3.580, UX-03, flat ground): the aura is retired: --aura is none
+  // in both themes, so there are no stops, literal or tokened.
+  const auras = [...src.matchAll(/--aura:([^;]*);/g)].map(m => m[1].trim());
+  assert.ok(auras.length >= 2, 'anchor: dark and light declarations');
+  assert.ok(auras.every(a => a === 'none'), JSON.stringify(auras));
 });
 
 test('REAL CASCADE: .streak-badge background+border (yellow) resolve to the yellow token (flat since v3.278)', (assert)=>{

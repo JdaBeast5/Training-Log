@@ -131,7 +131,7 @@ test('REAL markup + CSSOM (v3.309): Log quick actions are glass tiles with drawn
   const rule = sel => CSS.replace(/\/\*[\s\S]*?\*\//g, '').match(new RegExp('\\n\\s*' + sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}'))[0];
   assert.doesNotMatch(rule('.quick-add-btn'), /dashed|plate-blue-rgb/, 'no dashed edge, no blue glow');
   assert.strictEqual(CSS.match(/\.quick-add-btn::before\{/g), null, 'the gloss layer is gone');
-  assert.match(rule('.weight-input-row button'), /background:var\(--cta-gradient-blue\)/);
+  assert.match(rule('.weight-input-row button'), /background:var\(--text\)/); // 2026-11-16 (v3.580, UX-03, flat ground): the primary is ink, not the retired gradient
   assert.match(rule('.weight-input-row button'), /min-height:44px/);
   assert.doesNotMatch(rule('.weight-input-row button'), /plate-green|box-shadow/, 'not green, no glow');
   assert.strictEqual((src.match(/class="empty-note">\s*[\p{Extended_Pictographic}]/gu) || []).length, 0, 'no empty state opens with an emoji');
@@ -167,7 +167,7 @@ test('REAL source + invocation (v3.311): no button text opens with an emoji; foo
   assert.deepStrictEqual(chips.slice(0, 2).map(c => c.textContent), ['Favorites', 'My Foods']);
   assert.deepStrictEqual(chips.slice(0, 2).map(c => c.dataset.cat), ['★ Favorites', '📁 My Foods'], 'keys unchanged');
   assert.ok(chips[1].classList.contains('active'), 'the active key still matches');
-  assert.match(CSS, /\.food-item-btn \.fi-plus\{[^}]*background:var\(--cta-gradient-blue\)/);
+  assert.match(CSS, /\.food-item-btn \.fi-plus\{[^}]*background:var\(--text\)/); // 2026-11-16 (v3.580, UX-03, flat ground): ink, not the retired gradient
 });
 
 test('REAL invocation + CSSOM (v3.312): Analysis group headers are 44px disclosure rows whose drawn chevron turns with the real collapse', (assert)=>{

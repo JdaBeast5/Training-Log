@@ -15,8 +15,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Platestep">
-<meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C0C0D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3F3F1" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
 <!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
      subset, OFL — licence beside them) so they are same-origin, precached by
@@ -86,10 +86,7 @@
        from translucency over that light, NOT from backdrop-filter: blur on
        scrolling content forces a repaint every frame on a phone (the soft
        skill's own guardrail), so real blur is kept for fixed chrome only. */
-    --aura:
-      radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.40), transparent 70%),
-      radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.30), transparent 70%),
-      radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.24), transparent 70%);
+    --aura:none; /* v3.580 (UX-03): flat ground; the coloured halos are retired */
     --glass-fill:linear-gradient(160deg, rgba(var(--surface-white-rgb),.085), rgba(var(--surface-white-rgb),.025));
     --glass-hair:rgba(var(--surface-white-rgb),.10);
     /* v3.388: list rows inside glass cards — see-through, so the aura reads
@@ -118,15 +115,18 @@
        switch will use (tools/design/world.css). Declared in the light rule too,
        so a var() alias re-resolves there instead of inheriting the dark value.
        --text keeps its own definition; its target is #F2F2F0. */
-    --ground:var(--bg); /* target #0C0C0D */
-    --surface-1:var(--surface); /* target #151516 */
-    --surface-2:var(--surface2); /* target #1E1E20 */
-    --rule:var(--line); /* target #29292C */
-    --rule-strong:var(--line-bright); /* target #3A3A3E */
-    --text-2:var(--text-muted); /* target #A6A6A2 */
-    --text-3:var(--text-muted); /* target #82827E */
+    --ground:#0C0C0D; /* target #0C0C0D */
+    --surface-1:#151516; /* target #151516 */
+    --surface-2:#1E1E20; /* target #1E1E20 */
+    --rule:#29292C; /* target #29292C */
+    --rule-strong:#3A3A3E; /* target #3A3A3E */
+    --text-2:#A6A6A2; /* target #A6A6A2 */
+    --text-3:#82827E; /* target #82827E */
     --spot-red:var(--plate-red); /* target #D42F25 */
-    --spot-blue:var(--plate-blue); /* target #2C5BD8 */
+    /* v3.580 (UX-03): the spot blue takes its target ahead of UX-05. The
+       flat next-set chip and fills put --on-blue on it, and white on the dark
+       --plate-blue (#5B7CFF) is only 3.6:1; on #2C5BD8 it is 5.6:1. */
+    --spot-blue:#2C5BD8; /* target #2C5BD8 */
     --spot-yellow:var(--plate-yellow); /* target #F2C200 */
     --spot-green:var(--plate-green); /* target #1E9E4A */
     --spot-white:var(--plate-white); /* target #E6E6E2 */
@@ -215,8 +215,9 @@
        look. Glow means "press me": --cta-glow is reserved for the primary
        button and the floating coach button; info boxes stay unlit. Green fills
        keep dark ink (--bg, ~10:1). Names kept so the call sites stay put. */
-    --cta-gradient-green:var(--plate-green);
-    --cta-gradient-blue:linear-gradient(135deg, #3860FF, #7A3CE0);
+    /* v3.580 (UX-03): --cta-gradient-* are retired. Primary buttons are ink
+       (--text on --ground); state fills are --spot-blue / --spot-green on
+       their --on-* inks. */
     --cta-glow:0 14px 34px -12px rgba(var(--plate-blue-rgb),0.6);
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
        (a 180deg white-to-transparent sweep over the top ~55% of a filled
@@ -343,6 +344,29 @@
     /* v3.482: the Analysis jump rail's glass — see .analysis-index. */
     --index-glass-bg:rgba(10,11,13,0.30);
   }
+  /* v3.580 (UX-03): flat ground. Every screen but Gym mode reads today's
+     names (--bg, --surface, --line, --text-muted…); here they take the target
+     values through the v2 aliases (now literal targets in :root), so the whole
+     app switches in one version. Gym mode is a hand-tuned black screen and
+     keeps the :root values (out of scope until UX-17). The glass recipe goes
+     flat: cards are --surface-1 with a 1px --rule, no blur, no sheen. The
+     light block below overrides the same names for the light theme. */
+  body:not(.gym-mode){
+    --bg:var(--ground);
+    --surface:var(--surface-1);
+    --surface2:var(--surface-2);
+    --line:var(--rule);
+    --line-bright:var(--rule-strong);
+    --text:#F2F2F0;
+    --text-muted:var(--text-2);
+    --glass-fill:var(--surface-1);
+    --glass-hair:var(--rule);
+    --glass-shine:inset 0 0 0 transparent;
+    --glass-shadow:0 0 0 transparent;
+    --rest-timer-fill:var(--surface-2);
+    --float-panel-fill:var(--surface-2);
+    --cta-glow:none;
+  }
   /* v3.477: light appearance, following the phone (owner: "Follow the phone").
      Only the tokens change; the dark values above stay the design of record.
      --surface-white-rgb is the colour of every translucent tint and hairline,
@@ -357,37 +381,34 @@
        dark tokens, inherited from :root, whatever the phone is set to. */
     body:not(.gym-mode){
       color-scheme:light;
-      --bg:#F2F2F5;
-      --aura:
-        radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
-        radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%),
-        radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.10), transparent 70%);
+      --bg:var(--ground);
+      --aura:none;
       --surface-white-rgb:17,18,22;
-      --glass-fill:linear-gradient(160deg, rgba(var(--surface-rgb),.90), rgba(var(--surface-rgb),.74));
-      --glass-hair:rgba(var(--surface-white-rgb),.08);
+      --glass-fill:var(--surface-1);
+      --glass-hair:var(--rule);
       --row-fill:rgba(var(--surface-white-rgb),.04);
-      --glass-shine:inset 0 1px 0 rgba(var(--surface-rgb),.9);
-      --glass-shadow:0 20px 40px -24px rgba(var(--overlay-black-rgb),.18);
-      --surface:#FFFFFF;
-      --surface2:#F4F4F7;
+      --glass-shine:inset 0 0 0 transparent;
+      --glass-shadow:0 0 0 transparent;
+      --surface:var(--surface-1);
+      --surface2:var(--surface-2);
       --surface-rgb:255,255,255;
-      --surface2-rgb:244,244,247;
-      --line:#E3E4E8;
-      --line-bright:#CDD0D6;
-      --text:#111216;
-      --text-muted:#62666E;
+      --surface2-rgb:233,233,230;
+      --line:var(--rule);
+      --line-bright:var(--rule-strong);
+      --text:#111112;
+      --text-muted:var(--text-2);
       /* [TOKENS v2, v3.539, UX-01] The same vocabulary as the dark :root block,
          redeclared here so each var() alias re-resolves against the light values
          instead of inheriting the dark ones. Each comment records the light target
          value the switch will use (tools/design/world.css).
          --text keeps its own definition; its target is #111112. */
-      --ground:var(--bg); /* target #F3F3F1 */
-      --surface-1:var(--surface); /* target #FFFFFF */
-      --surface-2:var(--surface2); /* target #E9E9E6 */
-      --rule:var(--line); /* target #DADAD6 */
-      --rule-strong:var(--line-bright); /* target #C4C4BF */
-      --text-2:var(--text-muted); /* target #52524E */
-      --text-3:var(--text-muted); /* target #686863 */
+      --ground:#F3F3F1; /* target #F3F3F1 */
+      --surface-1:#FFFFFF; /* target #FFFFFF */
+      --surface-2:#E9E9E6; /* target #E9E9E6 */
+      --rule:#DADAD6; /* target #DADAD6 */
+      --rule-strong:#C4C4BF; /* target #C4C4BF */
+      --text-2:#52524E; /* target #52524E */
+      --text-3:#686863; /* target #686863 */
       --spot-red:var(--plate-red); /* target #D42F25 */
       --spot-blue:var(--plate-blue); /* target #2C5BD8 */
       --spot-yellow:var(--plate-yellow); /* target #F2C200 */
@@ -430,8 +451,8 @@
       --plate-blue:#3A57E0;
       /* v3.481: white panels, and wells as a light ink tint rather than a
          black one (which read as grey slabs). */
-      --rest-timer-fill:linear-gradient(160deg, rgba(var(--surface-rgb),0.92), rgba(var(--surface2-rgb),0.92));
-      --float-panel-fill:linear-gradient(165deg, rgba(var(--surface-rgb),0.96), rgba(var(--surface2-rgb),0.96));
+      --rest-timer-fill:var(--surface-1);
+      --float-panel-fill:var(--surface-1);
       --well-fill:rgba(var(--surface-white-rgb),.05);
       --index-glass-bg:rgba(var(--surface-rgb),0.40);
     }
@@ -461,11 +482,7 @@
   }
   @keyframes appFadeIn{ from{opacity:0;} to{opacity:1;} }
   /* The light behind the glass (v3.286): one fixed, non-interactive layer. */
-  body::before{
-    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
-    background:var(--aura);
-  }
-  body.gym-mode::before{ display:none; } /* gym mode keeps its hand-tuned black ground */
+  /* v3.580 (UX-03): the fixed aura layer (body::before) is retired: flat ground. */
 
   .pull-refresh-indicator{
     position:fixed; top:0; left:0; right:0; height:70px;
@@ -477,8 +494,7 @@
        every other floating layer instead of sitting flat on --bg. Modest
        blur: this animates under an active gesture, and 18px over a 70px
        strip is cheap where 26px over a full sheet would not be. */
-    background:rgba(var(--surface-rgb),0.72);
-    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    background:var(--surface-1);
     box-shadow:var(--rim), 0 8px 22px -14px rgba(var(--overlay-black-rgb),0.7);
   }
   .pull-refresh-indicator.dragging{ transition:none; }
@@ -664,11 +680,6 @@
       0 2px 6px -2px rgba(var(--overlay-black-rgb),0.45);
     transition:box-shadow 0.25s var(--ease-smooth);
   }
-  .plate::before{
-    content:''; position:absolute; top:-40%; left:-10%; width:120%; height:70%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.35), transparent 70%);
-    pointer-events:none;
-  }
   .plate svg{position:relative; z-index:1; width:22px; height:22px;}
   .tab.active .plate{
     box-shadow:
@@ -681,10 +692,10 @@
   .plate-wrap{position:relative; display:inline-flex;}
   .day-done-badge{
     position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-radius:50%;
-    background:var(--cta-gradient-green);
+    background:var(--spot-green);
     border:2px solid var(--bg);
     display:flex; align-items:center; justify-content:center;
-    color:var(--bg); font-size:10px; font-weight:700; line-height:1;
+    color:var(--on-green); font-size:10px; font-weight:700; line-height:1;
     z-index:2;
   }
   .plate-label{font-size:11px; color:var(--text-muted); white-space:nowrap;}
@@ -716,11 +727,6 @@
       var(--fab-gloss-inset),
       0 4px 10px -4px rgba(var(--overlay-black-rgb),0.5),
       0 18px 34px -12px rgba(var(--overlay-black-rgb),0.55);
-  }
-  .day-hero-plate::before{
-    content:''; position:absolute; top:-40%; left:-10%; width:120%; height:70%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.4), transparent 70%);
-    pointer-events:none;
   }
   .day-hero-plate svg{position:relative; z-index:1; width:32px; height:32px; color:#14171A;}
   .day-hero-plate.plate-off svg{color:var(--text-muted);}
@@ -757,7 +763,7 @@
   .set-chip:active{transform:scale(0.95);}
   .set-chip.is-done{background:rgba(var(--plate-green-rgb),.14); color:var(--text);}
   .set-chip.is-ready{background:var(--glass-fill); border-color:rgba(var(--plate-blue-rgb),.55); color:var(--text);}
-  .set-chip.is-next{background:var(--cta-gradient-blue); border-color:transparent; color:#fff; font-weight:600;}
+  .set-chip.is-next{background:var(--spot-blue); border-color:transparent; color:var(--on-blue); font-weight:600;}
   /* v3.357 (audit): muted colour instead of 70% opacity, which put the
      superset owner tag ('DC', 'TP') at 3.5:1. */
   .set-chip-tag{font-family:var(--font-sans); font-size:11px; font-weight:600; color:var(--text-muted); margin-right:2px;}
@@ -774,7 +780,7 @@
     position:fixed; left:0; right:0; bottom:0; z-index:996; max-width:560px; margin:0 auto;
     padding:8px 18px calc(18px + env(safe-area-inset-bottom, 0px));
     border-radius:28px 28px 0 0; border-top:1px solid var(--glass-hair);
-    background:var(--nav-glass-bg); -webkit-backdrop-filter:var(--glass-blur); backdrop-filter:var(--glass-blur);
+    background:var(--surface-1);
     transform:translateY(100%); transition:transform .32s var(--ease-smooth); outline:none;
   }
   .set-sheet.open{transform:translateY(0);}
@@ -979,7 +985,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .supplement-row.done .supplement-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
+    background:var(--spot-green); border-color:var(--plate-green); color:var(--on-green);
   }
   /* .supplement-label, not span:last-child — a row can now have a THIRD
      flex child (the "ask your coach" button below), which would otherwise
@@ -1043,7 +1049,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .grocery-item.done .grocery-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
+    background:var(--spot-green); border-color:var(--plate-green); color:var(--on-green);
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .grocery-item:active .grocery-check{transform:scale(0.88);}
@@ -1207,7 +1213,7 @@
     width:22px; height:22px;
   }
   .exercise input[type=checkbox]:checked{
-    background:var(--cta-gradient-blue); border-color:var(--plate-blue);
+    background:var(--spot-blue); border-color:var(--plate-blue);
     box-shadow:var(--cta-gloss-inset);
   }
   .ex-thumb{
@@ -1237,7 +1243,6 @@
      introduce a visually distinct new pattern. */
   .sub-modal-overlay{
     position:fixed; inset:0; background:rgba(var(--overlay-black-rgb),0.6);
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
     z-index:120; display:flex; align-items:flex-end; justify-content:center;
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
@@ -1249,8 +1254,7 @@
   .sub-modal-sheet{
     position:relative;
     width:100%; max-width:520px;
-    background:rgba(var(--surface-rgb),0.86);
-    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    background:var(--surface-1);
     border:1px solid rgba(var(--surface-white-rgb),0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
     padding:20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
@@ -1538,7 +1542,7 @@
        the rail (30) since they no longer occupy the same space; 20 keeps it
        above ordinary page content (0-5) and below every real overlay. */
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
-    background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:var(--surface-2);
     border-bottom:1px solid var(--line-soft);
     padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
@@ -1563,7 +1567,7 @@
 
   .celebrate-banner{
     position:fixed; top:50%; left:50%; z-index:150;
-    background:rgba(var(--surface2-rgb),0.78); box-shadow:var(--rim); backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
+    background:var(--surface-2); box-shadow:var(--rim);
     border:1px solid var(--plate-yellow); border-radius:var(--radius-lg);
     padding:24px 32px; text-align:center; box-shadow:0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
     transform:translate(-50%,-50%) scale(0.7); opacity:0; pointer-events:none;
@@ -1604,7 +1608,6 @@
     position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
     width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
     background:var(--rest-timer-fill);
-    backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid rgba(var(--plate-blue-rgb),0.5); border-radius:36px;
     padding:10px 18px; z-index:50; overflow:hidden;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.08) inset, 0 14px 34px -10px rgba(var(--overlay-black-rgb),0.55), 0 10px 30px -8px rgba(var(--plate-blue-rgb),0.4);
@@ -1724,15 +1727,13 @@
   }
   .settings-backdrop{
     position:absolute; inset:0; background:rgba(var(--overlay-black-rgb),0.34);
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .settings-panel{
     position:relative; z-index:1; margin:64px 14px 0 0;
     width:min(400px, calc(100vw - 28px));
     max-height:min(78vh, 720px);
     display:flex; flex-direction:column;
-    background:rgba(var(--surface-rgb),0.78);
-    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    background:var(--surface-1);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
     padding:16px;
     box-shadow:0 30px 70px -18px rgba(var(--overlay-black-rgb),0.7), var(--rim);
@@ -1882,7 +1883,7 @@
 
   .undo-toast{
     position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(80px);
-    background:rgba(var(--surface2-rgb),0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:var(--surface-2); box-shadow:var(--rim);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
     box-shadow:0 10px 30px -8px rgba(var(--overlay-black-rgb),0.5); opacity:0; pointer-events:none;
@@ -1904,7 +1905,7 @@
   .food-add-pop{
     position:fixed; top:18%; left:50%; z-index:200;
     transform:translate(-50%,0) scale(0.85); opacity:0; pointer-events:none;
-    background:rgba(var(--surface2-rgb),0.85); box-shadow:var(--rim); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+    background:var(--surface-2); box-shadow:var(--rim);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:8px 20px; font-family:var(--font-mono); font-weight:700; font-size:15px; color:var(--plate-green);
     box-shadow:0 10px 24px -8px rgba(var(--overlay-black-rgb),0.5);
@@ -2063,7 +2064,7 @@
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:14px; border:none; border-radius:var(--radius-pill);
-    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14.5px;
+    background:var(--text); color:var(--ground); font-weight:600; font-size:14.5px;
     box-shadow:var(--cta-glow);
     letter-spacing:-0.005em;
     font-family:var(--font-sans); cursor:pointer;
@@ -2093,8 +2094,8 @@
   /* v3.309 (2.0): every inline submit (Log, Add) is the app's primary — the
      blue-to-purple pill, compact and without the glow — not a green button. */
   .weight-input-row button{
-    padding:0 18px; min-height:44px; border:none; border-radius:var(--radius-pill); background:var(--cta-gradient-blue);
-    color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-sans); font-size:15px;
+    padding:0 18px; min-height:44px; border:none; border-radius:var(--radius-pill); background:var(--text);
+    color:var(--ground); font-weight:600; cursor:pointer; font-family:var(--font-sans); font-size:15px;
   }
   .weight-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
   /* Grocery List's own list container never got the same margin-top the
@@ -2197,7 +2198,7 @@
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
   .program-rec-btn{
     position:relative; overflow:hidden;
-    flex:1; padding:10px; background:var(--cta-gradient-green); color:var(--bg); border:none;
+    flex:1; padding:10px; background:var(--spot-green); color:var(--on-green); border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
     transition:transform 0.15s var(--ease-smooth);
   }
@@ -2409,7 +2410,7 @@
   }
   .photo-lightbox{
     position:fixed; inset:0; background:rgba(var(--overlay-black-rgb),0.92);
-    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:80; display:flex;
+ z-index:80; display:flex;
     align-items:center; justify-content:center; flex-direction:column; padding:20px;
     overflow:hidden;
     opacity:0; visibility:hidden; pointer-events:none;
@@ -2454,7 +2455,7 @@
   .coach-fab{
     position:fixed; bottom:calc(var(--above-bar) + 12px); right:18px; z-index:70; overflow:hidden;
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
-    background:var(--cta-gradient-blue); color:#fff; font-size:24px;
+    background:var(--text); color:var(--ground); font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     /* v3.283: it floats, so it keeps a shadow — a neutral one, not a blue glow */
     box-shadow:var(--cta-glow);
@@ -2520,13 +2521,12 @@
   }
   .coach-fab-backdrop{
     position:absolute; inset:0; background:rgba(var(--overlay-black-rgb),0.28);
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .coach-fab-panel{
     position:relative; z-index:1; margin:0 18px 90px 0;
     width:min(380px, calc(100vw - 36px)); max-height:min(64vh, 560px);
     display:flex; flex-direction:column;
-    background:rgba(var(--surface-rgb),0.76); backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    background:var(--surface-1);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
     padding:16px;
     box-shadow:0 30px 70px -18px rgba(var(--overlay-black-rgb),0.7), 0 1px 0 rgba(var(--surface-white-rgb),0.08) inset;
@@ -2568,7 +2568,7 @@
   .recipe-link-btn:active{transform:scale(0.96);}
   .recipe-log-btn, .supplement-add-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-green); color:var(--bg);
+    background:var(--spot-green); color:var(--on-green);
     font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer;
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
@@ -2616,7 +2616,7 @@
   .vol-row:last-child{border-bottom:none;}
   .vol-row-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px; font-weight:600;}
   .vol-bar-track{height:8px; background:var(--surface2); border-radius:5px; overflow:hidden;}
-  .vol-bar-fill{position:relative; height:100%; background:var(--cta-gradient-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
+  .vol-bar-fill{position:relative; height:100%; background:var(--spot-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   /* v3.439: a sentence, so the text face (it was mono, like the figures above it). */
@@ -2823,8 +2823,7 @@
     z-index:31; pointer-events:none;
     /* v3.483: the jump rail's lighter glass (v3.482), so the two strips at the
        top of a scrolled page read as one material. */
-    background:var(--index-glass-bg);
-    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    background:var(--ground);
   }
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
      Coach and Learn sit off the right edge behind a horizontal swipe with the
@@ -2937,8 +2936,7 @@
     /* v3.482 (owner: "Make the bar at the top translucent"): its own, much
        lighter glass. At the nav bar's 72% it read as a solid black band
        across the page; the blur alone keeps the chips legible over cards. */
-    background:var(--index-glass-bg);
-    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    background:var(--ground);
   }
   .analysis-index::-webkit-scrollbar{display:none;}
   /* The same fade the nav rail gets, for the same reason and by the same rule:
@@ -3196,7 +3194,7 @@
     border-radius:1px; pointer-events:none;
   }
   .log-date-today-btn{
-    flex:0 0 auto; background:var(--cta-gradient-blue); color:#fff; border:none; border-radius:var(--radius-pill);
+    flex:0 0 auto; background:var(--text); color:var(--ground); border:none; border-radius:var(--radius-pill);
     font-size:11px; font-weight:700; padding:6px 11px; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.55);
   }
@@ -3207,7 +3205,6 @@
      solely on the OS's native date picker. */
   .calendar-modal-overlay{
     position:fixed; inset:0; background:rgba(var(--overlay-black-rgb),0.6);
-    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
     z-index:120; display:flex; align-items:flex-end; justify-content:center;
     opacity:0; visibility:hidden; pointer-events:none;
     transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
@@ -3219,8 +3216,7 @@
   .calendar-modal-sheet{
     position:relative;
     width:100%; max-width:420px;
-    background:rgba(var(--surface-rgb),0.86);
-    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    background:var(--surface-1);
     border:1px solid rgba(var(--surface-white-rgb),0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
     padding:18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
@@ -3269,7 +3265,7 @@
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.06);
   }
   .calendar-cell.selected{
-    background:var(--cta-gradient-blue); color:#fff; font-weight:700;
+    background:var(--spot-blue); color:var(--on-blue); font-weight:700;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.3) inset, 0 6px 16px -8px rgba(var(--plate-blue-rgb),0.6);
   }
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
@@ -3406,7 +3402,6 @@
 
   .user-picker-overlay{
     position:fixed; inset:0; background:rgba(10,11,13,0.82);
-    backdrop-filter:blur(28px) saturate(160%); -webkit-backdrop-filter:blur(28px) saturate(160%);
     z-index:1000;
     display:flex; align-items:center; justify-content:center; padding:20px;
     opacity:0; visibility:hidden; pointer-events:none;
@@ -3417,8 +3412,8 @@
     transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
   }
   .user-picker-box{
-    width:100%; max-width:360px; background:rgba(var(--surface-rgb),0.9); border:1px solid var(--line);
-    border-radius:var(--radius-lg); padding:28px 22px; backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    width:100%; max-width:360px; background:var(--surface-1); border:1px solid var(--line);
+    border-radius:var(--radius-lg); padding:28px 22px;
     box-shadow:var(--rim), 0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
   }
   .user-picker-title{
@@ -3461,7 +3456,7 @@
   }
   .coach-chat-empty{color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 10px;}
   .coach-chat-bubble{max-width:85%; padding:10px 13px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;}
-  .coach-chat-bubble.user{align-self:flex-end; background:var(--cta-gradient-blue); color:#fff; border-bottom-right-radius:4px;}
+  .coach-chat-bubble.user{align-self:flex-end; background:var(--spot-blue); color:var(--on-blue); border-bottom-right-radius:4px;}
   .coach-chat-bubble.assistant{align-self:flex-start; background:var(--surface2); border:1px solid var(--line); border-bottom-left-radius:4px;}
   .coach-chat-bubble.thinking{color:var(--text-muted); font-style:italic;}
   .coach-chat-input-row{display:flex; gap:8px;}
@@ -3758,7 +3753,7 @@
   .compare-consent-actions{display:flex; gap:8px; margin-top:10px;}
   .compare-confirm-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-blue); color:#fff;
+    background:var(--text); color:var(--ground);
     font-family:var(--font-sans); font-size:12.5px; font-weight:600; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
@@ -3969,8 +3964,8 @@
   /* v3.311 (2.0): "add" is the primary action, so it wears the primary — the
      blue-to-purple gradient — like every other add/log button (was green). */
   .food-item-btn .fi-plus{
-    flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--cta-gradient-blue);
-    color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;
+    flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--text);
+    color:var(--ground); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;
   }
   .restaurant-btn .ex-chevron{color:var(--plate-blue); font-size:16px;}
   .back-btn{
@@ -5165,8 +5160,6 @@
     transform:translateX(-50%) translateY(12px);
     width:min(380px, calc(100vw - 28px));
     background:var(--float-panel-fill);
-    backdrop-filter:blur(26px) saturate(170%);
-    -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
     padding:16px 18px;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.07) inset,
@@ -5404,7 +5397,7 @@
   /* ── v3.385: launch ─────────────────────────────────────────────────────── */
   .launch{
     position:fixed; inset:0; z-index:2147483000; display:flex; align-items:center; justify-content:center;
-    background:var(--aura), var(--bg); transition:opacity .55s cubic-bezier(.4,0,.2,1);
+    background:var(--ground); transition:opacity .55s cubic-bezier(.4,0,.2,1); /* v3.580 (UX-03): flat ground */
   }
   .launch.is-out{opacity:0; pointer-events:none;}
   /* v3.387: smoother — layers move with transform and opacity only
@@ -5426,12 +5419,7 @@
   @keyframes launchSettle{to{opacity:1; transform:none;}}
   /* Light appearance: a porcelain page; the mark keeps its own ink tile, as
      on the home screen. The app behind is dark-only, so the hand-off is a fade. */
-  @media (prefers-color-scheme: light){
-    .launch{
-      background:radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
-                 radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%), #F3F0EA;
-    }
-  }
+  /* v3.580 (UX-03): the light launch is var(--ground) too (the light body tokens set it). */
   @media (prefers-contrast: more){
     .launch{background:var(--bg);}
   }
@@ -7740,7 +7728,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.579';
+const APP_VERSION = '3.580';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9299,6 +9287,9 @@ const WHATS_NEW = {
     '400m Repeats add reps once you\'ve logged every one (4, 5, 6, then 8), and the Tempo Run grows by 2 minutes a build week, up to 30. Deload weeks keep it easy.',
   ]},  '3.579': { headline: 'A hint for your first set', points: [
     'The very first time you log an exercise, the set sheet says how to pick a weight: one you could lift a few more times, in the same words as the effort target on the row.',
+  ]},  '3.580': { headline: 'A flatter, quieter look', points: [
+    'The glow, glass and gradients are gone: screens sit on one near-black (or near-white) ground, cards are plain panels, and the main buttons are solid.',
+    'Gym mode keeps its own look for now.',
   ]},
 };
 

@@ -42,43 +42,29 @@ test('sabotage-relevant: #7C97FF no longer appears as a real CSS/SVG color value
   assert.strictEqual(realOccurrences, commentOccurrences, 'every #7C97FF occurrence left in the file must be one of the two known historical-note comment mentions, not a real color value still in use');
 });
 
-test('REAL invocation: all four former-#7C97FF sites resolve to #6E8AFF at the token\'s 60% stop, either directly or via --cta-gradient-blue', (assert)=>{
+// 2026-11-16 (v3.580, UX-03, flat ground): --cta-gradient-blue is retired. The former token sites are flat:
+// the coach button and Compare are ink (--text on --ground); the volume bar and
+// the selected calendar day are the blue spot ink. The coach progress fill keeps
+// its own literal (never part of that family).
+test('REAL source (v3.580, UX-03): the former --cta-gradient-blue sites are flat ink or flat --spot-blue; .coach-progress-fill keeps its literal', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
-  // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
-  // v3.287 (Glass & glow): a blue->purple gradient again, every stop AA with white.
-  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(135deg, #3860FF, #7A3CE0\);/, 'sanity: the token holds the v3.287 gradient');
-
-  // .coach-fab, .vol-bar-fill, and .calendar-cell.selected were all later
-  // (a separate, purely-mechanical dedup pass for vol-bar-fill; a
-  // deliberate, user-approved stop-percentage unification for the other
-  // two — see the header comment) swapped from their own literal gradient
-  // to var(--cta-gradient-blue) directly, since the color they need to
-  // land on IS what the token already holds.
-  const fabBlock = extractRuleBlock(src, '.coach-fab');
-  assert.match(fabBlock, /background:var\(--cta-gradient-blue\);/, '.coach-fab must reference the shared token (now 60%, no longer its own 55% literal)');
-
-  const volBlock = extractRuleBlock(src, '.vol-bar-fill');
-  assert.match(volBlock, /background:var\(--cta-gradient-blue\);/, '.vol-bar-fill must reference the shared token');
-
-  const coachProgressBlock = extractRuleBlock(src, '.coach-progress-fill');
-  assert.match(coachProgressBlock, /background:linear-gradient\(90deg, var\(--plate-blue\), #6E8AFF\);/, '.coach-progress-fill must still use its own literal #6E8AFF, keeping its own reversed 90deg stop order (plate-blue first, then the light stop) — this rule was never part of the --cta-gradient-blue family and neither fix touched it');
-
-  const calBlock = extractRuleBlock(src, '.calendar-cell.selected');
-  assert.match(calBlock, /background:var\(--cta-gradient-blue\);/, '.calendar-cell.selected must reference the shared token (now 60%, no longer its own 55% literal)');
+  assert.doesNotMatch(rootBlock, /--cta-gradient-blue:/, 'the token is retired');
+  assert.match(extractRuleBlock(src, '.coach-fab'), /background:var\(--text\);/);
+  assert.match(extractRuleBlock(src, '.vol-bar-fill'), /background:var\(--spot-blue\);/);
+  assert.match(extractRuleBlock(src, '.calendar-cell.selected'), /background:var\(--spot-blue\);/);
+  assert.match(extractRuleBlock(src, '.coach-progress-fill'), /background:linear-gradient\(90deg, var\(--plate-blue\), #6E8AFF\);/);
 });
 
-test('regression guard: the --cta-gradient-blue token and the AI Coach rest-timer SVG stop are untouched by either fix', (assert)=>{
-  const rootBlock = extractRuleBlock(src, ':root');
-  // Changed deliberately in v3.280 (flat #3860FF, contrast) and v3.287 (Glass & glow gradient).
-  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(135deg, #3860FF, #7A3CE0\);/, 'the token holds the v3.287 value');
-
-  const stopMatch = /<stop offset="0%" stop-color="#6E8AFF"\/>/;
-  assert.match(src, stopMatch, 'the AI Coach rest-timer SVG gradient stop must be unchanged — it was already #6E8AFF');
+// 2026-11-16 (v3.580, UX-03, flat ground): the token is retired; the SVG stop is still untouched.
+test('regression guard: the AI Coach rest-timer SVG stop is untouched', (assert)=>{
+  assert.match(src, /<stop offset="0%" stop-color="#6E8AFF"\/>/, 'the AI Coach rest-timer SVG gradient stop must be unchanged — it was already #6E8AFF');
 });
 
-test('sabotage-relevant: .compare-confirm-btn (a pre-existing #6E8AFF site, never #7C97FF) also now references the shared token, matching the user-approved 60% stop unification', (assert)=>{
-  const compareBtnBlock = extractRuleBlock(src, '.compare-confirm-btn');
-  assert.match(compareBtnBlock, /background:var\(--cta-gradient-blue\);/, '.compare-confirm-btn must reference the shared token (its own 55% literal was retired by the stop-percentage unification, a separate fix from the #7C97FF retirement this file is mainly about)');
+// 2026-11-16 (v3.580, UX-03, flat ground): Compare is a primary button, so it is flat ink.
+test('REAL source (v3.580, UX-03): .compare-confirm-btn is flat ink, no gradient', (assert)=>{
+  const block = extractRuleBlock(src, '.compare-confirm-btn');
+  assert.match(block, /background:var\(--text\);/);
+  assert.match(block, /color:var\(--ground\);/);
 });
 
 test('sabotage-relevant: exactly four real #6E8AFF sites exist in the file, not more and not fewer', (assert)=>{
