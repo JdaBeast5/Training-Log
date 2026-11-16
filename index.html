@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.565';
+const APP_VERSION = '3.566';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9232,6 +9232,9 @@ const WHATS_NEW = {
     'The time shown on Today now counts the work, not just the rest: distance intervals use a realistic pace (an 8×100 m swim is about 18 minutes, not 8), reps take time, and lifting days include a few minutes for the warm-up ramp.',
     'Rest is counted between sets rather than after the last one, so the 30- and 45-minute session lengths trim to a closer fit.',
     'The calorie estimate for a session moves with it: lifting days read a little lower, swim, row and run intervals higher.',
+  ]},  '3.566': { headline: 'Your streak counts training weeks', points: [
+    'Your streak now counts training weeks, so rest days never break it. A week counts with at least two sessions, or one fewer than the days a week you train.',
+    'Milestones are 4, 8, 12, 26 and 52 weeks in a row. This week counts until Sunday is over.',
   ]},
 };
 
@@ -14444,7 +14447,37 @@ async function computeStreak(){
   return streak;
 }
 
-const STREAK_MILESTONES = [7, 14, 30, 60, 100, 180, 365];
+// v3.566 (MKT-01): consistency counts training WEEKS (Monday to Sunday,
+// local), so rest days never break it. A week counts with at least
+// max(2, days-per-week preference - 1) training dates (2 when the preference is
+// unset), so one missed planned day doesn't break it. The current week is
+// still alive until it ends: if it hasn't qualified yet, the count starts from
+// last week. computeStreak (consecutive days) stays for the coach context.
+async function computeWeekStreak(){
+  let dates = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    dates = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return 0; }
+  if(!dates.length) return 0;
+  const pref = (typeof daysPerWeekPref === 'number' && daysPerWeekPref >= 1) ? daysPerWeekPref : null;
+  const need = pref ? Math.max(2, pref - 1) : 2;
+  const perWeek = new Map();
+  for(const d of new Set(dates)){ const m = mondayOf(d); perWeek.set(m, (perWeek.get(m) || 0) + 1); }
+  const thisMonday = mondayOf(getTodayKey());
+  let cursor = (perWeek.get(thisMonday) || 0) >= need ? thisMonday : dateKeyMinusDays(thisMonday, 7);
+  let weeks = 0;
+  while((perWeek.get(cursor) || 0) >= need){
+    weeks++;
+    cursor = dateKeyMinusDays(cursor, 7);
+  }
+  return weeks;
+}
+
+// v3.566 (MKT-01): milestones are weeks. The celebrated mark lives in its own
+// key, so the old day-based 'streak-last-celebrated' is left alone and no
+// schema bump is needed.
+const STREAK_MILESTONES = [4, 8, 12, 26, 52];
 async function checkStreakMilestone(streak){
   if(!STREAK_MILESTONES.includes(streak)) return;
   // A missing key throws by design (per the storage API) — that's the
@@ -14453,19 +14486,19 @@ async function checkStreakMilestone(streak){
   // wrapping everything in one try/catch would.
   let lastCelebrated = 0;
   try{
-    const res = await window.storage.get('streak-last-celebrated');
+    const res = await window.storage.get('week-streak-last-celebrated');
     lastCelebrated = res && res.value ? Number(res.value) : 0;
   }catch(e){ lastCelebrated = 0; }
   if(streak <= lastCelebrated) return; // already celebrated this one
-  try{ await window.storage.set('streak-last-celebrated', String(streak)); }catch(e){}
+  try{ await window.storage.set('week-streak-last-celebrated', String(streak)); }catch(e){}
   const badgeEl = document.getElementById('streakBadge');
   if(badgeEl){
     badgeEl.classList.remove('streak-pulse');
     void badgeEl.offsetWidth;
     badgeEl.classList.add('streak-pulse');
   }
-  triggerCelebration('flame', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.', true,
-    {icon:'flame', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.', kind:'streak', dayId: activeDay});
+  triggerCelebration('flame', `${streak} weeks in a row`, 'Rest days included.', true,
+    {icon:'flame', headline:`${streak} WEEKS IN A ROW`, detail:'Rest days included.', kind:'streak', dayId: activeDay});
 }
 
 // Animates a number counting up/down to its new value instead of snapping
@@ -14496,7 +14529,7 @@ const STREAK_FLAME_SVG = '<svg class="streak-flame" aria-hidden="true" viewBox="
 async function renderStreak(){
   const el = document.getElementById('streakBadge');
   if(!el) return;
-  const streak = await computeStreak();
+  const streak = await computeWeekStreak(); // v3.566 (MKT-01): training weeks
   if(streak <= 0){
     el.style.display = 'none';
     return;
@@ -14506,11 +14539,12 @@ async function renderStreak(){
   const numEl = el.querySelector('#streakNum');
   if(!numEl){
     // First render this session — just show it, nothing to animate from yet.
-    el.innerHTML = `${STREAK_FLAME_SVG}<span id="streakNum">${streak}</span> <span id="streakNumLabel">day${streak===1?'':'s'} streak</span>`;
+    el.innerHTML = `${STREAK_FLAME_SVG}<span id="streakNum">${streak}</span> <span id="streakNumLabel">wk</span>`;
   } else {
     animateNumberTo(numEl, streak, {duration: 600});
-    el.querySelector('#streakNumLabel').textContent = `day${streak===1?'':'s'} streak`;
+    el.querySelector('#streakNumLabel').textContent = 'wk';
   }
+  el.setAttribute('aria-label', `${streak} training week${streak===1?'':'s'} in a row`);
   checkStreakMilestone(streak);
 }
 
