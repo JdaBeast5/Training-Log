@@ -23,7 +23,7 @@
 // logic — same technique test-superset-warmup-ramp-eligibility.js already
 // established for a self-contained snippet living inside a much larger,
 // heavily-dependent function.
-const { readIndexSource, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 const vm = require('vm');
 
 const src = readIndexSource();
@@ -74,6 +74,48 @@ test('REAL invocation: on a profile that has NEVER had program-cycle-start set (
 test('REAL invocation: on a profile that already has a real program-cycle-start, the backfill leaves it completely untouched', async (assert)=>{
   const store = await runBackfill({'program-cycle-start': '2025-01-01'});
   assert.strictEqual(store['program-cycle-start'], '2025-01-01', 'an existing real start date must never be overwritten by the backfill');
+});
+
+// ---- v3.584 (BL-33, M-6 part 1): the block counts only weeks you trained.
+// Real getMesocycleWeek and isDeloadWeek, stub window.storage, getTodayKey fixed.
+// Start Monday 2026-09-07; blocks are 7 days from there.
+const START = '2026-09-07';
+const dayKey = (n) => { const d = new Date(START + 'T00:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+async function meso({today, dates, manual = false, noStart = false}){
+  const store = noStart ? {} : {'program-cycle-start': START};
+  if(dates) store['activity-dates'] = JSON.stringify(dates.map(dayKey));
+  const { window } = runJsdom('', `
+    var manualDeloadEnabled = ${manual};
+    const __s = ${JSON.stringify(store)};
+    window.storage = { get: async k => { if(k in __s) return {value: __s[k]}; throw new Error('no key'); } };
+    function getTodayKey(){ return ${JSON.stringify(dayKey(today))}; }
+  `, ['const DELOAD_CYCLE_WEEKS = 5;', extractFunction(src, 'getMesocycleWeek'), extractFunction(src, 'isDeloadWeek'),
+    'window.__w = getMesocycleWeek; window.__d = isDeloadWeek;']);
+  return {week: await window.__w(), deload: await window.__d()};
+}
+
+test('BL-33 criterion 1: blocks 1-2 trained 3 times, block 3 off, block 4 trained twice, today in block 5: week 4 (not 5), so no deload', async (assert)=>{
+  const r = await meso({today: 30, dates: [0, 2, 4, 7, 9, 11, 21, 24]});
+  assert.strictEqual(r.week, 4, 'the old calendar rule gives 5');
+  assert.strictEqual(r.deload, false);
+  const all = await meso({today: 30, dates: [0, 2, 4, 7, 9, 11, 14, 16, 21, 24]});
+  assert.deepStrictEqual(all, {week: 5, deload: true}, 'anchor: four trained blocks reach the deload');
+});
+
+test('BL-33 criterion 2: a block with one session does not count; the block in progress always does', async (assert)=>{
+  assert.strictEqual((await meso({today: 16, dates: [0, 3, 8]})).week, 2, 'block 1 counts (2), block 2 (1 session) does not');
+  assert.strictEqual((await meso({today: 16, dates: [0, 3, 8, 15]})).week, 2, 'sessions in the block in progress do not add a week');
+  assert.strictEqual((await meso({today: 3, dates: []})).week, 1);
+});
+
+test('BL-33 criterion 3: no activity-dates key: week 1 in the first block, as the calendar rule, and no throw (also with no start)', async (assert)=>{
+  assert.strictEqual((await meso({today: 5})).week, 1);
+  assert.strictEqual((await meso({today: 20})).week, 1, 'past the first block, untrained weeks do not count');
+  assert.strictEqual((await meso({today: 20, noStart: true})).week, 1);
+});
+
+test('BL-33 criterion 4: the manual deload wins regardless of the count', async (assert)=>{
+  assert.strictEqual((await meso({today: 30, dates: [0, 2, 4, 7, 9, 11, 21, 24], manual: true})).deload, true);
 });
 
 run();

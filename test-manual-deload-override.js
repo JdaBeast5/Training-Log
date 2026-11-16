@@ -53,10 +53,18 @@ function keyDaysAgo(daysAgo){
   return `${y}-${m}-${day}`;
 }
 
-function cycleStartGlobals(cycleStartKey){
+// 2026-11-16 (v3.584, BL-33): only weeks with 2+ sessions move the block on,
+// so a fixture "week N" now also needs sessions: two in every completed week
+// (days 0 and 2 of each), stored in activity-dates as the app writes them.
+function trainedWeeks(daysAgoStart){
+  const dates = [];
+  for(let b = 0; (b + 1) * 7 <= daysAgoStart; b++) dates.push(keyDaysAgo(daysAgoStart - 7*b), keyDaysAgo(daysAgoStart - 7*b - 2));
+  return JSON.stringify(dates.sort());
+}
+function cycleStartGlobals(cycleStartKey, activityDates){
   return `
     window.storage = {
-      __store: { 'program-cycle-start': ${JSON.stringify(cycleStartKey)} },
+      __store: { 'program-cycle-start': ${JSON.stringify(cycleStartKey)}${activityDates ? `, 'activity-dates': ${JSON.stringify(activityDates)}` : ''} },
       __setCalls: [],
       get: async (key)=>{
         if(Object.prototype.hasOwnProperty.call(window.storage.__store, key)){
@@ -73,20 +81,20 @@ const { test, run } = makeRunner('test-manual-deload-override.js');
 
 test('baseline (unchanged): a non-multiple-of-5 week is NOT a deload week when the override is off', async (assert)=>{
   // 14 days ago -> daysSince=14 -> week = floor(14/7)+1 = 3 (not a multiple of 5)
-  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(14)), scriptChunks);
+  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(14), trainedWeeks(14)), scriptChunks);
   assert.strictEqual(await window.getMesocycleWeek(), 3, 'precondition: week 3');
   assert.strictEqual(await window.isDeloadWeek(), false);
 });
 
 test('baseline (unchanged): a multiple-of-5 week IS a deload week when the override is off — the original scheduled behavior', async (assert)=>{
   // 28 days ago -> daysSince=28 -> week = floor(28/7)+1 = 5
-  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(28)), scriptChunks);
+  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(28), trainedWeeks(28)), scriptChunks);
   assert.strictEqual(await window.getMesocycleWeek(), 5, 'precondition: week 5');
   assert.strictEqual(await window.isDeloadWeek(), true);
 });
 
 test('the override forces a deload on a week that would NOT normally be one — the actual new behavior', async (assert)=>{
-  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(14)), scriptChunks);
+  const { window } = runJsdom('', cycleStartGlobals(keyDaysAgo(14), trainedWeeks(14)), scriptChunks);
   assert.strictEqual(await window.getMesocycleWeek(), 3, 'precondition: week 3, would be false without the override');
   window.manualDeloadEnabled = true;
   assert.strictEqual(await window.isDeloadWeek(), true, 'the manual override must win regardless of the schedule');
