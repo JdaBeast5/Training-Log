@@ -6418,12 +6418,15 @@
       <div id="usdaKeySettingsSlot"></div>
 
       <div class="quick-add-row">
-        <button class="quick-add-btn" id="photoLogBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z"/><circle cx="10" cy="10.8" r="3"/></svg></span>Photo</button>
+        <button class="quick-add-btn" id="photoLogBtn" aria-describedby="foodAiDisclosure"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z"/><circle cx="10" cy="10.8" r="3"/></svg></span>Photo</button>
         <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v10M5.5 5v10M8 5v10M11 5v10M13 5v10M15.5 5v10M17 5v10"/></svg></span>Barcode</button>
-        <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 5 12l7.5-7.5 2.5 2.5L7.5 14.5z"/><path d="M11 6l2.5 2.5"/></svg></span>Describe</button>
+        <button class="quick-add-btn" id="describeFoodBtn" aria-describedby="foodAiDisclosure"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 5 12l7.5-7.5 2.5 2.5L7.5 14.5z"/><path d="M11 6l2.5 2.5"/></svg></span>Describe</button>
         <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 13.5a4.5 4.5 0 1 1 5 0V15h-5z"/><path d="M8 17h4"/></svg></span>Suggest</button>
         <button class="quick-add-btn" id="recipeFinderBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5c2.5-1 4.5-.6 6.5.8v10.2c-2-1.4-4-1.8-6.5-.8zM16.5 4.5c-2.5-1-4.5-.6-6.5.8v10.2c2-1.4 4-1.8 6.5-.8z"/></svg></span>Recipes</button>
       </div>
+      <!-- v3.582 (BIZ-06): Photo opens the picker straight away, so what it and
+           Describe send is said here, before the tap. -->
+      <div class="history-hint ai-disclosure" id="foodAiDisclosure" style="margin:6px 2px 0;">Photo and Describe send the photo or text to Anthropic using your key.</div>
       <div id="describeFoodForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
           <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac" aria-label="Describe what you ate">
@@ -6763,7 +6766,9 @@
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12 7.5l5.5.5-4 3.8 1.2 5.4L10 14.5l-4.7 2.7 1.2-5.4-4-3.8 5.5-.5Z"/></svg></span>AI Cross-Metric Insights</div>
       <div class="history-hint">How your metrics affect each other — sleep vs. training load, protein vs. volume, water vs. hard sessions — and what to adjust.</div>
-      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">Generate insights</button>
+      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;" aria-describedby="crossInsightsDisclosure">Generate insights</button>
+      <!-- v3.582 (BIZ-06): what this sends, and to whom, before the tap. -->
+      <div class="history-hint ai-disclosure" id="crossInsightsDisclosure" style="margin-top:8px;">Sends your goal, program, recent training days, weight, food, water, sleep, effort, pain check-ins and PRs to Anthropic using your key.</div>
       <div id="crossInsightsResult" style="margin-top:12px;"></div>
     </div>
 
@@ -7728,7 +7733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.581';
+const APP_VERSION = '3.582';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9293,6 +9298,9 @@ const WHATS_NEW = {
   ]},  '3.581': { headline: 'Share a finished session', points: [
     'When you finish a session, the "Session complete!" banner now has a Share button: a card with your sets, lifts, minutes and any PRs from today.',
     'It never shows total weight lifted, and clinical programs don\'t get a share card.',
+  ]},  '3.582': { headline: 'AI features say what they need first', points: [
+    'Without an AI key, AI Cross-Metric Insights now sits at the end of Training Trends, and its button says it needs a key. Your programs and charts lead.',
+    'Each AI feature now says, before you tap, what it sends to Anthropic using your key: Insights, Photo and Describe, and the coach.',
   ]},
 };
 
@@ -44850,12 +44858,18 @@ async function saveCoachChatHistory(){
 // card on the Coach tab and the floating modal both read from the exact
 // same coachChatHistory, so a message sent from either one shows up
 // correctly in both, rather than them drifting out of sync.
-function renderCoachChatLog(){
+// v3.582 (BIZ-06): the empty state says what a message sends, and to whom,
+// and with `hasKey === false` starts by saying it needs a key. Callers that
+// don't know the key state pass nothing, and the empty state stays as is.
+function renderCoachChatLog(hasKey){
   ['coachChatLog', 'floatingChatLog'].forEach(id=>{
     const log = document.getElementById(id);
     if(!log) return;
     if(coachChatHistory.length === 0){
-      log.innerHTML = '<div class="coach-chat-empty">Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>';
+      log.innerHTML = '<div class="coach-chat-empty">'
+        + (hasKey === false ? '<strong class="coach-key-needed">Needs your Anthropic key (Settings).</strong> ' : '')
+        + 'Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.'
+        + '<span class="ai-disclosure"> Sends your message and a summary of your training to Anthropic using your key.</span></div>';
     }
   });
   // v3.455: Clear only when there is a conversation to clear.
@@ -45571,12 +45585,13 @@ async function saveCoachEntry(entry){
 
 async function renderCoach(){
   const keyLink = document.getElementById('coachKeySetup');
-  if(keyLink) keyLink.hidden = !!(await getApiKey());
+  const hasKey = !!(await getApiKey());
+  if(keyLink) keyLink.hidden = hasKey;
   const persona = activeProgram === 'combat' ? COMBAT_STYLES[activeMartialArt].label : programs[activeProgram].label;
   document.getElementById('coachPersonaLabel').textContent = persona;
 
   await loadCoachChatHistory();
-  renderCoachChatLog();
+  renderCoachChatLog(hasKey);
 
   const log = await getCoachLog();
   const listEl = document.getElementById('coachHistoryList');
@@ -45675,6 +45690,9 @@ document.getElementById('coachFab').addEventListener('click', ()=>{
   renderCoachChatLog();
   modal.classList.add('active');
   fab.classList.add('tucked');
+  // v3.582 (BIZ-06): the panel opens at once; the key check follows and only
+  // redraws the empty state when there's no key.
+  getApiKey().then(k=>{ if(!k && coachChatHistory.length === 0) renderCoachChatLog(false); });
   // Focusing the input immediately, while the panel is still mid-animation,
   // is exactly what caused the keyboard to open in the middle of that
   // transition and end up landing in the wrong spot — waiting for the
@@ -48209,6 +48227,7 @@ async function renderGoalFeedback(){
 function aiKeySetupPrompt(feature){
   return `<div class="care-banner care-banner-caution">
     Add your Anthropic API key to use ${escapeHtml(feature)}. The same key powers every AI feature in the app.
+    <span class="ai-disclosure">Each AI feature sends what it needs to Anthropic using your key, straight from this device.</span>
     <div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="aiSettingsCard">Take me there</button></div>
   </div>`;
 }
@@ -49482,7 +49501,28 @@ document.getElementById('analysisTrendRange').addEventListener('change', ()=>{
   refreshBodyHealthTrends();
 });
 
+// v3.582 (BIZ-06): with no AI key, the AI Cross-Metric Insights card sorts
+// below the evidence: the same element moves to the end of Training Trends
+// (the last group, so it collapses with it) and its button says what it
+// needs. With a key it goes back above Meal Timing in Insights & Program
+// Fit. Called from renderAnalysis before autohide and the jump rail, which
+// read the order. The group-collapsed class follows the new group's header.
+function placeAiInsightsCard(hasKey){
+  const btn = document.getElementById('genCrossInsightsBtn');
+  const card = btn && btn.closest('.card');
+  const view = document.getElementById('analysisView');
+  if(!card || !view) return;
+  if(!btn.disabled) btn.textContent = hasKey ? 'Generate insights' : 'Add an AI key to use this';
+  const anchor = hasKey ? document.getElementById('mealTimingCard') : document.getElementById('analysisExportBtn');
+  if(!anchor || anchor.parentNode !== view) return;
+  if(card.nextElementSibling !== anchor) view.insertBefore(card, anchor);
+  let header = card.previousElementSibling;
+  while(header && !header.classList.contains('analysis-group-header')) header = header.previousElementSibling;
+  card.classList.toggle('group-collapsed', !!header && header.classList.contains('collapsed'));
+}
+
 async function renderAnalysis(){
+  placeAiInsightsCard(!!(await getApiKey()));
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 

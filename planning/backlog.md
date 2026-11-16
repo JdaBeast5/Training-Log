@@ -2613,7 +2613,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - **Extra criterion:** one jsdom assertion per entry point (insights button area, Photo, Describe, Coach intro, key prompt) that its disclosure line is present and names "Anthropic".
   - The payload stays untouched (criterion 3).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped (the key and button lines had moved). The "sorts below" move is now exact (which element, which group, which function, and why it collapses with Training Trends); the coach line goes in `renderCoachChatLog`'s empty state; three suites pin the prompt's first sentence, so the disclosure is added, not swapped in. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.582, PR #158, stacked on #157). Built ahead of slot 55 while UX items wait on the owner's look at UX-03. `test-coach-fab-drag.js` gained one boundary stub (getApiKey). The coach's key line shows on open (button or Coach view); other redraws keep the plain empty state with its disclosure.
 
 ### BIZ-07: Truthful page metadata, manifest description and README
 - **Why:**
