@@ -63,7 +63,7 @@ test('criterion 4: Bench Press returns exactly CATEGORY_TO_REGIONS.push; an unkn
 test('criterion 5: every EXERCISE_REGION_OVERRIDE key is an exerciseInfo key, and every region is a real Care region', (assert)=>{
   const r = sbx(`__capture.push({keys: Object.keys(EXERCISE_REGION_OVERRIDE), missing: Object.keys(EXERCISE_REGION_OVERRIDE).filter(k => !exerciseInfo[k]),
     regions: [...new Set(Object.values(EXERCISE_REGION_OVERRIDE).flat())]});`);
-  assert.strictEqual(r.keys.length, 18, 'the audit\'s 12 plus BL-70\'s 6 (v3.523)');
+  assert.strictEqual(r.keys.length, 19, 'the audit\'s 12 plus BL-70\'s 6 (v3.523), plus BL-35\'s neck isometric (v3.564)');
   assert.deepStrictEqual(r.missing, []);
   // The Care region picker's own option labels (the strings resting regions are stored as).
   const picker = indexOnly.slice(indexOnly.indexOf('<select id="careRegion"'), indexOnly.indexOf('</select>', indexOnly.indexOf('<select id="careRegion"')));
@@ -226,7 +226,9 @@ test('BL-71 criterion 4: every non-carry override returns exactly what v3.524 di
       for(const a of areas){ const g = suggestSubstitute('core', name, [a]); if(g) out[name + '@' + a] = g.name; }
     }
     __capture.push({out, lists: Object.entries(EXERCISE_SUBSTITUTE_OVERRIDE).filter(([, v]) => Array.isArray(v)).map(([k]) => k).sort()});`);
-  assert.deepStrictEqual(r.out, V3524_SNAPSHOT);
+  // v3.564 (BL-35) adds one override, outside the v3.524 snapshot: the neck isometric → Chin Tucks for a resting neck.
+  const ADDED = {'4-Way Neck Isometric (hand or band)@Neck': 'Chin Tucks'};
+  assert.deepStrictEqual(r.out, {...V3524_SNAPSHOT, ...ADDED});
   assert.deepStrictEqual(r.lists, ["Farmer's Carry", 'Farmers Carry (Heavy)', 'Suitcase Carry'], 'only the carries use a list');
 });
 

@@ -43,10 +43,11 @@ function cues(){
 // Choke Drill, Armbar from Guard Drill and Clinch Knee Drills (964 -> 970).
 // v3.528 (BL-05b): +1 Neck Bridges coach-only cue (970 -> 971).
 // v3.563 (BL-36): +1 exercise, Drop Landing (stick it), with 4 cues (321 -> 322, 971 -> 975).
-test('REAL data: no cue was dropped — 322 exercises, 975 cues', (assert)=>{
+// v3.564 (BL-35): +1 exercise, 4-Way Neck Isometric (hand or band), with 4 cues (322 -> 323, 975 -> 979).
+test('REAL data: no cue was dropped — 323 exercises, 979 cues', (assert)=>{
   const c = cues();
-  assert.strictEqual(Object.keys(c).length, 322);
-  assert.strictEqual(Object.values(c).flat().length, 975);
+  assert.strictEqual(Object.keys(c).length, 323);
+  assert.strictEqual(Object.values(c).flat().length, 979);
 });
 
 test('REAL data: cues over 24 words are down to ' + OVER_24_LEFT, (assert)=>{

@@ -103,8 +103,8 @@ test('BL-06 criterion 2: no other exercise\'s cue count changed (snapshot from v
   const [now] = runSandbox([extractConst(src, 'exerciseInfo')], `const o = {}; for(const k in exerciseInfo) o[k] = exerciseInfo[k].cues.length; __capture.push(o);`);
   const edited = {'Depth Jump': 3, 'Rear Naked Choke Drill': 1, 'Armbar from Guard Drill': 1, 'Clinch Knee Drills': 1,
                   'Neck Bridges': 1}; // v3.528 (BL-05b)
-  // v3.563 (BL-36): one exercise added since the snapshot, Drop Landing (stick it); it is outside the snapshot.
-  const added = ['Drop Landing (stick it)'];
+  // Exercises added since the snapshot are outside it: v3.563 (BL-36) Drop Landing; v3.564 (BL-35) the neck isometric.
+  const added = ['Drop Landing (stick it)', '4-Way Neck Isometric (hand or band)'];
   const changed = Object.keys(now).filter(k => !added.includes(k) && now[k] !== before(k) + (edited[k] || 0));
   assert.deepStrictEqual(changed, []);
   assert.strictEqual(Object.keys(now).length, 321 + added.length, 'no other exercise added or removed');
@@ -123,10 +123,14 @@ test('BL-05b criterion 1: Neck Bridges leads with the coach-only line, and keeps
   assert.strictEqual(items.length, 4);
 });
 
-test('BL-05b criteria 2-3: exactly 6 Neck Bridges slots anywhere (all grappling), each 3×8, at their v3.527 positions', (assert)=>{
-  const found = findSlots('Neck Bridges');
+// v3.564 (BL-35): those 6 slots now hold the 4-way neck isometric (4×15s),
+// at the same positions; no slot names Neck Bridges any more (its entry stays
+// for history and as the swap-back).
+test('BL-05b criteria 2-3 (re-pinned by BL-35): the 6 v3.527 Neck Bridges positions now hold the neck isometric, 4×15s; none still names Neck Bridges', (assert)=>{
+  assert.deepStrictEqual(findSlots('Neck Bridges'), []);
+  const found = findSlots('4-Way Neck Isometric (hand or band)');
   assert.strictEqual(found.length, 6, JSON.stringify(found));
-  for(const s of found) assert.strictEqual(s.sets, '3×8', s.where);
+  for(const s of found) assert.strictEqual(s.sets, '4×15s', s.where);
   assert.deepStrictEqual(found.map(s => s.where + '#' + s.idx).sort(), POSITIONS_V3527);
   const [cue0] = runSandbox([extractConst(src, 'exerciseInfo')], `__capture.push(exerciseInfo['Neck Bridges'].cues[0]);`);
   assert.ok(cue0.startsWith('Only with a coach'), 'every slot resolves to the one entry');

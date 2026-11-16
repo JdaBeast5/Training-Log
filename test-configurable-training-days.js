@@ -817,7 +817,8 @@ test('sabotage: grappling\'s 6-day and 7-day extra day is "Extra Technical Drill
   `);
   assert.strictEqual(sub6, 'Extra Technical Drilling');
   assert.strictEqual(sub7, 'Extra Technical Drilling');
-  ['Positional Sparring (Guard Retention)', 'Neck Bridges', 'Farmers Carry (Heavy)'].forEach(rollingEx => {
+  // v3.564 (BL-35): the neck slot's new name is checked too.
+  ['Positional Sparring (Guard Retention)', '4-Way Neck Isometric (hand or band)', 'Neck Bridges', 'Farmers Carry (Heavy)'].forEach(rollingEx => {
     assert.strictEqual(exNames6.includes(rollingEx), false, `grappling's 7th day should contain no live-rolling exercise, found ${rollingEx}`);
   });
 });

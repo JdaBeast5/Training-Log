@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.563';
+const APP_VERSION = '3.564';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9224,6 +9224,10 @@ const WHATS_NEW = {
     'Sets you logged while a day had an exercise removed stay where they were saved.',
   ]},  '3.563': { headline: 'Drop Landing for wakeboarding and kite surfing', points: [
     'The landing-mechanics days for Wakeboarding and Kite-Assisted Surfing now end with Drop Landing (stick it), 3×5, so you can log the drill the Depth Jump cue asks for.',
+  ]},  '3.564': { headline: 'Neck bridges become neck isometrics', points: [
+    'Grappling\'s neck work is now a 4-way neck isometric: press your head into your hand or a band, front, back and each side, 15 s each at about half effort.',
+    'It starts with a fresh history. Your neck bridge sets aren\'t moved: swap the exercise back to Neck Bridges to see them and keep logging there.',
+    'If you had removed neck bridges from a day, the isometric stays off that day too.',
   ]},
 };
 
@@ -11447,7 +11451,7 @@ const programs = {
       d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
         exercises:[
           {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-          {name:'Neck Bridges', sets:'3×8', noWeight:true},
+          {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
           {name:'Farmers Carry (Heavy)', sets:'3×30m'},
         ]},
       d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -14122,6 +14126,8 @@ function canonicalExName(n){
 // 88 weighted lifts -> 2 alternates each, matched on primary mover + joint
 // action + movement pattern. See HANDOFF §6.3.
 const EXERCISE_SUBS = {
+  // v3.564 (BL-35): the replaced exercise stays one tap away, with its history on the plain key.
+  '4-Way Neck Isometric (hand or band)': ['Neck Bridges', 'Chin Tucks'],
   // squat pattern (knee-dominant)
   'Back Squat': ['Front Squat', 'Leg Press'],
   'Bodyweight Squat': ['Sit-to-Stand', 'Squat'],
@@ -21825,7 +21831,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d3: { label:'Day 3', sub:'Live Rolling & Conditioning', plate:'p-blue', plateNum:'20', duration:'~45 min',
           exercises:[
             {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
             {name:'Farmers Carry (Heavy)', sets:'3×30m'},
           ]
         },
@@ -21863,7 +21869,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d4: { label:'Day 4', sub:'Live Rolling & Conditioning', plate:'p-yellow', plateNum:'15', duration:'~45 min',
           exercises:[
             {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
             {name:'Farmers Carry (Heavy)', sets:'3×30m'},
           ]
         },
@@ -21906,7 +21912,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d5: { label:'Day 5', sub:'Live Rolling & Conditioning', plate:'p-green', plateNum:'10', duration:'~45 min',
           exercises:[
             {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
             {name:'Farmers Carry (Heavy)', sets:'3×30m'},
           ]
         },
@@ -21956,7 +21962,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
             {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
             {name:'Farmers Carry (Heavy)', sets:'3×30m'},
           ]
         },
@@ -22007,7 +22013,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
             {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
-            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'4-Way Neck Isometric (hand or band)', sets:'4×15s', noWeight:true, legacyName:'Neck Bridges', legacySets:'3×8'},
             {name:'Farmers Carry (Heavy)', sets:'3×30m'},
           ]
         },
@@ -27710,7 +27716,13 @@ function subSelectionKey(program, dayId, idx){
 // single flag every downstream reader (history keys, save handlers) checks
 // to decide whether to use the plain slot key or the variant-suffixed one.
 function subVariantOf(ex){
-  return (ex && ex.__isSubbed) ? ex.name : undefined;
+  if(!ex) return undefined;
+  // v3.564 (BL-35, owner 2026-11-16): a slot whose exercise was replaced carries
+  // legacyName. The old exercise keeps the plain key (its history stays there,
+  // reachable by swapping back); the new one logs under its own :sub: key, so it
+  // starts fresh. Nothing is moved.
+  if(ex.legacyName) return ex.name === ex.legacyName ? undefined : ex.name;
+  return ex.__isSubbed ? ex.name : undefined;
 }
 
 // Applies any stored substitute selections to a day's exercise list, in
@@ -27734,7 +27746,10 @@ async function applyExerciseSubs(exercises, program, dayId){
     // if the exercise returns, the old choice applies again. Known limit: a
     // choice also listed for the new exercise (a shared alternate) still applies.
     if(subName && subName !== ex.name && (EXERCISE_SUBS[ex.name] || []).includes(subName)){
-      exercises[i] = {...ex, name: subName, __originalName: ex.name, __isSubbed: true};
+      // v3.564 (BL-35): swapping a replaced slot back to its old exercise
+      // restores the old prescription, so new sets match the ones on that key.
+      const sets = (subName === ex.legacyName && ex.legacySets) ? ex.legacySets : ex.sets;
+      exercises[i] = {...ex, name: subName, sets, __originalName: ex.name, __isSubbed: true};
     }
   }));
 }
@@ -27763,7 +27778,8 @@ function getExerciseLocationIndex(){
     Object.entries(days || {}).forEach(([dayId, day]) => {
       (day.exercises || []).forEach((ex, idx) => {
         if(!ex || !ex.name) return;
-        const name = canonicalExName(ex.name); // v3.549 (BL-54): keyed by the canonical name
+        // v3.564 (BL-35): a replaced slot's plain key holds the OLD exercise's sets, so index it under legacyName.
+        const name = canonicalExName(ex.legacyName || ex.name); // v3.549 (BL-54): keyed by the canonical name
         if(!index[name]) index[name] = [];
         index[name].push({program: progKey, dayId, idx, style});
       });
@@ -27973,7 +27989,9 @@ async function openExerciseSubModal(idx, ex){
 
   const options = [baseName, ...alts];
   const rows = await Promise.all(options.map(async (name)=>{
-    const variant = (name === baseName) ? undefined : name;
+    // v3.564 (BL-35): the same rule the save path uses, so a replaced slot's
+    // old exercise shows the plain key's history and the new one its own.
+    const variant = subVariantOf({...ex, name, __isSubbed: name !== baseName});
     const log = await getExLog(activeDay, slotIdOf(ex, idx), variant); // v3.561 (BL-72)
     return {name, isDefault: name === baseName, summary: formatLastLoggedSummary(entriesForExercise(log, name))}; // v3.535 (BL-51)
   }));
@@ -42289,6 +42307,10 @@ function renderCollapsibleList(container, itemHtmls, visibleCount, noun){
 function parseExKey(key){
   const parts = key.split(':');
   if(parts.length < 4) return null;
+  // v3.564 (BL-35): the plain key of a replaced slot (no ':sub:' after the
+  // index) holds the OLD exercise's sets, so History, PRs and volume name it by
+  // legacyName. The new exercise's own ':sub:' key keeps its name.
+  const legacyExDef = (exDef, afterIdx) => (exDef && exDef.legacyName && afterIdx !== 'sub') ? {...exDef, name: exDef.legacyName, sets: exDef.legacySets || exDef.sets} : exDef;
   const program = parts[1];
   // Programs whose keys carry a style segment (exKey): one rule for all of
   // them. v3.536 (BL-53): medical joins, so medical, prenatal, postpartum and
@@ -42302,7 +42324,7 @@ function parseExKey(key){
     if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
     return {
       program, dayId, idx,
-      exDef: dayDef.exercises[idx],
+      exDef: legacyExDef(dayDef.exercises[idx], parts[5]),
       dayLabel: `${(programs[program] || {}).label || program} (${styleDef.label}) · ${dayDef.label}`,
     };
   }
@@ -42312,7 +42334,7 @@ function parseExKey(key){
   if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
   return {
     program, dayId, idx,
-    exDef: dayDef.exercises[idx],
+    exDef: legacyExDef(dayDef.exercises[idx], parts[4]),
     dayLabel: `${progDef.label} · ${dayDef.label}`,
   };
 }
@@ -45233,6 +45255,7 @@ const CATEGORY_TO_REGIONS = {
 // Every key must be an exerciseInfo key (test-region-override.js checks it).
 const EXERCISE_REGION_OVERRIDE = {
   'Neck Bridges':        ['Neck','Upper Back'],
+  '4-Way Neck Isometric (hand or band)': ['Neck'], // v3.564 (BL-35): `core`, but it loads the neck
   'Hangboard Max Hang':  ['Hands/Fingers','Elbow/Wrist','Shoulder'],
   'Hangboard Repeaters': ['Hands/Fingers','Elbow/Wrist','Shoulder'],
   'Lock-off Hold':       ['Hands/Fingers','Elbow/Wrist','Shoulder'],
@@ -45319,6 +45342,7 @@ const EXERCISE_SUBSTITUTE_OVERRIDE = {
   'Eccentric Heel Drop': SUB_CALF_HOLD, 'Calf Raise': SUB_CALF_HOLD, 'Standing Calf Raise': SUB_CALF_HOLD,
   'Hangboard Max Hang': SUB_FEET_ON_HANG, 'Hangboard Repeaters': SUB_FEET_ON_HANG, 'Lock-off Hold': SUB_FEET_ON_HANG,
   'Neck Bridges': SUB_NECK_ISO,
+  '4-Way Neck Isometric (hand or band)': {name:'Chin Tucks', why:'gentle neck work with no resistance', for:['Neck']}, // v3.564 (BL-35)
   "Farmer's Carry": [SUB_VEST_CARRY, SUB_BIRD_DOG], 'Farmers Carry (Heavy)': [SUB_VEST_CARRY, SUB_BIRD_DOG], 'Suitcase Carry': [SUB_VEST_CARRY, SUB_BIRD_DOG],
   'Hanging Leg Raise': SUB_LYING_RAISE, 'Toes-to-Bar': SUB_LYING_RAISE,
   'Sled Push': null, 'Sled Pull': null, 'Wall Balls': null,
@@ -48091,10 +48115,15 @@ function applyExOverrides(exercises, overrides){
     // Stale override: the program no longer has this exercise at this index.
     // Dropped silently — the alternative is applying someone's 5×3 to whatever
     // lift moved into the slot.
-    if(!ov || ov.name !== ex.name){ survivors.push({ex, i, pos:null}); return; }
+    // v3.564 (BL-35): an override saved against a replaced exercise
+    // (legacyName) still holds its removal and position: someone who removed
+    // Neck Bridges keeps the neck slot off the day. Its sets were for the old
+    // exercise, so they are not applied.
+    const legacy = !!(ov && ex.legacyName && ov.name === ex.legacyName);
+    if(!ov || (ov.name !== ex.name && !legacy)){ survivors.push({ex, i, pos:null}); return; }
     if(ov.removed) return;
     const next = {...ex, __overridden: true};
-    if(ov.sets) next.sets = ov.sets;
+    if(ov.sets && !legacy) next.sets = ov.sets;
     survivors.push({ex: next, i, pos: (typeof ov.order === 'number') ? ov.order : null});
   });
 
