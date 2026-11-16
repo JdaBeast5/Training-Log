@@ -814,7 +814,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Summit note (summit 2026-11-07):** Build it **once**, to `design-vision.md` §3.6 (summit R8): fractional figures shown with decimals, a "10+" floor [ACSM26] with no ceiling drawn, grey under the floor, the day's ink inside it. UX-10 then *moves* this renderer rather than redrawing it. No "add sets" advice here; that's BL-31 or BL-39.
 - **Alignment note (2026-11-07, exercise-auditor N3):** the ink fill **stops growing at the floor**: a muscle at 10 and a muscle at 25 show the same full bar. Above about 20 fractional sets, show one neutral line: "More isn't needed; returns get smaller [PEL]." Add a criterion: fixtures at 10 and at 25 sets render equal fill widths, and the 25 case shows the line.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The alignment note's criterion and the summit's colour rule are now numbered criteria (4, 5); "reusing `vol-landmark` statuses" was dropped because those are state colours, which the vision and `progress.html` keep off the ledger. Ships after BL-59 (slot 55a), so categories are already corrected. Scope unchanged.
-- **Status:** ready (after BL-59, done in #159; **and after UX-05**: criterion 5's fill is the day's ink `var(--spot)`, which UX-05 brings, and UX-05 waits on the owner's on-device look at UX-03)
+- **Status:** ready (BL-59 done in #159; UX-05, which brings `var(--spot)`, is in #163: build on it once #163 is in the stack)
 
 ### BL-21: HRV joins readiness, against your own baseline
 - **Why:** HRV is imported (`hrv-log`, 46960) but `computeReadiness` (46843) never reads it (research §7). Lifters complain that wearables ignore training load (research §4). Personal-baseline ln rMSSD comparison follows Plews et al. 2013, Sports Med 43:773, doi 10.1007/s40279-013-0071-8 (cited from memory, unverified).
@@ -3547,7 +3547,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** TOOL-01's harness.
 - **Owner or design option (non-blocking; default above):** the item as first written re-pointed every `--plate-*` token to the spot inks. That would recolour about 190 accent uses at once and break light-mode text contrast for yellow. The default keeps the accents and moves only the day discs and `--day-hue`; the alternative is a separate item after UX-15 that maps each accent use to a state or ink token.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: (1) `renderWorkout` can't be driven in jsdom, so the publish goes through a one-call helper; (2) a body class, as in `world.css`, so UX-06a's night rule has a selector; (3) white and off days have no deep ink, so defaults are named; (4) re-pointing `--plate-*` would recolour the whole app's accents and fail light contrast, so the default narrows it to the discs and `--day-hue` (see the option). Checked against `design-vision.md` §3.2 and `world.css`. 
-- **Status:** ready
+- **Status:** done (v3.587, PR #163, stacked on #161 and #162). Design-engineer to confirm `.day-white`/`.day-off` deep inks (`--rule-strong`, `--surface-2`). UX-01b criterion 4 retired.
 
 ### UX-06: Today's cover: the next set, huge, in the day's ink
 - **Why:** on a training day the next set is the sixth block down today (see `renders/today-dark.png` against the incumbent). The mission's first job, "what do I lift now", should be answered in the first glance from a metre away.
