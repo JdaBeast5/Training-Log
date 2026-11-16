@@ -814,7 +814,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Summit note (summit 2026-11-07):** Build it **once**, to `design-vision.md` §3.6 (summit R8): fractional figures shown with decimals, a "10+" floor [ACSM26] with no ceiling drawn, grey under the floor, the day's ink inside it. UX-10 then *moves* this renderer rather than redrawing it. No "add sets" advice here; that's BL-31 or BL-39.
 - **Alignment note (2026-11-07, exercise-auditor N3):** the ink fill **stops growing at the floor**: a muscle at 10 and a muscle at 25 show the same full bar. Above about 20 fractional sets, show one neutral line: "More isn't needed; returns get smaller [PEL]." Add a criterion: fixtures at 10 and at 25 sets render equal fill widths, and the 25 case shows the line.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The alignment note's criterion and the summit's colour rule are now numbered criteria (4, 5); "reusing `vol-landmark` statuses" was dropped because those are state colours, which the vision and `progress.html` keep off the ledger. Ships after BL-59 (slot 55a), so categories are already corrected. Scope unchanged.
-- **Status:** ready (after BL-59)
+- **Status:** ready (after BL-59, done in #159; **and after UX-05**: criterion 5's fill is the day's ink `var(--spot)`, which UX-05 brings, and UX-05 waits on the owner's on-device look at UX-03)
 
 ### BL-21: HRV joins readiness, against your own baseline
 - **Why:** HRV is imported (`hrv-log`, 46960) but `computeReadiness` (46843) never reads it (research §7). Lifters complain that wearables ignore training load (research §4). Personal-baseline ln rMSSD comparison follows Plews et al. 2013, Sports Med 43:773, doi 10.1007/s40279-013-0071-8 (cited from memory, unverified).
@@ -1062,7 +1062,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (`getMesocycleWeek` 14958–14968, `APP_VERSION` 7625, `WHATS_NEW` 7643), `sw.js`, `test-program-cycle-start-backfill.js`. Guards: `test-manual-deload-override.js` (extracts `getMesocycleWeek`; its fixtures have no `activity-dates`, so re-read them: if one expects week 5 from calendar days alone, it now needs session dates in its fixture, re-pinned with a dated note), and the nine suites that read `DELOAD_CYCLE_WEEKS` (BL-43's list plus `test-mesocycle-phase-tag.js`, `test-today-priorities.js`), which stub the week.
 - **Risk:** the owner's current week number may jump on the day it ships (accepted).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The rule is now defined precisely (completed blocks with ≥ 2 session dates, plus the block in progress; read from `activity-dates`), with real-invocation criteria; `test-manual-deload-override.js` is named as a likely re-pin. Scope unchanged.
-- **Status:** ready (owner yes 2026-11-08, D3). The owner accepted that the current week number may change the day this ships; the What's New line says so. Slot 57, right after the ledger.
+- **Status:** done (v3.584, PR #160, stacked on #157–#159). Built ahead of slot 57; BL-20 waits on UX-05 (its fill is `var(--spot)`). test-manual-deload-override.js fixtures re-pinned with sessions.
 
 ### BL-34: e1RM uses logged RPE (M-4)
 - **Why:** `estimated1RM` (27431) treats every set as taken to failure. 100×8 @ RPE 7 is about 10% under.

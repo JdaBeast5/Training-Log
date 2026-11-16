@@ -7733,7 +7733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.583';
+const APP_VERSION = '3.584';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9305,6 +9305,9 @@ const WHATS_NEW = {
     'Mobility holds and drills (Deep Squat Hold, Chair Pose, Chaturanga, Wall Slides) now count as Core, not as Quads or Chest work, and never get extra sets in an Accumulation week.',
     'Band External Rotation, Band Pull-Apart and Scapular Retraction count toward shoulders, and calf work has its own Calves group (it was counted as Arms).',
     'Past weeks\' Analysis group totals change to match; your logged sets don\'t.',
+  ]},  '3.584': { headline: 'Weeks off don\'t bring the deload closer', points: [
+    'Your training block now counts only the weeks you trained at least twice. A week off no longer moves you toward the deload week.',
+    'Because of that, the week number on Today may change once with this update.',
   ]},
 };
 
@@ -15692,7 +15695,14 @@ async function saveActiveProgram(){
 // the progression engine. This one is proactive/scheduled rather than
 // reactive to performance — the two catch different situations.
 const DELOAD_CYCLE_WEEKS = 5; // every 5th week (weeks 5, 10, 15…) is a deload week
+// v3.584 (BL-33, M-6 part 1): only weeks you trained move the block on. The
+// week number is the completed 7-day blocks since program-cycle-start that
+// hold at least 2 session dates (activity-dates: any day a set was logged),
+// plus 1 for the block in progress, which always counts however many
+// sessions it has so far. A week off no longer brings the deload closer
+// [BELL23]. No new storage.
 async function getMesocycleWeek(){
+  const MIN_SESSIONS = 2; // a block with fewer sessions doesn't count
   let startDate = getTodayKey();
   try{
     const res = await window.storage.get('program-cycle-start');
@@ -15701,7 +15711,21 @@ async function getMesocycleWeek(){
   const start = new Date(startDate+'T00:00:00');
   const today = new Date(getTodayKey()+'T00:00:00');
   const daysSince = Math.max(0, Math.floor((today-start)/86400000));
-  return Math.floor(daysSince/7) + 1; // 1-indexed week number
+  const completedBlocks = Math.floor(daysSince/7);
+  if(completedBlocks === 0) return 1;
+  let dates = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    if(res && res.value) dates = JSON.parse(res.value);
+  }catch(e){}
+  const perBlock = new Array(completedBlocks).fill(0);
+  for(const d of Array.isArray(dates) ? dates : []){
+    // Rounded, not floored: a daylight-saving change makes a day 23 or 25 hours.
+    const day = Math.round((new Date(d+'T00:00:00') - start)/86400000);
+    const block = Math.floor(day/7);
+    if(day >= 0 && block < completedBlocks) perBlock[block]++;
+  }
+  return perBlock.filter(n=> n >= MIN_SESSIONS).length + 1; // 1-indexed week number
 }
 async function isDeloadWeek(){
   // Manual override (see manualDeloadEnabled, defined further down near its
