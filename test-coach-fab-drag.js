@@ -50,6 +50,8 @@ function setup({ storedPosition, storageGetThrows } = {}){
       },
     };
     function renderCoachChatLog(){}
+    // 2026-11-16 (v3.582, BIZ-06): the open now checks for an AI key after showing the panel; stubbed at its boundary.
+    async function getApiKey(){ return 'stub-key'; }
     Object.defineProperty(window, 'innerWidth', {value: 400, configurable: true});
     Object.defineProperty(window, 'innerHeight', {value: 800, configurable: true});
   `;
