@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.559';
+const APP_VERSION = '3.560';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9212,6 +9212,9 @@ const WHATS_NEW = {
   ]},
   '3.559': { headline: 'No weight box on bodyweight moves', points: [
     'Bird Dog, Dead Bug, Side Plank, Bodyweight Squat, Jump Squat, Bicycle Crunch, Single-Leg Bound and every push-up, pull-up, dip, row and squat in the Bodyweight program no longer ask for a weight, so logging your reps finishes the set and starts the rest timer. Wall Balls and Sled Pull, which do take load, now have a weight box. Your old entries are unchanged.',
+  ]},
+  '3.560': { headline: 'Bodyweight moves progress too', points: [
+    'When every set of a bodyweight move hits the top of its range two sessions in a row, the reps box now suggests one more rep per set, and holds suggest 5 seconds more. Past 15 reps or a 60-second hold, it suggests a harder variation instead. Medical and Senior programs keep their own pace.',
   ]},
 };
 
@@ -28689,6 +28692,34 @@ function priorSetForSlot(prior, setIdx, ex, crossProgram){
   return {weight: basis.weight, reps: bottom != null ? bottom : basis.reps};
 }
 
+// v3.560 (BL-11, audit H-8 part 1): progressive overload for bodyweight and
+// timed work [ACSM26]. computeSuggestedSet has nothing to say without a
+// weight, so a weightless row never progressed. When every set reached the
+// top of the range (or the hold time) in the last two sessions, suggest one
+// more rep per set, or 5 s more on a hold; past 15 reps or 60 s, suggest a
+// harder variation in words instead (nothing is swapped). Reads the raw log
+// (buildPastSessions drops sessions with no weighted set). Never on the
+// clinical plans or Senior (SAF-1). Returns {value, unit} | {harder: true,
+// words} | null.
+function suggestRepProgression(log, ex, program){
+  if(!ex || program === 'medical' || program === 'senior') return null;
+  const sets = ex.sets || '';
+  const hold = /×\s*\d+(?:\s*-\s*(\d+))?\s*(?:s|secs?|seconds?)\b/i.exec(sets);
+  const target = hold ? Number((/×\s*(\d+)(?:\s*-\s*(\d+))?/.exec(sets) || []).slice(1).filter(Boolean).pop()) : parseTopRep(sets);
+  if(target == null || !(target > 0)) return null;
+  const past = [...(log || [])].filter(e=> e && e.date !== selectedLogDate)
+    .sort((a, b)=> a.date < b.date ? 1 : a.date > b.date ? -1 : 0).slice(0, 2);
+  if(past.length < 2) return null;
+  const done = past.map(e=> (e.sets || []).filter(st=> st && st.reps != null && st.reps !== ''));
+  // Weightless only: a logged weight means computeSuggestedSet's job.
+  if(done.some(d=> !d.length || d.some(st=> st.weight != null && st.weight !== ''))) return null;
+  if(!done.every(d=> d.every(st=> Number(st.reps) >= target))) return null;
+  const least = Math.min(...done[0].map(st=> Number(st.reps)));
+  const next = least + (hold ? 5 : 1);
+  if(next > (hold ? 60 : 15)) return {harder: true, words: 'Ready for a harder variation'};
+  return {value: next, unit: hold ? 's' : 'reps'};
+}
+
 function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx, prior){
   if(!priorSet || priorSet.weight == null) return null;
 
@@ -29680,6 +29711,8 @@ async function renderWorkout(){
       // for every set of every exercise on the day.
       const rpeCtx = {e1rm: recentBestE1RM(pastSessions), week: mesoWeek, program: activeProgram, category: exCategory};
       const signal = analyzeProgressionSignal(pastSessions, ex, exCategory, activeProgram);
+      // v3.560 (BL-11): weightless rows progress by reps or seconds.
+      const repSug = suggestRepProgression(ownLogs[i], ex, activeProgram);
       const sourceNote = priorIsCrossProgram ? ` <span style="opacity:0.7; font-weight:400;">— ${escapeHtml(programLabelFor(priorSourceProgram))}</span>` : '';
 
       // Progression badges, the warm-up ramp, and the volume/1RM summary are
@@ -29690,6 +29723,7 @@ async function renderWorkout(){
       // bodyweight work, but the reps/RPE inputs below are unaffected either way.
       const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote, prior});
       badge = badgeInfo.html;
+      if(!badge && repSug) badge = `<div class="progress-badge">${repSug.harder ? escapeHtml(repSug.words) : `Every set hit the top twice: try ${repSug.value} ${repSug.unit === 's' ? 's' : 'reps'} per set.`}</div>`;
 
       // THE FIRST TWO EXERCISES OF THE DAY, unconditionally.
       //
@@ -29866,6 +29900,7 @@ async function renderWorkout(){
           : (placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit);
         const repsPlaceholder = suggested && suggested.reps!=null
           ? suggested.reps
+          : (repSug && repSug.value != null && !savedSet) ? repSug.value
           : (placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : getSetFieldUnit(ex.sets));
         const sugClass = suggested ? ` ex-input-suggested ex-suggested-${suggested.reason}` : '';
         // The aria-label carries the reason in words. A colour shift on ghost

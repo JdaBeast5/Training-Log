@@ -1214,3 +1214,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 83: BL-56 (v3.559, PR #134, 2026-11-15)
 - **What:** noWeight data sweep (165 added, 19 removed from Wall Balls/Sled Pull). 222/222. BL-11 (next) applies to these rows.
+
+## Addendum 84: BL-11 (v3.560, PR #135, 2026-11-15)
+- **What:** `suggestRepProgression(log, ex, program)`; one call per exercise in renderWorkout; reps placeholder + badge. 223/223.
+- **Pending:** BL-72/35/63 owner "yes" arrived via another session's relay; awaiting the owner's direct confirmation before recording.
