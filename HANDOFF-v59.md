@@ -1337,3 +1337,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Owner gate cleared:** the owner looked at UX-03 (v3.584) on device: "Go, and move coach up". UX-16 is now slot 41a (roadmap + backlog, planning commit on #161).
 - **What:** `.nav-pills` opaque `--surface-1` bar, edge to edge, `calc(env())` safe-area padding (jsdom drops bare `env()`); `.nav-pills-scroll` a 5-column grid; tabs `.nav-pills-scroll > .nav-pill` with `.tab-i` icons; `switchView` sets `aria-current`; titles/search labels Food, Progress; `--above-bar` = measured height + 10px.
 - **Next:** UX-16 (41a), then UX-05.
+
+## Addendum 110: UX-16 (v3.586, PR #162, stacked on #161, 2026-11-16)
+- **What:** `#coachFab` is an absolute 44 px header button (right:100px) beside Search and Settings; drag/tuck/position code removed; `coach-fab-position` deleted once in boot; `.eyebrow-row` padding-right 148px.
+- **Retired:** `test-coach-fab-drag.js` (named in `test-coach-header-button.js`).
+- **For UX-06a:** make the header buttons the mock's plain 44 px icon buttons (Search and Settings are 40 px circles).
+- **Next:** UX-05 (slot 42). Then BL-20 can build (its fill reads `var(--spot)`).

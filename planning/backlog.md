@@ -3787,7 +3787,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** it drops a feature: the draggable button and its remembered side (owner accepted, D2).
 - **Tools:** `Skill: apple-hig` (header controls); TOOL-01's harness.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The removal list is now explicit, a whole suite (`test-coach-fab-drag.js`) retires with the drag, and seven suites that pin the floating button are named for re-pinning. Criteria 3–5 added (target size, the removed code is really gone, an old stored position is cleaned up). Scope unchanged.
-- **Status:** ready (owner yes 2026-11-07, D2; **moved up to slot 41a, right after UX-04, owner 2026-11-16**: the coach button covers "Reorder days", "Log set" and text in the owner's screenshots). The owner accepted losing the drag and its remembered side. *Original question:* "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?"
+- **Status:** done (v3.586, PR #162, stacked on #161; moved up to slot 41a by the owner 2026-11-16). test-coach-fab-drag.js retired. Flagged: Search and Settings are 40 px circles beside the 44 px coach button; the mock draws all three as plain 44 px icon buttons (recommend UX-06a). The chat panel still opens at the bottom, above the keyboard.
 
 ### UX-17: Retire Gym mode once Today is the session
 - **Why:** after UX-06 to UX-08, Today is gym mode: the next set huge, one tap, rest on the cover. Keeping both doubles the surface to maintain, and gym mode's tests guard a second implementation.

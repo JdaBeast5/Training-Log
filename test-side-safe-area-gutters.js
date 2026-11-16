@@ -128,16 +128,18 @@ test('.analysis-index bleeds and re-pads by the same tokens', (assert)=>{
   assert.equal(resolve(pad[1], env, g.vars), 24); assert.equal(resolve(pad[3], env, g.vars), 40);
 });
 
-test('coach FAB carries both side insets as margin, and drops it while dragging (no sideways jump under the finger)', (assert)=>{
-  const m = parts(decl(ruleBlock('.coach-fab'), 'margin'));
-  const env = {left:40, right:24};
-  assert.equal(resolve(m[1], env, {}), 24); assert.equal(resolve(m[3], env, {}), 40);
-  assert.equal(decl(ruleBlock('.coach-fab.dragging'), 'margin'), '0');
+// 2026-11-16 (v3.586, UX-16): the coach button is a header button now (absolute,
+// inside the header like Search and Settings), so the .wrap gutters already
+// clear the side insets and it needs no margin of its own; the drag is gone.
+test('the coach button sits in the header like its neighbours, not fixed to a screen edge', (assert)=>{
+  assert.equal(decl(ruleBlock('.coach-fab'), 'position'), 'absolute');
+  assert.throws(() => decl(ruleBlock('.coach-fab'), 'margin'), /no margin declaration/);
 });
 
 test('today FAB, sticky day header and gym dock clear the side insets', (assert)=>{
   const env = {left:40, right:24};
-  assert.equal(resolve(decl(ruleBlock('.today-fab'), 'left'), env, {}), 58);
+  // 2026-11-16 (v3.586, UX-16): .today-fab has its own will-change rule now (the coach button left the shared one).
+  assert.equal(resolve(decl(ruleBlock('.today-fab', 'position:fixed'), 'left'), env, {}), 58);
   const dock = ruleBlock('.gym-dock', 'position:fixed');
   assert.equal(resolve(decl(dock, 'left'), env, {}), 50);
   assert.equal(resolve(decl(dock, 'right'), env, {}), 34);
