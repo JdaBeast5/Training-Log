@@ -7728,7 +7728,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.580';
+const APP_VERSION = '3.581';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9290,6 +9290,9 @@ const WHATS_NEW = {
   ]},  '3.580': { headline: 'A flatter, quieter look', points: [
     'The glow, glass and gradients are gone: screens sit on one near-black (or near-white) ground, cards are plain panels, and the main buttons are solid.',
     'Gym mode keeps its own look for now.',
+  ]},  '3.581': { headline: 'Share a finished session', points: [
+    'When you finish a session, the "Session complete!" banner now has a Share button: a card with your sets, lifts, minutes and any PRs from today.',
+    'It never shows total weight lifted, and clinical programs don\'t get a share card.',
   ]},
 };
 
@@ -30690,7 +30693,7 @@ async function renderWorkout(){
         // confetti burst are already built, and the one moment in the app that
         // has genuinely earned them is the last set of a session logged on a
         // screen stripped down to nothing but the work.
-        triggerCelebration('flag', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive);
+        triggerCelebration('flag', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive, await sessionShareStats(document.getElementById('exerciseList'), selectedLogDate, activeProgram));
         maybeShowTodayStandout();
         // The second way out of gym mode. This branch is already gated to the
         // actual completing click — a re-render never fires a checkbox 'change'
@@ -30895,6 +30898,34 @@ function triggerCelebration(iconName, text, sub, big, shareData){
   // either way; this only changes how long it waits.
   const holdMs = shareData ? 5000 : (big ? 2800 : 2200);
   celebrateTimeout = setTimeout(()=> banner.classList.remove('active'), holdMs);
+}
+
+// v3.581 (MKT-04): the share data for a finished session, read from what is
+// on the page and in storage, so it can be built for real outside
+// renderWorkout (and UX-09a's Share reuses it). SETS are set rows with reps,
+// LIFTS the exercise blocks holding one, MIN from the Gym clock when it ran,
+// else the logged-time window, PRS the PRs dated today. No total load by
+// default: tonnage rewards extra easy sets (alignment round, auditor N1).
+// Clinical programs get no share data.
+async function sessionShareStats(listEl, dateKey, program){
+  if(program === 'medical' || MEDICAL_STYLES[program]) return undefined;
+  const hasReps = (row)=>{ const r = row.querySelector('.ex-reps'); return !!r && String(r.value).trim() !== ''; };
+  const rows = listEl ? [...listEl.querySelectorAll('.set-row')] : [];
+  const sets = rows.filter(hasReps).length;
+  const lifts = listEl ? [...listEl.querySelectorAll('.exercise-block')].filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length : 0;
+  const stats = [{value: String(sets), label: 'SETS'}, {value: String(lifts), label: 'LIFTS'}];
+  let minutes = 0;
+  if(gymModeActive) minutes = Math.round(gymElapsedMs() / 60000);
+  if(!minutes){
+    const w = await getWorkoutTimeWindow(dateKey);
+    const toMin = (t)=>{ const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+    if(w && w.first && w.last) minutes = toMin(w.last) - toMin(w.first);
+  }
+  if(minutes > 0) stats.push({value: String(minutes), label: 'MIN'});
+  let prs = 0;
+  try{ prs = (await reconstructAllPRs()).filter(e=> e.date === dateKey).length; }catch(e){}
+  if(prs > 0) stats.push({value: String(prs), label: 'PRS'});
+  return {icon: 'flag', headline: 'SESSION COMPLETE', stats, kind: 'session', dayId: activeDay};
 }
 
 // [SHARE CARD] --------------------------------------------------------------

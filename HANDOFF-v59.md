@@ -1311,3 +1311,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Contrast pass:** the harness still has none; a scratch Playwright script compared every visible text node (4 views × 2 themes) against Branch-1. Worth folding into `tools/visual/` when D10/axe lands.
 - **Unused now:** `--index-glass-bg` (left in place; flag, not removed).
 - **Next:** the owner looks on device before UX-04 (roadmap). Don't build UX-04 until the owner answers; continue with any later item that doesn't depend on UX-03's look.
+
+## Addendum 105: MKT-04 (v3.581, PR #157, 2026-11-16)
+- **What:** `sessionShareStats(listEl, dateKey, program)` (pure async; SETS, LIFTS, MIN from the Gym clock or `workout-time:`, PRS dated today; `undefined` for clinical), passed awaited as the 5th argument of the one "Session complete!" `triggerCelebration` in `renderWorkout`. The call reads `document.getElementById('exerciseList')` so the handler runs outside the closure (test-superset-field-chaining drives it).
+- **For UX-09a:** reuse `sessionShareStats`; add the day label to the card there.
+- **Order note:** taken ahead of slots 41–48, which wait on the owner's on-device look at UX-03. Later non-UX items in sequence: BIZ-06 (55), BL-59 (55a), BL-20, BL-33, BL-31.
