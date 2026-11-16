@@ -3369,7 +3369,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Files:** `index.html` (34425; 29811 and `appSlug` at 7631 only if MKT-03 hasn't merged; `APP_VERSION` 7625; `WHATS_NEW` 7643), `sw.js`, `test-app-rename.js` (its 92–99 case moves from `APP_NAME.toLowerCase()` to the `appSlug()` form, unless MKT-03 already did it), `test-app-file-names.js` (new).
 - **Risk:** low. For Platestep the names don't change, so the What's New line says what is true: "Behind the scenes: every saved file takes its name from one place; old backups still restore."
 - **Spec refresh 3 (2026-11-09, against v3.528):** most of the original problem was fixed in v3.517 (see Why). The item stays as the `appSlug()` consolidation plus the wider literal guard; criteria 1–2 gained a "name with a space" check so they prove something, and criterion 4's allowlist is measured (it would otherwise fail on the AI prompt). Order kept; the PR body suggests the owner may drop it. Scope otherwise unchanged.
-- **Status:** ready
+- **Status:** done (v3.572, PR #148)
 
 ---
 

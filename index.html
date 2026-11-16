@@ -7719,7 +7719,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.571';
+const APP_VERSION = '3.572';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9257,6 +9257,8 @@ const WHATS_NEW = {
     'Twelve swap and rest-day options that showed no tips now have them.',
   ]},  '3.571': { headline: 'Everything you use stays free', points: [
     'Behind the scenes: a check that keeps everything you use today free. Nothing on screen changes.',
+  ]},  '3.572': { headline: 'Saved files, one name', points: [
+    'Behind the scenes: every saved file takes its name from one place; old backups still restore.',
   ]},
 };
 
@@ -35786,7 +35788,7 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
     const a = document.createElement('a');
     const dateStamp = getTodayKey();
     a.href = url;
-    a.download = `${APP_NAME.toLowerCase()}-backup-${(userProfile.name||'me').toLowerCase().replace(/\s+/g,'-')}-${dateStamp}.json`;
+    a.download = `${appSlug()}-backup-${(userProfile.name||'me').toLowerCase().replace(/\s+/g,'-')}-${dateStamp}.json`; // v3.572 (MKT-20): one slug for every file name
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
