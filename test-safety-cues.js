@@ -103,9 +103,12 @@ test('BL-06 criterion 2: no other exercise\'s cue count changed (snapshot from v
   const [now] = runSandbox([extractConst(src, 'exerciseInfo')], `const o = {}; for(const k in exerciseInfo) o[k] = exerciseInfo[k].cues.length; __capture.push(o);`);
   const edited = {'Depth Jump': 3, 'Rear Naked Choke Drill': 1, 'Armbar from Guard Drill': 1, 'Clinch Knee Drills': 1,
                   'Neck Bridges': 1}; // v3.528 (BL-05b)
-  const changed = Object.keys(now).filter(k => now[k] !== before(k) + (edited[k] || 0));
+  // v3.563 (BL-36): one exercise added since the snapshot, Drop Landing (stick it); it is outside the snapshot.
+  const added = ['Drop Landing (stick it)'];
+  const changed = Object.keys(now).filter(k => !added.includes(k) && now[k] !== before(k) + (edited[k] || 0));
   assert.deepStrictEqual(changed, []);
-  assert.strictEqual(Object.keys(now).length, 321, 'no exercise added or removed');
+  assert.strictEqual(Object.keys(now).length, 321 + added.length, 'no other exercise added or removed');
+  assert.ok(added.every(k => k in now), 'anchor: the added exercise is in the library');
 });
 
 // ---- v3.528 (BL-05b, audit SAF-4 cue part): Neck Bridges coach-only cue.
