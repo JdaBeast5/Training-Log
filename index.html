@@ -2006,6 +2006,8 @@
      (was .rpe-trend-labels on three and the same rule inline on two). */
   /* v3.436: the target as a quiet dashed reference line across the chart. */
   .trend-target{stroke:var(--text-muted); stroke-width:1.2; stroke-dasharray:5 5; opacity:0.7; vector-effect:non-scaling-stroke;}
+  /* v3.576 (BL-16): the smoothed trend over the raw weigh-ins. */
+  .weight-trend-line{stroke:var(--text); stroke-width:2; opacity:0.9; vector-effect:non-scaling-stroke; stroke-linejoin:round;}
   .trend-labels{
     display:grid; grid-template-columns:auto auto; grid-template-areas:"start end" "sum sum";
     column-gap:12px; row-gap:4px; margin-top:6px;
@@ -7733,7 +7735,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.575';
+const APP_VERSION = '3.576';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9281,6 +9283,9 @@ const WHATS_NEW = {
   ]},  '3.575': { headline: 'Add from yesterday', points: [
     'Once you\'ve started a day, the Repeat yesterday button becomes Add from yesterday: tap it to see yesterday\'s foods and add any one of them in a tap.',
     'On an empty day it still copies the whole day, as before.',
+  ]},  '3.576': { headline: 'A smoothed weight trend', points: [
+    'The weight chart now draws a smoothed trend line over your weigh-ins, so one water-heavy morning doesn\'t swing it.',
+    'Over two weeks or more, the weekly pace and the goal date come from that trend.',
   ]},
 };
 
@@ -42517,22 +42522,52 @@ function describeGoalPace(lastLb, goalLb, perWeekLb, lastDateKey){
   return `At this pace, ${goal} around ${formatDate(when, opts)}.`;
 }
 
+// v3.576 (BL-16): a smoothed trend weight, so one water-heavy morning doesn't
+// move the pace or the goal date. Exponential smoothing at 10% a day (the
+// Hacker's Diet method; citation not re-checked this session), gap-aware: a
+// weigh-in after d days gets alpha = 1 - 0.9^d, the weight a day-by-day series
+// would have given it. The first trend value is the first weigh-in. Pure:
+// sortedEntries is oldest first; returns a parallel array of trend values.
+function computeWeightTrend(sortedEntries){
+  const dayNum = (k)=> { const [y, m, d] = String(k).split('-').map(Number); return Date.UTC(y, m - 1, d) / 86400000; };
+  const out = [];
+  let trend = null, prev = null;
+  for(const e of sortedEntries){
+    const w = Number(e.weight);
+    if(trend == null){ trend = w; }
+    else {
+      const days = Math.max(1, dayNum(e.date) - dayNum(prev));
+      trend += (1 - Math.pow(0.9, days)) * (w - trend);
+    }
+    prev = e.date;
+    out.push(trend);
+  }
+  return out;
+}
+
 function renderSparkline(entries){
   const el = document.getElementById('weightChart');
   const rangeDays = getAnalysisTrendRangeDays();
-  const inRange = rangeDays == null ? entries : entries.filter(e=> e.date >= dateKeyMinusDays(getTodayKey(), rangeDays));
-  if(inRange.length < 2){
+  // v3.576 (BL-16): the trend runs over ALL entries, then is cut to the range,
+  // so changing the range never changes a trend value.
+  const all = [...entries].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const allTrend = computeWeightTrend(all);
+  const cutoff = rangeDays == null ? null : dateKeyMinusDays(getTodayKey(), rangeDays);
+  const keep = all.map((e, i)=> i).filter(i=> cutoff == null || all[i].date >= cutoff);
+  if(keep.length < 2){
     el.innerHTML = entries.length >= 2
       ? '<div class="empty-note">Not enough weigh-ins in this range. Widen the date range above to see older entries.</div>'
       : '<div class="empty-note">Log at least two weigh-ins to see your trend.</div>';
     return;
   }
-  const sorted = [...inRange].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const sorted = keep.map(i=> all[i]);
+  const trend = keep.map(i=> allTrend[i]);
   const weights = sorted.map(e=>e.weight);
   // v3.472: the goal joins the scale, so its line is always on the chart (as
-  // the nutrition targets do, v3.436).
+  // the nutrition targets do, v3.436). v3.576: so does the trend, which can sit
+  // outside the in-range weigh-ins after a cut.
   const goalLb = (typeof userProfile !== 'undefined' && userProfile.goalWeight) || null;
-  const scale = goalLb ? [...weights, goalLb] : weights;
+  const scale = goalLb ? [...weights, ...trend, goalLb] : [...weights, ...trend];
   const min = Math.min(...scale), max = Math.max(...scale);
   const range = (max-min) || 1;
   const w = 600, h = 70, pad = 8;
@@ -42542,13 +42577,27 @@ function renderSparkline(entries){
     const y = h - pad - ((e.weight-min)/range) * (h-2*pad);
     return `${x},${y}`;
   }).join(' ');
+  const trendPts = trend.map((t,i)=> `${pad + (i/(sorted.length-1)) * (w-2*pad)},${h - pad - ((t-min)/range) * (h-2*pad)}`).join(' ');
   const first = sorted[0].weight, last = sorted[sorted.length-1].weight;
   const deltaLb = last - first;
   const deltaClass = deltaLb > 0 ? 'w-up' : deltaLb < 0 ? 'w-down' : 'w-flat';
   const deltaSign = deltaLb > 0 ? '+' : '';
   const deltaDisplay = trimUnitNum(toDisplayWeight(deltaLb));
   const daySpan = Math.max(1, Math.round((new Date(sorted[sorted.length-1].date)-new Date(sorted[0].date))/86400000));
-  const perWeek = (deltaLb / daySpan) * 7;
+  // v3.576 (BL-16): over a range of 14 days or more, pace is the TREND's change
+  // since the most recent weigh-in at least 14 days back (both ends lag the
+  // same, so the slope is true); a shorter range keeps first-to-last.
+  const dayOf = (e)=> new Date(e.date);
+  let perWeek = (deltaLb / daySpan) * 7;
+  if(daySpan >= 14){
+    const lastDay = dayOf(sorted[sorted.length-1]);
+    let j = -1;
+    for(let i = sorted.length - 2; i >= 0; i--){ if((lastDay - dayOf(sorted[i])) / 86400000 >= 14){ j = i; break; } }
+    if(j >= 0){
+      const span = Math.round((lastDay - dayOf(sorted[j])) / 86400000);
+      perWeek = (trend[trend.length-1] - trend[j]) / span * 7;
+    }
+  }
   const perWeekDisplay = trimUnitNum(toDisplayWeight(Math.abs(perWeek)));
   let insightHtml = '';
   if(sorted.length >= 4){
@@ -42560,7 +42609,7 @@ function renderSparkline(entries){
       // right above and says whether the pace suits the goal.
       status = 'neutral'; text = `About ${perWeekDisplay} ${weightUnit} a week ${perWeek>0?'gain':'loss'} over this window.`;
     }
-    const goalNote = describeGoalPace(sorted[sorted.length-1].weight, goalLb, perWeek, sorted[sorted.length-1].date);
+    const goalNote = describeGoalPace(trend[trend.length-1], goalLb, perWeek, sorted[sorted.length-1].date); // v3.576: from the trend
     if(goalNote) text += ` ${goalNote}`;
     insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
   }
@@ -42574,6 +42623,7 @@ function renderSparkline(entries){
       </defs>
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
+      <polyline class="weight-trend-line" fill="none" points="${trendPts}"/>
       ${goalY == null ? '' : `<line class="trend-target" x1="${pad}" x2="${w-pad}" y1="${goalY}" y2="${goalY}"/>`}
     </svg>
     <div class="trend-labels">

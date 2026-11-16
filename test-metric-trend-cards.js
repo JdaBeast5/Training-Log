@@ -24,7 +24,7 @@ const renderBPTrendSrc = extractFunction(src, 'renderBPTrend');
 const renderGlucoseTrendSrc = extractFunction(src, 'renderGlucoseTrend');
 // 2026-10-28 (v3.472): renderSparkline adds the goal weight sentence through
 // describeGoalPace (test-goal-weight.js), so it and its date helpers load too.
-const renderSparklineSrc = ['parseDateKey', 'formatDate', 'describeGoalPace', 'renderSparkline'].map(n => extractFunction(src, n)).join('\n');
+const renderSparklineSrc = ['parseDateKey', 'formatDate', 'describeGoalPace', 'computeWeightTrend' /* v3.576 (BL-16) */, 'renderSparkline'].map(n => extractFunction(src, n)).join('\n');
 const toDisplayWeightSrc = extractFunction(src, 'toDisplayWeight');
 const trimUnitNumSrc = extractFunction(src, 'trimUnitNum');
 const fmtWeightSrc = extractFunction(src, 'fmtWeight');
@@ -97,7 +97,9 @@ test('REAL invocation (v3.441): the weight note reads "About N lb a week loss ov
     {date:'2026-08-15', weight:181}, {date:'2026-08-22', weight:179},
   ]);
   const note = document.querySelector('#weightChart .goal-feedback-neutral').textContent;
-  assert.match(note, /^About 2 lb a week loss over this window\.$/);
+  // v3.576 (BL-16): the fixture spans 21 days, so pace is the smoothed trend's
+  // change over the last 14 days (weekly 185, 183, 181, 179: 1.7 lb/wk; raw was 2).
+  assert.match(note, /^About 1\.7 lb a week loss over this window\.$/);
   assert.doesNotMatch(note, /Goal Progress Check|\//);
 });
 

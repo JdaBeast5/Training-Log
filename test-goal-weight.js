@@ -72,7 +72,7 @@ test('REAL invocation (v3.472): the goal sentence for each kind of pace', (asser
   assert.match(w.describeGoalPace(180, 170, -0.2, `${year}-11-01`), new RegExp(`around [A-Z][a-z]{2} \\d+, ${year + 1}\\.$`), 'a date in another year names the year');
 });
 
-const SPARK = [...fns('getTodayKey', 'dateKeyMinusDays', 'getAnalysisTrendRangeDays', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'parseDateKey', 'formatDate', 'describeGoalPace', 'renderSparkline')];
+const SPARK = [...fns('getTodayKey', 'dateKeyMinusDays', 'getAnalysisTrendRangeDays', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'parseDateKey', 'formatDate', 'describeGoalPace', 'computeWeightTrend' /* v3.576 (BL-16) */, 'renderSparkline')];
 function spark(goalWeight){
   const today = new Date(); const key = d => { const x = new Date(today); x.setDate(x.getDate() - d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; };
   const entries = [21, 14, 7, 0].map((d, i) => ({date:key(d), weight:184 - i}));
@@ -89,13 +89,15 @@ test('REAL invocation (v3.472): with a goal, a dashed line at it and the pace se
   const ys = doc.querySelector('#weightChart polyline').getAttribute('points').split(' ').map(p => Number(p.split(',')[1]));
   assert.ok(ys.every(y => y < 62), 'all the data sits above a lower goal');
   const note = doc.querySelector('#weightChart .goal-feedback-neutral').textContent;
-  assert.match(note, /^About 1 lb a week loss over this window\. At this pace, 175 lb around /);
+  // v3.576 (BL-16): the fixture spans 21 days, so pace now comes from the smoothed
+  // trend (184, 183, 182, 181 weekly: trend change over the last 14 days = 0.8 lb/wk).
+  assert.match(note, /^About 0\.8 lb a week loss over this window\. At this pace, 175 lb around /);
 });
 
 test('REAL invocation (v3.472): no goal, no line, no sentence, scale unchanged', (assert)=>{
   const doc = spark(null);
   assert.strictEqual(doc.querySelector('#weightChart line.trend-target'), null);
-  assert.strictEqual(doc.querySelector('#weightChart .goal-feedback-neutral').textContent, 'About 1 lb a week loss over this window.');
+  assert.strictEqual(doc.querySelector('#weightChart .goal-feedback-neutral').textContent, 'About 0.8 lb a week loss over this window.', 'v3.576 (BL-16): trend pace, as above');
   const ys = doc.querySelector('#weightChart polyline').getAttribute('points').split(' ').map(p => Number(p.split(',')[1]));
   assert.strictEqual(Math.max(...ys), 62, 'the lowest weigh-in still fills the chart');
 });
