@@ -49,7 +49,9 @@ test('sabotage-relevant: #7C97FF no longer appears as a real CSS/SVG color value
 test('REAL source (v3.580, UX-03): the former --cta-gradient-blue sites are flat ink or flat --spot-blue; .coach-progress-fill keeps its literal', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
   assert.doesNotMatch(rootBlock, /--cta-gradient-blue:/, 'the token is retired');
-  assert.match(extractRuleBlock(src, '.coach-fab'), /background:var\(--text\);/);
+  // 2026-11-16 (v3.586, UX-16): the coach button is a header button now, the same circle as Search and Settings.
+  assert.match(extractRuleBlock(src, '.coach-fab'), /background:var\(--glass-fill\);/);
+  assert.doesNotMatch(extractRuleBlock(src, '.coach-fab'), /gradient/);
   assert.match(extractRuleBlock(src, '.vol-bar-fill'), /background:var\(--spot-blue\);/);
   assert.match(extractRuleBlock(src, '.calendar-cell.selected'), /background:var\(--spot-blue\);/);
   assert.match(extractRuleBlock(src, '.coach-progress-fill'), /background:linear-gradient\(90deg, var\(--plate-blue\), #6E8AFF\);/);

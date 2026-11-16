@@ -71,7 +71,8 @@ test('REAL CSSOM: every bottom-floating element, and the page padding, clears th
   // padding covers the home indicator, so its measured height already holds
   // the safe area; adding it again would leave a gap.
   assert.doesNotMatch(root, /safe-area-inset-bottom/);
-  for(const sel of ['.rest-timer', '.undo-toast', '.coach-fab', '.today-fab', '.gym-offer']){
+  // 2026-11-16 (v3.586, UX-16): the coach button moved into the header, so it no longer floats over the bar.
+  for(const sel of ['.rest-timer', '.undo-toast', '.today-fab', '.gym-offer']){
     // The rule that positions it (a selector can also have media/state variants).
     const pos = allRules().filter(r => r.selectorText === sel && r.style.getPropertyValue('bottom'));
     assert.strictEqual(pos.length, 1, `${sel}: one positioning rule`);

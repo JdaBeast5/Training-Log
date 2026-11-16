@@ -34,9 +34,11 @@ test('sabotage-relevant: the old unlinked literal glow color (255,184,92 / #FFB8
 // brings ONE back on purpose: --cta-glow, "press me", on the primary button and
 // the floating coach button. The Today jump-back button stays a flat yellow
 // pill on a neutral float shadow, and neither uses an unlinked literal.
-test('the coach button glows through the shared --cta-glow token; the Today button floats on a neutral shadow, flat, no gradient', (assert)=>{
+// 2026-11-16 (v3.586, UX-16): the coach button no longer floats; it is a header
+// button beside Search and Settings, with no shadow or glow.
+test('the coach button is a flat header button (no glow); the Today button floats on a neutral shadow, flat, no gradient', (assert)=>{
   const coach = extractRuleBlock(src, '.coach-fab');
-  assert.match(coach, /box-shadow:var\(--cta-glow\);/, '.coach-fab glows via the shared token');
+  assert.doesNotMatch(coach, /box-shadow/, '.coach-fab casts nothing in the header');
   const today = extractRuleBlock(src, '.today-fab');
   assert.match(today, /box-shadow:0 10px 24px -10px rgba\(var\(--overlay-black-rgb\),0\.7\);/);
   assert.doesNotMatch(today, /rgba\(var\(--plate-(yellow|blue)-rgb\)/);

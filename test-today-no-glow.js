@@ -71,9 +71,12 @@ test('REAL CSSOM: the resting elements that cast shadows before v3.283 cast none
 // The discipline this file guards: plate-colour light reaches the screen ONLY
 // through that token, and only on the named interactive elements below.
 const GLOW_ALLOWED = new Set(['.save-btn', '.coach-fab']);
-test('GUARD: --cta-glow (the only glow) is used only by the primary button and the floating coach button', (assert)=>{
+// 2026-11-16 (v3.586, UX-16): the coach button moved into the header and lost its glow,
+// so the primary button is the token's one reader (anchor 2 -> 1).
+test('GUARD: --cta-glow (the only glow) is used only by the primary button (the coach button no longer floats)', (assert)=>{
   const users = allRules().filter(r => /var\(--cta-glow\)/.test(r.style.getPropertyValue('box-shadow'))).map(r => r.selectorText);
-  assert.ok(users.length >= 2, 'anchor: the token is in use');
+  assert.ok(users.length >= 1, 'anchor: the token is in use');
+  assert.ok(!users.includes('.coach-fab'), 'the header coach button does not glow');
   assert.deepStrictEqual(users.filter(sel => !GLOW_ALLOWED.has(sel)), []);
   for(const sel of ['.coach-fab::before', '.today-fab::before']) assert.strictEqual(allRules().find(r => r.selectorText === sel), undefined, `${sel} gloss must stay gone`);
 });
