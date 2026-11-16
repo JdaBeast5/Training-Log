@@ -180,4 +180,55 @@ test('BL-73 sabotage anchor: exactly one applyExerciseSubs swap site', (assert)=
   assert.strictEqual((body.match(/__isSubbed: true/g) || []).length, 1, 'one swap site; criterion 1 carries the behaviour');
 });
 
+// ---- v3.570 (BL-60, audit D-9): substitutes keep the same muscle and joint.
+// Real EXERCISE_SUBS, SUBSTITUTION_MAP, MUSCLE_GROUP_MAP, exerciseInfo,
+// EXERCISE_REGION_OVERRIDE, CATEGORY_TO_REGIONS, regionsForExercise and
+// applyExerciseSubs.
+// Sabotage: restore the Tibialis pair and criterion 1 fails; drop the
+// region-override lines and criterion 3 fails.
+const BL60 = [extractConst(src, 'exerciseInfo'), extractConst(src, 'EXERCISE_SUBS'), extractConst(src, 'SUBSTITUTION_MAP'), extractConst(src, 'MUSCLE_GROUP_MAP'),
+  extractConst(src, 'EXERCISE_REGION_OVERRIDE'), extractConst(src, 'CATEGORY_TO_REGIONS'), extractFunction(src, 'regionsForExercise')];
+// Every cross-group pair left at v3.528 after this item's three fixes (spec, measured).
+const CROSS_ALLOWED = ['Close-Grip Bench Press -> Dip (Bar/Ring)', 'Dip (Bar/Ring) -> Close-Grip Bench Press', 'Skull Crushers -> Close-Grip Bench Press',
+  'Clean & Jerk -> Push Press', 'Clean Pull -> Deadlift', 'Snatch Pull -> Deadlift', 'Jerk Dip Squat -> Push Press', 'Jerk Dip Squat -> Front Squat',
+  'Overhead Squat -> Front Squat', 'Power Clean -> Front Squat'];
+
+test('BL-60 criterion 1: every EXERCISE_SUBS target shares its original\'s muscle group, except the named allowlist (the sweep prints any other pair)', (assert)=>{
+  const [r] = runSandbox(BL60, `
+    const g = (n) => MUSCLE_GROUP_MAP[(exerciseInfo[n] || {}).category];
+    const cross = []; let n = 0;
+    for(const [k, v] of Object.entries(EXERCISE_SUBS)) for(const t of v){ n++; if(g(k) !== g(t)) cross.push(k + ' -> ' + t); }
+    __capture.push({n, cross, tib: EXERCISE_SUBS['Tibialis Raise'], calf: EXERCISE_SUBS['Calf Raise'], scalf: EXERCISE_SUBS['Standing Calf Raise'], carry: EXERCISE_SUBS['Farmers Carry (Heavy)']});`);
+  assert.ok(r.n > 100, 'anchor: pairs swept ' + r.n);
+  assert.deepStrictEqual(r.cross.filter(c => !CROSS_ALLOWED.includes(c)), []);
+  assert.deepStrictEqual([r.tib, r.calf, r.scalf, r.carry], [['Heel Walk', 'Banded Dorsiflexion'], ['Standing Calf Raise', 'Single-Leg Calf Raise'], ['Calf Raise', 'Single-Leg Calf Raise'], ['Suitcase Carry', "Farmer's Carry"]]);
+});
+
+test('BL-60 criterion 2: every SUBSTITUTION_MAP alternative and every EXERCISE_SUBS target has an exerciseInfo entry with at least 3 cues (Neck Bridges, a v3.564 swap-back, has 4)', (assert)=>{
+  const [r] = runSandbox(BL60, `
+    const names = new Set();
+    for(const v of Object.values(SUBSTITUTION_MAP)) for(const a of v.alts) names.add(a);
+    for(const v of Object.values(EXERCISE_SUBS)) for(const t of v) names.add(t);
+    __capture.push({n: names.size, bad: [...names].filter(n => !exerciseInfo[n] || (exerciseInfo[n].cues || []).length < 3)});`);
+  assert.ok(r.n > 100, 'anchor: names checked ' + r.n);
+  assert.deepStrictEqual(r.bad, []);
+});
+
+test('BL-60 criterion 3: regionsForExercise flags Ankle/Foot and Shins for Single-Leg Calf Raise, Heel Walk and Banded Dorsiflexion', (assert)=>{
+  const [r] = runSandbox(BL60, `__capture.push(['Single-Leg Calf Raise', 'Heel Walk', 'Banded Dorsiflexion'].map(n => regionsForExercise(n, exerciseInfo[n].category)));`);
+  for(const regions of r) assert.deepStrictEqual(regions, ['Ankle/Foot', 'Shins']);
+});
+
+test('BL-60 criteria 4 and 5: a stored Leg Press on a Calf Raise slot no longer applies (and is not deleted); a stored Single-Leg Calf Raise does', async (assert)=>{
+  const [old] = await subsRun({ 'exercise-sub:strength:d1:0': 'Leg Press' }, [{name:'Calf Raise', sets:'3×12-15'}]);
+  assert.strictEqual(old.name, 'Calf Raise');
+  assert.strictEqual(old.__isSubbed, undefined);
+  const [kept] = await runSandboxAsync([withMockStorage({ 'exercise-sub:strength:d1:0': 'Leg Press' }), ...staticChunks, extractFunction(src, 'slotIdOf'), extractFunction(src, 'applyExerciseSubs')], `
+    await applyExerciseSubs([{name:'Calf Raise'}], 'strength', 'd1');
+    const got = await window.storage.get('exercise-sub:strength:d1:0'); __capture.push(got && got.value);`);
+  assert.strictEqual(kept, 'Leg Press', 'the stored value stays');
+  const [now] = await subsRun({ 'exercise-sub:strength:d1:0': 'Single-Leg Calf Raise' }, [{name:'Calf Raise', sets:'3×12-15'}]);
+  assert.deepStrictEqual([now.name, now.__originalName, now.__isSubbed], ['Single-Leg Calf Raise', 'Calf Raise', true]);
+});
+
 run();

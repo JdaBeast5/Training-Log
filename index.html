@@ -7719,7 +7719,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.569';
+const APP_VERSION = '3.570';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9251,6 +9251,10 @@ const WHATS_NEW = {
   ]},  '3.569': { headline: 'Better exercise tips', points: [
     'Ten exercise tips now give an instruction instead of a claim: Hip Thrust, DB Curl, Leg Press, Deadlift, Lateral Raise, Dragon Flag, Front Lever, Dip, L-sit and Muscle-up.',
     'For example, the Deadlift now says hips and shoulders rise together, and the Muscle-up names its prerequisite: 10 strict pull-ups and 10 dips.',
+  ]},  '3.570': { headline: 'Swaps that work the same muscle', points: [
+    'Exercise swaps now keep the same muscle and joint: Tibialis Raise swaps to Heel Walk or Banded Dorsiflexion, calf raises to another calf raise, and the heavy farmer\'s carry to another carry.',
+    'If you\'d swapped Calf Raise for Leg Press, the swap is gone; your Leg Press history is kept.',
+    'Twelve swap and rest-day options that showed no tips now have them.',
   ]},
 };
 
@@ -14213,7 +14217,7 @@ const EXERCISE_SUBS = {
 
   // arms isolation (biceps/triceps/calves)
   'Cable Curl': ['DB Curl', 'EZ Bar Curl'],
-  'Calf Raise': ['Standing Calf Raise', 'Leg Press'],
+  'Calf Raise': ['Standing Calf Raise', 'Single-Leg Calf Raise'], // v3.570 (BL-60): calf for calf, not Leg Press
   'DB Curl': ['Cable Curl', 'Hammer Curl'],
   'Dip (Bar/Ring)': ['Triceps Dip', 'Close-Grip Bench Press'],
   'EZ Bar Curl': ['Cable Curl', 'DB Curl'],
@@ -14221,7 +14225,7 @@ const EXERCISE_SUBS = {
   'Overhead Triceps Extension': ['Skull Crushers', 'Rope Pushdown'],
   'Rope Pushdown': ['Triceps Pushdown', 'Overhead Triceps Extension'],
   'Skull Crushers': ['Overhead Triceps Extension', 'Close-Grip Bench Press'],
-  'Standing Calf Raise': ['Calf Raise', 'Leg Press'],
+  'Standing Calf Raise': ['Calf Raise', 'Single-Leg Calf Raise'], // v3.570 (BL-60)
   'Triceps Dip': ['Dip (Bar/Ring)', 'Triceps Pushdown'],
   'Triceps Pushdown': ['Rope Pushdown', 'Overhead Triceps Extension'],
 
@@ -14245,7 +14249,7 @@ const EXERCISE_SUBS = {
   'Cable Woodchopper': ['Pallof Press', 'Russian Twist (weighted)'],
   'Dead Bug': ['Mountain Climbers', 'McGill Curl-up'],
   'Dragon Flag': ['Toes-to-Bar', 'Hanging Leg Raise'],
-  'Farmers Carry (Heavy)': ['Suitcase Carry', 'Sandbag Lunges'],
+  'Farmers Carry (Heavy)': ['Suitcase Carry', "Farmer's Carry"], // v3.570 (BL-60): a carry for a carry, not a lunge
   'Hanging Leg Raise': ['Toes-to-Bar', 'Cable Crunch'],
   'Landmine Rotation': ['Cable Woodchopper', 'Pallof Press'],
   'McGill Curl-up': ['Dead Bug', 'Roll-Up'],
@@ -14255,7 +14259,7 @@ const EXERCISE_SUBS = {
   'Russian Twist (weighted)': ['Cable Woodchopper', 'Bicycle Crunch'],
   'Suitcase Carry': ['Farmers Carry (Heavy)', 'Pallof Press'],
   'The Hundred': ['Roll-Up', 'Weighted Sit-up'],
-  'Tibialis Raise': ['Standing Calf Raise', 'Calf Raise'],
+  'Tibialis Raise': ['Heel Walk', 'Banded Dorsiflexion'], // v3.570 (BL-60): the shin, not its antagonist
   'Toes-to-Bar': ['Hanging Leg Raise', 'Dragon Flag'],
   'Weighted Sit-up': ['V-Up', 'The Hundred'],
 };
@@ -45469,6 +45473,8 @@ const EXERCISE_REGION_OVERRIDE = {
   'Standing Calf Raise': ['Ankle/Foot','Shins'],
   'Eccentric Heel Drop': ['Ankle/Foot','Shins'],
   'Tibialis Raise':      ['Ankle/Foot','Shins'],
+  // v3.570 (BL-60): the new calf and shin swaps flag a resting ankle like their originals.
+  'Single-Leg Calf Raise': ['Ankle/Foot','Shins'], 'Heel Walk': ['Ankle/Foot','Shins'], 'Banded Dorsiflexion': ['Ankle/Foot','Shins'],
   'Leg Curl':            ['Knee','Hip'],
   'Nordic Curl':         ['Knee','Hip'],
   // v3.523 (BL-70, owner 2026-11-08 on the exercise auditor's advice): an
@@ -45546,6 +45552,7 @@ const SUB_BIRD_DOG   = {name:'Bird Dog', why:"keeps the bracing with no load on 
 const SUB_LYING_RAISE  = {name:'Lying Leg Raise (floor)', why:'trains the same hip flexion with no hanging on your grip or shoulders', for:['Hands/Fingers','Elbow/Wrist','Shoulder']};
 const EXERCISE_SUBSTITUTE_OVERRIDE = {
   'Eccentric Heel Drop': SUB_CALF_HOLD, 'Calf Raise': SUB_CALF_HOLD, 'Standing Calf Raise': SUB_CALF_HOLD,
+  'Single-Leg Calf Raise': SUB_CALF_HOLD, 'Heel Walk': null, 'Banded Dorsiflexion': null, // v3.570 (BL-60): as Calf Raise and Tibialis Raise
   'Hangboard Max Hang': SUB_FEET_ON_HANG, 'Hangboard Repeaters': SUB_FEET_ON_HANG, 'Lock-off Hold': SUB_FEET_ON_HANG,
   'Neck Bridges': SUB_NECK_ISO,
   '4-Way Neck Isometric (hand or band)': {name:'Chin Tucks', why:'gentle neck work with no resistance', for:['Neck']}, // v3.564 (BL-35)
