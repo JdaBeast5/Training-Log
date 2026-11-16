@@ -1264,3 +1264,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 94: BL-60 (v3.570, PR #146, 2026-11-16)
 - **What:** four EXERCISE_SUBS fixes; 12 exerciseInfo entries; Single-Leg Calf Raise, Heel Walk, Banded Dorsiflexion in EXERCISE_REGION_OVERRIDE and EXERCISE_SUBSTITUTE_OVERRIDE.
 - **Next:** BIZ-18a (slot 32).
+
+## Addendum 95: BIZ-18a (v3.571, PR #147, 2026-11-16)
+- **What:** `test-free-list-guard.js` scans static markup, four rendered views and renderWorkout's literals for lock/upgrade/Pro labels. Exact allowlist: `usda-key-upgrade-toggle` (5 buttons).
+- **Warning:** any new copy with "pro", "premium", "upgrade", "unlock" or "locked" as a whole word in markup or class names fails this guard.
+- **Next:** MKT-20 (slot 33).
