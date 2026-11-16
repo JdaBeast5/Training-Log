@@ -1255,3 +1255,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** four bodybuilding copy fixes (overview, deload tip, sleep tip, hypertrophy insight). `test-copy-truth.js`.
 - **Flagged:** the Care sleep card (static markup) still says growth hormone peaks in deep sleep; candidate one-line follow-up.
 - **Next:** the next ready item in the Unified build sequence after slot 30.
+
+## Addendum 93: BL-25 (v3.569, PR #145, 2026-11-16)
+- **What:** ten cues rewritten in place (audit §4 strings); counts unchanged.
+- **Flagged:** Dip (Bar/Ring) cue 1 still says lower until the shoulders dip below the elbows, against the new cue 3.
+- **Next:** BL-60 (slot 31a).

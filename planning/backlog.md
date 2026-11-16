@@ -921,7 +921,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `content-exercises.js`, `index.html` (`APP_VERSION` 7625 and the `WHATS_NEW` entry only, appended to the object at 7643), `sw.js`, `test-safety-cues.js`. Guards: `test-concise-cues.js` (counts, 24-word cap, `MUST_KEEP`), `test-masterclass-technique-render-consolidation.js`, `test-exercise-demos-removed.js` (also extracts `buildDetailsHtml`).
 - **Risk:** cue caps and counts. Guarded by `test-concise-cues.js` and `test-safety-cues.js`. If BL-35 (slot 8) has already replaced Neck Bridges, the totals in those two suites will already differ from v3.528's 321/971; this item changes neither total.
 - **Spec refresh 3 (2026-11-09, against v3.528):** line numbers re-checked in `content-exercises.js` (unchanged since v3.514; Front Lever Hold is 171, L-sit Hold 172). The audit's exact strings are now in the item, the Muscle-up prerequisite is a rewrite (so no cue count moves and no snapshot re-pin is needed), the BL-64 overlap on Front Lever is split by cue, and the two in-app tips are left to BL-12. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.569, PR #145). Flagged: Dip cue 1 ("shoulders dip below your elbows") now contradicts the new cue 3.
 
 ### BL-26: Plateau message names the stall and offers choices
 - **Why:** long-term progression is Fitbod's top complaint (research §4). Today a stall is silent until the RPE-9 deload signal fires (signal 1 in `analyzeProgressionSignal`, 27602–27614). GZCLP changes the rep scheme before cutting load [PRAC].
