@@ -55,7 +55,7 @@ test('REAL invocation: renderHeader shows the name as typed, not force-uppercase
 
 test('REAL invocation: renderStreak draws a flame outline (aria-hidden), no emoji, the count in its own span, then animates in place', async (assert)=>{
   const { window } = runJsdom('<div id="streakBadge" style="display:none"></div>',
-    'var __n = 5; async function computeStreak(){ return __n; } window.__animated = []; function animateNumberTo(el, v){ window.__animated.push(v); el.textContent = String(v); } async function checkStreakMilestone(){}',
+    'var __n = 5; async function computeWeekStreak(){ return __n; } window.__animated = []; function animateNumberTo(el, v){ window.__animated.push(v); el.textContent = String(v); } async function checkStreakMilestone(){}',
     [extractConst(src, 'STREAK_FLAME_SVG'), extractFunction(src, 'renderStreak'),
      'window.__first = renderStreak();']);
   await window.__first;
@@ -64,7 +64,9 @@ test('REAL invocation: renderStreak draws a flame outline (aria-hidden), no emoj
   const svg = el.querySelector('svg.streak-flame');
   assert.ok(svg && svg.getAttribute('aria-hidden') === 'true');
   assert.ok(!EMOJI.test(el.textContent), el.textContent);
-  assert.strictEqual(el.textContent.trim(), '5 days streak');
+  // v3.566 (MKT-01): the badge counts training weeks.
+  assert.strictEqual(el.textContent.trim(), '5 wk');
+  assert.strictEqual(el.getAttribute('aria-label'), '5 training weeks in a row');
   window.__n = 6; await window.eval('renderStreak()');
   assert.deepStrictEqual(Array.from(window.__animated), [6], 'a second render animates the existing number instead of rebuilding');
   assert.strictEqual(el.querySelectorAll('svg.streak-flame').length, 1);

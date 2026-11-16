@@ -3010,7 +3010,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - Today's Priorities and the weekly recap may read the streak. Guarded by `test-streak.js`, `test-weekly-recap.js` and `test-today-priorities.js`.
 - **Summit note (summit 2026-11-07):** Preferred implementation: a new namespaced key, `week-streak-last-celebrated`, through `window.storage`, with the old key left alone. That avoids a `SCHEMA_VERSION` bump just to reset a celebration counter (summit §1.7). The streak number lives in UX-11's strip; no confetti.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the summit's key choice made the spec (it was a note beside a contradicting Change line); the `test-header-refresh.js` re-pin found. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.566, PR #142). Celebration kept per criterion 1 (the summit's "no confetti" note conflicts; flagged in the PR).
 
 ### MKT-02: Share cards carry no body data by default
 - **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, `index.html` 45708; the rows at 45756–45758). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
