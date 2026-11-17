@@ -27,7 +27,7 @@
 // possible proof of "same pattern, same guarantee" without live layout.
 // The live browser confirmation (real elementFromPoint hit-testing) is
 // documented in the commit, not re-derived here.
-const { readIndexSource, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, runJsdom, makeRunner, extractFunction } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-sticky-day-header-overlap.js');
@@ -120,7 +120,9 @@ test('REAL invocation: clicking #stickyDayHeader scrolls #dayTitle (the exact el
     <div id="stickyDayHeader"></div>
     <div id="dayTitle"></div>
   `;
-  const { document } = runJsdom(bodyHtml, '', [extractClickWiring(src)]);
+  // 2026-11-17 (v3.605, UX-24): the click goes to stickyDayAnchor(): the
+  // cover while it shows, #dayTitle otherwise (both cases below).
+  const { document } = runJsdom(bodyHtml, '', [extractFunction(src, 'stickyDayAnchor'), extractClickWiring(src)]);
   const dayTitle = document.getElementById('dayTitle');
   let scrolledWith = null;
   dayTitle.scrollIntoView = (opts)=>{ scrolledWith = opts; };
@@ -129,6 +131,13 @@ test('REAL invocation: clicking #stickyDayHeader scrolls #dayTitle (the exact el
 
   assert.ok(scrolledWith, 'clicking the header must actually call scrollIntoView on the real day title — not do nothing');
   assert.strictEqual(scrolledWith.block, 'start', 'must scroll the day title fully into view at the top, not just barely on-screen');
+
+  const withCover = runJsdom(`<div id="stickyDayHeader"></div><section id="upNext"></section><div id="dayTitle"></div>`, '', [extractFunction(src, 'stickyDayAnchor'), extractClickWiring(src)]).document;
+  let cover = null, title = null;
+  withCover.getElementById('upNext').scrollIntoView = (o)=>{ cover = o; };
+  withCover.getElementById('dayTitle').scrollIntoView = (o)=>{ title = o; };
+  withCover.getElementById('stickyDayHeader').click();
+  assert.ok(cover && cover.block === 'start' && !title, 'with the cover showing, back to the cover (the day title isn\'t displayed)');
 });
 
 run();

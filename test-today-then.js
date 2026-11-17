@@ -17,6 +17,10 @@
 //
 // Sabotage: show the hero beside the cover and criterion 2 fails; put the
 // blue back on the ready chip and criterion 5 fails.
+//
+// v3.605 (UX-24) extends it: the open exercise's logger and actions, the
+// extras under the list, the notes, Getting Started and the sticky header.
+// Sabotage: restore the logger panel's gradient and UX-24 criterion 1 fails.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -246,7 +250,7 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
     'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
     'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
-    'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
+    'renderUpNext', 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
   FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
       <div id="mesocyclePhaseTag"></div><div id="exerciseList">${LIST}</div>`, `
@@ -280,6 +284,158 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
   const g = gym.doc.querySelector('#exerciseList .exercise-block'); g.classList.add('is-now');
   assert.ok(!g.matches(sel), 'not in gym mode');
   assert.strictEqual(ui.cs(b).position, 'relative');
+});
+
+// ── v3.605 (UX-24): the open exercise and the session's extras ──────────────
+// The open block, as renderWorkout builds it: the real exLoggerHtml, and the
+// real History/Edit and Same as Last Time strings from renderWorkout (taken
+// from its source and evaluated with one exercise), then "+ Add set".
+const STATEMENT = start => { const i = src.indexOf(start); if(i === -1) throw new Error('not found: ' + start); return src.slice(i, src.indexOf(';\n', i) + 1); };
+const OPEN_BLOCK = (()=>{
+  const { window } = runJsdom('', `var i = 0, ex = {name: 'Bench Press'}, prior = true, priorIsCrossProgram = false, sameAsLastHtml = '';
+    function programLabelFor(){ return ''; }`, [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractFunction(src, 'exLoggerHtml'),
+    STATEMENT('const historyBtnHtml ='), STATEMENT('sameAsLastHtml = (prior ?'), 'window.__html = [exLoggerHtml(), historyBtnHtml, sameAsLastHtml];']);
+  const [logger, , actions] = window.__html;
+  return `<div class="expand-wrap"><div>${logger.replace(' hidden>', '>')}<div class="sets-block"><div class="set-actions" data-ex-idx="0">${actions}</div>
+    <button class="add-set-btn" type="button">+ Add set</button></div></div></div>`;
+})();
+function openPage(bodyClass){
+  const ui = page(bodyClass);
+  const block = ui.doc.querySelector('#exerciseList .exercise-block');
+  block.querySelector('.expand-wrap').outerHTML = OPEN_BLOCK;
+  block.classList.add('open');
+  ui.$('dayInsight').textContent = 'Balance insight: more pulling than pushing this week.';
+  ui.$('todayStandoutBanner').style.display = ''; ui.$('todayStandoutBanner').textContent = 'Best week yet on bench.';
+  ui.$('onboardingCard').style.display = '';
+  ui.$('onboardingRows').innerHTML = '<div class="onboarding-row done"><span class="onboarding-check"></span><span>Log a set</span></div><div class="onboarding-row"><span class="onboarding-check"></span><span>Set a goal</span></div>';
+  ui.$('archiveWeekWrap').style.display = ''; ui.$('weekShareWrap').style.display = '';
+  return ui;
+}
+const UX24_TARGETS = ui => ({
+  block: ui.doc.querySelector('#exerciseList .exercise-block.open'),
+  logger: ui.doc.querySelector('#exerciseList .ex-logger'), logBtn: ui.doc.querySelector('#exerciseList .ex-logger-go'),
+  field: ui.doc.querySelector('#exerciseList .ex-logger .up-next-field'),
+  same: ui.doc.querySelector('#exerciseList .same-as-last-btn'), history: ui.doc.querySelector('#exerciseList .ex-history-btn'), edit: ui.doc.querySelector('#exerciseList .ex-edit-btn'),
+  addSet: ui.doc.querySelector('#exerciseList .add-set-btn'), addCustom: ui.$('addCustomExerciseBtn'), adapt: ui.$('adaptWorkoutBtn'),
+  standout: ui.$('todayStandoutBanner'), insight: ui.$('dayInsight'), onboarding: ui.$('onboardingCard'), onboardingCheck: ui.doc.querySelector('#onboardingCard .onboarding-row:not(.done) .onboarding-check'),
+  share: ui.$('weekShareBtn'),
+});
+const BIG_RADIUS = /var\(--(radius-pill|radius-card|radius-lg|r-sheet)\)|999px/;
+
+test('UX-24 criterion 1: the open logger, its actions, the extras, the notes and Getting Started: no backdrop-filter, gradient, blurred shadow, plate blue or radius ≥ 20 px', (assert)=>{
+  const ui = openPage('day-red has-cover today-cover');
+  const bad = [];
+  for(const [name, el] of Object.entries(UX24_TARGETS(ui))){
+    assert.ok(el, 'anchor: ' + name + ' is in the real markup');
+    const c = ui.cs(el);
+    const bg = (cascade(el, ['background', 'background-color', 'background-image']) || {value: ''}).value;
+    const sh = (cascade(el, ['box-shadow']) || {value: 'none'}).value;
+    const br = (cascade(el, BORDER.concat(['border-left', 'border-left-color'])) || {value: ''}).value;
+    const rad = (cascade(el, ['border-radius']) || {value: '0'}).value;
+    if(c.getPropertyValue('backdrop-filter') && c.getPropertyValue('backdrop-filter') !== 'none') bad.push(name + ' backdrop-filter');
+    if(/gradient\(|--glass-|--cta-gradient/.test(bg)) bad.push(name + ' background ' + bg);
+    if(sh !== 'none' && /(\d+(\.\d+)?px\s+){2}[1-9]/.test(sh.replace(/var\([^)]*\)/g, ''))) bad.push(name + ' blurred shadow ' + sh);
+    if(/var\(--(glass-shadow|cta-glow|rim)\)/.test(sh)) bad.push(name + ' token shadow ' + sh);
+    if(/plate-blue|spot-blue/.test(bg + br + c.color + sh)) bad.push(name + ' plate blue');
+    // A percentage is of the element's own box: the 20 px check circle's 50% is a 10 px radius.
+    const radPx = /%$/.test(rad) ? parseFloat(rad) / 100 * parseFloat(c.width || '0') : parseFloat(rad);
+    if(BIG_RADIUS.test(rad) || radPx >= 20) bad.push(name + ' radius ' + rad);
+  }
+  assert.deepStrictEqual(bad, []);
+  // The specifics the spec names.
+  const t = UX24_TARGETS(ui);
+  assert.strictEqual(cascade(t.logger, ['background', 'background-color']).value, 'var(--surface-1)');
+  assert.strictEqual(cascade(t.logger, BORDER).value, '1px solid var(--rule)');
+  assert.strictEqual(cascade(t.logBtn, ['background', 'background-color']).value, 'var(--text)', 'Log is the cover\'s action: ink fill');
+  assert.strictEqual(ui.cs(t.logBtn).color, 'var(--ground)');
+  assert.strictEqual(ui.cs(t.same).color, 'var(--text)', 'Same as Last Time: a text button in ink');
+  assert.strictEqual(cascade(t.addSet, BORDER).value, '1.5px dashed var(--rule-strong)');
+  for(const n of ['addCustom', 'adapt']){
+    assert.strictEqual(cascade(t[n], ['border-top', 'border-top-color']).value, '1px solid var(--rule)', n + ': a top rule');
+    assert.ok(t[n].querySelector('svg.extra-icon'), n + ': a leading icon');
+    assert.strictEqual(ui.cs(t[n].querySelector('svg.extra-icon')).display, 'block');
+  }
+  for(const n of ['standout', 'insight']){
+    assert.strictEqual(cascade(t[n], ['border-left']).value, '2px solid var(--rule-strong)', n + ': a 2 px rule');
+    assert.strictEqual(ui.cs(t[n]).color, 'var(--text)');
+  }
+  assert.ok(['transparent', 'rgba(0, 0, 0, 0)'].includes(ui.cs(t.onboarding).backgroundColor), 'Getting Started: no card');
+  assert.strictEqual(cascade(t.onboardingCheck, ['border-color', 'border-top-color']).value, 'var(--rule-strong)', 'an open step: a circle in --rule-strong');
+  assert.strictEqual(cascade(ui.doc.querySelector('#onboardingCard .onboarding-row.done .onboarding-check'), ['background', 'background-color']).value, 'var(--text)', 'a done step: ink, not plate green');
+  // Gym mode is untouched (UX-17): the extras keep their own rules.
+  const gym = openPage('day-red has-cover gym-mode');
+  assert.ok(!/not\(\.gym-mode\)/.test((cascade(gym.doc.querySelector('#exerciseList .same-as-last-btn'), ['background', 'background-color']) || {sel: ''}).sel), 'gym mode keeps its own Same as Last Time');
+});
+
+test('UX-24 criterion 2: every one of those controls is at least 44 px tall and has an accessible name (the real markup)', (assert)=>{
+  const ui = openPage('day-red has-cover');
+  const t = UX24_TARGETS(ui);
+  const controls = {logBtn: t.logBtn, same: t.same, history: t.history, edit: t.edit, addSet: t.addSet, addCustom: t.addCustom, adapt: t.adapt,
+    dismiss: ui.$('onboardingDismiss'), share: t.share};
+  for(const [name, el] of Object.entries(controls)){
+    const s = ui.cs(el);
+    const h = Math.max(parseFloat(s.minHeight) || 0, parseFloat(s.height) || 0);
+    assert.ok(h >= 44, `${name}: ${h}px tall`);
+    const label = (el.getAttribute('aria-label') || el.textContent).trim();
+    assert.ok(label.length > 2, `${name}: named "${label}"`);
+  }
+  assert.strictEqual(t.addCustom.textContent.trim(), 'Add custom exercise', 'the icon carries the plus');
+  assert.strictEqual(t.adapt.textContent, 'Adapt for limited equipment or time');
+  assert.match(t.history.getAttribute('aria-label'), /^See all history for Bench Press$/);
+});
+
+test('UX-24 criterion 3: the sticky header prints "Set 3 of 6 · Bench Press" from the cover (the real renderUpNext), the day name with no next set; a flat rule, no blur', (assert)=>{
+  const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
+    'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
+    'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'syncStickyDayTitle',
+    'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
+  FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
+  const six = [0, 1, 2, 3, 4, 5].map(k => k < 2 ? ROW(0, k, '185', '5') : ROW(0, k)).join('');
+  const list = `<div class="exercise-block">${HEAD(0, 'Bench Press').replace('4×4-6', '6×4-6')}<div class="set-chips" role="group"></div><div class="expand-wrap"><div><div class="sets-block">${six}</div></div></div></div>`;
+  const { window } = runJsdom(extractElementById(src, 'upNext') + extractElementById(src, 'stickyDayHeader') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
+      <div id="mesocyclePhaseTag"></div><div id="exerciseList">${list}</div>`, `
+    var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
+    function renderCoverBar(){} function refreshGymLogBtn(){} ${STUBS}`, FNS);
+  const doc = window.document, title = doc.getElementById('stickyDayTitle');
+  title.dataset.day = 'Day 1 — Upper · Strength'; // as renderWorkout writes it
+  window.renderAllSetChips(); window.renderUpNext();
+  assert.strictEqual(doc.getElementById('upNextLabel').textContent, 'Set 3 of 6', 'anchor: the cover');
+  assert.strictEqual(title.textContent, 'Set 3 of 6 · Bench Press');
+  for(const r of doc.querySelectorAll('.set-row')){ r.querySelector('.ex-weight').value = '185'; r.querySelector('.ex-reps').value = '5'; }
+  window.renderAllSetChips(); window.renderUpNext();
+  assert.strictEqual(title.textContent, 'Day 1 — Upper · Strength', 'no next set: the day name');
+  // renderWorkout hands the day name over through the same function.
+  const rw = extractFunction(src, 'renderWorkout');
+  assert.match(rw, /getElementById\('stickyDayTitle'\)\.dataset\.day = `\$\{day\.label\} — \$\{day\.sub\}`;\s*syncStickyDayTitle\(\);/);
+  const ui = page('day-red has-cover');
+  const h = ui.$('stickyDayHeader');
+  const sh = cascade(h, ['box-shadow']).value;
+  assert.strictEqual(sh, 'none', 'no raised shadow');
+  assert.strictEqual(cascade(h, ['background', 'background-color']).value, 'var(--ground)');
+  assert.strictEqual(cascade(h, ['border-bottom']).value, '1px solid var(--rule)');
+  const dot = ui.$('stickyDayPlateIcon'); dot.className = 'day-plate-inline plate-red';
+  assert.strictEqual(ui.cs(dot).width, '10px');
+  assert.strictEqual(ui.cs(dot).borderRadius, '0px', 'a square');
+  assert.strictEqual(cascade(dot, ['background', 'background-color']).value, 'var(--spot)');
+});
+
+test('UX-24: the sticky header follows the cover while it shows (#dayTitle isn\'t displayed then), and #dayTitle otherwise (the real observer, IntersectionObserver stubbed)', (assert)=>{
+  const { window } = runJsdom(`<div id="todayView"></div><section id="upNext"></section><div id="dayTitle"></div><div id="stickyDayHeader"></div>`, `
+    var dayHeaderObserver = null;
+    window.__io = null;
+    window.IntersectionObserver = class { constructor(cb){ this.cb = cb; this.targets = []; window.__io = this; } observe(t){ this.targets.push(t); } disconnect(){} };`,
+    [extractFunction(src, 'stickyDayAnchor'), extractFunction(src, 'setupStickyDayHeaderObserver'), 'setupStickyDayHeaderObserver();']);
+  const doc = window.document, io = window.__io, sticky = doc.getElementById('stickyDayHeader');
+  assert.strictEqual(JSON.stringify(io.targets.map(t => t.id)), '["upNext","dayTitle"]', 'both are watched');
+  const fire = (id, isIntersecting, top) => io.cb([{target: doc.getElementById(id), isIntersecting, boundingClientRect: {top}}]);
+  fire('dayTitle', false, 0); // display:none beside the cover: never "scrolled past"
+  fire('upNext', false, -400);
+  assert.ok(sticky.classList.contains('visible'), 'the cover scrolled past: shown');
+  fire('upNext', true, 10);
+  assert.ok(!sticky.classList.contains('visible'), 'the cover back in view: hidden');
+  doc.getElementById('upNext').hidden = true;
+  fire('dayTitle', false, -80);
+  assert.ok(sticky.classList.contains('visible'), 'no cover: the day title decides, as before');
 });
 
 run();

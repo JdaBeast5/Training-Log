@@ -62,7 +62,7 @@ test('REAL invocation: the set sheet and Up next show the same call the chip car
     // 2026-11-17 (v3.593, UX-06a): renderUpNext draws the cover too (its numeral, chips and caution).
     // 2026-11-17 (v3.596, UX-07): the cover's loaded bar is stubbed (test-plate-stack.js drives it).
     "var weightUnit = 'lb', activeProgram = 'p', exerciseDetailPinned = true; function icon(){ return ''; } function renderCoverBar(){}",
-    [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'numericPlaceholder'), extractFunction(src, 'renderUpNext'), extractFunction(src, 'fillSetLogger'), // v3.376: shared with the exercise logger
+    [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'numericPlaceholder'), extractFunction(src, 'renderUpNext'), extractFunction(src, 'syncStickyDayTitle'), /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ extractFunction(src, 'fillSetLogger'), // v3.376: shared with the exercise logger
      ...['readSetLogger', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'escapeHtml'].map(n => extractFunction(src, n)),
      `document.querySelector('.set-chip')._values = ${JSON.stringify(values)}; renderUpNext();`]).window;
   assert.strictEqual(card.document.getElementById('upNextWhy').textContent, 'Go up 5 — 8 reps at RPE 7 last set');
