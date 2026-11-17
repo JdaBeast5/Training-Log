@@ -5461,6 +5461,47 @@
   body:not(.gym-mode) #exerciseList .set-chip.is-done .set-chip-check{display:inline-flex;}
   .set-chip-check svg{width:14px; height:14px;}
 
+  /* ── The open exercise and the session's extras (v3.605, UX-24) ────────
+     The last 2.0 surfaces in the session, in the world's ink (not in gym
+     mode): the open exercise's logger is a flat panel with the cover's fields
+     and action; its actions are text buttons; the extras under the list are
+     ruled text rows; notes carry a 2 px rule, not a tinted box. */
+  body:not(.gym-mode) #exerciseList .exercise-block.open:not(.superset-pair){margin:0; padding:2px 0; background:none; border-radius:0;}
+  body:not(.gym-mode) #exerciseList .ex-logger{padding:14px; background:var(--surface-1); border:1px solid var(--rule); border-radius:14px; box-shadow:none;}
+  body:not(.gym-mode) #exerciseList .ex-logger .up-next-field{background:none; border:1.5px solid var(--rule-strong); border-radius:12px;}
+  body:not(.gym-mode) #exerciseList .ex-logger .up-next-field:focus-within{border-color:var(--text); outline:2px solid var(--text); outline-offset:2px;}
+  body:not(.gym-mode) #exerciseList .ex-logger .up-next-field input{font-family:var(--font-sans);}
+  body:not(.gym-mode) #exerciseList .ex-logger .up-next-field input::placeholder{color:var(--text-3);}
+  body:not(.gym-mode) #exerciseList .ex-logger .ex-logger-go{min-height:52px; border-radius:var(--r-control); background:var(--text); color:var(--ground); box-shadow:none;}
+  body:not(.gym-mode) #exerciseList .same-as-last-btn,
+  body:not(.gym-mode) #exerciseList .ex-history-btn,
+  body:not(.gym-mode) #exerciseList .ex-edit-btn{display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 8px 0 0; background:none; border:none; border-radius:0; box-shadow:none; color:var(--text); font-size:14px; font-weight:600;}
+  body:not(.gym-mode) #exerciseList .same-as-last-btn{flex:1 1 auto; justify-content:flex-start; text-align:left;}
+  body:not(.gym-mode) #exerciseList .ex-history-btn svg,
+  body:not(.gym-mode) #exerciseList .ex-edit-btn svg{color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .add-set-btn{align-self:stretch; width:100%; min-height:44px; padding:0 12px; margin-top:6px; background:none; border:1.5px dashed var(--rule-strong); border-radius:12px; color:var(--text-2); font-size:14px;}
+  /* Extras: full-width text rows with a leading icon and a top rule. */
+  body:not(.gym-mode) #addCustomExerciseBtn,
+  body:not(.gym-mode) #adaptWorkoutBtn{display:flex; align-items:center; gap:10px; width:100%; min-height:44px; margin:0; padding:12px 0; background:none; border:none; border-top:1px solid var(--rule); border-radius:0; box-shadow:none; color:var(--text); text-align:left; font-size:15px; font-weight:500; text-wrap:pretty;}
+  body:not(.gym-mode) #workoutCard .session-extras{margin-top:0;}
+  .extra-icon{display:none;}
+  body:not(.gym-mode) .extra-icon{display:block; width:18px; height:18px; flex:0 0 auto; color:var(--text-2);}
+  /* Notes: ink text with a 2 px rule along the left, no tinted box. */
+  body:not(.gym-mode) #workoutCard .day-insight,
+  body:not(.gym-mode) #workoutCard .today-standout-banner{margin:10px 0 14px; padding:2px 0 2px 12px; background:none; border:none; border-left:2px solid var(--rule-strong); border-radius:0; color:var(--text); font-size:13.5px;}
+  body:not(.gym-mode) #weekShareBtn{min-height:44px; background:none; border:1px solid var(--rule-strong); border-radius:12px; box-shadow:none; color:var(--text);}
+  /* Getting Started: a ruled list on the ground, not a card. */
+  body:not(.gym-mode) #onboardingCard{background:transparent; border:none; border-radius:0; box-shadow:none; padding:0;}
+  body:not(.gym-mode) #onboardingCard::before{display:none;}
+  body:not(.gym-mode) #onboardingCard .onboarding-row{border-bottom-color:var(--rule);}
+  body:not(.gym-mode) #onboardingCard .onboarding-check{border-color:var(--rule-strong);}
+  body:not(.gym-mode) #onboardingCard .onboarding-row.done .onboarding-check{background:var(--text); border-color:var(--text); color:var(--ground);}
+  body:not(.gym-mode) #onboardingDismiss{display:block; min-height:44px;}
+  /* The sticky header: the lexicon line on the ground, a 1 px rule, the
+     day's ink as a 10 px square. */
+  body:not(.gym-mode) .sticky-day-header{background:var(--ground); border-bottom:1px solid var(--rule); box-shadow:none;}
+  body:not(.gym-mode) .sticky-day-header .day-plate-inline{width:10px; height:10px; border:none; border-radius:0; background:var(--spot); box-shadow:none;}
+
   /* ── The offer ────────────────────────────────────────────────────────────
      Shown once, on the first logged set, and never again in either direction —
      the answer becomes the standing preference. Deliberately NOT a modal: it
@@ -6442,7 +6483,7 @@
     </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="exerciseList"></div>
-    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
+    <button class="custom-toggle" id="addCustomExerciseBtn"><svg class="extra-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add custom exercise</span></button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
       <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
       <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
@@ -6459,7 +6500,7 @@
          is general advice; above the list they pushed the first set row
          ~1130px down. Gym mode, today's standout and the voice tip stay up top. -->
     <div class="session-extras">
-      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Adapt for limited equipment or time</button>
+      <button class="adapt-workout-toggle" id="adaptWorkoutBtn"><svg class="extra-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 8h14 M15 4.5 18.5 8 15 11.5 M19.5 16h-14 M9 12.5 5.5 16 9 19.5"/></svg><span>Adapt for limited equipment or time</span></button>
       <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
         <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
         <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
@@ -8222,7 +8263,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.604';
+const APP_VERSION = '3.605';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9867,6 +9908,11 @@ const WHATS_NEW = {
   '3.604': { headline: 'Then', points: [
     'Under the cover, the rest of the day is a quiet list headed Then, without a second copy of the day\'s name.',
     'Logged sets are filled in with a check, the next one has a bold outline, and the exercise on the cover is marked in the day\'s colour.',
+  ]},
+  '3.605': { headline: 'The open exercise, in the same ink', points: [
+    'Opening an exercise shows a plain panel with the cover\'s fields and Log button; Same as Last Time, History and Edit are simple text buttons.',
+    'Add custom exercise and Adapt are ruled rows, tips are notes with a thin rule, and Getting Started is a plain list.',
+    'Scroll past the cover and the bar at the top shows the set you\'re on, like "Set 3 of 6 · Bench Press". Tap it to go back up.',
   ]},
 };
 
@@ -30596,7 +30642,10 @@ async function renderWorkout(){
   iconEl.innerHTML = dayGlyphSvg(day.sub);
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
-  document.getElementById('stickyDayTitle').textContent = `${day.label} — ${day.sub}`;
+  // v3.605 (UX-24): the day name is the fallback; while the cover has a next
+  // set, syncStickyDayTitle (renderUpNext) prints that set instead.
+  document.getElementById('stickyDayTitle').dataset.day = `${day.label} — ${day.sub}`;
+  syncStickyDayTitle();
   document.getElementById('stickyDayPlateIcon').className = 'day-plate-inline ' + getDayPlateClass(activeDay);
   const list = document.getElementById('exerciseList');
   list.innerHTML = '';
@@ -32048,18 +32097,39 @@ async function shareCelebrationCard(cardData, btnId){
 // for an element whose ancestor is display:none (e.g. after switching away
 // from Today) by re-checking that Today is actually the visible tab.
 let dayHeaderObserver = null;
+// v3.605 (UX-24): while the cover shows, it is what names the session (and
+// #dayTitle isn't displayed, so it can't be watched): the header follows the
+// cover then, and #dayTitle otherwise. Both are observed; the latest entry
+// for whichever one leads Today decides.
+function stickyDayAnchor(){
+  const cover = document.getElementById('upNext');
+  return cover && !cover.hidden ? cover : document.getElementById('dayTitle');
+}
+// The lexicon line: "Set 3 of 6 · Bench Press", from the same values the
+// cover prints; the day name when the cover has no next set.
+function syncStickyDayTitle(){
+  const el = document.getElementById('stickyDayTitle');
+  if(!el) return;
+  const cover = document.getElementById('upNext');
+  const label = document.getElementById('upNextLabel'), lift = document.getElementById('upNextLift');
+  const set = cover && !cover.hidden && label && label.textContent.trim() && lift ? `${label.textContent.trim()} · ${lift.textContent.trim()}` : '';
+  el.textContent = set || el.dataset.day || '';
+}
 function setupStickyDayHeaderObserver(){
-  const target = document.getElementById('dayTitle');
-  if(!target || typeof IntersectionObserver === 'undefined') return;
+  const targets = [document.getElementById('upNext'), document.getElementById('dayTitle')].filter(Boolean);
+  if(!targets.length || typeof IntersectionObserver === 'undefined') return;
   if(dayHeaderObserver) dayHeaderObserver.disconnect();
+  const latest = new Map();
   dayHeaderObserver = new IntersectionObserver((entries)=>{
-    const entry = entries[0];
+    for(const e of entries) latest.set(e.target, e);
+    const entry = latest.get(stickyDayAnchor());
+    if(!entry) return;
     const onToday = document.getElementById('todayView').style.display !== 'none';
     const sticky = document.getElementById('stickyDayHeader');
     const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
     sticky.classList.toggle('visible', onToday && scrolledPast);
   }, {threshold: 0});
-  dayHeaderObserver.observe(target);
+  for(const t of targets) dayHeaderObserver.observe(t);
 }
 
 // A condensed READ of the day title that couldn't be tapped to get back to
@@ -32070,7 +32140,7 @@ function setupStickyDayHeaderObserver(){
 // re-runs on every renderWorkout) — the button doesn't get replaced, so a
 // second listener there would just double-fire this one.
 document.getElementById('stickyDayHeader').addEventListener('click', ()=>{
-  const target = document.getElementById('dayTitle');
+  const target = stickyDayAnchor(); // v3.605 (UX-24): back to the cover while it shows
   if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
 });
 
@@ -32980,6 +33050,7 @@ function renderUpNext(){
     document.getElementById('upNextChips').innerHTML = '';
     document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
     document.getElementById('upNextProgress').textContent = '';
+    syncStickyDayTitle(); // v3.605 (UX-24)
     return;
   }
   document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
@@ -32992,10 +33063,12 @@ function renderUpNext(){
     document.getElementById('upNextTarget').textContent = `All ${n.total} sets logged`;
     document.getElementById('upNextChips').innerHTML = '';
     hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
+    syncStickyDayTitle(); // v3.605 (UX-24)
     return;
   }
   document.getElementById('upNextLabel').textContent = `Set ${n.setNum} of ${n.setCount}`;
   document.getElementById('upNextLift').textContent = n.name;
+  syncStickyDayTitle(); // v3.605 (UX-24): "Set 3 of 6 · Bench Press"
   const exIdx = n.row.dataset.exIdx;
   const block = n.row.closest('.exercise-block');
   const owner = n.row.closest('.superset-member') || block;

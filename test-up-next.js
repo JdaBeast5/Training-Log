@@ -26,7 +26,7 @@ const src = readIndexSource();
 // covers what is new). renderUpNext also draws the cover's numeral, chips and
 // caution, and logUpNext logs through commitSet (the chips' path, with Undo),
 // so those come along; the set chips themselves are stubbed (none here).
-const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow',
+const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow',
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
 // 2026-11-17 (v3.596, UX-07): the cover's loaded bar is stubbed here; test-plate-stack.js drives it.
 const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; } function renderCoverBar(){}";
