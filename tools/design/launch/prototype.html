@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Launch prototype: from bar to Sash (UX-18)</title>
+<!--
+  UX-18 prototype (dev tooling, not loaded by the app). The owner, 2026-11-17: "start off like one side of the
+  weight plates on an Olympic weight bar floating into the frame, then turn to an angle and then have the lines
+  extend to the opposite corners of the screen before entering the app" and "make it smooth then have it open to
+  the screen, like Netflix does".
+
+  One continuous gesture, every beat on the same ease and overlapping the next, so it never stops:
+    0–640 ms     the loaded sleeve (Option A, "Sleeve") floats in from the left, outer plate first
+    280–880 ms   it turns 60° clockwise, so the plates' long edges lie on the Sash's -30° line
+    640–1160 ms  each plate's edges run out to full length past both screen edges and re-space to the icon's
+                 even bands; the collar and bar fade away. The five bands are now the Sash, full bleed.
+    900–1600 ms  the open: the camera pushes into the gap under the yellow band (scale 1 → 2) while
+                 the screen splits along that gap: the ground is two halves, and each half, with its bands,
+                 parts along the Sash's normal and sweeps off-screen, so the app opens out of the mark.
+  In the app the open is gated on the page's load (class .is-open), as v3.385's .is-out is today, so a slow
+  load holds on the finished Sash instead of opening onto a blank app. Here it is added at 900 ms.
+
+  Transform and opacity only, on composited layers. Final-size bands are scaled DOWN to plates (never up),
+  so the long edges stay crisp; each band's corner radius is pre-divided by its starting scale so the plate
+  corners read round. Sizes are in --u, one icon unit (1/1024 of the 1024 master) in px.
+-->
+<style>
+  :root{
+    color-scheme:dark;
+    /* The app's real launch ground (index.html .launch: background:var(--ground)). */
+    --ground:#0C0C0D;
+    /* Plate & Press spot inks, equal to icon.svg's literal fills. */
+    --ink-25:#D42F25; --ink-20:#2C5BD8; --ink-15:#F2C200; --ink-10:#1E9E4A; --ink-5:#E6E6E2;
+    --steel:#46464A;     /* Option A's sleeve, collar and bar */
+    --strap:#0C0C0D;     /* the icon's ink tile, stretched into a strap behind the bands (light only) */
+    --ease:cubic-bezier(.33,1,.68,1);   /* the launch's own ease-out since v3.387 */
+    --ease-open:cubic-bezier(.6,.06,.35,1);
+    /* One icon unit. Phone 402 wide: .365px; Duo unfolded 904×678: .37px. */
+    --u:calc(min(100vw, 60vh) / 1100);
+  }
+  @media (prefers-color-scheme: light){
+    :root{ color-scheme:light; --ground:#F3F3F1; }
+  }
+  /* Increase Contrast: index.html sets .launch{background:var(--bg)} (= --ground under flat ground), and
+     #FFFFFF in light. */
+  @media (prefers-contrast: more) and (prefers-color-scheme: light){ :root{ --ground:#FFFFFF; } }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:#000; overflow:hidden; font-family:-apple-system, 'Geist', system-ui, sans-serif;}
+
+  /* Stand-in for the app underneath: the Today mock-up render. */
+  .app{position:fixed; inset:0; background:var(--ground) center / cover no-repeat url(../renders/today-dark.png);}
+  @media (prefers-color-scheme: light){ .app{background-image:url(../renders/today-light.png);} }
+
+  /* ---------- the launch ---------- */
+  .launch{position:fixed; inset:0; z-index:10; overflow:hidden; contain:strict;}
+  /* The ground is two halves split along the gap under the yellow band (local x = 51u), drawn in the rig so
+     they turn with it. Each is 12000u across, so their union covers the screen through the float and turn;
+     they overlap by 18u, so there is no seam until they part. They part on the open, like doors along the
+     Sash, and the app is behind them. */
+  .door{position:absolute; top:calc(var(--u) * -6000); height:calc(var(--u) * 12000); background:var(--ground);}
+  .door-a{left:calc(var(--u) * -6000); width:calc(var(--u) * 6060);}
+  .door-b{left:calc(var(--u) * 42); width:calc(var(--u) * 6000);}
+  .side{position:absolute; left:0; top:0; width:0; height:0;}
+  /* cam: the push-in. rig: the float and the turn. Both are 0×0 boxes at the screen centre. */
+  .launch-cam{position:absolute; left:50%; top:50%; width:0; height:0; will-change:transform, opacity;
+    /* the centre of the gap under the yellow band, in screen space after the 60° turn: (51u,0) rotated */
+    transform-origin:calc(var(--u) * 25.5) calc(var(--u) * 44.2);}
+  /* Float and turn overlap, so they live on two nested boxes, each animating its own transform:
+     .launch-float carries the translate, .launch-rig the rotate (it starts 4° shy of level, so the sleeve
+     is already drifting as it arrives). */
+  .launch-float,.launch-rig{position:absolute; left:0; top:0; width:0; height:0; will-change:transform;}
+  .launch-float{transform:translate(calc(-50vw - var(--u) * 420), calc(var(--u) * 60));
+    animation:launchFloat .64s var(--ease) 0s forwards;}
+  .launch-rig{transform:rotate(-4deg); animation:launchTurn .6s var(--ease) .28s forwards;}
+  @keyframes launchFloat{to{transform:none;}}
+  @keyframes launchTurn{to{transform:rotate(60deg);}}
+
+  .steel{position:absolute; background:var(--steel); will-change:opacity;
+    animation:launchSteelOut .32s var(--ease) .64s forwards;}
+  .steel-bar{left:calc(var(--u) * -2600); width:calc(var(--u) * 2330); top:calc(var(--u) * -18); height:calc(var(--u) * 36);}
+  .steel-collar{left:calc(var(--u) * -286); width:calc(var(--u) * 44); top:calc(var(--u) * -110); height:calc(var(--u) * 220); border-radius:calc(var(--u) * 8);}
+  .steel-sleeve{left:calc(var(--u) * -242); width:calc(var(--u) * 590); top:calc(var(--u) * -30); height:calc(var(--u) * 60); border-radius:calc(var(--u) * 10);}
+  @keyframes launchSteelOut{to{opacity:0;}}
+
+  /* The five bands, drawn at their FINAL size: 84u thick, 4400u long (past every edge of a phone or the
+     unfolded Duo once turned), centred on the rig. Each starts scaled down to its plate:
+     --x0 its plate's centre on the sleeve, --sx its plate thickness / 84, --sy its plate height / 4400.
+     --x1 is its place in the icon (pitch 102u: 84 band + 18 ground). */
+  .band{position:absolute; left:calc(var(--u) * -42); top:calc(var(--u) * -2200);
+    width:calc(var(--u) * 84); height:calc(var(--u) * 4400); will-change:transform;
+    /* plate corner 14u (12u on the 5), divided by the starting scale so it reads round on the plate */
+    border-radius:calc(var(--u) * var(--rx)) / calc(var(--u) * var(--ry));
+    transform:translateX(calc(var(--u) * var(--x0))) scale(var(--sx), var(--sy));
+    animation:launchExtend .52s var(--ease) .64s forwards;}
+  @keyframes launchExtend{to{transform:translateX(calc(var(--u) * var(--x1))) scale(1, 1);}}
+  .b25{background:var(--ink-25); --x0:-178; --x1:-204; --sx:1.1905; --sy:.13636; --rx:11.76; --ry:102.7;}
+  .b20{background:var(--ink-20); --x0:-62;  --x1:-102; --sx:1;      --sy:.13636; --rx:14;    --ry:102.7;}
+  .b15{background:var(--ink-15); --x0:39;   --x1:0;    --sx:.8333;  --sy:.13636; --rx:16.8;  --ry:102.7;}
+  .b10{background:var(--ink-10); --x0:127;  --x1:102;  --sx:.6905;  --sy:.13636; --rx:20.28; --ry:102.7;}
+  .b5 {background:var(--ink-5);  --x0:204;  --x1:204;  --sx:.5714;  --sy:.06818; --rx:21;    --ry:176;}
+
+  /* Light only: the 5 kg plate is #E6E6E2 on chalk (about 1.1:1; worse on Increase Contrast's white), so
+     in light the sleeve rides on the icon's ink tile, as the header mark does: a 528×680u rounded tile behind
+     the plates, which stretches with the bands into an ink strap across the screen. It is drawn at its final
+     size and scaled down to the tile (--sy .15455), with the vertical radius pre-divided like the bands'.
+     It is split at the gap under the yellow band, so each half leaves with its own door on the open. In dark
+     it would be ground on ground, so it isn't drawn. */
+  .strap{display:none;}
+  @media (prefers-color-scheme: light){
+    .strap{display:block; position:absolute; top:calc(var(--u) * -2200); height:calc(var(--u) * 4400); background:var(--strap);
+      transform:scaleY(.15455); will-change:transform; animation:launchStrap .52s var(--ease) .64s forwards;}
+    .strap-a{left:calc(var(--u) * -264); width:calc(var(--u) * 318);
+      border-radius:calc(var(--u) * 60) 0 0 calc(var(--u) * 60) / calc(var(--u) * 388) 0 0 calc(var(--u) * 388);}
+    .strap-b{left:calc(var(--u) * 51); width:calc(var(--u) * 213);
+      border-radius:0 calc(var(--u) * 60) calc(var(--u) * 60) 0 / 0 calc(var(--u) * 388) calc(var(--u) * 388) 0;}
+    @keyframes launchStrap{to{transform:none;}}
+  }
+
+  /* The open (in the app: added once the page has loaded and the Sash has formed, or on a tap). */
+  .launch.is-open{pointer-events:none;}
+  /* The camera pushes in on the gap (scale 1 -> 2) while the two halves, each door with its bands, part
+     along the Sash's normal and leave the screen: the app opens out of the mark. One curve for both,
+     --ease-open: it leaves the forming Sash already moving (y1 > 0, so the extension's tail hands straight
+     into it with no stop), is fastest as the halves cross the screen edges, and settles as the app arrives.
+     The cam's last 150ms fade is a safety net only (the halves are off-screen by then). */
+  .door,.side{will-change:transform;}
+  .launch.is-open .launch-cam{animation:launchOpenPush .7s var(--ease-open) forwards, launchOpenFade .15s linear .55s forwards;}
+  .launch.is-open .door-a,.launch.is-open .side-a{animation:launchOpenA .7s var(--ease-open) forwards;}
+  .launch.is-open .door-b,.launch.is-open .side-b{animation:launchOpenB .7s var(--ease-open) forwards;}
+  @keyframes launchOpenPush{to{transform:scale(2);}}
+  @keyframes launchOpenA{to{transform:translateX(calc(var(--u) * -760));}}
+  @keyframes launchOpenB{to{transform:translateX(calc(var(--u) * 760));}}
+  @keyframes launchOpenFade{to{opacity:0;}}
+
+  /* Reduce Motion: the finished Sash, no movement, then a cross-fade into the app. */
+  @media (prefers-reduced-motion: reduce){
+    .launch-float{transform:none; animation:none;}
+    .launch-rig{transform:rotate(60deg); animation:none;}
+    .steel{display:none;}
+    .band{transform:translateX(calc(var(--u) * var(--x1))); animation:none;}
+    .strap{transform:none; animation:none;}
+    .launch.is-open .launch-cam{animation:none;}
+    .launch.is-open{animation:launchOpenFade .2s linear forwards;}
+    .launch.is-open .door,.launch.is-open .side{animation:none;}
+  }
+
+  /* ---------- prototype chrome (not part of the launch) ---------- */
+  .controls{position:fixed; z-index:20; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); display:flex; gap:8px; justify-content:center;}
+  .controls button{min-height:44px; min-width:44px; padding:0 16px; border-radius:14px; border:1px solid rgba(127,127,127,.4);
+    background:rgba(20,20,22,.82); color:#F2F2F0; font:600 15px/1 inherit;}
+  body.framing .controls{display:none;}
+</style>
+</head>
+<body>
+<div class="app" aria-hidden="true"></div>
+
+<div class="launch" id="launch" aria-hidden="true">
+  <div class="launch-cam">
+    <div class="launch-float"><div class="launch-rig">
+      <div class="door door-a"></div>
+      <div class="door door-b"></div>
+      <div class="steel steel-bar"></div>
+      <div class="steel steel-collar"></div>
+      <div class="steel steel-sleeve"></div>
+      <div class="side side-a">
+        <div class="strap strap-a"></div>
+        <div class="band b25"></div>
+        <div class="band b20"></div>
+        <div class="band b15"></div>
+      </div>
+      <div class="side side-b">
+        <div class="strap strap-b"></div>
+        <div class="band b10"></div>
+        <div class="band b5"></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button type="button" id="replay">Replay</button>
+  <button type="button" id="slow">Replay at quarter speed</button>
+</div>
+
+<script>
+// The app's v3.385 control flow, with the open as the hand-off: a cold launch plays (here: every replay),
+// a tap opens at once, the open waits for the Sash (OPEN_AT) and the page's load, the 4 s cap opens
+// regardless, and the layer is removed when the open ends.
+var OPEN_AT = 900, OPEN_MS = 700, CAP = 4000, REDUCED_OPEN_AT = 250, REDUCED_OUT = 200;
+var timers = [];
+function play(rate){
+  timers.forEach(clearTimeout); timers = [];
+  var old = document.getElementById('launch');
+  var el = old.cloneNode(true); old.parentNode.replaceChild(el, old);
+  el.classList.remove('is-open'); el.style.display = '';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var done = false;
+  rate = rate || 1;
+  if(rate !== 1) requestAnimationFrame(function(){ el.getAnimations({subtree:true}).forEach(function(a){ a.playbackRate = rate; }); });
+  function open(){
+    if(done) return; done = true;
+    el.classList.add('is-open');
+    if(rate !== 1) requestAnimationFrame(function(){ el.getAnimations({subtree:true}).forEach(function(a){ a.playbackRate = rate; }); });
+    timers.push(setTimeout(function(){ el.style.display = 'none'; }, (reduce ? REDUCED_OUT : OPEN_MS) / rate + 50));
+  }
+  window.__launchOpen = open;
+  if(location.hash === '#hold') return; // the frame renderer drives the clock itself
+  timers.push(setTimeout(open, (reduce ? REDUCED_OPEN_AT : OPEN_AT) / rate));
+  timers.push(setTimeout(open, CAP / rate));
+  el.addEventListener('pointerdown', open);
+}
+document.getElementById('replay').addEventListener('click', function(){ play(1); });
+document.getElementById('slow').addEventListener('click', function(){ play(.25); });
+play(1);
+</script>
+</body>
+</html>
