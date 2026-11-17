@@ -1348,3 +1348,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `.day-<ink>` rules (`--spot`, `--on-spot`, `--spot-deep`); `applyDayInk(dayId, program)` sets one `day-*` on body, called once in `renderWorkout`; `--day-hue` = `var(--spot-<ink>)`; `getDayPlateClass` wraps `dayInk`; `.p-*` read `--spot-*`; purple/orange/teal discs gone. `--plate-*` untouched (snapshot in test-day-ink.js).
 - **Watch:** no CSS comment may contain a literal `<body>` (test-launch.js finds the body by its first occurrence).
 - **Next:** UX-13 (slot 43) in sequence; BL-20 (slot 56) is now buildable on this stack.
+
+## Addendum 112: UX-13 (v3.588, PR #164, 2026-11-17)
+- **What:** `.food-figs` (four `.food-fig` cells: `#valCal/#lblCal`, Pro, Carb, Fat) replace the four macro bars; `updateBars` writes text only. `.quick-add-btn` standard 44 px buttons in one horizontally scrolling row. `renderFoodLog` rows: `.fl-text` holds `.fl-name` + `.fl-macro` (cal · protein · carbs · fat).
+- **New:** `test-tap-counts.js` (UX-06a and UX-17 extend it).
+- **Next:** UX-12 (slot 44, History as plate blocks); BL-20 is buildable too.

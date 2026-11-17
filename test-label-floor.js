@@ -78,8 +78,10 @@ test('REAL markup + invocation (v3.281): the macro bar labels are sentence case 
   const { runJsdom, extractFunction } = require('./testHelpers.js');
   const src = readIndexSource();
   const log = new JSDOM(`<body>${extractElementById(src, 'logView')}</body>`).window.document;
-  const statics = [...log.querySelectorAll('.macro-row .macro-label')].map(e => e.textContent.trim());
-  assert.deepStrictEqual(statics.slice(0, 4), ['Calories', 'Protein', 'Fat', 'Carbs']);
+  // 2026-11-16 (v3.588, UX-13): the four static bars became a row of figures, each
+  // labelled in sentence case under its number ("of 2650 cal", "of 240g protein").
+  const statics = [...log.querySelectorAll('.food-fig .lbl')].map(e => e.textContent.trim());
+  assert.deepStrictEqual(statics, ['of 2650 cal', 'of 240g protein', 'of 250g carbs', 'of 75g fat']);
   const { window } = runJsdom('<div id="medicalNutrientBars"></div>', `
     var activeProgram = 'medical'; var userProfile = {}; var targets = {cal: 2000};
     var NUTRIENT_BAR_COLOR = {sodium: 'red', fiber: 'green'};

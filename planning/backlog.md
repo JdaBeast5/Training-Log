@@ -3741,7 +3741,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Alignment note (2026-11-07):** both are now asserted **unconditionally**, not "if present", because they merge before this item. Extra criterion: extend `test-tap-counts.js` (from UX-06a; if UX-06a hasn't shipped, this item creates it) with "log a recent food". The count is ≤ the parent commit's.
 - **Tools:** TOOL-01's harness; `Skill: apple-hig`; `Skill: dataviz` for the macro row.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: the old criterion 2 would have routed logged food through the review row (`buildFoodResultRow`), which has no delete or expand; the summary is bars plus a hero, not rings. The pinned-markup suites are listed. Scope unchanged.
-- **Status:** ready (after BL-18, BIZ-03 and UX-06a's `test-tap-counts.js`; if UX-06a hasn't shipped, this item creates that file, as the alignment note says)
+- **Status:** done (v3.588, PR #164). Created test-tap-counts.js (log a recent food = 1 tap). The add buttons scroll in one row rather than wrap.
 
 ### UX-14: The unfolded screen: session and lift side by side
 - **Why:** unfolded (904×678), Today already puts the lift's history on the right (`renders` of the incumbent). In the new world the left pane is the cover and session, and the right pane is the selected lift: its plate stack, e1RM line and last five sessions. Tapping a session row switches the right pane, with no navigation.

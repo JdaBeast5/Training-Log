@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { makeRunner, readIndexSource, extractFunction, extractElementById, runJsdom } = require('./testHelpers.js');
+const { makeRunner, readIndexSource, extractFunction, extractElementById, extractElementByClass, runJsdom } = require('./testHelpers.js');
 const src = readIndexSource();
 
 const { test, run } = makeRunner('test-log-2-0.js');
@@ -35,21 +35,22 @@ test('REAL markup (v3.428): the day\'s food log is the first thing in the nutrit
 // figure answers the question you open the card for, calories left (or
 // over, in yellow), and each bar carries its own target with its unit.
 function nutrition(eaten, cal = 2000){
-  const markup = '<div id="calorieFloorNote"></div>' + extractElementById(src, 'calHero') +
-    ['Cal', 'Pro', 'Fat', 'Carb'].map(k => `<div id="bar${k}"></div><div id="val${k}"></div>`).join('');
+  // 2026-11-16 (v3.588, UX-13): the real row of four figures, in place of four stub bars.
+  const markup = '<div id="calorieFloorNote"></div>' + extractElementById(src, 'calHero') + extractElementByClass(src, 'food-figs');
   const { window } = runJsdom(markup, `window.targets = {cal:${cal}, pro:150, fat:70, carb:200, isFloored:false};`,
     [extractFunction(src, 'renderCalHero'), extractFunction(src, 'updateBars'), extractFunction(src, 'applyTargetsToUI'),
      `updateBars(${JSON.stringify(eaten)});`]);
   return window;
 }
-test('REAL invocation (v3.429): the hero says calories left; the bars carry their targets in grams', (assert)=>{
+// 2026-11-16 (v3.588, UX-13): the bars became figures: what was eaten, with the target under it.
+test('REAL invocation (v3.429; v3.588): the hero says calories left; each figure carries its target in grams', (assert)=>{
   const w = nutrition({cal:640, pro:52, fat:20, carb:71});
   const $ = id => w.document.getElementById(id).textContent;
   assert.strictEqual($('calHeroNum'), '1360');
   assert.strictEqual($('calHeroUnit'), 'cal left of 2000');
-  assert.strictEqual($('valCal'), '640 / 2000');
-  assert.strictEqual($('valPro'), '52 / 150g');
-  assert.strictEqual($('valCarb'), '71 / 200g');
+  assert.strictEqual($('valCal'), '640'); assert.strictEqual($('lblCal'), 'of 2000 cal');
+  assert.strictEqual($('valPro'), '52'); assert.strictEqual($('lblPro'), 'of 150g protein');
+  assert.strictEqual($('valCarb'), '71'); assert.strictEqual($('lblCarb'), 'of 200g carbs');
   assert.strictEqual(w.document.getElementById('calHero').classList.contains('is-over'), false);
 });
 
@@ -66,7 +67,9 @@ test('REAL invocation (v3.429): over target reads "over" in yellow; a target cha
 test('REAL markup + CSS (v3.429): no targets strip; the figure is the card\'s one large number', (assert)=>{
   assert.strictEqual(doc.querySelector('.targets-strip'), null);
   assert.strictEqual(doc.getElementById('tvCal'), null);
-  assert.ok(before(doc.getElementById('calHero'), doc.getElementById('barCal')), 'the figure leads, the bars follow');
+  // 2026-11-16 (v3.588, UX-13): the figures row follows the lead figure (the bars are gone).
+  assert.ok(before(doc.getElementById('calHero'), doc.getElementById('valCal')), 'the lead figure first, the four figures after');
+  assert.strictEqual(doc.getElementById('barCal'), null);
   assert.match(html, /\.cal-hero-num\{[^}]*font-size:34px/);
   assert.match(html, /\.cal-hero\.is-over \.cal-hero-num\{color:var\(--plate-yellow\);\}/);
 });

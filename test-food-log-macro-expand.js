@@ -30,7 +30,8 @@ const { test, run } = makeRunner('test-food-log-macro-expand.js');
 function jsdomHarness(todaysFoodLog){
   const bodyHtml = `
     <div id="foodLogList"></div>
-    <div id="barCal"></div><div id="barPro"></div><div id="barFat"></div><div id="barCarb"></div>
+    <!-- 2026-11-16 (v3.588, UX-13): the four bars became figures with a target label each. -->
+    <div id="lblCal"></div><div id="lblPro"></div><div id="lblFat"></div><div id="lblCarb"></div>
     <div id="valCal"></div><div id="valPro"></div><div id="valFat"></div><div id="valCarb"></div>
     <div id="medicalNutrientBars"></div>
   `;
