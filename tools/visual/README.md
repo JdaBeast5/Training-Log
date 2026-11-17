@@ -67,6 +67,34 @@ Each frame's in-page step (in `STORE_STEPS`) only calls the app's own functions 
 | `out/store/contact-sheet.png` | Both stores' frames on one sheet. |
 | `out/store/store.json` | Frame order, captions and file names. |
 
+## Today audit mode (`--today`)
+
+```
+node tools/visual/harness.js --today --base <commit>
+```
+
+Added 2026-11-17 for the Today coherence audit (`planning/backlog.md`, UX-19 to UX-30). It shoots Today top to bottom and the states those items change. It doesn't touch the default mode: its states and output are separate (`out/today/`), and the default matrix shoots the same bytes with or without it. `--base`, `--rev` and `--only` work as in the default mode. States are shot at DPR 1, because the full-page PNGs are about 3,600 px tall.
+
+Every state seeds the 8-week streak as already celebrated (`week-streak-last-celebrated` = 8), except `tday-milestone-*`, where the milestone is the subject. In the default mode the fixture's 8-week streak opens the milestone over `today-*` whenever the shot catches it.
+
+| State (dark and light) | What |
+|---|---|
+| `tday-<theme>-402` | Today, full page, mid-session (Bench set 3 of 6 ready) |
+| `tday-rest-<theme>-402` | Full page, resting (2:30 of 4:00) |
+| `tday-quiet-<theme>-402` | Full page, Settings > Today cover > Quiet (v3.594) |
+| `tday-restday-<theme>-402` | Full page, Day 7 (Full Rest) picked in the day sheet |
+| `tday-backdated-<theme>-402` | Full page, seven taps on the previous-day arrow (Mon 26 Oct) |
+| `tday-finish-<theme>-402` | The finish sheet, as the default `finish-*` state |
+| `tday-daysheet-<theme>-402` | The day sheet, opened from the cover's headline |
+| `tday-milestone-<theme>-402` | The 8-week streak milestone as it opens on load |
+| `tday-firstrun-<theme>-402` | Full page, Today after creating a first profile ("Sam") at Who's training? |
+| `tday-gym-<theme>-402` | Full page, Gym mode (its entry point is on Today) |
+| `tday-<theme>-904` | Unfolded, both panes at the top |
+| `tday-left-<theme>-904` | Unfolded, the left pane scrolled 650 px |
+| `tday-right-<theme>-904` | Unfolded, the right pane (the tab) scrolled 1,000 px |
+
+A full-page shot draws `position: fixed` elements (the tab bar, the rest pill) where the viewport was, part-way down the page. That's how Playwright's full-page capture works, not a layout bug.
+
 ## Why two runs give the same bytes
 
 - **Fixture:** `fixture.json` is the committed seed (store mode adds two variants of it, above). Jordan, 31, on a lean bulk, has run Strength & Size since 7 September 2026, with eight weeks of history. Bench Press has the richest log, and today's Day 1 is in progress with two Bench sets logged. `make-fixture.js` generated the file deterministically. Edit that script, then rerun `node tools/visual/make-fixture.js`; don't hand-edit the JSON. `whats-new-last-seen` is filled with the shot commit's `APP_VERSION`, so What's New never opens over a state.
