@@ -3958,7 +3958,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (6210–6290, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-cover.js`. Read: `test-duo-open-posture-layout.js`, `test-duo-open-posture-log-split.js`, `test-open-screen-2-0.js`, `test-pull-to-refresh.js`, `test-free-list-guard.js`, `test-today-session-first.js`.
 - **Risk:** low. The sticky left pane scrolls itself (v3.509), so a 600 px cover makes the list start lower in the pane; that is the intended order.
 - **Tools:** TOOL-01 at 904×678 (`tday-left-*`, `tday-right-*`).
-- **Status:** ready
+- **Status:** done (v3.602, PR #181). Deviation: the cover moves into the pane only when unfolded (syncTodayChrome's marker move); a markup move would put the phone cover below Today's Priorities.
 
 ### UX-22: One figure face on Today, and a numeral that fits
 - **Why:** A8, A21. Geist Mono is retired from the UI (vision §3.3: "it stays for the build stamp only"), but Today still sets figures in it in five places, so the cover's steppers, the finish sheet and the chips read as a different app from the numeral. And a five-character load ("182.5") pushes "×6" to its own line at 150 px.
