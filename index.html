@@ -146,6 +146,10 @@
     --deep-blue:#16306F; /* target #16306F */
     --deep-yellow:#6B5600; /* target #6B5600 */
     --deep-green:#0E4D24; /* target #0E4D24 */
+    /* v3.593 (UX-06a): a yellow day's cover. Dark: the deep ink, white text
+       (7.2:1), the numeral in the yellow (4.2:1, large) and a yellow Log. */
+    --yellow-cover:var(--deep-yellow); --on-yellow-cover:#FFFFFF; --yellow-cover-figure:var(--spot-yellow);
+    --yellow-cover-action:var(--spot-yellow); --on-yellow-cover-action:#0C0C0D;
     --fs-caption:12px; --fs-meta:13px; --fs-body:16px; --fs-lead:18px; --fs-title:22px;
     --fs-head:40px; --fs-figure-m:34px; --fs-figure-l:64px; --fs-figure-xl:176px;
     --r-control:14px; --r-sheet:var(--radius-card); /* target 28px (equal today) */
@@ -434,6 +438,10 @@
       --deep-blue:#16306F; /* target #16306F */
       --deep-yellow:#6B5600; /* target #6B5600 */
       --deep-green:#0E4D24; /* target #0E4D24 */
+      /* v3.593 (UX-06a): light prints a yellow day's cover as the plain spot
+         field (#8F6200 here), with the contrast-checked block ink on it. */
+      --yellow-cover:var(--spot-yellow); --on-yellow-cover:var(--block-on-yellow); --yellow-cover-figure:var(--on-yellow-cover);
+      --yellow-cover-action:#0C0C0D; --on-yellow-cover-action:#FFFFFF;
       --fs-caption:12px; --fs-meta:13px; --fs-body:16px; --fs-lead:18px; --fs-title:22px;
       --fs-head:40px; --fs-figure-m:34px; --fs-figure-l:64px; --fs-figure-xl:176px;
       --r-control:14px; --r-sheet:var(--radius-card); /* target 28px (equal today) */
@@ -829,6 +837,68 @@
   .set-sheet-tools{display:flex; gap:8px; margin-top:14px;}
   .set-sheet-tools button{flex:1; min-height:44px; border-radius:14px; border:1px solid var(--glass-hair); background:var(--glass-fill); color:var(--text-muted); font-size:14px; font-family:var(--font-sans); cursor:pointer;}
   .set-sheet-save{margin-top:14px; font-size:16px;}
+  /* v3.593 (UX-06a): the Today cover (tools/design/world.css "Today cover").
+     A full-bleed field in the day's ink: --cover is the day's --spot, its text
+     --on-cover. Two kinds of exception, both for contrast (UX-01's WCAG pass):
+     a yellow day at night prints in the deep ink with the numeral in the
+     yellow (#F2C200 full-bleed is the brightest thing in a dim gym), and where
+     the day's --on-spot fails 4.5:1 on its own field (dark red #FF453A with
+     white, 3.4:1; light yellow and green with the ground ink, 3.6:1) the text
+     takes the History blocks' contrast-checked --block-on-* ink instead.
+     No state colour sits on the field: state is an icon and a word. */
+  .cover{
+    --cover:var(--spot); --on-cover:var(--on-spot); --cover-figure:var(--on-cover); --cover-action:#0C0C0D; --on-cover-action:#FFFFFF;
+    --meta-on-spot:15px;
+    margin:0 calc(var(--gutter-r) * -1) 18px calc(var(--gutter-l) * -1);
+    padding:12px var(--gutter-r) 18px var(--gutter-l);
+    background:var(--cover, var(--surface-1)); color:var(--on-cover, var(--text));
+  }
+  body.day-red .cover{--on-cover:var(--block-on-red);}
+  body.day-green .cover{--on-cover:var(--block-on-green);}
+  body.day-yellow .cover{--cover:var(--yellow-cover); --on-cover:var(--on-yellow-cover); --cover-figure:var(--yellow-cover-figure); --cover-action:var(--yellow-cover-action); --on-cover-action:var(--on-yellow-cover-action);}
+  .cover[hidden]{display:none;}
+  /* The week and phase close the cover: the Log button has to sit above
+     y = 480 on a 402 x 874 phone, under the app header. */
+  .cover-where{font-size:var(--meta-on-spot); font-weight:500; margin-top:12px;}
+  .cover-where:empty{display:none;}
+  .cover-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; letter-spacing:-0.01em; margin-top:2px;}
+  .cover-lift-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:8px;}
+  .cover-lift{font-size:22px; font-weight:600; letter-spacing:-0.01em; line-height:1.2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
+  .cover-rx, .cover-hint, .cover-why, .cover-caution{font-size:var(--meta-on-spot); line-height:1.35;}
+  .cover-rx{margin-top:2px;}
+  .cover-hint{margin-top:4px; font-weight:600;}
+  .cover-hint[hidden], .cover-why[hidden], .cover-caution[hidden]{display:none;}
+  .cover-numeral{display:flex; align-items:baseline; flex-wrap:wrap; gap:0 6px; margin-top:6px; color:var(--cover-figure, var(--text)); font-family:var(--font-display); font-variant-numeric:tabular-nums lining-nums;}
+  .cover-w{font-size:150px; line-height:.8; letter-spacing:-0.025em; font-weight:800; font-stretch:68%;}
+  .cover-u{font-family:var(--font-sans); font-size:18px; font-weight:600;}
+  .cover-x{font-size:60px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:4px;}
+  .cover-x:empty, .cover-u:empty{display:none;}
+  .cover-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  /* 16px between Log and adjust, so a wet thumb doesn't hit adjust. */
+  .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px; margin-top:14px;}
+  .cover .cover-go{margin:0; min-height:56px; border-radius:var(--r-control); background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:16px; font-weight:600;}
+  .cover-adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; background:none; color:inherit; display:grid; place-items:center; cursor:pointer;}
+  .cover-adjust svg{width:22px; height:22px;}
+  .cover-adjust[aria-expanded="true"]{background:var(--cover-action); color:var(--on-cover-action); border-color:transparent;}
+  .cover .up-next-fields{margin-top:12px;}
+  .cover .up-next-field{background:none; border:1.5px solid currentColor;}
+  .cover .up-next-field:focus-within{border-color:currentColor; outline:2px solid currentColor; outline-offset:2px;}
+  .cover .up-next-field small{font-size:var(--meta-on-spot); color:inherit;}
+  .cover .up-next-field input{width:100%; background:none; border:0; padding:0; color:inherit; font-family:var(--font-mono); font-size:22px !important; font-variant-numeric:tabular-nums;}
+  .cover .up-next-field input:focus, .cover .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
+  .cover .up-next-field input::placeholder{color:inherit; opacity:.6; font-size:17px;}
+  .cover-chips{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; margin-top:12px;}
+  .cover-chips:empty{display:none;}
+  .cover-chip{min-height:44px; border-radius:12px; border:1.5px dashed currentColor; background:none; color:inherit; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 6px; font-family:var(--font-sans); font-size:var(--meta-on-spot); font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; overflow:hidden; white-space:nowrap;}
+  .cover-chip.is-done{background:var(--cover-action); color:var(--on-cover-action); border-color:transparent;}
+  .cover-chip.is-ready{border:2.5px solid currentColor;}
+  .cover-chip svg{width:15px; height:15px; flex:0 0 auto;}
+  .cover-caution{display:flex; gap:8px; align-items:flex-start; margin-top:12px; font-weight:500;}
+  .cover-caution svg{width:18px; height:18px; flex:0 0 auto; margin-top:1px;}
+  .cover-why{margin-top:12px;}
+  .cover.is-done .cover-log, .cover.is-done .cover-fields-wrap, .cover.is-done .cover-numeral{display:none;}
+  body.gym-mode .cover{display:none;} /* gym mode has its own focused flow */
   /* [GLASS & GLOW, v3.290] "Up next" — the nested glass panel inside the workout
      card, tinted by the day's own hue (--day-hue), concept A's hero. */
   .up-next{
@@ -838,17 +908,8 @@
     box-shadow:var(--glass-shine);
   }
   .up-next[hidden]{display:none;}
-  .up-next-head{display:flex; align-items:center; gap:14px;}
-  .up-next-text{flex:1; min-width:0;}
   .up-next-label{font-size:12px; color:var(--text-muted);}
-  .up-next-lift{font-size:24px; font-weight:700; letter-spacing:-0.025em; line-height:1.15; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .up-next-why{font-size:13px; color:var(--text-muted); margin-top:4px;}
-  .up-next-target{font-family:var(--font-mono); font-size:13.5px; color:var(--day-hue, var(--text-muted)); margin-top:3px;}
-  .up-next-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
-  .up-next-ring{width:60px; height:60px; flex:0 0 auto;}
-  .up-next-ring-track{fill:none; stroke:rgba(var(--surface-white-rgb),.10); stroke-width:6;}
-  .up-next-ring-fill{fill:none; stroke:var(--day-hue, var(--plate-blue)); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s var(--ease-smooth);}
-  .up-next-ring text{font-family:var(--font-mono); font-size:13px; fill:var(--text);}
   /* v3.292 (Impeccable distill): borderless wells (the panel already draws the
      edge; a third ring of hairlines was noise), one size step smaller, and a
      tight fields→button gap so the inputs and Log set read as one group. */
@@ -867,7 +928,6 @@
      sheet with equal specificity and would otherwise win (it did, silently, for
      v3.292's gap). v3.293: the primary is never smaller than the 16px controls. */
   .up-next .up-next-go{margin-top:10px; font-size:16px;}
-  .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
   body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
   /* [v3.376] An open exercise's own logger: the Up next panel, minus the
      header (the exercise header above already names the lift). */
@@ -6055,6 +6115,43 @@
   </div>
 
   <div id="todayView" class="posture-split">
+  <!-- v3.593 (UX-06a): the cover. "Up next" moved from inside the workout card
+       to the top of Today and became a full-bleed field in the day's ink: the
+       day, the lift, the prescription in plain words, the next set as the
+       cover numeral, one Log button, and the lift's set chips. The weight,
+       reps and RPE fields sit behind "adjust". Still a thin front end over the
+       real set rows in #exerciseList: renderUpNext() reads the first row with
+       no reps yet, and logging goes through commitSet into THAT row, so
+       saving, PRs, the rest timer, Undo and auto-check run as for a chip. -->
+  <section class="cover" id="upNext" aria-labelledby="upNextLift" hidden>
+    <div class="cover-day" id="upNextDay"></div>
+    <div class="cover-lift-row">
+      <h2 class="cover-lift" id="upNextLift"></h2>
+      <span class="cover-of" id="upNextLabel"></span>
+    </div>
+    <p class="cover-rx" id="upNextTarget"></p>
+    <p class="cover-hint" id="upNextHint" hidden></p>
+    <div class="cover-numeral" id="upNextNumeral"><span class="cover-w"></span><span class="cover-u"></span><span class="cover-x"></span></div>
+    <span class="cover-sr" id="upNextProgress"></span>
+    <div class="cover-log">
+      <button type="button" class="save-btn cover-go" id="upNextLog">Log set</button>
+      <button type="button" class="cover-adjust" id="upNextAdjust" aria-expanded="false" aria-controls="upNextFieldsWrap" aria-label="Adjust weight, reps or effort"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </div>
+    <div class="expand-wrap cover-fields-wrap" id="upNextFieldsWrap">
+      <div>
+        <div class="up-next-fields" id="upNextFields">
+          <label class="up-next-field" data-field="weight"><small id="upNextWeightUnit">lb</small><input type="number" inputmode="decimal" id="upNextWeight" aria-label="Weight for the next set"></label>
+          <label class="up-next-field" data-field="distance"><small id="upNextDistanceUnit">m</small><input type="number" inputmode="decimal" step="0.01" min="0" id="upNextDistance" aria-label="Distance for the next set"></label>
+          <label class="up-next-field" data-field="reps"><small>Reps</small><input type="number" inputmode="numeric" id="upNextReps" aria-label="Reps for the next set"></label>
+          <label class="up-next-field" data-field="rpe"><small>RPE</small><input type="number" inputmode="decimal" step="0.5" min="5" max="10" id="upNextRpe" aria-label="RPE for the next set, 5 to 10"></label>
+        </div>
+      </div>
+    </div>
+    <div class="cover-chips" id="upNextChips" role="group"></div>
+    <p class="cover-caution" id="upNextCaution" hidden></p>
+    <p class="cover-why" id="upNextWhy" hidden></p>
+    <div class="cover-where" id="upNextWhere"></div>
+  </section>
   <div class="card" id="onboardingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2 2 3 5.5 3 8 0 2.2-1.2 4.2-3 6-1.8-1.8-3-3.8-3-6 0-2.5 1-6 3-8Z"/><circle cx="10" cy="8.5" r="1.3"/><path d="M7.3 13.5 5.5 17M12.7 13.5 14.5 17"/></svg></span>Getting Started</div>
     <div id="onboardingRows"></div>
@@ -6106,34 +6203,6 @@
       <button type="button" class="gym-enter-btn" id="gymEnterBtn">
         <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
       </button>
-    </div>
-    <!-- [GLASS & GLOW, v3.290] "Up next": the next set to do, one tap to log it.
-         A thin front end over the real set rows below — renderUpNext() reads
-         the first row with no reps yet, and logging writes into THAT row and
-         fires its own change events, so saving, PRs, the rest timer, the gym
-         offer and auto-check all run exactly as if the set were typed there. -->
-    <div class="up-next" id="upNext" hidden>
-      <div class="up-next-head">
-        <div class="up-next-text">
-          <div class="up-next-label" id="upNextLabel"></div>
-          <div class="up-next-lift" id="upNextLift"></div>
-          <div class="up-next-target" id="upNextTarget"></div>
-          <div class="up-next-why" id="upNextWhy" hidden></div>
-        </div>
-        <span class="up-next-sr" id="upNextProgress"></span>
-        <svg class="up-next-ring" viewBox="0 0 64 64" aria-hidden="true">
-          <circle cx="32" cy="32" r="27" class="up-next-ring-track"/>
-          <circle cx="32" cy="32" r="27" class="up-next-ring-fill" id="upNextRingFill" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 32 32)"/>
-          <text x="32" y="36" text-anchor="middle" id="upNextRingText"></text>
-        </svg>
-      </div>
-      <div class="up-next-fields" id="upNextFields">
-        <label class="up-next-field" data-field="weight"><small id="upNextWeightUnit">lb</small><input type="number" inputmode="decimal" id="upNextWeight" aria-label="Weight for the next set"></label>
-        <label class="up-next-field" data-field="distance"><small id="upNextDistanceUnit">m</small><input type="number" inputmode="decimal" step="0.01" min="0" id="upNextDistance" aria-label="Distance for the next set"></label>
-        <label class="up-next-field" data-field="reps"><small>Reps</small><input type="number" inputmode="numeric" id="upNextReps" aria-label="Reps for the next set"></label>
-        <label class="up-next-field" data-field="rpe"><small>RPE</small><input type="number" inputmode="decimal" step="0.5" min="5" max="10" id="upNextRpe" aria-label="RPE for the next set, 5 to 10"></label>
-      </div>
-      <button type="button" class="save-btn up-next-go" id="upNextLog">Log set</button>
     </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="exerciseList"></div>
@@ -7871,7 +7940,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.592';
+const APP_VERSION = '3.593';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9472,6 +9541,10 @@ const WHATS_NEW = {
   ]},
   '3.592': { headline: 'The app opens again', points: [
     'Fixes v3.591, where a typo in the launch notes stopped the app from loading. Nothing you logged was affected.',
+  ]},  '3.593': { headline: 'Today opens on your next set', points: [
+    'The top of Today is now a cover in the day\'s colour: the lift, the set, and the weight and reps to do, big enough to read from across the room.',
+    'One tap on Log set logs it, with Undo. The adjust button beside it opens the weight, reps and effort fields.',
+    'The lift\'s set chips sit on the cover too, and a resting area that affects the lift shows there with its swap.',
   ]},
 };
 
@@ -32377,29 +32450,93 @@ function renderUpNext(){
   const n = findNextSetRow(list);
   if(n.total === 0){ card.hidden = true; return; } // rest day: nothing to log
   card.hidden = false;
-  const pct = Math.round((n.done / n.total) * 100);
-  document.getElementById('upNextRingFill').setAttribute('stroke-dashoffset', String(100 - pct));
-  document.getElementById('upNextRingText').textContent = `${n.done}/${n.total}`;
+  // v3.593 (UX-06a): the cover. The day and its week/phase line come from the
+  // workout card's own header, as renderWorkout just wrote it.
+  const textOf = id => { const el = document.getElementById(id); return el ? el.textContent.trim() : ''; };
+  document.getElementById('upNextDay').textContent = textOf('dayTitle');
+  document.getElementById('upNextWhere').textContent = [textOf('dayHeroEyebrow'), textOf('mesocyclePhaseTag')].filter(Boolean).join(' · ');
   document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
   card.classList.toggle('is-done', !n.row);
+  const hint = document.getElementById('upNextHint');
+  const caution = document.getElementById('upNextCaution');
   if(!n.row){
-    document.getElementById('upNextLabel').textContent = 'Session complete';
-    document.getElementById('upNextLift').textContent = `All ${n.total} sets logged`;
-    document.getElementById('upNextTarget').textContent = '';
+    document.getElementById('upNextLabel').textContent = '';
+    document.getElementById('upNextLift').textContent = 'Session complete';
+    document.getElementById('upNextTarget').textContent = `All ${n.total} sets logged`;
+    document.getElementById('upNextChips').innerHTML = '';
+    hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
     return;
   }
-  document.getElementById('upNextLabel').textContent = `Up next · set ${n.setNum} of ${n.setCount}`;
+  document.getElementById('upNextLabel').textContent = `Set ${n.setNum} of ${n.setCount}`;
   document.getElementById('upNextLift').textContent = n.name;
-  const owner = n.row.closest('.superset-member') || n.row.closest('.exercise-block');
+  const exIdx = n.row.dataset.exIdx;
+  const block = n.row.closest('.exercise-block');
+  const owner = n.row.closest('.superset-member') || block;
   // The prescription span only (.ex-sets also carries the calorie tag).
-  const target = owner && owner.querySelector('.ex-sets > span');
-  document.getElementById('upNextTarget').textContent = target ? `${target.textContent.trim()} reps` : '';
-  const chip = list.querySelector(`.set-chip[data-ex-idx="${n.row.dataset.exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
+  const header = (block && block.querySelector(`.exercise input[type=checkbox][data-idx="${exIdx}"]`) || {closest:()=>null}).closest('.exercise');
+  const target = (header && header.querySelector('.ex-sets > span')) || (owner && owner.querySelector('.ex-sets > span'));
+  // The effort in BL-10's words: the row's own label carries them (rirLabelHtml).
+  const rir = target && target.parentElement.querySelector('.ex-rir');
+  document.getElementById('upNextTarget').textContent = target
+    ? `${target.textContent.trim()} reps` + (rir ? ' · ' + rir.getAttribute('aria-label') : '') : '';
+  const chip = list.querySelector(`.set-chip[data-ex-idx="${exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
   const why = document.getElementById('upNextWhy');
   if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
+  // A first-ever exercise: BIZ-05's starting-load hint, as the set sheet shows it.
+  const fresh = !!(block && block.dataset.firstTime === '1') && ![...block.querySelectorAll('.set-row .ex-reps')].some(inp => inp.value !== '');
+  hint.textContent = fresh ? firstSetHint({name: n.name.trim(), sets: target ? target.textContent.trim() : '', noWeight: !n.row.querySelector('.ex-weight')}, activeProgram) : '';
+  hint.hidden = !hint.textContent;
+  renderCoverCaution(caution, block, exIdx);
+  renderCoverChips(block, exIdx);
   fillSetLogger(card, n, chip, target);
+  card._range = target ? (target.textContent.split('×')[1] || '').trim() : '';
+  renderCoverNumeral(card);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
+}
+
+// v3.593 (UX-06a): the cover numeral is the set Log will write: the weight in
+// the display face with "× reps" beside it. With no weight field (bodyweight,
+// timed) it is the reps alone; with nothing suggested yet (a first-ever
+// exercise) it is the target reps rather than an empty figure.
+function renderCoverNumeral(card){
+  const v = readSetLogger(card);
+  const hasWeight = !card.querySelector('.up-next-field[data-field="weight"]').hidden;
+  const unit = card.querySelector('.up-next-field[data-field="weight"] small').textContent;
+  const repsUnit = card.querySelector('.up-next-field[data-field="reps"] small').textContent.toLowerCase();
+  const reps = v.reps || card._range || '';
+  const el = document.getElementById('upNextNumeral');
+  const [w, u, x] = el.children;
+  if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
+  else { w.textContent = reps; u.textContent = reps ? repsUnit : ''; x.textContent = ''; }
+  el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
+}
+
+// The lift's own set chips, drawn for the cover from the real strip in
+// #exerciseList (they are not .set-chips, so nothing else finds them). A tap
+// is the real chip's tap: a ready set logs, any other opens the set sheet.
+function renderCoverChips(block, exIdx){
+  const box = document.getElementById('upNextChips');
+  const real = block ? [...block.querySelectorAll(`:scope > .set-chips .set-chip[data-ex-idx="${exIdx}"]`)] : [];
+  box.setAttribute('aria-label', 'Sets for ' + (document.getElementById('upNextLift').textContent || 'this exercise'));
+  box.innerHTML = real.map(c => {
+    const state = c.classList.contains('is-done') ? 'is-done' : c.classList.contains('is-ready') ? 'is-ready' : 'is-pending';
+    const val = c.querySelector('.set-chip-val');
+    return `<button type="button" class="cover-chip ${state}" data-ex-idx="${c.dataset.exIdx}" data-set-idx="${c.dataset.setIdx}" aria-label="${escapeHtml(c.getAttribute('aria-label') || '')}">`
+      + (state === 'is-done' ? icon('check') : '') + `<span>${escapeHtml(val ? val.textContent : '')}</span></button>`;
+  }).join('');
+}
+
+// A resting region that flags the cover lift: the row's own caution, as an
+// icon and words on the field (no state colour), with its substitute.
+function renderCoverCaution(el, block, exIdx){
+  const scope = block && (block.querySelector(`.superset-member[data-ex-idx="${exIdx}"]`) || block.querySelector(':scope > .expand-wrap > div'));
+  const c = scope && scope.querySelector(':scope > .ex-caution:not(.ex-caution-relief)');
+  if(!c){ el.hidden = true; el.innerHTML = ''; return; }
+  const regions = [...c.querySelectorAll('[data-care-area]')].map(b => b.textContent.trim()).filter(Boolean);
+  const sub = c.querySelector('b');
+  el.innerHTML = `${icon('warning')}<span>Resting ${escapeHtml(regions.join(' & ') || 'an area')}: go lighter or skip.${sub ? ` Try <b>${escapeHtml(sub.textContent)}</b> instead.` : ''}</span>`;
+  el.hidden = false;
 }
 
 // Fills a logger's tiles (Up next's, or an open exercise's since v3.376) for
@@ -32441,10 +32578,18 @@ function logUpNext(){
   const n = list ? findNextSetRow(list) : {row:null};
   if(!n.row) return false;
   const values = readSetLogger(document.getElementById('upNext'));
-  if(values.reps === ''){ document.getElementById('upNextReps').focus(); return false; }
-  writeSetToRow(n.row, values);
+  if(values.reps === ''){ setCoverAdjust(true); document.getElementById('upNextReps').focus(); return false; }
+  // v3.593 (UX-06a): through commitSet, as a chip tap: same row write, same Undo.
+  commitSet(n.row, values);
   renderUpNext();
   return true;
+}
+
+// "adjust": the fields open in place under the Log button (expand-wrap).
+function setCoverAdjust(open){
+  const btn = document.getElementById('upNextAdjust');
+  document.getElementById('upNextFieldsWrap').classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', String(open));
 }
 
 // [v3.376] Every open exercise logs the way "Up next" does: its own next set
@@ -33020,6 +33165,13 @@ function stepSetSheet(field, dir){
   });
 })();
 document.getElementById('upNextLog').addEventListener('click', logUpNext);
+document.getElementById('upNextAdjust').addEventListener('click', ()=> setCoverAdjust(document.getElementById('upNextAdjust').getAttribute('aria-expanded') !== 'true'));
+document.getElementById('upNextFields').addEventListener('input', ()=> renderCoverNumeral(document.getElementById('upNext')));
+document.getElementById('upNextChips').addEventListener('click', (e)=>{
+  const c = e.target.closest && e.target.closest('.cover-chip');
+  const real = c && document.querySelector(`#exerciseList .set-chip[data-ex-idx="${c.dataset.exIdx}"][data-set-idx="${c.dataset.setIdx}"]`);
+  if(real) real.click();
+});
 // Anything typed or ticked in the real list moves the card along too.
 document.addEventListener('change', (e)=>{
   if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(()=>{ renderAllSetChips(); renderUpNext(); }, 0);

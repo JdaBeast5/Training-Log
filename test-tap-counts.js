@@ -7,6 +7,10 @@
 // v3.588 (UX-13): "log a recent food": one tap on a BL-18 chip adds exactly one
 // entry to today's log. At the parent commit (v3.587) the same chip took one tap.
 //
+// v3.593 (UX-06a): "log the ready set": from a fresh Today, one tap on the
+// cover's Log button commits the ready set. At the parent commit (v3.592) the
+// Up next card's Log set took one tap too.
+//
 // Real invocation: the real #foodRecents and #foodSearchInput markup, the real
 // chip-click wiring, buildRecentFoods, relogFoodEntry, renderFoodRecents and
 // addFoodToLog, with a stub window.storage (as test-food-recents.js).
@@ -19,7 +23,7 @@ const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { test, run } = makeRunner('test-tap-counts.js');
 
-const PARENT_TAPS = {logRecentFood: 1};
+const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1};
 
 function statement(startText){
   const i = src.indexOf(startText);
@@ -49,6 +53,35 @@ test('log a recent food: one tap on a recent-food chip adds exactly one entry (n
   await new Promise(r => setTimeout(r, 10));
   assert.strictEqual(window.__log(), 1, 'one tap logged one entry');
   assert.ok(taps <= PARENT_TAPS.logRecentFood, `taps ${taps} > parent ${PARENT_TAPS.logRecentFood}`);
+});
+
+test('log the ready set: one tap on the cover\'s Log button commits exactly the ready set (no more taps than the parent commit)', (assert)=>{
+  const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'setChipOwnerTag',
+    'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips', 'trimUnitNum', 'parseTopRep', 'parseBottomRep',
+    'recommendNextSet', 'setSheetWeightStep', 'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger',
+    'readSetLogger', 'logUpNext', 'setCoverAdjust', 'firstSetHint', 'targetRirLabel', 'getRepRangeTier'].map(f => extractFunction(src, f));
+  const row = (i, done) => `<div class="set-row" data-set-idx="${i}" data-ex-idx="0"><span class="set-row-owner">Bench Press</span>
+    <input class="ex-input ex-weight" placeholder="lb" value="${done ? '185' : ''}"><input class="ex-input ex-reps" placeholder="reps" value="${done ? '5' : ''}">
+    <input class="ex-input ex-rpe" placeholder="RPE" value=""></div>`;
+  const list = `<div class="exercise-block"><div class="exercise"><input type="checkbox" data-idx="0"><div class="ex-name">Bench Press</div>
+    <div class="ex-sets"><span>4×4-6</span></div></div><div class="set-chips" role="group"></div>
+    <div class="expand-wrap"><div><div class="sets-block">${row(0, true)}${row(1)}${row(2)}</div></div></div></div>`;
+  const cover = new JSDOM(html).window.document.getElementById('upNext').outerHTML;
+  const { window } = runJsdom(cover + `<div id="exerciseList">${list}</div>`, `
+    var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true, exerciseInfo = {};
+    function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
+    function isBarbellExercise(){ return true; } function isDumbbellExercise(){ return false; }
+    function showUndoToast(){} function refreshGymLogBtn(){} function icon(){ return ''; }`,
+    [...FNS, statement("document.getElementById('upNextLog').addEventListener('click', logUpNext);").split('\n')[0],
+     'window.__commits = 0; const __c = commitSet; commitSet = function(r, v, f){ window.__commits++; return __c(r, v, f); };',
+     'renderAllSetChips(); renderUpNext();']);
+  const ready = window.document.querySelector('#exerciseList .set-chip.is-ready');
+  assert.ok(ready && ready._values.reps, 'anchor: the ready set has something to log');
+  let taps = 0;
+  window.document.getElementById('upNextLog').click(); taps++;
+  assert.strictEqual(window.__commits, 1, 'one tap, one set');
+  assert.strictEqual(window.document.querySelector('.set-row[data-set-idx="1"] .ex-reps').value, String(ready._values.reps), 'the ready set');
+  assert.ok(taps <= PARENT_TAPS.logReadySet, `taps ${taps} > parent ${PARENT_TAPS.logReadySet}`);
 });
 
 run();
