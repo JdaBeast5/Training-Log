@@ -1446,3 +1446,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Layout:** the program line (`#upNextWhere`: the program label, week and phase, plus the streak) leads the cover. `#upNextBar` sits above `.cover-log`.
 - **Settings:** the "You" section is first.
 - **Unverified:** on device (the safe-area paint).
+
+## Addendum 126: UX-21, the unfolded cover (v3.602, PR #181, 2026-11-17)
+- **What:** `syncTodayChrome` prepends `#upNext` to `.today-session-pane` when `isOpenPosture()` is true. It moves it back after its `_home` marker otherwise.
+- **Look:** `.today-session-pane > .cover` is a padded, rounded block.
+- **Phone:** unchanged.
+- **Unverified:** on a real foldable.

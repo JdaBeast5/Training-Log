@@ -186,4 +186,35 @@ test('the profile: a finished profile is Settings\' first section', (assert)=>{
   assert.match(first.querySelector('.care-label').textContent, /^You$/);
 });
 
+// ---- v3.602 (UX-21): unfolded, the cover leads the left pane ---------------
+// Recorded deviation: the spec moves #upNext into the pane in the markup. Since
+// UX-06a/UX-20 the cover leads Today above Today's Priorities on a phone, so a
+// markup move would push it below them (the spec's "every 402 state identical"
+// would fail). It moves into the pane only when unfolded, by the same marker
+// move as UX-20's chrome, and returns on folding.
+// Sabotage: skip the pane move and criteria 1 and 2 fail.
+test('UX-21 criteria 1–3: unfolded, the cover is the left pane\'s first child (column 1); folded, it leads Today again, before the workout card', (assert)=>{
+  const ui = mount();
+  ui.window.switchView('today');
+  const card = ui.$('upNext');
+  const pane = ui.doc.querySelector('#todayView > .today-session-pane');
+  assert.strictEqual(card.parentElement, ui.$('todayView'), 'folded: a direct child of Today');
+  assert.ok(card.compareDocumentPosition(ui.$('workoutCard')) & 4, 'before the workout card');
+  ui.window.__unfolded = true; ui.window.syncTodayChrome();
+  assert.strictEqual(card.parentElement, pane, 'unfolded: in the session pane');
+  assert.strictEqual(pane.firstElementChild, card, 'its first child');
+  assert.strictEqual(ui.doc.querySelectorAll('#upNext').length, 1, 'one cover');
+  assert.ok(pane.classList.contains('split-primary'));
+  // The open-posture grid puts .split-primary in column 1 and every other child of the split in column 2.
+  const open = RULES.filter(({media}) => /min-width:\s*760px/.test(media));
+  const col = sel => (open.find(({r}) => r.selectorText === sel) || {r: {style: {getPropertyValue: () => null}}}).r.style.getPropertyValue('grid-column').trim();
+  assert.strictEqual(col('.posture-split > .split-primary'), '1', 'the pane, with the cover in it, is column 1');
+  assert.strictEqual(col('.posture-split > *'), '2', 'and the rest (the exercise history) column 2');
+  assert.ok(ui.doc.querySelector('.exercise-detail-card') && !ui.doc.querySelector('.exercise-detail-card').closest('.today-session-pane'), 'the history card stays outside the pane');
+  ui.window.__unfolded = false; ui.window.syncTodayChrome();
+  assert.strictEqual(card.parentElement, ui.$('todayView'), 'folded again: back');
+  assert.strictEqual(card.previousSibling, card._home, 'exactly where it was');
+  assert.ok(ui.doc.body.classList.contains('today-cover'), 'and the phone chrome is back on it');
+});
+
 run();
