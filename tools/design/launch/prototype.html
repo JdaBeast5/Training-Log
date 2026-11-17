@@ -83,6 +83,23 @@
   .steel-bar{left:calc(var(--u) * -2600); width:calc(var(--u) * 2330); top:calc(var(--u) * -18); height:calc(var(--u) * 36);}
   .steel-collar{left:calc(var(--u) * -286); width:calc(var(--u) * 44); top:calc(var(--u) * -110); height:calc(var(--u) * 220); border-radius:calc(var(--u) * 8);}
   .steel-sleeve{left:calc(var(--u) * -242); width:calc(var(--u) * 590); top:calc(var(--u) * -30); height:calc(var(--u) * 60); border-radius:calc(var(--u) * 10);}
+  /* The outer spring collar (owner, 2026-11-17: the tip points down mid-turn, so the plates must look locked
+     on). A spring clip seen from the side, to scale with the sleeve (60u = a 50 mm sleeve, so 1.2u per mm):
+     a coil 20u wide and 96u tall (about 17 × 83 mm: three turns of wire round the sleeve) 12u past the 5 kg
+     plate, and its two 9u wire handles (about 80 mm) rising from the top of the coil and splaying outward. It is a .steel wrapper, so it fades
+     with the bar and the collar at 640–960 ms; its children don't animate (their rotations are static). It
+     sits above the plates' sides in the DOM, so in light it shows on the ink tile; it is gone before the
+     white band reaches it. */
+  .steel-clip{left:0; top:0; width:0; height:0; background:none;}
+  .steel-clip > i{position:absolute; background:var(--steel);}
+  .clip-coil{left:calc(var(--u) * 240); width:calc(var(--u) * 20); top:calc(var(--u) * -50); height:calc(var(--u) * 100); border-radius:calc(var(--u) * 6);
+    /* cut from the sleeve by a 5u ink rim, as every plate is cut from the next by ground (#0C0C0D is the dark
+       ground and the light tile alike, and the coil sits on the tile in light) */
+    box-shadow:0 0 0 calc(var(--u) * 5) #0C0C0D;}
+  .clip-arm{left:calc(var(--u) * 245.5); width:calc(var(--u) * 9); top:calc(var(--u) * -142); height:calc(var(--u) * 96); border-radius:calc(var(--u) * 4.5);
+    transform-origin:50% 100%;}
+  .clip-arm-1{transform:rotate(8deg);}
+  .clip-arm-2{transform:rotate(30deg);}
   @keyframes launchSteelOut{to{opacity:0;}}
 
   /* The five bands, drawn at their FINAL size: 84u thick, 4400u long (past every edge of a phone or the
@@ -176,6 +193,7 @@
         <div class="band b10"></div>
         <div class="band b5"></div>
       </div>
+      <div class="steel steel-clip"><i class="clip-coil"></i><i class="clip-arm clip-arm-1"></i><i class="clip-arm clip-arm-2"></i></div>
     </div></div>
   </div>
 </div>
