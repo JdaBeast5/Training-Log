@@ -274,9 +274,9 @@ function specificity(selText, el){
   return selText.split(',').map(x => x.trim()).filter(x => { try{ return !el || el.matches(x); }catch(e){ return false; } })
     .map(specificityOne).sort(cmp).pop() || [0, 0, 0];
 }
-function tokens(ink, theme){
+function tokens(ink, theme, extraClass){
   const { document } = new JSDOM('<!doctype html><html><body><section class="cover"></section></body></html>').window;
-  document.body.className = 'day-' + ink;
+  document.body.className = 'day-' + ink + (extraClass ? ' ' + extraClass : '');
   const decl = (el) => {
     const out = {};
     RULES.map((x, order) => ({...x, order}))
@@ -407,6 +407,66 @@ test('placement: the cover leads Today, outside the workout card, and gym mode h
   assert.strictEqual(view.firstElementChild, document.getElementById('upNext'));
   assert.strictEqual(document.getElementById('upNext').closest('#workoutCard'), null);
   assert.strictEqual(one('body.gym-mode .cover').getPropertyValue('display'), 'none');
+});
+
+// ---- v3.594 (owner request, 2026-11-17): Settings > Today cover > Quiet ----
+// "in case all the red is too much for some people". Quiet puts the cover on
+// the card surface with the normal text ink; the day's colour stays in the
+// numeral and a stripe along the top.
+test('v3.594 Quiet cover: the card surface and text ink; the numeral in the day colour at >= 3:1 and every text >= 4.5:1, every ink and theme', (assert)=>{
+  const q = one('body.cover-quiet .cover');
+  assert.match(q.getPropertyValue('box-shadow'), /var\(--spot\b/, 'the day colour as a stripe (inset: it takes no layout room)');
+  for(const theme of ['dark', 'light']) for(const ink of ['red', 'blue', 'yellow', 'green']){
+    const t = tokens(ink, theme, 'cover-quiet');
+    const cover = t.get('--cover'), on = t.get('--on-cover'), fig = t.get('--cover-figure');
+    assert.strictEqual(cover, t.get('--surface-1'), `${theme} ${ink}: the card surface, not the spot field`);
+    assert.strictEqual(fig, t.get('--spot'), `${theme} ${ink}: the numeral keeps the day colour`);
+    assert.ok(/^#[0-9A-F]{6}$/i.test(on) && /^#[0-9A-F]{6}$/i.test(fig), `${theme} ${ink}: resolved (${on}, ${fig})`);
+    assert.ok(contrast(on, cover) >= 4.5, `${theme} ${ink}: text ${contrast(on, cover).toFixed(2)}:1`);
+    assert.ok(contrast(fig, cover) >= 3, `${theme} ${ink}: numeral ${fig} on ${cover} ${contrast(fig, cover).toFixed(2)}:1`);
+    const act = t.get('--cover-action'), onAct = t.get('--on-cover-action');
+    assert.ok(contrast(onAct, act) >= 4.5, `${theme} ${ink}: Log ${contrast(onAct, act).toFixed(2)}:1`);
+    // Sabotage anchor: without the class the same ink is the full field.
+    assert.notStrictEqual(tokens(ink, theme).get('--cover'), cover, `${theme} ${ink}: the class is what changes it`);
+  }
+});
+
+test('v3.594 Quiet cover: the real select, load, save and apply; the choice persists per profile and defaults to the day colour', async (assert)=>{
+  const markup = new JSDOM(html).window.document.getElementById('prefCoverStyle').outerHTML;
+  const wire = src.slice(src.indexOf("document.getElementById('coverStyleSelect').addEventListener('change'"), src.indexOf('\n', src.indexOf("document.getElementById('coverStyleSelect').addEventListener('change'")));
+  const make = (stored) => runJsdom(markup, `
+    window.__store = ${JSON.stringify(stored)};
+    window.storage = { get: async k => k in window.__store ? {value: window.__store[k]} : null, set: async (k, v) => { window.__store[k] = v; } };`,
+    ['let coverStyle = \'colour\';', ...['applyCoverStyle', 'loadCoverStylePref', 'saveCoverStyle'].map(f => extractFunction(src, f)), wire,
+     'window.__load = loadCoverStylePref;']).window;
+  const fresh = make({});
+  await fresh.__load();
+  assert.ok(!fresh.document.body.classList.contains('cover-quiet'), 'default: the day colour');
+  assert.strictEqual(fresh.document.getElementById('coverStyleSelect').value, 'colour');
+  const sel = fresh.document.getElementById('coverStyleSelect');
+  sel.value = 'quiet'; sel.dispatchEvent(new fresh.Event('change'));
+  await new Promise(r => setTimeout(r, 0));
+  assert.ok(fresh.document.body.classList.contains('cover-quiet'), 'choosing Quiet applies at once');
+  assert.strictEqual(fresh.__store['cover-style'], 'quiet', 'and is saved');
+  const back = make({'cover-style': 'quiet'});
+  await back.__load();
+  assert.ok(back.document.body.classList.contains('cover-quiet'), 'a saved Quiet is restored on load');
+  assert.strictEqual(back.document.getElementById('coverStyleSelect').value, 'quiet');
+  const odd = make({'cover-style': 'neon'});
+  await odd.__load();
+  assert.ok(!odd.document.body.classList.contains('cover-quiet'), 'anything else is the day colour');
+});
+
+test('v3.594 Quiet cover: the row sits in Settings under "During a workout", and boot loads it once (real source, comments stripped)', (assert)=>{
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  assert.strictEqual((code.match(/move\('prefCoverStyle', 'settingsWorkoutSlot'\)/g) || []).length, 1, 'moved into the workout group');
+  assert.strictEqual((code.match(/await loadCoverStylePref\(\)/g) || []).length, 1, 'loaded once at startup');
+  const init = code.slice(code.indexOf('(async function init(){'));
+  assert.ok(init.indexOf('await loadCoverStylePref()') > -1 && init.indexOf('await loadCoverStylePref()') < init.indexOf('renderWorkout('), 'before Today first renders');
+  const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window;
+  const opts = [...document.querySelectorAll('#coverStyleSelect option')].map(o => o.value + ':' + o.textContent);
+  assert.deepStrictEqual(opts, ['colour:Day colour', 'quiet:Quiet']);
+  assert.ok(document.getElementById('settingsWorkoutSlot').closest('.settings-section').querySelector('.care-label').textContent.includes('During a workout'));
 });
 
 run();
