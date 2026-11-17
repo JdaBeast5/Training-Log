@@ -301,4 +301,21 @@ test('09b: the flood is the day\'s ink with its contrast-checked text ink, and Q
   assert.match(get('body.cover-quiet .finish-flood').style.getPropertyValue('background'), /^var\(--surface-2\)/);
 });
 
+// v3.603 (UX-22): the finish sheet's Done shows no keyboard ring on a tap.
+test('UX-22 criterion 4: no :focus-only ring on the finish sheet\'s Done; it is focused with focusVisible:false; the head\'s Done is in the text ink', async (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { window } = new JSDOM(`<style>${CSS}</style>`);
+  const rules = []; (function walk(l){ for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } })(window.document.styleSheets[0].cssRules);
+  const bad = rules.filter(r => /:focus(?!-visible|-within)/.test(r.selectorText) && /finish|save-btn|button:focus\b/.test(r.selectorText) && (r.style.getPropertyValue('outline') || r.style.getPropertyValue('box-shadow')));
+  assert.deepStrictEqual(bad.map(r => r.selectorText), []);
+  assert.strictEqual(rules.find(r => r.selectorText === '.finish-sheet .sub-modal-close').style.getPropertyValue('color'), 'var(--text)');
+  const ui = mount();
+  let opts = null;
+  ui.$('finishDone').focus = function(o){ opts = o; };
+  await ui.open();
+  await new Promise(r => setTimeout(r, 5));
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(opts)), {preventScroll: true, focusVisible: false});
+  assert.strictEqual(require('child_process').spawnSync('node', ['test-dialog-focus-ring.js'], {cwd: __dirname}).status, 0, 'test-dialog-focus-ring.js still passes');
+});
+
 run();

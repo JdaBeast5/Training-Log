@@ -501,4 +501,33 @@ test('UX-19 criterion 3: no rule for the cover or anything in it points --on-cov
   assert.ok(RULES.some(({r}) => /var\(--block-on-green\)/.test(r.style.getPropertyValue('--on-cover'))), 'anchor: the walk does see the green override');
 });
 
+// ---- v3.603 (UX-22): one figure face, and a numeral that fits -------------
+// Sabotage: drop the 4–5 character size class and criterion 2 fails on "182.5".
+test('UX-22 criterion 1: Today\'s figures are Geist with tabular figures, not Geist Mono (chips, steppers, fields, Next time, the session length)', (assert)=>{
+  const all = []; (function walk(l){ for(const r of l){ if(r.selectorText) all.push(r); else if(r.cssRules) walk(r.cssRules); } })(cssWin.document.styleSheets[0].cssRules);
+  for(const sel of ['.set-chip', '.cover-step output', '.cover .up-next-field input', '.finish-next-load', '.duration-tag']){
+    const r = all.filter(x => x.selectorText === sel && x.style.getPropertyValue('font-family'));
+    assert.ok(r.length, sel + ' sets a family');
+    for(const x of r){
+      assert.ok(!/font-mono|Geist Mono/.test(x.style.getPropertyValue('font-family')), sel + ': ' + x.style.getPropertyValue('font-family'));
+      assert.match(x.style.getPropertyValue('font-variant-numeric'), /tabular-nums/, sel + ' tabular');
+    }
+  }
+});
+
+test('UX-22 criteria 2–3: the real renderCoverNumeral sizes the weight by its length (95, 185: 150px; 182.5: 120px; 1102.5: 100px) and the numeral never wraps', (assert)=>{
+  const ui = mount(BENCH);
+  const want = {'95': '', '185': '', '182.5': 'is-m', '1102.5': 'is-s'};
+  for(const [w, cls] of Object.entries(want)){
+    ui.$('upNextWeight').value = w; ui.$('upNextReps').value = '6';
+    ui.window.renderCoverNumeral(ui.$('upNext'));
+    const el = ui.$('upNextNumeral');
+    assert.deepStrictEqual(['is-m', 'is-s'].filter(c => el.classList.contains(c)), cls ? [cls] : [], w);
+    const px = parseFloat(cssWin.getComputedStyle((() => { const n = cssWin.document.getElementById('upNextNumeral'); n.className = el.className; return n.querySelector('.cover-w'); })()).fontSize);
+    assert.strictEqual(px, {'': 150, 'is-m': 120, 'is-s': 100}[cls], w + ' at ' + px + 'px');
+  }
+  const rule = RULES.find(({r}) => r.selectorText === '.cover-numeral');
+  assert.strictEqual(rule.r.style.getPropertyValue('flex-wrap'), 'nowrap');
+});
+
 run();

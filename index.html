@@ -789,7 +789,7 @@
   .set-chip{
     flex:1 0 auto; min-width:56px; max-width:132px; min-height:44px; padding:0 8px; border-radius:14px; white-space:nowrap;
     display:inline-flex; align-items:center; justify-content:center; gap:3px;
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14.5px; line-height:1;
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:14.5px; line-height:1; /* v3.603 (UX-22): Geist, tabular (mono is the build stamp's only) */
     border:1px solid transparent; background:rgba(var(--surface-white-rgb),.05); color:var(--text-muted);
     cursor:pointer; transition:transform .15s var(--ease-smooth), background-color .2s var(--ease-smooth);
   }
@@ -893,7 +893,7 @@
   .cover-rir{grid-template-columns:84px repeat(4, 1fr);}
   .cover-step-label{font-size:var(--meta-on-spot); font-weight:600;}
   .cover-step button, .cover-rir button{min-height:44px; border-radius:12px; border:1.5px solid currentColor; background:none; color:inherit; font-family:var(--font-sans); font-size:18px; font-weight:600; cursor:pointer;}
-  .cover-step output{text-align:center; font-family:var(--font-mono); font-size:20px; font-variant-numeric:tabular-nums;}
+  .cover-step output{text-align:center; font-family:var(--font-sans); font-size:20px; font-variant-numeric:tabular-nums;}
   .cover-rir button[aria-checked="true"]{background:var(--on-rest); color:var(--rest-field); border-color:transparent;}
   .cover-rir-words{font-size:var(--meta-on-spot); margin:0;}
   .cover-rir-words:empty{display:none;}
@@ -966,11 +966,12 @@
   .finish-next-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--rule);}
   .finish-next-name{font-size:16px; font-weight:600; color:var(--text); min-width:0;}
   .finish-next-why{font-size:13px; font-weight:400; color:var(--text-2); margin-top:2px;}
-  .finish-next-load{font-family:var(--font-mono); font-size:16px; color:var(--text); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .finish-next-load{font-family:var(--font-sans); font-size:16px; color:var(--text); white-space:nowrap; font-variant-numeric:tabular-nums;}
   .finish-actions{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:12px; margin-top:18px;}
   .finish-share{min-height:48px; border-radius:var(--radius-pill); border:1px solid var(--rule-strong); background:none; color:var(--text); font-family:var(--font-sans); font-size:16px; font-weight:600; cursor:pointer;}
   .finish-share[hidden]{display:none;}
   .finish-sheet .finish-done{margin:0; min-height:48px;}
+  .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
   /* A rest day: the field (white or off, the day's own ink) and its name, so
      the day picker is always one tap away; nothing to log. */
@@ -982,8 +983,11 @@
   .cover-rx{margin-top:2px;}
   .cover-hint{margin-top:4px; font-weight:600;}
   .cover-hint[hidden], .cover-why[hidden], .cover-caution[hidden]{display:none;}
-  .cover-numeral{display:flex; align-items:baseline; flex-wrap:wrap; gap:0 6px; margin-top:6px; color:var(--cover-figure, var(--text)); font-family:var(--font-display); font-variant-numeric:tabular-nums lining-nums;}
+  .cover-numeral{display:flex; align-items:baseline; flex-wrap:nowrap; gap:0 6px; margin-top:6px; color:var(--cover-figure, var(--text)); font-family:var(--font-display); font-variant-numeric:tabular-nums lining-nums;}
   .cover-w{font-size:150px; line-height:.8; letter-spacing:-0.025em; font-weight:800; font-stretch:68%;}
+  /* v3.603 (UX-22): the numeral fits one line: 4–5 characters at 120px, 6+ at 100px. */
+  .cover-numeral.is-m .cover-w{font-size:120px;}
+  .cover-numeral.is-s .cover-w{font-size:100px;}
   .cover-u{font-family:var(--font-sans); font-size:18px; font-weight:600;}
   .cover-x{font-size:60px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:4px;}
   .cover-x:empty, .cover-u:empty{display:none;}
@@ -998,7 +1002,7 @@
   .cover .up-next-field{background:none; border:1.5px solid currentColor;}
   .cover .up-next-field:focus-within{border-color:currentColor; outline:2px solid currentColor; outline-offset:2px;}
   .cover .up-next-field small{font-size:var(--meta-on-spot); color:inherit;}
-  .cover .up-next-field input{width:100%; background:none; border:0; padding:0; color:inherit; font-family:var(--font-mono); font-size:22px !important; font-variant-numeric:tabular-nums;}
+  .cover .up-next-field input{width:100%; background:none; border:0; padding:0; color:inherit; font-family:var(--font-sans); font-size:22px !important; font-variant-numeric:tabular-nums;}
   .cover .up-next-field input:focus, .cover .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
   .cover .up-next-field input::placeholder{color:inherit; opacity:.6; font-size:17px;}
   /* v3.596 (UX-07): the loaded bar, full width, under the Log button (the
@@ -1112,7 +1116,7 @@
   .card-icon svg{width:100%; height:100%;}
   .day-plate-inline{width:20px; height:20px; border-radius:50%; flex:0 0 auto; border:2px solid rgba(var(--overlay-black-rgb),0.25);}
   .duration-tag{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; color:var(--text-muted);
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; color:var(--text-muted);
   }
   .mesocycle-phase-tag{
     display:inline-flex; align-items:center; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
@@ -5335,6 +5339,8 @@
   body.gym-mode .exercise-block.open > .set-chips{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:4px 0 16px;}
   body.gym-mode .exercise-block.open > .set-chips .set-chip{max-width:none; min-height:76px; border-radius:22px; font-size:26px; font-weight:600;}
   body.gym-mode .set-chip-tag{font-size:13px;}
+  /* v3.603 (UX-22): Today's chips moved to Geist; gym mode (out of scope until UX-17) keeps its mono numerals. */
+  body.gym-mode .set-chip{font-family:var(--font-mono);}
   /* [GYM WARM-UP CHIPS, v3.392] Gym mode only: the warm-up ramp as a row of
      orange chips ABOVE the working sets, in the order they are done, instead
      of field rows below them. The rows stay in the page as the source of
@@ -8146,7 +8152,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.602';
+const APP_VERSION = '3.603';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9784,6 +9790,9 @@ const WHATS_NEW = {
   ]},
   '3.602': { headline: 'Unfolded, the next set leads', points: [
     'On an unfolded phone, the cover with your next set now sits at the top of the left side, with the session under it, instead of halfway down the right side.',
+  ]},
+  '3.603': { headline: 'Numbers in one type', points: [
+    'The set chips, steppers and finish summary now use the same type as the rest of Today, and a longer weight like 182.5 stays on one line beside its reps.',
   ]},
 };
 
@@ -31586,7 +31595,8 @@ function openFinishSheet(model){
   fresh.hidden = !model.share;
   if(model.share){ preloadShareCardFont(); fresh.addEventListener('click', ()=> shareCelebrationCard(model.share, 'finishShare')); }
   sheet.classList.add('active');
-  setTimeout(()=>{ const d = document.getElementById('finishDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll:true}); }, 0);
+  // v3.603 (UX-22): focusVisible:false, so a tap doesn't paint the keyboard ring (a keyboard still shows it).
+  setTimeout(()=>{ const d = document.getElementById('finishDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll:true, focusVisible:false}); }, 0);
 }
 // The best set's plate stack (UX-07's drawing) when it's a barbell lift.
 function finishPlatesHtml(b){
@@ -32948,6 +32958,10 @@ function renderCoverNumeral(card){
   const [w, u, x] = el.children;
   if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
   else { w.textContent = reps; u.textContent = reps ? repsUnit : ''; x.textContent = ''; }
+  // v3.603 (UX-22): sized by its length, so "182.5 ×6" stays on one line.
+  const len = w.textContent.length;
+  el.classList.toggle('is-m', len >= 4 && len <= 5);
+  el.classList.toggle('is-s', len >= 6);
   el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
   renderCoverBar(card, hasWeight ? v.weight : '');
 }
