@@ -203,7 +203,8 @@ test('the prescription line carries BL-10\'s effort words (iii); the day and the
   assert.strictEqual(ui.$('upNextTarget').textContent, '4×4-6 reps · ' + ui.window.targetRirLabel({name: 'Bench Press', sets: '4×4-6'}, 'strength').words);
   assert.match(ui.$('upNextTarget').textContent, /Stop \d/, 'the words form, not the "2–3 RIR" short label');
   assert.strictEqual(ui.$('upNextDay').textContent, 'Upper · Strength');
-  assert.strictEqual(ui.$('upNextWhere').textContent, 'Day 1 · Week 4 of 5 · Accumulation');
+  // 2026-11-17 (v3.601, UX-20): the program line leads the cover: the program's label, then the week and phase.
+  assert.strictEqual(ui.$('upNextWhere').textContent, 'Week 4 of 5 · Accumulation', 'no programs table in this fixture: the week and phase alone');
 });
 
 test('(i) a first-ever exercise shows BIZ-05\'s firstSetHint and the target reps, not an empty numeral', (assert)=>{

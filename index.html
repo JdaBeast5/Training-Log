@@ -899,9 +899,38 @@
   .cover-rir-words:empty{display:none;}
   @media (prefers-reduced-motion: reduce){ .cover-drain{transition:none;} }
   .cover[hidden]{display:none;}
-  /* The week and phase close the cover: the Log button has to sit above
-     y = 480 on a 402 x 874 phone, under the app header. */
-  .cover-where{font-size:var(--meta-on-spot); font-weight:500; margin-top:12px;}
+  /* v3.601 (UX-20): Today's chrome on the cover. The field starts at the top
+     edge (under the status bar); the header keeps only its title, read by
+     VoiceOver; the date controls, the three icon buttons and the streak sit
+     on the field in --on-cover, flat: no card, no fill, no glow. */
+  body.today-cover .wrap{padding-top:0;}
+  body.today-cover header{padding:0; height:0; overflow:visible;}
+  body.today-cover #headerEyebrow, body.today-cover #headerSub, body.today-cover #brandHome{display:none;}
+  body.today-cover #viewTitle{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  body.today-cover #todayFab{display:none !important;} /* the row's Today button does its job */
+  body.today-cover .cover{padding-top:env(safe-area-inset-top, 0px);}
+  .cover-top{display:none;}
+  body.today-cover .cover-top{display:flex; align-items:center; justify-content:space-between; min-height:44px; margin:0 -10px;}
+  .cover-date{display:flex; align-items:center; min-width:0;}
+  .cover-icons{display:flex; align-items:center;}
+  .cover-icons > button{position:static; width:44px; height:44px; border-radius:50%; background:none; border:0; box-shadow:none; color:inherit; display:flex; align-items:center; justify-content:center;}
+  .cover-icons > button svg{width:21px; height:21px;}
+  .cover #logDateBar, .cover #logDateBar.backdating{background:none; border:0; box-shadow:none; padding:0; margin:0; gap:0; max-width:none;}
+  .cover #logDateBar::before{display:none;}
+  .cover .log-date-nav{width:44px; height:44px; background:none; border:0; box-shadow:none; color:inherit; font-size:18px;}
+  .cover .log-date-label-wrap{flex:0 1 auto; min-height:44px; padding:0 2px;}
+  .cover #logDateLabelText{color:inherit; font-size:var(--meta-on-spot); font-weight:600;}
+  .cover .log-date-today-btn{background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:var(--meta-on-spot); min-height:32px; padding:6px 12px; margin-left:4px;}
+  .cover-where-row{display:flex; align-items:center; gap:6px; font-size:var(--meta-on-spot); font-weight:500; margin-top:2px;}
+  .cover-where-row .cover-where{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;} /* one line: the streak stays whole */
+  .cover-streak{flex:0 0 auto;}
+  .cover-where-row:empty, .cover-streak:empty{display:none;}
+  .cover #streakBadge{margin:0; padding:0; background:none; border:0; box-shadow:none; color:inherit; font-size:var(--meta-on-spot); font-weight:500; gap:4px;}
+  .cover #streakBadge::before{content:'·'; margin-right:2px;}
+  .cover .streak-flame{width:15px; height:15px;}
+  /* v3.601 (UX-20): the program line leads the cover again, as in the
+     mock-up, now that the cover starts at the top of the screen. */
+  .cover-where{font-size:var(--meta-on-spot); font-weight:500;}
   .cover-where:empty{display:none;}
   .cover-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; letter-spacing:-0.01em; margin-top:2px;}
   /* v3.595 (UX-06b): the headline is the day picker's button. */
@@ -3005,7 +3034,11 @@
     /* v3.483: the jump rail's lighter glass (v3.482), so the two strips at the
        top of a scrolled page read as one material. */
     background:var(--ground);
-  }
+  }  /* v3.601 (UX-20): on Today the strip behind the clock is the cover's field. */
+  body.today-cover .status-scrim{background:var(--spot, var(--ground));}
+  body.today-cover.day-yellow .status-scrim{background:var(--yellow-cover);}
+  body.today-cover.cover-quiet .status-scrim{background:var(--surface-1);}
+
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
      Coach and Learn sit off the right edge behind a horizontal swipe with the
      scrollbar switched off — three of seven tabs with nothing on screen saying
@@ -6223,6 +6256,13 @@
        saving, PRs, the rest timer, Undo and auto-check run as for a chip. -->
   <section class="cover" id="upNext" aria-labelledby="upNextLift" hidden>
     <div class="cover-drain" id="coverDrain" aria-hidden="true"></div>
+    <!-- v3.601 (UX-20): on Today the cover starts at the top of the screen.
+         Its first row takes the date controls (#logDateBar) and the Search,
+         coach and Settings buttons, and the program line carries the streak
+         (#streakBadge): syncTodayChrome moves them in, and back out on every
+         other tab, so their IDs and listeners never change. -->
+    <div class="cover-top" id="coverTop"><div class="cover-date" id="coverDateSlot"></div><div class="cover-icons" id="coverIconSlot"></div></div>
+    <div class="cover-where-row"><span class="cover-where" id="upNextWhere"></span><span class="cover-streak" id="coverStreakSlot"></span></div>
     <button type="button" class="cover-day" id="upNextDayBtn" aria-haspopup="dialog" aria-controls="daySheet"><span id="upNextDay"></span><svg class="cover-day-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="cover-lift-row">
       <h2 class="cover-lift" id="upNextLift"></h2>
@@ -6253,6 +6293,7 @@
         <p class="cover-rir-words" id="coverRirWords"></p>
       </div>
     </div>
+    <div class="cover-bar" id="upNextBar" hidden></div>
     <div class="cover-log">
       <button type="button" class="save-btn cover-go" id="upNextLog">Log set</button>
       <button type="button" class="cover-adjust" id="upNextAdjust" aria-expanded="false" aria-controls="upNextFieldsWrap" aria-label="Adjust weight, reps or effort"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -6267,11 +6308,9 @@
         </div>
       </div>
     </div>
-    <div class="cover-bar" id="upNextBar" hidden></div>
     <div class="cover-chips" id="upNextChips" role="group"></div>
     <p class="cover-caution" id="upNextCaution" hidden></p>
     <p class="cover-why" id="upNextWhy" hidden></p>
-    <div class="cover-where" id="upNextWhere"></div>
   </section>
   <div class="card" id="onboardingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2 2 3 5.5 3 8 0 2.2-1.2 4.2-3 6-1.8-1.8-3-3.8-3-6 0-2.5 1-6 3-8Z"/><circle cx="10" cy="8.5" r="1.3"/><path d="M7.3 13.5 5.5 17M12.7 13.5 14.5 17"/></svg></span>Getting Started</div>
@@ -7760,6 +7799,19 @@
          are display:contents inside the group, so the rows they receive at
          startup sit directly in it. -->
     <div class="settings-section">
+      <!-- v3.601 (UX-20): the profile line left Today; the finished profile is Settings' first section. -->
+      <label class="care-label">You</label>
+      <!-- v3.379: until the profile is set up it lives on Today, not here, and
+           this section had nothing in it but its footer. The row goes to it;
+           once the finished profile moves into the slot, the row hides. -->
+      <div class="settings-group">
+        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
+        <div id="settingsProfileSlot"></div>
+      </div>
+      <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
+    </div>
+
+    <div class="settings-section">
       <label class="care-label">During a workout</label>
       <div class="settings-group">
         <div id="settingsWorkoutSlot"></div>
@@ -7774,18 +7826,6 @@
     <div class="settings-section">
       <label class="care-label">Units &amp; suggestions</label>
       <div class="settings-group"><div id="settingsUnitsSlot"></div></div>
-    </div>
-
-    <div class="settings-section">
-      <label class="care-label">You</label>
-      <!-- v3.379: until the profile is set up it lives on Today, not here, and
-           this section had nothing in it but its footer. The row goes to it;
-           once the finished profile moves into the slot, the row hides. -->
-      <div class="settings-group">
-        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
-        <div id="settingsProfileSlot"></div>
-      </div>
-      <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
     </div>
 
     <div class="settings-section">
@@ -8104,7 +8144,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.600';
+const APP_VERSION = '3.601';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9735,6 +9775,10 @@ const WHATS_NEW = {
   ]},
   '3.600': { headline: 'The day colours, as designed', points: [
     'Red, yellow, green and the rest days now use their final plate colours. A red day\'s cover is a deeper red with white text, and History\'s month and the plates on the bar match.',
+  ]},
+  '3.601': { headline: 'Today starts at the top', points: [
+    'The cover now fills Today from the top of the screen. The date, Search, the coach and Settings sit on it, and your program, week and streak are the first line.',
+    'The loaded bar is back above Log set, and a finished profile is now the first thing in Settings.',
   ]},
 };
 
@@ -32827,7 +32871,9 @@ function renderUpNext(){
   // v3.595 (UX-06b): the headline opens the day picker.
   const dayBtn = document.getElementById('upNextDayBtn');
   if(dayBtn) dayBtn.setAttribute('aria-label', `${[textOf('dayHeroEyebrow'), textOf('dayTitle')].filter(Boolean).join(', ')}. Change day`);
-  document.getElementById('upNextWhere').textContent = [textOf('dayHeroEyebrow'), textOf('mesocyclePhaseTag')].filter(Boolean).join(' · ');
+  // v3.601 (UX-20): the program line leads the cover: the program, then the week and phase.
+  const progLabel = (typeof programs !== 'undefined' && typeof activeProgram !== 'undefined' && programs[activeProgram] && programs[activeProgram].label) || '';
+  document.getElementById('upNextWhere').textContent = [progLabel, textOf('mesocyclePhaseTag')].filter(Boolean).join(' · ');
   // A rest day (no set rows): the cover stays, in the day's white or off ink,
   // with the headline so another day is one tap away; nothing to log.
   card.classList.toggle('is-rest', n.total === 0);
@@ -33641,6 +33687,15 @@ document.getElementById('coverRest').addEventListener('click', (e)=>{
   if(b.dataset.step) return stepCoverField(b.closest('.cover-step').dataset.field, Number(b.dataset.step));
   if(b.dataset.rir != null) setCoverRepsLeft(Number(b.dataset.rir));
 });
+(function watchTodayChrome(){
+  const card = document.getElementById('upNext');
+  if(!card || typeof MutationObserver === 'undefined') return;
+  const mo = new MutationObserver(()=> syncTodayChrome());
+  mo.observe(card, {attributes: true, attributeFilter: ['hidden']});
+  mo.observe(document.body, {attributes: true, attributeFilter: ['class']});
+  const mq = window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY);
+  if(mq && mq.addEventListener) mq.addEventListener('change', syncTodayChrome); // folding or unfolding
+})();
 (function watchRestForCover(){
   const time = document.getElementById('restTimerTime'), el = document.getElementById('restTimer');
   if(!time || !el || typeof MutationObserver === 'undefined') return;
@@ -42088,6 +42143,29 @@ const STAGGER_STEP_MS = 28;
 const MOVED_TO_MORE = ['care', 'coach', 'learn'];
 
 // Tab switching and the overlay background-scroll lock.
+// v3.601 (UX-20): Today's chrome folds into the cover. While Today shows its
+// cover (not in gym mode), the body carries today-cover and the date controls,
+// the three header buttons and the streak move into the cover's top rows; on
+// any other tab they go back exactly where they were (a marker comment holds
+// each one's place), so IDs and listeners never change.
+const TODAY_CHROME_MOVES = [['logDateBar', 'coverDateSlot'], ['globalSearchBtn', 'coverIconSlot'], ['coachFab', 'coverIconSlot'], ['settingsCog', 'coverIconSlot'], ['streakBadge', 'coverStreakSlot']];
+function syncTodayChrome(){
+  const header = document.querySelector('header');
+  const card = document.getElementById('upNext');
+  // Single column only: unfolded, the cover sits in the right pane, and until
+  // UX-21 moves it to the top of the left pane the chrome stays in the header.
+  const unfolded = typeof isOpenPosture === 'function' && isOpenPosture();
+  const on = !!(header && !header.classList.contains('header-compact') && card && !card.hidden && !document.body.classList.contains('gym-mode') && !unfolded);
+  document.body.classList.toggle('today-cover', on);
+  for(const [id, slotId] of TODAY_CHROME_MOVES){
+    const el = document.getElementById(id), slot = document.getElementById(slotId);
+    if(!el || !slot) continue;
+    if(!el._home){ el._home = document.createComment('home:' + id); el.before(el._home); }
+    if(on && el.parentNode !== slot) slot.appendChild(el);
+    else if(!on && el.previousSibling !== el._home) el._home.after(el);
+  }
+}
+
 function switchView(active, opts){
   const scrollToTop = !opts || opts.scrollTop !== false;
   try{ window.storage.set('active-view', active); }catch(e){}
@@ -42101,6 +42179,7 @@ function switchView(active, opts){
   // alone; the profile line and the streak belong to Today.
   const headerEl = document.querySelector('header');
   if(headerEl) headerEl.classList.toggle('header-compact', active !== 'today');
+  syncTodayChrome(); // v3.601 (UX-20)
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);

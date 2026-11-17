@@ -100,7 +100,7 @@ function drive(views){
     var STAGGER_MAX_STEPS = 6, STAGGER_STEP_MS = 40;
     function closeNavMoreOverlay(){} function hideGymOffer(){} function renderLogDateBar(){}
     Element.prototype.scrollIntoView = function(){};`,
-    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter'), extractFunction(src, 'scrollAppToTop'), extractFunction(src, 'switchView'),
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter'), extractFunction(src, 'scrollAppToTop'), extractFunction(src, 'switchView') + '\n' + extractConst(src, 'TODAY_CHROME_MOVES') + '\n' + extractFunction(src, 'syncTodayChrome') /* 2026-11-17 (v3.601, UX-20): switchView folds Today's chrome into the cover */,
      'window.__seen = [];' + views.map(v => `try{ switchView('${v}'); }catch(e){ window.__err = e.message; }
        window.__seen.push({title: document.getElementById('viewTitle').textContent,
          current: [...document.querySelectorAll('#navPillsScroll > button[aria-current="page"]')].map(b => b.id)});`).join('\n')]);

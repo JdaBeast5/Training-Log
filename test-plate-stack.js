@@ -106,9 +106,11 @@ test('criterion 6: the bar is drawn full width of the cover\'s content box (CSSO
   assert.strictEqual(svg[0].style.getPropertyValue('height'), 'auto', 'the drawing keeps its proportions');
   const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window;
   assert.strictEqual(document.getElementById('upNextBar').parentElement.id, 'upNext', 'a direct child of the cover: its content box');
-  // Under the Log row, so Log stays above y = 480 (UX-06a criterion 5).
+  // 2026-11-17 (v3.601, UX-20): with the cover starting at the top of the
+  // screen the bar returns above Log, as the mock-up draws it (it sat under
+  // the Log row only to keep Log above y = 480 under the old header).
   const kids = [...document.getElementById('upNext').children];
-  assert.ok(kids.indexOf(document.getElementById('upNextBar')) > kids.indexOf(document.querySelector('.cover-log')));
+  assert.strictEqual(kids.indexOf(document.getElementById('upNextBar')) + 1, kids.indexOf(document.querySelector('.cover-log')), 'directly above the Log row');
 });
 
 test('criterion 7: kg: 100 kg on the 20 kg bar is 25 + 15 a side, and the 25 is drawn in the red ink', (assert)=>{
