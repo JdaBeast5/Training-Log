@@ -1353,3 +1353,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `.food-figs` (four `.food-fig` cells: `#valCal/#lblCal`, Pro, Carb, Fat) replace the four macro bars; `updateBars` writes text only. `.quick-add-btn` standard 44 px buttons in one horizontally scrolling row. `renderFoodLog` rows: `.fl-text` holds `.fl-name` + `.fl-macro` (cal · protein · carbs · fat).
 - **New:** `test-tap-counts.js` (UX-06a and UX-17 extend it).
 - **Next:** UX-12 (slot 44, History as plate blocks); BL-20 is buildable too.
+
+## Addendum 113: UX-12 (v3.589, PR #165, 2026-11-17)
+- **What:** `inkForDate(workoutCorpus, exCorpus, date)` (pure); `_historyHeatmapDayInk` filled in `renderHistoryHeatmap`; trained cells render `.plate-block.p-<ink>`. Text tokens `--block-on-red/-yellow/-green` (dark: #0C0C0D / on-ink; light: white).
+- **Lesson:** `--spot-*` are also text colours (`--day-hue`: Up next target, title gradient), so don't darken them for a fill; add a per-use text token instead. Re-run the full contrast pass (scratch script) for any ink change.
+- **Open for owner:** UX-12's two-line session rows (duration; top lifts) not built.
+- **Next:** BL-20 (per-muscle ledger), then UX-06a.

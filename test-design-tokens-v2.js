@@ -183,4 +183,18 @@ test('UX-03 criterion 4: the dark spot blue is its target (Gym mode included), s
   assert.ok(contrast(onBlue, blue) >= 4.5, `on-blue on spot-blue ${contrast(onBlue, blue).toFixed(2)}`);
 });
 
+// 2026-11-16 (v3.589, UX-12): text on History's filled day blocks is chosen per
+// theme so every ink clears 4.5:1 (the spot inks stay as they are: they are
+// also text, the day's hue).
+test('UX-12: the day-block text tokens clear 4.5:1 on their fills in both themes', (assert)=>{
+  const res = (st, v) => { v = v.trim(); const m = /^var\((--[\w-]+)\)$/.exec(v); return m ? res(st, st.getPropertyValue(m[1]) || darkRoot.style.getPropertyValue(m[1])) : v; };
+  for(const ink of ['red', 'yellow', 'green']){
+    for(const [theme, st] of [['dark', darkRoot.style], ['light', lightRule.style]]){
+      const on = res(st, st.getPropertyValue('--block-on-' + ink));
+      const fill = res(st, st.getPropertyValue('--plate-' + ink) || darkRoot.style.getPropertyValue('--plate-' + ink));
+      assert.ok(contrast(on, fill) >= 4.5, `${theme} ${ink}: ${on} on ${fill} ${contrast(on, fill).toFixed(2)}`);
+    }
+  }
+});
+
 run();
