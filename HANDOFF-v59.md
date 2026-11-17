@@ -1430,3 +1430,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Behaviour:** Share goes through `shareCelebrationCard(model.share, 'finishShare')` and is hidden on clinical programs. The sheet is in `SCROLL_LOCK_OVERLAYS` and `OVERLAY_CLOSERS`, and closing returns focus to `#upNextDayBtn`.
 - **Harness:** new `finish-{dark,light}-402` states.
 - **Next:** 09b, the flood (clip-path from Log, 700 ms; a cut under Reduce Motion; never replays) and `triggerCelebration` once per PR.
+
+## Addendum 123: UX-09b, the PR flood (v3.599, PR #177, 2026-11-17)
+- **What:** in `openFinishSheet`, `#finishBest` gets `.finish-flood` when there's a best set and the program isn't clinical. It draws the best set's plate stack (`finishPlatesHtml`).
+- **The entrance:** `playFinishFlood` animates `clip-path` from a circle at the Log button: WAAPI, 700 ms, `cubic-bezier(.23,1,.32,1)`.
+- **Once only:** it plays once per `model.key` (date|day), tracked in `finishFloodsPlayed`. There's no animation under Reduce Motion.
+- **Colour:** the `--spot-ink` rules are shared by `.cover` and `.finish-flood`. Quiet keeps the card.
+- **Unverified:** on device.
