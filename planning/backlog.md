@@ -3976,7 +3976,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (785–795, 891, 930, 933, 950–953, 1078, `renderCoverNumeral` ~32882, finish CSS 906–945, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Re-pins: `test-set-chips.js`, `test-workout-card-type-scale.js` and `test-label-floor.js` if they pin the chip or duration font; `test-css-mechanical-token-dedup.js`.
 - **Risk:** low. Tabular Geist keeps columns aligned the way mono did.
 - **Tools:** `Skill: impeccable` (`typeset`); TOOL-01.
-- **Status:** ready
+- **Status:** done (v3.603, PR #182). Gym mode's chips keep mono through a `body.gym-mode .set-chip` rule (gym stays identical until UX-17).
 
 ### UX-23: "Then": the session list in the world's ink
 - **Why:** A9–A11, A20. Under the cover, Today switches back to 2.0: a big card with a second day hero (glowing disc, gradient title), pills, mono, blue chevrons and tinted chips. The mock's "Then" is a ruled list on the ground: the day's remaining work, quiet and exact.

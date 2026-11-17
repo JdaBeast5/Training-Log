@@ -1452,3 +1452,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Look:** `.today-session-pane > .cover` is a padded, rounded block.
 - **Phone:** unchanged.
 - **Unverified:** on a real foldable.
+
+## Addendum 127: UX-22, one figure face (v3.603, PR #182, 2026-11-17)
+- **Fonts:** five selectors moved from Mono to Geist with tabular figures. Gym chips keep Mono (`body.gym-mode .set-chip`).
+- **Numeral:** `renderCoverNumeral` toggles `.is-m` (4–5 characters, 120 px) and `.is-s` (6 or more, 100 px). `.cover-numeral` is `nowrap`.
+- **Finish sheet:** Done is focused with `focusVisible:false`, and the head Done uses `var(--text)`.
