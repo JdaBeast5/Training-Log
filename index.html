@@ -2621,6 +2621,18 @@
   .vol-landmark{font-size:12.5px; line-height:1.4; margin-top:6px; font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
   .vol-landmark-within{color:var(--plate-green);}
   .vol-landmark-below{color:var(--plate-yellow);}
+  /* v3.590 (BL-20): the per-muscle ledger under the group rows. Grey under the
+     10-set floor, the day's ink at or above it; the fill stops at the floor. */
+  .muscle-ledger{margin-top:14px; padding-top:12px; border-top:1px solid var(--rule);}
+  .muscle-ledger-title{font-size:12px; color:var(--text-2); margin-bottom:8px;}
+  .muscle-ledger-row{display:grid; grid-template-columns:96px 1fr auto; align-items:center; column-gap:10px; padding:5px 0;}
+  .ml-name{font-size:13px; color:var(--text);}
+  .ml-track{height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+  .ml-fill{display:block; height:100%; background:var(--spot, var(--text)); border-radius:3px;}
+  .ml-fill.is-under{background:var(--text-3);}
+  .ml-val{font-variant-numeric:tabular-nums; font-size:13px; color:var(--text); white-space:nowrap;}
+  .ml-floor{color:var(--text-2);}
+  .ml-note{grid-column:1 / -1; font-size:12px; color:var(--text-2); margin-top:3px;}
   .vol-landmark-above{color:#4FC3F7;}
 
   /* Reusable swipe-to-delete for list entries — pointer events work for both touch and mouse */
@@ -7770,7 +7782,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.589';
+const APP_VERSION = '3.590';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9360,6 +9372,9 @@ const WHATS_NEW = {
   ]},  '3.589': { headline: 'History\'s calendar in colour', points: [
     'On History, each day you trained is now a block in that day\'s colour, so you can see a month\'s consistency at a glance. Tap a day to jump to it, as before.',
     'Rest days and days with nothing logged keep their small marks.',
+  ]},  '3.590': { headline: 'Sets per muscle each week', points: [
+    'On Progress, Weekly Volume now counts this week\'s sets for each muscle (chest, back, shoulders, arms, legs), against a 10-set floor: grey until you reach it, then the day\'s colour.',
+    'A lift counts fully for the muscles it mainly works and half for the ones that help, so bench press counts for chest and half for triceps and front delts.',
   ]},
 };
 
@@ -47688,6 +47703,104 @@ async function archiveCurrentWeek(){
   }, digestBlocks ? 6000 : 4000);
 }
 
+// v3.590 (BL-20): the per-muscle weekly set ledger. Every exercise in the
+// four lifting programs (strength, bodybuilding, powerbuilding, powerlifting,
+// all day-count variants) names its primary muscles (p) and synergists (s).
+// Fractional counting [PEL]: a set counts 1 for each primary muscle and 0.5 for
+// each synergist. Core and conditioning work lists no muscle from the ledger's
+// twelve. BL-37, BL-38 and BL-39 add exercises to these programs and must add
+// their entries in the same version (test-muscle-ledger.js, criterion 3).
+const LEDGER_MUSCLES = ['chest', 'lats', 'upper back', 'front delts', 'side delts', 'rear delts', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'calves'];
+const EXERCISE_MUSCLES = {
+  "Squat": {p:['quads', 'glutes'], s:['hamstrings']},
+  "Squat (Speed)": {p:['quads', 'glutes'], s:['hamstrings']},
+  "Pause Squat": {p:['quads', 'glutes'], s:['hamstrings']},
+  "Front Squat": {p:['quads'], s:['glutes']},
+  "Leg Press": {p:['quads'], s:['glutes']},
+  "Bulgarian Split Squat": {p:['quads', 'glutes'], s:['hamstrings']},
+  "Leg Extension": {p:['quads'], s:[]},
+  "Deadlift": {p:['hamstrings', 'glutes'], s:['upper back', 'quads']},
+  "Deadlift (Light/Technique)": {p:['hamstrings', 'glutes'], s:['upper back', 'quads']},
+  "Deficit Deadlift": {p:['hamstrings', 'glutes'], s:['upper back', 'quads']},
+  "Romanian Deadlift": {p:['hamstrings', 'glutes'], s:[]},
+  "Good Morning": {p:['hamstrings', 'glutes'], s:[]},
+  "Hip Thrust": {p:['glutes'], s:['hamstrings']},
+  "Leg Curl": {p:['hamstrings'], s:[]},
+  "Calf Raise": {p:['calves'], s:[]},
+  "Standing Calf Raise": {p:['calves'], s:[]},
+  "Bench Press": {p:['chest'], s:['triceps', 'front delts']},
+  "Flat Bench Press": {p:['chest'], s:['triceps', 'front delts']},
+  "Bench Press (Speed)": {p:['chest'], s:['triceps', 'front delts']},
+  "Incline DB Press": {p:['chest'], s:['front delts', 'triceps']},
+  "Close-Grip Bench Press": {p:['triceps', 'chest'], s:['front delts']},
+  "Cable Fly": {p:['chest'], s:['front delts']},
+  "Overhead Press": {p:['front delts'], s:['triceps', 'side delts']},
+  "DB Shoulder Press": {p:['front delts'], s:['triceps', 'side delts']},
+  "Lateral Raise": {p:['side delts'], s:[]},
+  "Rear Delt Fly": {p:['rear delts'], s:['upper back']},
+  "Face Pull": {p:['rear delts', 'upper back'], s:[]},
+  "Barbell Row": {p:['upper back', 'lats'], s:['biceps', 'rear delts']},
+  "Cable Row": {p:['upper back', 'lats'], s:['biceps', 'rear delts']},
+  "Seated Cable Row": {p:['upper back', 'lats'], s:['biceps', 'rear delts']},
+  "Lat Pulldown": {p:['lats'], s:['biceps', 'upper back']},
+  "Pull-ups (or assisted)": {p:['lats'], s:['biceps', 'upper back']},
+  "DB Curl": {p:['biceps'], s:[]},
+  "EZ Bar Curl": {p:['biceps'], s:[]},
+  "Cable Curl": {p:['biceps'], s:[]},
+  "Hammer Curl": {p:['biceps'], s:[]},
+  "Triceps Pushdown": {p:['triceps'], s:[]},
+  "Rope Pushdown": {p:['triceps'], s:[]},
+  "Skull Crushers": {p:['triceps'], s:[]},
+  "Overhead Triceps Extension": {p:['triceps'], s:[]},
+  "Cable Crunch": {p:[], s:[]},
+  "Hanging Leg Raise": {p:[], s:[]},
+  "Plank": {p:[], s:[]},
+  "Weighted Sit-up": {p:[], s:[]},
+  "Incline Walk": {p:[], s:[]},
+};
+// About 10 hard sets per muscle a week [ACSM26]: the floor. The fill stops at it
+// (a muscle at 25 shows the same full bar as one at 10), and above about 20 one
+// neutral line says more isn't needed (alignment note, auditor N3).
+const LEDGER_FLOOR = 10, LEDGER_PLENTY = 20;
+// Fractional sets per muscle for the 7 days from weekStartKey. A set counts
+// when it has weight and reps (setCountOf, the same test the group rows use).
+function computeWeeklyMuscleSets(corpus, weekStartKey){
+  const start = new Date(weekStartKey + 'T00:00:00');
+  const end = new Date(start); end.setDate(end.getDate() + 7);
+  const out = {};
+  for(const {exDef, log} of corpus || []){
+    const m = exDef && EXERCISE_MUSCLES[exDef.name];
+    if(!m) continue;
+    for(const entry of log || []){
+      const d = new Date(entry.date + 'T00:00:00');
+      if(d < start || d >= end) continue;
+      const n = setCountOf(entry);
+      if(!n) continue;
+      for(const mu of m.p) out[mu] = (out[mu] || 0) + n;
+      for(const mu of m.s) out[mu] = (out[mu] || 0) + 0.5 * n;
+    }
+  }
+  return out;
+}
+// One row per muscle with sets this week: the figure with one decimal against
+// the "10+" floor. The fill is grey under the floor and the day's ink at it,
+// and never grows past it; no state colours (design-vision §3.6).
+function renderMuscleLedgerHtml(sets){
+  const rows = LEDGER_MUSCLES.filter(mu => (sets[mu] || 0) > 0).map(mu => {
+    const n = sets[mu];
+    const under = n < LEDGER_FLOOR;
+    const name = mu.charAt(0).toUpperCase() + mu.slice(1);
+    return `<div class="muscle-ledger-row">
+        <span class="ml-name">${name}</span>
+        <span class="ml-track"><span class="ml-fill${under ? ' is-under' : ''}" style="width:${Math.min(100, (n / LEDGER_FLOOR) * 100)}%"></span></span>
+        <span class="ml-val">${n.toFixed(1)} <span class="ml-floor">/ ${LEDGER_FLOOR}+</span></span>
+        ${n > LEDGER_PLENTY ? `<span class="ml-note">More isn't needed; returns get smaller.</span>` : ''}
+      </div>`;
+  });
+  if(!rows.length) return '';
+  return `<div class="muscle-ledger"><div class="muscle-ledger-title">Sets per muscle this week</div>${rows.join('')}</div>`;
+}
+
 async function renderVolumeTrend(){
   const el = document.getElementById('volumeTrend');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
@@ -47759,7 +47872,7 @@ async function renderVolumeTrend(){
         ${landmarkHtml}
       </div>
     `;
-  }).join('');
+  }).join('') + renderMuscleLedgerHtml(computeWeeklyMuscleSets(corpus, todayMonday)); // v3.590 (BL-20)
 }
 
 // --- RPE Trend: weekly average RPE across every logged set, all exercises
