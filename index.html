@@ -867,6 +867,14 @@
   .cover-where{font-size:var(--meta-on-spot); font-weight:500; margin-top:12px;}
   .cover-where:empty{display:none;}
   .cover-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; letter-spacing:-0.01em; margin-top:2px;}
+  /* v3.595 (UX-06b): the headline is the day picker's button. */
+  button.cover-day{display:flex; align-items:center; gap:6px; min-height:44px; margin:-6px 0; padding:0; border:0; background:none; color:inherit; text-align:left; cursor:pointer;}
+  .cover-day-chev{width:22px; height:22px; flex:0 0 auto; margin-top:3px;}
+  .day-sheet .tabs-header{padding-top:10px;}
+  .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
+  /* A rest day: the field (white or off, the day's own ink) and its name, so
+     the day picker is always one tap away; nothing to log. */
+  .cover.is-rest .cover-numeral, .cover.is-rest .cover-log, .cover.is-rest .cover-fields-wrap, .cover.is-rest .cover-chips, .cover.is-rest .cover-of{display:none;}
   .cover-lift-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:8px;}
   .cover-lift{font-size:22px; font-weight:600; letter-spacing:-0.01em; line-height:1.2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
@@ -6129,7 +6137,7 @@
        no reps yet, and logging goes through commitSet into THAT row, so
        saving, PRs, the rest timer, Undo and auto-check run as for a chip. -->
   <section class="cover" id="upNext" aria-labelledby="upNextLift" hidden>
-    <div class="cover-day" id="upNextDay"></div>
+    <button type="button" class="cover-day" id="upNextDayBtn" aria-haspopup="dialog" aria-controls="daySheet"><span id="upNextDay"></span><svg class="cover-day-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="cover-lift-row">
       <h2 class="cover-lift" id="upNextLift"></h2>
       <span class="cover-of" id="upNextLabel"></span>
@@ -6175,11 +6183,9 @@
        rest on a phone, its own pane beside the rest on an unfolded foldable
        (see [OPEN POSTURE]). -->
   <div class="today-session-pane split-primary">
-  <div class="tabs-header">
-    <div class="hint">Tap a day to view it</div>
-    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
-  </div>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
+  <!-- v3.595 (UX-06b): the day rail (.tabs-header and #tabs) moved into the
+       day sheet (#daySheet, beside the other sheets), opened from the cover's
+       day headline. renderTabs renders into it unchanged. -->
 
   <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
     <div class="workout-hero">
@@ -7761,6 +7767,23 @@
      not horizontal pills, since that is what actually fits this shape of
      dialog; .active still gets toggled onto whichever one is current, the
      same as it always did in the rail. -->
+<!-- v3.595 (UX-06b): the day picker, as a sheet opened from the Today
+     cover's day headline. The rail inside is the same one Today used to show:
+     renderTabs, its keyboard roving focus and reorder mode are unchanged. -->
+<div class="sub-modal-overlay day-sheet" id="daySheet" role="dialog" aria-modal="true" aria-labelledby="daySheetTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="daySheetTitle">Training day</div>
+      <button class="sub-modal-close" id="daySheetClose">Done</button>
+    </div>
+    <div class="tabs-header">
+      <div class="hint">Tap a day to view it</div>
+      <button class="reorder-btn" id="reorderToggle">Reorder days</button>
+    </div>
+    <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="navMoreOverlay" role="dialog" aria-modal="true" aria-labelledby="navMoreTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -7954,7 +7977,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.594';
+const APP_VERSION = '3.595';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9562,6 +9585,10 @@ const WHATS_NEW = {
   ]},
   '3.594': { headline: 'A quieter Today cover, if you want it', points: [
     'Settings, During a workout, Today cover: choose Quiet to keep the top of Today on a plain card, with the day\'s colour only in the big number and a thin stripe.',
+  ]},
+  '3.595': { headline: 'Pick the day from the top of Today', points: [
+    'Tap the day name on the cover to open the day picker. Choosing a day switches to it and closes the picker; Reorder days is in there too.',
+    'Rest days now show the cover as well, so the picker is always one tap away.',
   ]},
 };
 
@@ -27442,6 +27469,48 @@ function renderTabs(){
   }
 }
 
+// v3.595 (UX-06b): the day picker sheet, opened from the cover's headline.
+// Choosing a day runs the tab's own handler (activeDay, renderTabs,
+// renderWorkout, saveActiveDay), then closes the sheet; reorder mode keeps it
+// open. Escape and the backdrop close it too; focus goes back to the headline.
+function openDaySheet(){
+  const sheet = document.getElementById('daySheet');
+  if(!sheet) return;
+  renderTabs();
+  sheet.classList.add('active');
+  // After the focus trap has taken the sheet (its observer runs first), put
+  // focus on the day being shown, where the arrow keys move between days.
+  setTimeout(()=>{
+    const active = document.querySelector('#tabs .tab.active');
+    if(active && sheet.classList.contains('active')){ try{ active.focus({preventScroll:true}); }catch(e){ active.focus(); } }
+  }, 0);
+}
+function closeDaySheet(){
+  const sheet = document.getElementById('daySheet');
+  if(!sheet || !sheet.classList.contains('active')) return;
+  if(reorderMode){
+    reorderMode = false;
+    const t = document.getElementById('reorderToggle');
+    t.classList.remove('active'); t.textContent = 'Reorder days';
+    renderTabs();
+  }
+  sheet.classList.remove('active');
+  const btn = document.getElementById('upNextDayBtn');
+  if(btn) btn.focus({preventScroll:true});
+}
+function chooseDayFromSheet(e){
+  // The tab's own handler has already re-rendered the rail, so the target is
+  // detached by now: test it against its own (old) tab, not against #tabs.
+  if(reorderMode || !e.target.closest || !e.target.closest('.tab') || e.target.closest('.reorder-arrows')) return;
+  if(e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+  closeDaySheet();
+}
+document.getElementById('upNextDayBtn').addEventListener('click', openDaySheet);
+document.getElementById('daySheetClose').addEventListener('click', closeDaySheet);
+document.getElementById('daySheet').addEventListener('click', (e)=>{ if(e.target.id === 'daySheet') closeDaySheet(); });
+document.getElementById('tabs').addEventListener('click', chooseDayFromSheet);
+document.getElementById('tabs').addEventListener('keydown', chooseDayFromSheet);
+
 function moveDay(idx, dir){
   const newIdx = idx + dir;
   if(newIdx < 0 || newIdx >= dayOrder.length) return;
@@ -32465,13 +32534,28 @@ function renderUpNext(){
   const list = document.getElementById('exerciseList');
   if(!card || !list) return;
   const n = findNextSetRow(list);
-  if(n.total === 0){ card.hidden = true; return; } // rest day: nothing to log
   card.hidden = false;
   // v3.593 (UX-06a): the cover. The day and its week/phase line come from the
   // workout card's own header, as renderWorkout just wrote it.
   const textOf = id => { const el = document.getElementById(id); return el ? el.textContent.trim() : ''; };
   document.getElementById('upNextDay').textContent = textOf('dayTitle');
+  // v3.595 (UX-06b): the headline opens the day picker.
+  const dayBtn = document.getElementById('upNextDayBtn');
+  if(dayBtn) dayBtn.setAttribute('aria-label', `${[textOf('dayHeroEyebrow'), textOf('dayTitle')].filter(Boolean).join(', ')}. Change day`);
   document.getElementById('upNextWhere').textContent = [textOf('dayHeroEyebrow'), textOf('mesocyclePhaseTag')].filter(Boolean).join(' · ');
+  // A rest day (no set rows): the cover stays, in the day's white or off ink,
+  // with the headline so another day is one tap away; nothing to log.
+  card.classList.toggle('is-rest', n.total === 0);
+  if(n.total === 0){
+    card.classList.remove('is-done');
+    document.getElementById('upNextLabel').textContent = '';
+    document.getElementById('upNextLift').textContent = 'Rest day';
+    document.getElementById('upNextTarget').textContent = 'Training today instead? Tap the day above to pick one.';
+    document.getElementById('upNextChips').innerHTML = '';
+    document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
+    document.getElementById('upNextProgress').textContent = '';
+    return;
+  }
   document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
   card.classList.toggle('is-done', !n.row);
   const hint = document.getElementById('upNextHint');
@@ -41702,7 +41786,7 @@ const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
   'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay',
-  'whatsNewOverlay', 'navMoreOverlay'
+  'whatsNewOverlay', 'navMoreOverlay', 'daySheet'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -41774,6 +41858,7 @@ const OVERLAY_CLOSERS = {
   globalSearchOverlay:  ()=> closeGlobalSearch(),
   whatsNewOverlay:      ()=> closeWhatsNew(),
   navMoreOverlay:       ()=> closeNavMoreOverlay(),
+  daySheet:             ()=> closeDaySheet(), // v3.595 (UX-06b)
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.

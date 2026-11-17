@@ -123,9 +123,13 @@ test('REAL invocation: a finished session says so; a rest day (no rows) hides th
   assert.strictEqual(ui.$('upNextLift').textContent, 'Session complete');
   assert.strictEqual(ui.$('upNextTarget').textContent, 'All 4 sets logged');
   assert.ok(ui.$('upNext').classList.contains('is-done'));
+  // 2026-11-17 (v3.595, UX-06b): a rest day keeps the cover (its headline
+  // opens the day picker), marked is-rest, with nothing to log.
   const rest = mount('');
   rest.render();
-  assert.strictEqual(rest.$('upNext').hidden, true);
+  assert.strictEqual(rest.$('upNext').hidden, false);
+  assert.ok(rest.$('upNext').classList.contains('is-rest'));
+  assert.strictEqual(rest.$('upNextLift').textContent, 'Rest day');
 });
 
 // 2026-10-26 (v3.391): twice now — once at the end of the rest-day branch
@@ -166,7 +170,9 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
   assert.strictEqual($('upNextLift').textContent, 'Squat', 'anchor: the training day filled the card');
   assert.strictEqual($('upNext').hidden, false);
   await window.__rest({ rest: true, duration: '', note: 'Full rest day.' });
-  assert.strictEqual($('upNext').hidden, true, 'no lift on a rest day');
+  // 2026-11-17 (v3.595, UX-06b): the cover stays (as the day picker's way in), with no lift.
+  assert.strictEqual($('upNextLift').textContent, 'Rest day', 'no lift on a rest day');
+  assert.ok($('upNext').classList.contains('is-rest'));
   assert.match($('exerciseList').textContent, /Full rest day\./, 'the rest note is what shows');
 });
 
