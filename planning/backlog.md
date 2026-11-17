@@ -3723,7 +3723,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** TOOL-01's harness; `Skill: dataviz` (the month grid).
 - **Alignment note (2026-11-07):** moved from slot 58 to slot 44, before the cover, so History is in the new materials before Today's cover lands (design-engineer B2). Block inks come from `dayInk`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** found that History already has a month calendar with tap-to-jump (`renderHistoryHeatmap`, v3.4xx). The item now restyles that calendar's cells as plate blocks instead of building a second month grid; the test extends `test-history-heatmap.js`. Scope unchanged (same screen, same result).
-- **Status:** ready
+- **Status:** done (v3.589, PR #165): the calendar blocks. **needs-owner (part):** the two-line session rows (duration; top lifts) were not built: top lifts repeat the rows already listed under each day, and duration isn't in the list's data. Recommend: leave the list as is.
 
 ### UX-13: Food in the world's ink
 - **Why:** Food is the most frequent touch in the app, and after UX-03 it would otherwise sit in the old layout beside a rebuilt Today. Its flows are good and stay; only the surface changes. *(Alignment round:* moved to slot 43, before the cover. The food lane (BIZ-03, BL-18, BL-19, BL-16, BL-17) ships at the end of Phase 1, so recents and the placeholder line already exist when this is built.)
