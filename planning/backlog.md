@@ -3916,7 +3916,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (125–152, 421–443, 736–741, 850–871, 3470–3475, `APP_VERSION` 8102, `WHATS_NEW` 8123), `sw.js`. **Re-pins, with dated notes:** `test-rest-cover.js` (reads `--block-on-red`), `test-plate-stack.js` (reads `--spot-red` for the kg 25), `test-design-tokens-v2.js` (its target-value cases now see literals). Guards: `test-light-mode.js`, `test-css-mechanical-token-dedup.js`, `test-app-icon.js`.
 - **Risk:** low, visible and intended: History's red, yellow and green blocks and the green plates get deeper. No accent colour changes.
 - **Tools:** TOOL-01 (`--today` and default); `Skill: impeccable` (`audit` for contrast).
-- **Status:** ready
+- **Status:** done (v3.600, PR #179). Added: the light Quiet numeral on a yellow day takes `--quiet-figure-yellow` (the deep yellow), since #F2C200 on white is 1.6:1.
 
 ### UX-20: Today chrome: the cover starts at the top
 - **Why:** A2–A6. Today opens on 229 px of the 2.0 header (title, profile eyebrow, sub line, streak pill, date card) before the cover. The mock-up starts the field at the top edge, with the program line and three plain icons on it, so the next set and the bar both sit above the fold and the Log button sits where a thumb is.
