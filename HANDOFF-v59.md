@@ -1472,4 +1472,4 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Sticky header:** `syncStickyDayTitle()` prints "Set n of N · Lift" from `#upNextLabel`/`#upNextLift`. The day name falls back from `#stickyDayTitle.dataset.day`, which `renderWorkout` writes. `renderUpNext` calls it on every path.
 - **Observer:** `setupStickyDayHeaderObserver` watches `#upNext` and `#dayTitle`, and `stickyDayAnchor()` picks whichever leads. The click handler scrolls to that same anchor.
 - **Fixtures:** any test that loads the real `renderUpNext` must also load `syncStickyDayTitle`.
-- **Pause, relayed from another session (2026-11-17):** stop after UX-30, slot 50l. Don't start MKT-16 until the owner resumes on Sunday 2026-11-22 at 5:00 AM ET. Only upkeep on the open Today stack until then, and the last PR in the stack must say it's the last one.
+- **Pause, confirmed by the owner in the builder session (2026-11-17, "Yes"):** stop after UX-30, slot 50l. Don't start MKT-16 until the owner resumes on Sunday 2026-11-22 at 5:00 AM ET. Only upkeep on the open Today stack until then, and the last PR in the stack must say it's the last one.
