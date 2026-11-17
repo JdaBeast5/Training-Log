@@ -856,6 +856,11 @@
   body.day-red .cover{--on-cover:var(--block-on-red);}
   body.day-green .cover{--on-cover:var(--block-on-green);}
   body.day-yellow .cover{--cover:var(--yellow-cover); --on-cover:var(--on-yellow-cover); --cover-figure:var(--yellow-cover-figure); --cover-action:var(--yellow-cover-action); --on-cover-action:var(--on-yellow-cover-action);}
+  /* v3.594 (owner request): Settings > Today cover > Quiet, for anyone who
+     finds a full field of red too much. The surface and ink of every other
+     card; the day's colour stays in the numeral (large text, >= 3:1) and a
+     stripe along the top. After the day-ink rules, at their specificity. */
+  body.cover-quiet .cover{--cover:var(--surface-1); --on-cover:var(--text); --cover-figure:var(--spot); --cover-action:var(--text); --on-cover-action:var(--ground); box-shadow:inset 0 6px 0 var(--spot, var(--rule));}
   .cover[hidden]{display:none;}
   /* The week and phase close the cover: the Log button has to sit above
      y = 480 on a 402 x 874 phone, under the app header. */
@@ -6451,6 +6456,15 @@
           <div class="history-hint field-note">Adds the suggested ramp as pre-filled rows above your working sets, so you just tick them off. Warm-ups never count toward volume, estimated 1RM, PRs or progression.</div>
         </div>
 
+        <div id="prefCoverStyle">
+          <label class="care-label" for="coverStyleSelect">Today cover</label>
+          <select id="coverStyleSelect" class="care-input" aria-label="Today cover colour">
+            <option value="colour">Day colour</option>
+            <option value="quiet">Quiet</option>
+          </select>
+          <div class="history-hint field-note">Day colour fills the top of Today with the day&#39;s plate colour. Quiet keeps it on a plain card, with the colour only in the number and a thin stripe.</div>
+        </div>
+
         <div id="prefWakeLock">
           <label class="care-label">Screen</label>
           <label class="save-to-library-label"><input type="checkbox" id="wakeLockToggle" checked><span>Keep the screen awake</span></label>
@@ -7940,7 +7954,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.593';
+const APP_VERSION = '3.594';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9545,6 +9559,9 @@ const WHATS_NEW = {
     'The top of Today is now a cover in the day\'s colour: the lift, the set, and the weight and reps to do, big enough to read from across the room.',
     'One tap on Log set logs it, with Undo. The adjust button beside it opens the weight, reps and effort fields.',
     'The lift\'s set chips sit on the cover too, and a resting area that affects the lift shows there with its swap.',
+  ]},
+  '3.594': { headline: 'A quieter Today cover, if you want it', points: [
+    'Settings, During a workout, Today cover: choose Quiet to keep the top of Today on a plain card, with the day\'s colour only in the big number and a thin stripe.',
   ]},
 };
 
@@ -34536,6 +34553,27 @@ async function saveLoadSuggestionMode(mode){
   try{ await window.storage.set('load-suggestion-mode', loadSuggestionMode); }catch(e){}
 }
 
+// v3.594 (owner request): the Today cover in the day's colour (default) or
+// quiet. Per profile, in window.storage; applied as a class on the body.
+let coverStyle = 'colour';
+function applyCoverStyle(){
+  document.body.classList.toggle('cover-quiet', coverStyle === 'quiet');
+  const sel = document.getElementById('coverStyleSelect');
+  if(sel) sel.value = coverStyle;
+}
+async function loadCoverStylePref(){
+  try{
+    const res = await window.storage.get('cover-style');
+    coverStyle = res && res.value === 'quiet' ? 'quiet' : 'colour';
+  }catch(e){}
+  applyCoverStyle();
+}
+async function saveCoverStyle(style){
+  coverStyle = style === 'quiet' ? 'quiet' : 'colour';
+  applyCoverStyle();
+  try{ await window.storage.set('cover-style', coverStyle); }catch(e){}
+}
+
 async function loadDistanceUnit(){
   try{
     const res = await window.storage.get('distance-unit-pref');
@@ -35003,6 +35041,8 @@ document.getElementById('loadModeSelect').addEventListener('change', async (e)=>
   // rebuilt for the switch to be visible in the fields it affects.
   renderWorkout();
 });
+
+document.getElementById('coverStyleSelect').addEventListener('change', (e)=> saveCoverStyle(e.target.value));
 
 document.getElementById('distanceUnitSelect').addEventListener('change', async (e)=>{
   await saveDistanceUnit(e.target.value);
@@ -50161,6 +50201,7 @@ if(activeUserId){
 
     await loadWeightUnit();
     await loadDistanceUnit();
+    await loadCoverStylePref();
     await loadWakeLockPref();
     await loadWarmupSetsPref();
     await loadManualDeloadPref();
@@ -50316,6 +50357,7 @@ wireCustomProgramUI();
     const slot = document.getElementById(slotId);
     if(node && slot) slot.appendChild(node);
   };
+  move('prefCoverStyle', 'settingsWorkoutSlot');
   move('prefWarmupSets', 'settingsWorkoutSlot');
   move('prefWakeLock', 'settingsWorkoutSlot');
   move('prefManualDeload', 'settingsWorkoutSlot');

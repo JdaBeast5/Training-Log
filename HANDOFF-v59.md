@@ -1386,3 +1386,12 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - Rest days still hide the cover; the spec's white/off field is open.
   - The light `--on-green` (#0C0C0D on #187A33, 3.6:1) is used on other green fills (the done check, the buttons at `.spot-green` sites). That's for the contrast pass, not this item.
   - The duplicate `'3.592'` WHATS_NEW key is still there; it's harmless.
+
+## Addendum 118: Quiet Today cover setting (v3.594, PR #172, 2026-11-17)
+- **Owner request, in chat:** "make sure there's a button in the settings to change the color, in case all the red is too much for some people."
+- **Where:** Settings > During a workout > Today cover. The choices are Day colour (the default) and Quiet. The setting is `#prefCoverStyle`, reparented by `wireSettings`.
+- **How:**
+  - The choice is stored per profile in `window.storage` under `cover-style`.
+  - `loadCoverStylePref` runs at boot, before Today renders. `saveCoverStyle` applies the choice and saves it.
+  - The body class `cover-quiet` re-points the cover tokens: `--cover` becomes `--surface-1`, the text uses `--text`, and the numeral stays `--spot`. The day stripe is an inset box-shadow, so the layout doesn't move.
+- **Tests:** three cases in `test-today-cover.js` cover contrast for every ink and theme, the real load/save/apply, and the Settings placement plus the boot call.
