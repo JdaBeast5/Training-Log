@@ -25,28 +25,20 @@ const { readIndexSource, extractElementById, makeRunner } = require('./testHelpe
 const src = readIndexSource();
 const { test, run } = makeRunner('test-nutrition-macro-bar-colors.js');
 
-test('sabotage-relevant: #barPro no longer carries var(--plate-red) in its markup', (assert)=>{
-  const html = extractElementById(src, 'barPro');
-  assert.doesNotMatch(html, /var\(--plate-red\)/, `#barPro must not use the urgent/warning color, got: ${html}`);
-});
-
-test('REAL invocation: #barPro now uses var(--plate-teal), the color picked to replace it', (assert)=>{
-  const html = extractElementById(src, 'barPro');
-  assert.match(html, /style="background:var\(--plate-teal\);width:0%"/, `expected #barPro to use --plate-teal, got: ${html}`);
-});
-
-test('regression guard: the other three macro bars (CALORIES/FAT/CARBS) are untouched by this fix', (assert)=>{
-  assert.match(extractElementById(src, 'barCal'), /background:var\(--plate-white\)/, '#barCal must still be white');
-  assert.match(extractElementById(src, 'barFat'), /background:var\(--plate-yellow\)/, '#barFat must still be yellow');
-  assert.match(extractElementById(src, 'barCarb'), /background:var\(--plate-blue\)/, '#barCarb must still be blue');
-});
-
-test('sabotage-relevant: JS never sets .style.background on any macro bar — the markup color really is the permanent one, not a placeholder a render call overwrites', (assert)=>{
-  assert.doesNotMatch(src, /getElementById\('barPro'\)\.style\.background/, 'if JS ever sets barPro\'s background, the markup fix alone would not be the whole story');
-  assert.doesNotMatch(src, /getElementById\('barCal'\)\.style\.background/);
-  assert.doesNotMatch(src, /getElementById\('barFat'\)\.style\.background/);
-  assert.doesNotMatch(src, /getElementById\('barCarb'\)\.style\.background/);
-  assert.match(src, /getElementById\('barPro'\)\.style\.width\s*=/, 'sanity: confirms JS does actively touch #barPro on every render, just not its color');
+// 2026-11-16 (v3.588, UX-13): the four macro bars became one ruled row of
+// figures (.food-figs), so there are no bar colours left to pin. The owner's
+// original report still holds: nothing in the daily totals wears red (or any
+// state colour) by default. The figures are ink, their labels --text-2, and
+// updateBars writes only text, never a colour.
+test('REAL markup + CSSOM (UX-13): the four bars are gone; the daily figures carry no colour of their own, and protein is not red', (assert)=>{
+  for(const id of ['barCal', 'barPro', 'barFat', 'barCarb']) assert.doesNotMatch(src, new RegExp(`id="${id}"`), id + ' is gone');
+  const figs = /<div class="food-figs"[\s\S]*?\n    <\/div>/.exec(src);
+  assert.ok(figs, 'the figures row exists');
+  assert.doesNotMatch(figs[0], /plate-|style=/, 'no inline colour on any figure');
+  assert.match(src, /\.food-fig \.fig\{[^}]*color:var\(--text\);/);
+  assert.match(src, /\.food-fig \.lbl\{[^}]*color:var\(--text-2\);/);
+  const body = /function updateBars\(v\)\{[\s\S]*?\n\}/.exec(src)[0];
+  assert.doesNotMatch(body, /\.style\./, 'updateBars writes text only, never a colour');
 });
 
 test('sabotage-relevant: red really is reserved app-wide for the over-target/urgent case, not a color any bar wears by default — the invariant this fix restores', (assert)=>{

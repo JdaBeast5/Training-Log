@@ -2294,25 +2294,24 @@
      row (the only place it's used) sits flush against the USDA key-upgrade
      prompt injected right above it (#usdaKeySettingsSlot), which only ever
      carries its own margin-top and nothing on its bottom edge. */
-  .quick-add-row{display:flex; gap:6px; margin-top:14px; margin-bottom:14px;}
+  /* v3.588 (UX-13): one row of standard buttons, an icon beside its label,
+     44px tall, scrolling sideways when they don't all fit, like the food
+     category chips (they were five glass tiles, icon over a 10.5px label
+     clipped at 375px). */
+  .quick-add-row{display:flex; flex-wrap:nowrap; gap:8px; margin-top:14px; margin-bottom:14px;
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;}
+  .quick-add-row::-webkit-scrollbar{display:none;}
   .quick-add-btn{
     position:relative; overflow:hidden;
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-    /* v3.309 (2.0): a glass tile with a drawn icon, like every other secondary
-       control — was a dashed blue box with an emoji, a blue glow and a gloss. */
-    background:var(--glass-fill); border:1px solid var(--glass-hair); border-radius:16px;
-    /* 6px side padding + 11.5px type clipped "Describe"/"Suggest"/"Recipes" by 1-4px against
-       .quick-add-btn's own overflow:hidden (needed for the ::before gloss) at a 375px-wide
-       screen — 5 buttons sharing one row leaves ~52px each. 4px padding + 10.5px (already used
-       at this size for .section-label) buys back enough room that the longest label, "Describe",
-       clears with a real if thin margin instead of losing its last pixel to the clip. */
-    padding:10px 4px; min-height:56px; color:var(--text); font-weight:600; font-size:10.5px; cursor:pointer;
+    flex:0 0 auto; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:7px;
+    background:var(--surface-2); border:0; border-radius:var(--r-control);
+    padding:0 14px; min-height:44px; color:var(--text); font-weight:600; font-size:14px; cursor:pointer;
     font-family:var(--font-sans); transition:transform 0.15s var(--ease-smooth);
   }
   .quick-add-btn span, .quick-add-btn .quick-add-icon{position:relative; z-index:1;}
   .quick-add-btn:active{transform:scale(0.96);}
-  .quick-add-icon{display:grid; place-items:center; width:20px; height:20px; color:var(--plate-blue);}
-  .quick-add-icon svg{width:20px; height:20px;}
+  .quick-add-icon{display:grid; place-items:center; width:18px; height:18px; color:var(--text-2);}
+  .quick-add-icon svg{width:18px; height:18px;}
   .describe-food-form{margin-bottom:10px;}
 
   /* ── A described item: portions and reuse ─────────────────────────────────
@@ -2670,6 +2669,14 @@
   .cal-hero-num{font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:34px; font-weight:700; letter-spacing:-0.03em; line-height:1; color:var(--text);}
   .cal-hero-unit{font-size:13px; color:var(--text-muted);}
   .cal-hero.is-over .cal-hero-num{color:var(--plate-yellow);}
+  /* v3.588 (UX-13): the day's totals as one ruled row of four figures
+     (world.css .figs): eaten in the display face, the target under it. */
+  .food-figs{display:grid; grid-template-columns:repeat(4, 1fr); margin:0 0 14px; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);}
+  .food-fig{min-width:0; padding:10px 0 10px 10px;}
+  .food-fig:first-child{padding-left:0;}
+  .food-fig + .food-fig{border-left:1px solid var(--rule);}
+  .food-fig .fig{font-family:var(--font-display); font-weight:700; font-size:22px; line-height:1; font-variant-numeric:tabular-nums lining-nums; color:var(--text);}
+  .food-fig .lbl{font-size:12px; line-height:1.25; color:var(--text-2); margin-top:5px;}
 
   /* A button that reads as part of a sentence, for offering an action inside
      explanatory prose. `font:inherit` rather than a size, so it tracks whatever
@@ -3868,15 +3875,18 @@
   .ex-ai-tailor-btn:disabled{opacity:0.6;}
 
   .food-log-list{margin-bottom:14px;}
+  /* v3.588 (UX-13): a two-line ruled row: the name, then calories and
+     macros; the portion stepper on the right. */
   .food-log-item{
-    display:flex; align-items:center; gap:10px; padding:8px 0;
-    border-bottom:1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px; padding:10px 0;
+    border-bottom:1px solid var(--rule);
     cursor:pointer;
   }
-  .food-log-item .fl-name{font-size:13.5px; font-weight:500; flex:1;}
+  .food-log-item .fl-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+  .food-log-item .fl-name{font-size:15px; font-weight:500; color:var(--text);}
   .food-log-item .fl-macro{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;
-    display:flex; align-items:center; gap:4px;
+    font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text-2);
+    display:flex; align-items:center; gap:4px; flex-wrap:wrap;
   }
   .food-log-item .fl-remove{
     background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:0 2px; line-height:1;
@@ -6396,25 +6406,14 @@
     <!-- v3.573 (BIZ-03): says the target is a placeholder until a body is saved (renderCalHero). -->
     <div class="history-hint" id="calHeroEstimate" hidden></div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
-    <div class="macro-row">
-      <div class="macro-label">Calories</div>
-      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
-      <div class="macro-val" id="valCal">0 / 2650</div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-label">Protein</div>
-      <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
-      <div class="macro-val" id="valPro">0 / 240g</div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-label">Fat</div>
-      <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
-      <div class="macro-val" id="valFat">0 / 75g</div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-label">Carbs</div>
-      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
-      <div class="macro-val" id="valCarb">0 / 250g</div>
+    <!-- v3.588 (UX-13): one ruled row of four figures, what you have eaten
+         against each target (the figure above leads with what is left). It
+         was four progress bars. updateBars writes the figures. -->
+    <div class="food-figs" role="group" aria-label="Eaten today, against your targets">
+      <div class="food-fig"><div class="fig" id="valCal">0</div><div class="lbl" id="lblCal">of 2650 cal</div></div>
+      <div class="food-fig"><div class="fig" id="valPro">0</div><div class="lbl" id="lblPro">of 240g protein</div></div>
+      <div class="food-fig"><div class="fig" id="valCarb">0</div><div class="lbl" id="lblCarb">of 250g carbs</div></div>
+      <div class="food-fig"><div class="fig" id="valFat">0</div><div class="lbl" id="lblFat">of 75g fat</div></div>
     </div>
     <div id="medicalNutrientBars" style="display:none"></div>
 
@@ -7748,7 +7747,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.587';
+const APP_VERSION = '3.588';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9332,6 +9331,9 @@ const WHATS_NEW = {
   ]},  '3.587': { headline: 'Each day keeps its own colour', points: [
     'A day\'s colour now comes from the day itself, not its place in the week, so the day buttons match the day you open. Days 5 to 7 can share a colour with an earlier day.',
     'The purple, orange and teal day buttons are gone; days use red, blue, yellow, green, white (light days) and grey (rest).',
+  ]},  '3.588': { headline: 'A cleaner Food screen', points: [
+    'Under calories left, today\'s calories, protein, carbs and fat now sit in one row of numbers, each with its target, in place of four bars.',
+    'Each food you\'ve eaten shows its calories and macros on a second line, and the buttons for adding food are full-size.',
   ]},
 };
 
@@ -39621,9 +39623,12 @@ function renderFoodLog(){
       const q = item.qty || 1;
       const label = escapeHtml(item.baseName || item.name);
       return buildSwipeItem(
+        // v3.588 (UX-13): a two-line ruled row: the name, then calories and macros.
         `<div class="food-log-item" role="button" tabindex="0" aria-expanded="false" aria-controls="flDetail${i}">
-          <div class="fl-name">${escapeHtml(item.name)}</div>
-          <div class="fl-macro">${item.cal} cal<span class="fl-chevron" aria-hidden="true">${icon('chevron')}</span></div>
+          <div class="fl-text">
+            <div class="fl-name">${escapeHtml(item.name)}</div>
+            <div class="fl-macro">${item.cal} cal · ${Math.round(Number(item.pro)||0)}g protein · ${Math.round(Number(item.carb)||0)}g carbs · ${Math.round(Number(item.fat)||0)}g fat<span class="fl-chevron" aria-hidden="true">${icon('chevron')}</span></div>
+          </div>
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-step="-1"${q <= 1 ? ' disabled' : ''}
               aria-label="One less portion of ${label}">−</button>
@@ -39742,14 +39747,13 @@ function updateBars(v){
   const cal = Number(v.cal)||0, pro=Number(v.pro)||0, fat=Number(v.fat)||0, carb=Number(v.carb)||0;
   const hero = document.getElementById('calHero');
   if(hero){ hero.dataset.eaten = cal; renderCalHero(); }
-  document.getElementById('barCal').style.width = Math.min(100,(cal/targets.cal)*100)+'%';
-  document.getElementById('barPro').style.width = Math.min(100,(pro/targets.pro)*100)+'%';
-  document.getElementById('barFat').style.width = Math.min(100,(fat/targets.fat)*100)+'%';
-  document.getElementById('barCarb').style.width = Math.min(100,(carb/targets.carb)*100)+'%';
-  document.getElementById('valCal').textContent = `${cal} / ${targets.cal}`;
-  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}g`;
-  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}g`;
-  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}g`;
+  // v3.588 (UX-13): four figures, eaten against target (they were bars).
+  const figs = [['Cal', cal, `of ${targets.cal} cal`], ['Pro', pro, `of ${targets.pro}g protein`],
+    ['Carb', carb, `of ${targets.carb}g carbs`], ['Fat', fat, `of ${targets.fat}g fat`]];
+  for(const [k, val, lbl] of figs){
+    document.getElementById('val' + k).textContent = Math.round(val);
+    document.getElementById('lbl' + k).textContent = lbl;
+  }
 }
 
 document.getElementById('nutritionHeader').addEventListener('click', ()=>{

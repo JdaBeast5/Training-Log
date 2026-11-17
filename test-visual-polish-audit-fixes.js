@@ -67,18 +67,24 @@ test('sabotage-relevant: .quick-add-btn is declared exactly once — not a stray
   assert.strictEqual(countRuleBlocks(src, '.quick-add-btn'), 1, 'expected exactly one .quick-add-btn{...} declaration');
 });
 
-test('.quick-add-row tightened its gap from 8px to 6px, giving each of the 5 buttons a little more width to work with', (assert)=>{
+// 2026-11-16 (v3.588, UX-13): the five tiles became standard buttons, an
+// icon beside a 14px label, 44px tall, in a row that wraps. Labels no longer
+// have to squeeze into ~52px each (the clipping this section fixed), so the
+// 6px gap / 4px padding / 10.5px type pins are replaced by the new contract.
+test('.quick-add-row is one row with an 8px gap that scrolls sideways (UX-13), so no label has to squeeze into a fifth of the row', (assert)=>{
   const block = extractRuleBlock(src, '.quick-add-row');
-  assert.match(block, /gap:6px/, 'expected the row gap to be reduced to 6px');
-  assert.doesNotMatch(block, /gap:8px/, 'the old 8px gap must actually be gone, not just supplemented');
+  assert.match(block, /flex-wrap:nowrap/);
+  assert.match(block, /overflow-x:auto/);
+  assert.match(block, /gap:8px/);
 });
 
-test('.quick-add-btn no longer uses the old 6px/11.5px pairing that clipped the longer labels', (assert)=>{
+test('.quick-add-btn is a standard button (UX-13): icon beside a 14px label, 44px tall, 14px side padding', (assert)=>{
   const block = extractRuleBlock(src, '.quick-add-btn');
-  assert.match(block, /padding:10px 4px/, 'expected the new, narrower side padding');
-  assert.match(block, /font-size:10\.5px/, 'expected the new, slightly smaller label size');
-  assert.doesNotMatch(block, /padding:10px 6px/, 'the old wider padding must be gone');
-  assert.doesNotMatch(block, /font-size:11\.5px/, 'the old larger font-size must be gone');
+  assert.match(block, /flex-direction:row/);
+  assert.match(block, /min-height:44px/);
+  assert.match(block, /font-size:14px/);
+  assert.match(block, /padding:0 14px/);
+  assert.doesNotMatch(block, /font-size:10\.5px/, 'the clipped-tile type size is gone');
 });
 
 test('REAL invocation: getComputedStyle on the actual #describeFoodBtn (the longest label, "Describe") through the real extracted quick-add-row markup and quick-add-btn/row rules reflects the new values', (assert)=>{
@@ -86,11 +92,14 @@ test('REAL invocation: getComputedStyle on the actual #describeFoodBtn (the long
   const rowCss = extractRuleBlock(src, '.quick-add-row');
   const btnCss = extractRuleBlock(src, '.quick-add-btn');
   const cs = computedStyleFor([rowCss, btnCss], rowHtml, '#describeFoodBtn');
-  assert.strictEqual(cs.fontSize, '10.5px');
-  assert.strictEqual(cs.paddingLeft, '4px');
-  assert.strictEqual(cs.paddingRight, '4px');
+  assert.strictEqual(cs.fontSize, '14px');
+  assert.strictEqual(cs.minHeight, '44px');
+  assert.strictEqual(cs.flexDirection, 'row');
   const row = new JSDOM(`<!DOCTYPE html><style>${rowCss}</style><body>${rowHtml}</body>`, { pretendToBeVisual: true });
-  assert.strictEqual(row.window.getComputedStyle(row.window.document.querySelector('.quick-add-row')).gap, '6px');
+  const rcs = row.window.getComputedStyle(row.window.document.querySelector('.quick-add-row'));
+  assert.strictEqual(rcs.gap, '8px');
+  assert.strictEqual(rcs.flexWrap, 'nowrap');
+  assert.strictEqual(rcs.overflowX, 'auto');
 });
 
 // ── Macro value wrapping (CALORIES/PROTEIN/FAT/CARBS "current / target") ──
@@ -103,9 +112,12 @@ test('REAL invocation: getComputedStyle on the actual #describeFoodBtn (the long
 // solve this exact "short label, long-ish sibling number in a flex row"
 // shape with white-space:nowrap; .macro-val had simply never gotten it.
 
-test('sabotage-relevant: .fl-macro (the already-correct, pre-existing sibling pattern) really does declare white-space:nowrap — confirms this fix is applying an established pattern, not inventing one', (assert)=>{
+// 2026-11-16 (v3.588, UX-13): .fl-macro is the logged row's own second line now
+// (calories and the three macros), so it wraps rather than holding one line.
+test('the logged food row\'s second line (.fl-macro, UX-13) may wrap: calories and macros sit under the name', (assert)=>{
   const block = extractRuleBlock(src, '.food-log-item .fl-macro');
-  assert.match(block, /white-space:nowrap/, 'precondition: the pattern being copied must actually exist as claimed');
+  assert.match(block, /flex-wrap:wrap/);
+  assert.doesNotMatch(block, /white-space:nowrap/);
 });
 
 test('.macro-val switched from a fixed width to nowrap + min-width + flex-shrink:0, so a long "current / target" value grows the box instead of wrapping inside it', (assert)=>{
@@ -117,9 +129,10 @@ test('.macro-val switched from a fixed width to nowrap + min-width + flex-shrink
 });
 
 test('REAL invocation: getComputedStyle on the actual #valCal element, through the real extracted macro-row markup (label + bar-track + value) and the real macro-val/-row/-bar-track rules, resolves nowrap/min-width/flex-shrink — proving the selector really reaches this element, not just that the text exists in the file', (assert)=>{
-  const labelHtml = extractElementById(src, 'valCal').replace(/id="valCal"/, ''); // the id is incidental to this check; class is what matters
-  const barTrackHtml = extractElementById(src, 'barCal');
-  const rowHtml = `<div class="macro-row"><div class="macro-label">CALORIES</div><div class="macro-bar-track">${barTrackHtml}</div>${extractElementById(src, 'valCal')}</div>`;
+  // 2026-11-16 (v3.588, UX-13): the four static macro rows became figures; .macro-row /
+  // .macro-val live on in the medical nutrient bars (renderMedicalNutrientBars), so the
+  // row is built the way that function builds it.
+  const rowHtml = `<div class="macro-row"><div class="macro-label">Sodium (stay under)</div><div class="macro-bar-track"><div class="macro-bar-fill"></div></div><div class="macro-val" id="valCal">3184 / 2650 mg</div></div>`;
   const rowCss = extractRuleBlock(src, '.macro-row');
   const trackCss = extractRuleBlock(src, '.macro-bar-track');
   const valCss = extractRuleBlock(src, '.macro-val');

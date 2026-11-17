@@ -117,7 +117,8 @@ test('a legacy entry with no qty/baseName field behaves as qty=1 on first tap â€
 function jsdomHarness(todaysFoodLog){
   const bodyHtml = `
     <div id="foodLogList"></div>
-    <div id="barCal"></div><div id="barPro"></div><div id="barFat"></div><div id="barCarb"></div>
+    <!-- 2026-11-16 (v3.588, UX-13): the four bars became figures with a target label each. -->
+    <div id="lblCal"></div><div id="lblPro"></div><div id="lblFat"></div><div id="lblCarb"></div>
     <div id="valCal"></div><div id="valPro"></div><div id="valFat"></div><div id="valCarb"></div>
     <div id="medicalNutrientBars"></div>
   `;
@@ -145,7 +146,9 @@ test('REAL invocation: clicking + in the rendered food log calls adjustFoodLogQt
   plusBtn.click();
   await new Promise(res => setTimeout(res, 30));
   assert.strictEqual(win.todaysFoodLog[0].cal, 560, 'clicking + must actually call adjustFoodLogQty on the right index');
-  assert.strictEqual(document.getElementById('valCal').textContent, '560 / 2000', 'macro bars must reflect the adjusted total after re-render');
+  // 2026-11-16 (v3.588, UX-13): the figure is what was eaten; its target is the label under it.
+  assert.strictEqual(document.getElementById('valCal').textContent, '560', 'the calorie figure must reflect the adjusted total after re-render');
+  assert.strictEqual(document.getElementById('lblCal').textContent, 'of 2000 cal');
   assert.ok(document.getElementById('foodLogList').textContent.includes('Ã—2'), 're-render must show the updated quantity');
 });
 
