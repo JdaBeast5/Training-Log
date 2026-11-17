@@ -58,7 +58,7 @@ test('REAL invocation (v3.305): switchView makes the header compact everywhere b
     function closeNavMoreOverlay(){} function hideGymOffer(){} function renderLogDateBar(){}
     Element.prototype.scrollIntoView = function(){};`,
 // 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
-    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView'), // 2026-10-28 (v3.482): switchView wires clearViewEnter
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView') + '\n' + extractConst(src, 'TODAY_CHROME_MOVES') + '\n' + extractFunction(src, 'syncTodayChrome') /* 2026-11-17 (v3.601, UX-20): switchView folds Today's chrome into the cover */, // 2026-10-28 (v3.482): switchView wires clearViewEnter
      'window.__c = [];' + keys.concat('today').map(k => `switchView('${k}'); window.__c.push(document.querySelector('header').classList.contains('header-compact'));`).join('\n')]);
   assert.deepStrictEqual(Array.from(window.__c), [false, true, true, true, true, true, true, false]);
   const { window: w } = new JSDOM(`<style>${CSS}</style><header class="header-compact"><div class="sub">x</div><div class="streak-badge" style="display:inline-flex">1</div></header>`);

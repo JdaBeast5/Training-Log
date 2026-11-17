@@ -95,7 +95,7 @@ test('REAL invocation: switchView sets the large title to the view you switched 
     Element.prototype.scrollIntoView = function(){};`,
   // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
 // 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
-    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView') + '\n' + extractConst(src, 'TODAY_CHROME_MOVES') + '\n' + extractFunction(src, 'syncTodayChrome') /* 2026-11-17 (v3.601, UX-20): switchView folds Today's chrome into the cover */, 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
   assert.ok(!window.__err, window.__err);
   // 2026-11-16 (v3.585, UX-04): the titles follow the tabs, Log -> Food and Analysis -> Progress.
   assert.deepStrictEqual(Array.from(window.__seen), ['Today','Food','Progress','History','Care','Coach','Learn']);

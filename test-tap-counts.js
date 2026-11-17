@@ -23,7 +23,9 @@ const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { test, run } = makeRunner('test-tap-counts.js');
 
-const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1};
+const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1,
+  // v3.601 (UX-20): the controls that moved onto the Today cover. At v3.600 each took one tap.
+  previousDay: 1, backToToday: 1, openCalendar: 1, openSettings: 1, openCoach: 1, openDaySheet: 1};
 
 function statement(startText){
   const i = src.indexOf(startText);
@@ -83,6 +85,62 @@ test('log the ready set: one tap on the cover\'s Log button commits exactly the 
   assert.strictEqual(window.__commits, 1, 'one tap, one set');
   assert.strictEqual(window.document.querySelector('.set-row[data-set-idx="1"] .ex-reps').value, String(ready._values.reps), 'the ready set');
   assert.ok(taps <= PARENT_TAPS.logReadySet, `taps ${taps} > parent ${PARENT_TAPS.logReadySet}`);
+});
+
+// v3.601 (UX-20): the date controls and the three header buttons move onto the
+// Today cover. Their listeners are attached first (as at page load), then
+// syncTodayChrome moves them, then each is tapped once: the move must keep
+// every listener (same elements, not copies).
+function chromeIife(name){
+  const i = src.indexOf(`(function ${name}(){`);
+  if(i === -1) throw new Error('not found: ' + name);
+  return src.slice(i, src.indexOf('\n})();', i) + 6);
+}
+function lineOf(startText){ const i = src.indexOf(startText); if(i === -1) throw new Error('not found: ' + startText); return src.slice(i, src.indexOf('\n', i)); }
+function mountChrome(date){
+  const body = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
+  const { window } = runJsdom(body, `
+    window.storage = { set(){}, get: async ()=> null };
+    window.matchMedia = (q)=>({ matches: !/min-width/.test(q) }); window.scrollTo = ()=>{};
+    var selectedLogDate = '${date}';
+    function getTodayKey(){ return '2026-11-02'; }
+    function isBackdating(){ return selectedLogDate !== getTodayKey(); }
+    function refreshForLogDate(){}
+    window.__calendar = 0; function openCalendarModal(){ window.__calendar++; }
+    window.__daySheet = 0; function openDaySheet(){ window.__daySheet++; }
+    function refreshHealthImportSummary(){}
+    var coachChatHistory = []; function renderCoachChatLog(){} async function getApiKey(){ return 'k'; }`,
+    [...['setLogDate', 'renderLogDateBar', 'updateTodayFab', 'formatLogDateLabel', 'dateKeyMinusDays', 'fmtDayLabel', 'parseDateKey', 'formatDate', 'syncTodayChrome'].map(f => extractFunction(src, f)),
+     extractConst(src, 'TODAY_CHROME_MOVES'),
+     lineOf("document.getElementById('logDatePrev').addEventListener('click', ()=>{") + "\n  setLogDate(dateKeyMinusDays(selectedLogDate, 1));\n});",
+     statement("document.getElementById('logDateToday').addEventListener('click',"),
+     lineOf("document.getElementById('logDateLabelBtn').addEventListener('click', openCalendarModal);"),
+     lineOf("document.getElementById('upNextDayBtn').addEventListener('click', openDaySheet);"),
+     statement("document.getElementById('coachFab').addEventListener('click',"),
+     chromeIife('wireSettings'),
+     "document.getElementById('upNext').hidden = false; syncTodayChrome(); window.__state = () => ({selectedLogDate});"]);
+  return window;
+}
+
+test('UX-20 tap parity: on the cover, previous day, back to today, the calendar, Settings, the coach and the day sheet each take one tap', (assert)=>{
+  const w = mountChrome('2026-11-02');
+  const $ = id => w.document.getElementById(id);
+  assert.ok(w.document.body.classList.contains('today-cover') && $('logDatePrev').closest('#upNext') && $('settingsCog').closest('#upNext'), 'anchor: the controls are on the cover');
+  const tap = (id) => { $(id).click(); return 1; };
+  const taps = {};
+  taps.previousDay = tap('logDatePrev');
+  assert.strictEqual(w.__state().selectedLogDate, '2026-11-01', 'one tap back a day');
+  taps.backToToday = tap('logDateToday');
+  assert.strictEqual(w.__state().selectedLogDate, '2026-11-02', 'one tap back to today');
+  taps.openCalendar = tap('logDateLabelBtn');
+  assert.strictEqual(w.__calendar, 1, 'one tap opens the calendar');
+  taps.openSettings = tap('settingsCog');
+  assert.ok($('settingsOverlay').classList.contains('active'), 'one tap opens Settings');
+  taps.openCoach = tap('coachFab');
+  assert.ok($('coachFabModal').classList.contains('active'), 'one tap opens the coach');
+  taps.openDaySheet = tap('upNextDayBtn');
+  assert.strictEqual(w.__daySheet, 1, 'one tap opens the day sheet');
+  for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
 });
 
 run();

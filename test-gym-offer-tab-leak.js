@@ -15,7 +15,7 @@
 // design, to follow you across tabs (its own comments explain why: "Leaving
 // gym mode to check a number in Analysis mid-workout is a normal thing to
 // do"). Only the modal-like Yes/No offer card is in scope here.
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, runJsdom, makeRunner, extractConst } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-gym-offer-tab-leak.js');
@@ -38,7 +38,7 @@ function buildBodyHtml(){
 function setup(){
   // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
 // 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
-  const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView');
+  const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView') + '\n' + extractConst(src, 'TODAY_CHROME_MOVES') + '\n' + extractFunction(src, 'syncTodayChrome') /* 2026-11-17 (v3.601, UX-20): switchView folds Today's chrome into the cover */;
   const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
   const globals = [
     "const MOVED_TO_MORE = ['care', 'coach', 'learn'];",

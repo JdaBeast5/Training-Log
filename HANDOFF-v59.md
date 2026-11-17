@@ -1436,3 +1436,13 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Text inks:** `--block-on-red` is white in dark. The light `--block-on-yellow` and `--block-on-green` are #0C0C0D. The dark red cover override is gone.
 - **Quiet:** a new token, `--quiet-figure-yellow` (spot in dark, deep in light), is used by `body.cover-quiet.day-yellow .cover`.
 - **Built from:** the owner merged #178 (the Today coherence audit) and answered "all as recommended", as relayed by the planning session and verified on Branch-1. UX-20 is next.
+
+## Addendum 125: UX-20, Today's chrome on the cover (v3.601, PR #180, 2026-11-17)
+- **The class:** `syncTodayChrome` sets `body.today-cover` when Today is the view, the cover is shown, the app isn't in gym mode and it's single column (`isOpenPosture()` false).
+- **What moves:** the five nodes in `TODAY_CHROME_MOVES` move into `#coverDateSlot`, `#coverIconSlot` and `#coverStreakSlot`, and go back after a marker comment (`el._home`).
+- **When it runs:** from `switchView`, and from a MutationObserver on the cover's `hidden` and the body's class. It also re-runs on the posture media query changing.
+- **CSS:** under `body.today-cover`, the `.wrap` top padding is 0, the header collapses, and `#viewTitle` is sr-only. The eyebrow, sub and brand are hidden, and so is `#todayFab` (with !important, to beat its inline style).
+- **On the cover:** the controls are flat in `--on-cover`. `.status-scrim` takes the field (spot; yellow-cover; Quiet surface).
+- **Layout:** the program line (`#upNextWhere`: the program label, week and phase, plus the streak) leads the cover. `#upNextBar` sits above `.cover-log`.
+- **Settings:** the "You" section is first.
+- **Unverified:** on device (the safe-area paint).
