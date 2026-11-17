@@ -5397,6 +5397,70 @@
      every OS (tasteskill Today pilot, v3.273). */
   .gym-enter-icon{ width:17px; height:17px; flex:0 0 auto; }
 
+  /* ── "Then" (v3.604, UX-23) ───────────────────────────────────────────────
+     Under the cover, the day's remaining work is a ruled list on the ground
+     in the world's ink, not a 2.0 glass card: no fill, border or radius, 1 px
+     --rule dividers, the head a quiet line, plain controls, and the chips in
+     the cover's grammar. Gym mode keeps its own look (UX-17 decides it), so
+     every rule here is scoped to body:not(.gym-mode). While the cover shows
+     (body.has-cover, set by syncTodayChrome), its headline names the day, so
+     the card's second day hero isn't displayed (it stays in the DOM). */
+  body:not(.gym-mode) #workoutCard{background:transparent; border:none; border-radius:0; box-shadow:none; padding:0;}
+  body:not(.gym-mode) #workoutCard::before{display:none;}
+  body.has-cover:not(.gym-mode) #workoutCard .workout-hero{display:none;}
+  .then-title{display:none;}
+  body.has-cover:not(.gym-mode) .then-title{display:block; margin:8px 0 2px; font-family:var(--font-sans); font-size:22px; font-weight:700; letter-spacing:-0.02em; color:var(--text);}
+  body:not(.gym-mode) #workoutCard .duration-row{display:block; margin-top:0; font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; line-height:1.4; color:var(--text-2);}
+  body:not(.gym-mode) #workoutCard .duration-row > *{display:inline;}
+  body:not(.gym-mode) #workoutCard .duration-row > :empty{display:none;}
+  body:not(.gym-mode) #workoutCard .duration-row > :not(:empty) ~ :not(:empty)::before{content:' · ';}
+  body:not(.gym-mode) #workoutCard .mesocycle-phase-tag,
+  body:not(.gym-mode) #workoutCard .mesocycle-phase-tag.deload{padding:0; border:none; border-radius:0; background:none; font-size:13px; color:var(--text-2);}
+  body:not(.gym-mode) #workoutCard .duration-tag{font-size:13px; color:var(--text-2);}
+  body:not(.gym-mode) #workoutCard .session-cal-total{font-size:13px; color:var(--text-2); margin-top:0;}
+  body:not(.gym-mode) #workoutCard .session-actions{display:flex; align-items:center; justify-content:space-between; gap:8px; margin:4px 0 6px; border-bottom:1px solid var(--rule);}
+  body:not(.gym-mode) #workoutCard .session-length-wrap{display:inline-block;}
+  body:not(.gym-mode) #workoutCard .session-length-select{width:auto; min-height:44px; padding:0 22px 0 0; border:none; border-radius:0; background:none; text-align:left; text-align-last:left; color:var(--text);}
+  body:not(.gym-mode) #workoutCard .session-length-chevron{right:4px; color:var(--text-2);}
+  body:not(.gym-mode) #workoutCard .gym-enter-btn{width:auto; min-height:44px; padding:0 2px; border:none; border-radius:0; background:none; color:var(--text);}
+  body:not(.gym-mode) #workoutCard .gym-enter-btn:active{border-color:transparent;}
+  body:not(.gym-mode) #workoutCard .gym-enter-icon{color:var(--text-2);}
+  /* Rows: the name 16/600, the prescription and effort words under it. */
+  body:not(.gym-mode) #exerciseList .exercise-block{border-bottom:1px solid var(--rule);}
+  body:not(.gym-mode) #exerciseList .exercise-block:last-child{border-bottom:none;}
+  body:not(.gym-mode) #exerciseList .exercise{display:grid; grid-template-columns:auto auto minmax(0, 1fr) auto auto; column-gap:0; align-items:center;}
+  body:not(.gym-mode) #exerciseList .exercise > input[type=checkbox]{grid-column:1; grid-row:1 / span 2; margin-right:12px;}
+  body:not(.gym-mode) #exerciseList .exercise > .ex-thumb{grid-column:2; grid-row:1 / span 2; margin-right:12px;}
+  body:not(.gym-mode) #exerciseList .exercise > .ex-name-wrap{grid-column:3; grid-row:1;}
+  body:not(.gym-mode) #exerciseList .exercise > .ex-sets{grid-column:3; grid-row:2; margin:2px 0 0; text-align:left; white-space:normal; font-family:var(--font-sans); font-size:13px; color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .exercise > .ex-delete-custom-btn{grid-column:4; grid-row:1 / span 2;}
+  body:not(.gym-mode) #exerciseList .exercise > .ex-chevron{grid-column:5; grid-row:1 / span 2;}
+  body:not(.gym-mode) #exerciseList .ex-name{font-size:16px; font-weight:600;}
+  body:not(.gym-mode) #exerciseList .ex-rir{display:inline; max-width:none; margin:0; font-size:13px; color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .ex-rir::before{content:' · ';}
+  body:not(.gym-mode) #exerciseList .ex-thumb{background:none; border:none;}
+  body:not(.gym-mode) #exerciseList .ex-swap-icon,
+  body:not(.gym-mode) #exerciseList .ex-chevron{color:var(--text-3); opacity:1;}
+  body:not(.gym-mode) #exerciseList .exercise input[type=checkbox]{background:none; border:1.5px solid var(--rule-strong); border-radius:4px; box-shadow:none;}
+  body:not(.gym-mode) #exerciseList .exercise input[type=checkbox]:checked{background:var(--text); border-color:var(--text);}
+  body:not(.gym-mode) #exerciseList .exercise input[type=checkbox]:checked::after{border-color:var(--ground);}
+  /* The exercise on the cover: a 4 px rule in the day's ink along its left
+     edge, in the gutter (the cover logs into this row; it stays in the list). */
+  body:not(.gym-mode) #exerciseList .is-now{position:relative;}
+  body:not(.gym-mode) #exerciseList .is-now::after{content:''; position:absolute; left:-12px; top:10px; bottom:10px; width:4px; background:var(--spot); pointer-events:none;}
+  /* The superset label: a text line with the link glyph, not a pill. */
+  body:not(.gym-mode) #exerciseList .superset-tag{padding:0; border:none; border-radius:0; background:none; color:var(--text-2);}
+  /* Chips in the cover's grammar: done is the ink fill with a check; ready a
+     2.5 px ink border (it carries "next", so no "=" mark); pending dashed. */
+  body:not(.gym-mode) #exerciseList .set-chip{border-radius:12px; background:none; border:1.5px dashed var(--rule-strong); color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .set-chip.is-done{background:var(--text); border:1.5px solid var(--text); color:var(--ground);}
+  body:not(.gym-mode) #exerciseList .set-chip.is-ready,
+  body:not(.gym-mode) #exerciseList .set-chip.is-next{background:none; border:2.5px solid var(--text); color:var(--text); font-weight:600;}
+  body:not(.gym-mode) #exerciseList .set-chip-trend.is-same{display:none;}
+  .set-chip-check{display:none;}
+  body:not(.gym-mode) #exerciseList .set-chip.is-done .set-chip-check{display:inline-flex;}
+  .set-chip-check svg{width:14px; height:14px;}
+
   /* ── The offer ────────────────────────────────────────────────────────────
      Shown once, on the first logged set, and never again in either direction —
      the answer becomes the standing preference. Deliberately NOT a modal: it
@@ -5849,6 +5913,10 @@
       max-height:calc(100cqh - var(--above-bar) + env(safe-area-inset-bottom, 0px) + 8px);
       overflow-y:auto; overscroll-behavior-y:contain;
     }
+    /* v3.604 (UX-23): the session pane scrolls, so it clips its overflow; it
+       reaches 12px into the gutter (padding puts its content back) so the
+       "now" rule beside the cover's exercise row isn't cut off. */
+    body:not(.gym-mode) .posture-split > .split-primary.today-session-pane{margin-left:-12px; padding-left:12px;}
     body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .app-footer{
       height:calc(20px + env(safe-area-inset-bottom, 0px)); padding:3px 0 0; text-align:right;
     }
@@ -6352,6 +6420,8 @@
         <div class="workout-hero-title" id="dayTitle"></div>
       </div>
     </div>
+    <!-- v3.604 (UX-23): while the cover shows, the list under it is "Then". -->
+    <h2 class="then-title">Then</h2>
     <!-- v3.291 (Impeccable layout pass): what the session is (phase, length,
          calories) reads as one quiet line, then the two ways to change HOW
          you run it — length and gym mode — sit together as one row of
@@ -6359,8 +6429,8 @@
     <div class="duration-row">
       <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
       <div class="duration-tag" id="dayDuration"></div>
+      <div class="session-cal-total" id="sessionCalTotal"></div><!-- v3.604 (UX-23): the third part of the head line -->
     </div>
-    <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="session-actions">
       <span class="session-length-wrap">
         <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
@@ -8152,7 +8222,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.603';
+const APP_VERSION = '3.604';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9793,6 +9863,10 @@ const WHATS_NEW = {
   ]},
   '3.603': { headline: 'Numbers in one type', points: [
     'The set chips, steppers and finish summary now use the same type as the rest of Today, and a longer weight like 182.5 stays on one line beside its reps.',
+  ]},
+  '3.604': { headline: 'Then', points: [
+    'Under the cover, the rest of the day is a quiet list headed Then, without a second copy of the day\'s name.',
+    'Logged sets are filled in with a check, the next one has a bold outline, and the exercise on the cover is marked in the day\'s colour.',
   ]},
 };
 
@@ -32892,6 +32966,12 @@ function renderUpNext(){
   // A rest day (no set rows): the cover stays, in the day's white or off ink,
   // with the headline so another day is one tap away; nothing to log.
   card.classList.toggle('is-rest', n.total === 0);
+  // v3.604 (UX-23): the list row of the exercise on the cover carries the
+  // "now" rule; exactly one row, cleared when there's no next set.
+  list.querySelectorAll('.is-now').forEach(el => el.classList.remove('is-now'));
+  const nowBlock = n.row && n.row.closest('.exercise-block');
+  const nowRow = nowBlock && (nowBlock.querySelector(`.superset-member[data-ex-idx="${n.row.dataset.exIdx}"]`) || nowBlock);
+  if(nowRow) nowRow.classList.add('is-now');
   if(n.total === 0){
     card.classList.remove('is-done');
     document.getElementById('upNextLabel').textContent = '';
@@ -33323,6 +33403,7 @@ function renderSetChips(blockEl, glowRow){
     chip.dataset.setIdx = row.dataset.setIdx;
     if(loggable) chip.dataset.loggable = '1';
     chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
+      + (state === 'done' ? `<span class="set-chip-check" aria-hidden="true">${icon('check')}</span>` : '') // v3.604 (UX-23): shown outside gym mode
       + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
       + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '');
     // RPE is not on the chip (four sets fit one line without it); it is spoken, and shown in the sheet.
@@ -42184,6 +42265,9 @@ function syncTodayChrome(){
   }
   const on = !!(header && !header.classList.contains('header-compact') && card && !card.hidden && !document.body.classList.contains('gym-mode') && !unfolded);
   document.body.classList.toggle('today-cover', on);
+  // v3.604 (UX-23): whenever the cover shows (either layout), the list under
+  // it drops its second day hero.
+  document.body.classList.toggle('has-cover', !!(card && !card.hidden));
   for(const [id, slotId] of TODAY_CHROME_MOVES){
     const el = document.getElementById(id), slot = document.getElementById(slotId);
     if(!el || !slot) continue;

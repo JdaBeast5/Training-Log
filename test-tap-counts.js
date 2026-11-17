@@ -25,7 +25,9 @@ const { test, run } = makeRunner('test-tap-counts.js');
 
 const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1,
   // v3.601 (UX-20): the controls that moved onto the Today cover. At v3.600 each took one tap.
-  previousDay: 1, backToToday: 1, openCalendar: 1, openSettings: 1, openCoach: 1, openDaySheet: 1};
+  previousDay: 1, backToToday: 1, openCalendar: 1, openSettings: 1, openCoach: 1, openDaySheet: 1,
+  // v3.604 (UX-23): Gym mode became a plain text button in the "Then" head. At v3.603 it took one tap.
+  enterGymMode: 1};
 
 function statement(startText){
   const i = src.indexOf(startText);
@@ -140,6 +142,25 @@ test('UX-20 tap parity: on the cover, previous day, back to today, the calendar,
   assert.ok($('coachFabModal').classList.contains('active'), 'one tap opens the coach');
   taps.openDaySheet = tap('upNextDayBtn');
   assert.strictEqual(w.__daySheet, 1, 'one tap opens the day sheet');
+  for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
+});
+
+test('UX-23: entering Gym mode from the "Then" head takes one tap on #gymEnterBtn (the real wiring and the real enterGymMode)', (assert)=>{
+  const btn = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.getElementById('gymEnterBtn').outerHTML;
+  const { window } = runJsdom(`<div id="workoutCard">${btn}</div>`, `
+    var gymModeActive = false, gymAutoHandledDate = null, selectedLogDate = '2026-11-02', gymClockDate = '2026-11-02', gymAccumMs = 0, gymStretchStart = 0;
+    function getTodayKey(){ return '2026-11-02'; }
+    window.__calls = [];
+    for(const f of ['hideGymOffer', 'finishGymLeave', 'cancelGymFinish', 'startGymClock', 'showView', 'openFirstIncompleteExercise', 'renderAllSetChips',
+      'refreshGymDock', 'noteWorkoutActivity', 'scrollAppToTop', 'persistGymSession', 'exitGymMode', 'answerGymOffer'])
+      window[f] = (...a) => window.__calls.push(f);`,
+    [extractFunction(src, 'enterGymMode'), extractFunction(src, 'wireGymMode'), 'wireGymMode();']);
+  const b = window.document.getElementById('gymEnterBtn');
+  assert.strictEqual(b.textContent.trim(), 'Gym mode', 'anchor: the real button');
+  b.click();
+  const taps = {enterGymMode: 1};
+  assert.ok(window.document.body.classList.contains('gym-mode'), 'one tap: gym mode is on');
+  assert.ok(window.__calls.includes('showView') && window.__calls.includes('persistGymSession'), 'the real entry ran');
   for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
 });
 
