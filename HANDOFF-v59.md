@@ -1411,3 +1411,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Where:** `renderCoverBar` (called from `renderCoverNumeral`, so it follows adjust) fills `#upNextBar`, under the Log row. It shows for barbell lifts at or above the bar weight only.
 - **Fixtures:** suites that drive `renderUpNext` now need `renderCoverBar` (real in `test-today-cover`, stubbed elsewhere).
 - **Process note:** when scanning `check.sh` output, grep for `FAIL:` as well. A suite that throws while loading prints no "N failed" line.
+
+## Addendum 121: UX-08, rest takes over the cover (v3.597, PR #175, 2026-11-17)
+- **What:** `syncCoverRest` toggles `.cover.is-resting` and fills `#coverRest`: the time, "of m:ss", +30 s (`adjustRestTimer(30)`) and Skip (the timer's Close).
+- **Steppers:** `renderCoverSteppers`, `stepCoverField` (weight steps by `setSheetWeightStep`) and `setCoverRepsLeft` (RPE = 10 − RIR) write the cover's own fields, which Log reads.
+- **How it follows the timer:** a MutationObserver (`watchRestForCover`) watches `#restTimerTime` text, `#restTimer` class and the cover's `hidden`. So `startRestTimer` and the suites that extract it are untouched.
+- **Look:** the field is `--spot-deep` with white text. `.cover-drain` is a 10 px band of `--spot`, `scaleX(left/total)`, `transition: transform 1s linear`; inline `none` under Reduce Motion. In Quiet mode the rest field is the card surface.
+- **Unverified:** on device.
+- **Flag:** the floating rest pill still shows while the cover rests.
