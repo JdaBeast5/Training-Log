@@ -26,6 +26,11 @@ const todayHtml = extractElementById(src, 'todayView');
 
 const MOVED_IDS = ['martialArtCard', 'cyclingCard', 'watersportsCard', 'yogaCard', 'medicalCard'];
 const ABOVE_IDS = ['onboardingCard', 'todayInsightsCard', 'profileCardTopSlot', 'programRecommendation'];
+// 2026-11-17 (v3.595, UX-06b): the day rail (#tabs) moved into the day sheet,
+// opened from the Today cover's day headline (#upNextDayBtn, test-day-sheet.js).
+// On Today the picker IS that headline now, so it stands in for #tabs below; the
+// interrupts are held above the workout card (the session) instead of the rail.
+const DAY_PICKER = 'upNextDayBtn';
 
 function freshToday(){
   const { document } = new JSDOM(`<!DOCTYPE html><body>${todayHtml}</body>`).window;
@@ -42,14 +47,14 @@ function styleCard(document){
 
 test('sabotage anchor: each id this test relies on exists exactly once in the real Today markup', (assert)=>{
   const document = freshToday();
-  for(const id of ['tabs', 'workoutCard', 'programHeader', ...MOVED_IDS, ...ABOVE_IDS]){
+  for(const id of [DAY_PICKER, 'workoutCard', 'programHeader', ...MOVED_IDS, ...ABOVE_IDS]){
     assert.strictEqual(document.querySelectorAll(`#${id}`).length, 1, `#${id} must exist once inside #todayView`);
   }
 });
 
 test('REAL markup: the day rail and the workout card come before the Training Style card and every sport/medical picker', (assert)=>{
   const document = freshToday();
-  const tabs = document.getElementById('tabs');
+  const tabs = document.getElementById(DAY_PICKER);
   const workout = document.getElementById('workoutCard');
   const pickers = [styleCard(document), ...MOVED_IDS.map(id => document.getElementById(id))];
   for(const picker of pickers){
@@ -60,9 +65,9 @@ test('REAL markup: the day rail and the workout card come before the Training St
 
 test('GUARD: the deliberate interrupts still sit above the day rail — onboarding, Today\'s Priorities, the unfinished-profile slot and the recommendation banner', (assert)=>{
   const document = freshToday();
-  const tabs = document.getElementById('tabs');
+  const tabs = document.getElementById('workoutCard');
   for(const id of ABOVE_IDS){
-    assert.ok(precedes(document.getElementById(id), tabs), `#${id} must stay above the day rail`);
+    assert.ok(precedes(document.getElementById(id), tabs), `#${id} must stay above the session`);
   }
 });
 

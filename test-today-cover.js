@@ -227,13 +227,20 @@ test('(ii) a resting region that flags the cover lift shows the caution and its 
   assert.strictEqual(clear.$('upNextCaution').hidden, true);
 });
 
-test('a finished session says so and hides the numeral and Log; a rest day hides the cover', (assert)=>{
+// 2026-11-17 (v3.595, UX-06b): a rest day keeps the cover (its headline opens
+// the day picker), as the spec's white/off field: is-rest, nothing to log.
+test('a finished session says so and hides the numeral and Log; a rest day keeps the cover with nothing to log', (assert)=>{
   const ui = mount(block(0, 'Bench Press', '2×4-6', [done(0, 0, 'Bench Press', '185', '5'), done(0, 1, 'Bench Press', '185', '5')].join('')));
   assert.ok(ui.$('upNext').classList.contains('is-done'));
   assert.strictEqual(ui.$('upNextLift').textContent, 'Session complete');
   assert.strictEqual(ui.$('upNextTarget').textContent, 'All 2 sets logged');
   assert.strictEqual(ui.$('upNextChips').children.length, 0);
-  assert.strictEqual(mount('').$('upNext').hidden, true);
+  const rest = mount('');
+  assert.strictEqual(rest.$('upNext').hidden, false);
+  assert.ok(rest.$('upNext').classList.contains('is-rest'));
+  assert.strictEqual(rest.$('upNextLift').textContent, 'Rest day');
+  assert.strictEqual(rest.$('upNextChips').children.length, 0);
+  assert.strictEqual(rest.$('upNextDay').textContent, 'Upper · Strength', 'the headline is there to pick another day');
 });
 
 // ---- The stylesheet --------------------------------------------------------

@@ -78,10 +78,13 @@ test('Today is a split view, with exactly one session pane as its split primary 
   assert.equal(document.querySelectorAll('#todayView > .split-primary').length, 1, 'one primary per split view');
 });
 
-test('the pane holds exactly the day picker header, the day tabs and the workout card — in that order', (assert)=>{
+// 2026-11-17 (v3.595, UX-06b): the day picker header and rail moved into the
+// day sheet (opened from the Today cover's headline), so the pane is the session.
+test('the pane holds exactly the workout card (the day picker is a sheet since UX-06b)', (assert)=>{
   const { document } = todayDom();
   const kids = [...document.querySelector('.today-session-pane').children];
-  assert.deepEqual(kids.map(k=> k.id || k.className), ['tabs-header', 'tabs', 'workoutCard']);
+  assert.deepEqual(kids.map(k=> k.id || k.className), ['workoutCard']);
+  assert.strictEqual(document.getElementById('tabs'), null, 'the rail is not in Today any more');
 });
 
 test('single-column order is unchanged: the session follows the recommendation banner, the Training Style card follows the session', (assert)=>{

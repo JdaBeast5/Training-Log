@@ -1395,3 +1395,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - `loadCoverStylePref` runs at boot, before Today renders. `saveCoverStyle` applies the choice and saves it.
   - The body class `cover-quiet` re-points the cover tokens: `--cover` becomes `--surface-1`, the text uses `--text`, and the numeral stays `--spot`. The day stripe is an inset box-shadow, so the layout doesn't move.
 - **Tests:** three cases in `test-today-cover.js` cover contrast for every ink and theme, the real load/save/apply, and the Settings placement plus the boot call.
+
+## Addendum 119: UX-06b, the day picker in a sheet (v3.595, PR #173, 2026-11-17)
+- **What:** `.tabs-header` and `#tabs` moved out of `.today-session-pane` into `#daySheet`, a `sub-modal-overlay` beside the other sheets. It's in `SCROLL_LOCK_OVERLAYS` and `OVERLAY_CLOSERS`, so the scroll lock, focus trap and Escape all apply.
+- **The opener:** the cover's headline is `button#upNextDayBtn`, with the text in `span#upNextDay`.
+- **How a choice closes the sheet:** `chooseDayFromSheet` listens on `#tabs` for click and for Enter/Space. It runs after the tab's own `onclick`, which has already re-rendered the rail. So it tests `e.target.closest('.tab')` on the detached tab, not `'#tabs .tab'`.
+- **Reorder mode:** tapping a day keeps the sheet open; closing the sheet ends reorder mode.
+- **Rest days:** the cover now shows on rest days (`.is-rest`: the white/off field, "Rest day", the headline) so the picker is always reachable. This fills in the spec's rest-day field that 06a left open.
+- **Not done (flag):** the workout card's hero still repeats the day title under the cover. Removing it isn't in 06b's spec; it's a candidate for UX-07/UX-09 or an owner call.
