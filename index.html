@@ -866,9 +866,9 @@
   /* v3.597 (UX-08): rest. The field turns to the day's deep ink with white
      text (4.5:1 or more on every deep ink); the bright ink is a band along
      the top that shrinks as rest runs out. Quiet keeps its card. */
-  body.day-red .cover{--spot-ink:var(--block-on-red);}
-  body.day-green .cover{--spot-ink:var(--block-on-green);}
-  body.day-yellow .cover{--spot-ink:var(--block-on-yellow);}
+  body.day-red .cover, body.day-red .finish-flood{--spot-ink:var(--block-on-red);}
+  body.day-green .cover, body.day-green .finish-flood{--spot-ink:var(--block-on-green);}
+  body.day-yellow .cover, body.day-yellow .finish-flood{--spot-ink:var(--block-on-yellow);}
   .cover.is-resting{background:var(--rest-field); color:var(--on-rest);}
   .cover-drain{position:absolute; top:0; left:0; right:0; height:10px; background:var(--spot, var(--text)); transform-origin:left center; transform:scaleX(0); transition:transform 1s linear; pointer-events:none;}
   .cover:not(.is-resting) .cover-drain{display:none;}
@@ -907,6 +907,14 @@
   .finish-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; margin-top:6px; color:var(--text);}
   .finish-best[hidden]{display:none;}
   .finish-best{margin-top:16px; padding:16px; border-radius:var(--r-control); background:var(--surface-2); color:var(--text);}
+  /* v3.599 (UX-09b): a record floods the best set in the day's ink (the
+     contrast-checked ink on it, as the rest Log button). Quiet keeps the card,
+     with the stripe. Entered once as a circle from the Log button (script). */
+  .finish-flood{--spot-ink:var(--on-spot); background:var(--spot, var(--surface-2)); color:var(--spot-ink, var(--text));}
+  .finish-flood .finish-best-label, .finish-flood .finish-best-was{color:inherit;}
+  body.cover-quiet .finish-flood{background:var(--surface-2); color:var(--text); box-shadow:inset 0 6px 0 var(--spot, var(--rule));}
+  .finish-best .cover-bar{margin-top:10px;}
+  .finish-best .cover-bar-cap{font-size:15px;}
   .finish-best-label, .finish-best-was{font-size:15px; color:var(--text-2);}
   .finish-best-fig{display:flex; align-items:baseline; gap:6px; font-family:var(--font-display); font-stretch:68%; margin:4px 0;}
   .finish-best-w{font-size:64px; font-weight:800; line-height:.9;}
@@ -8091,7 +8099,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.598';
+const APP_VERSION = '3.599';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9715,6 +9723,10 @@ const WHATS_NEW = {
   '3.598': { headline: 'A proper finish to every session', points: [
     'Logging the last set opens a summary: sets done, lifts and minutes, any record you set with the one it beat, and what each lift will ask of you next time, with the reason.',
     'Share sends your session card; Done takes you back to Today.',
+  ]},
+  '3.599': { headline: 'Records fill the finish screen', points: [
+    'Set a record and the finish summary opens on it in the day\'s colour, spreading out from the Log button, with the plates for that weight drawn underneath.',
+    'It plays once. With Reduce Motion on it just appears, and the Quiet cover setting keeps it quiet too.',
   ]},
 };
 
@@ -31460,7 +31472,7 @@ async function finishSheetModel(listEl, dateKey, program){
     if(s) next.push(s);
   }
   const dayTitle = document.getElementById('dayTitle');
-  return {day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
+  return {key: dateKey + '|' + (typeof activeDay !== 'undefined' ? activeDay : ''), day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
     lifts: blocks.filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length, minutes: min ? Number(min.value) : null,
     best, next, share, clinical};
 }
@@ -31498,9 +31510,14 @@ function openFinishSheet(model){
     const gain = b.prior && b.type === 'weight' ? ` · +${fmtWeight(b.weight - b.prior.weight)} on your best, ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : '';
     best.innerHTML = `<div class="finish-best-label">${b.type === 'weight' ? 'Heaviest weight yet' : 'Best estimated 1RM yet'} · ${escapeHtml(b.name)}</div>
       <div class="finish-best-fig"><span class="finish-best-w">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))}</span><span class="finish-best-u">${escapeHtml(weightUnit)}</span><span class="finish-best-x">×${escapeHtml(String(b.reps))}</span></div>
-      <div class="finish-best-was">${escapeHtml(gain.replace(/^ · /, '') || (b.prior ? `Your best before: ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : 'Your first record on this lift.'))}</div>`;
+      <div class="finish-best-was">${escapeHtml(gain.replace(/^ · /, '') || (b.prior ? `Your best before: ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : 'Your first record on this lift.'))}</div>`
+      + finishPlatesHtml(b);
     best.hidden = false;
   } else { best.innerHTML = ''; best.hidden = true; }
+  // v3.599 (UX-09b): the flood, for a record on a program that isn't clinical.
+  const flood = !!(model.best && !model.clinical);
+  best.classList.toggle('finish-flood', flood);
+  if(flood) playFinishFlood(best, model.key);
   const totals = [[`${model.sets}<small>/${model.planned}</small>`, 'Sets'], [String(model.lifts), 'Lifts']];
   if(model.minutes) totals.push([String(model.minutes), 'Minutes']);
   document.getElementById('finishTotals').innerHTML = totals.map(([v, l])=> `<div class="finish-total"><div class="finish-total-v">${v}</div><div class="finish-total-l">${l}</div></div>`).join('');
@@ -31514,6 +31531,35 @@ function openFinishSheet(model){
   sheet.classList.add('active');
   setTimeout(()=>{ const d = document.getElementById('finishDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll:true}); }, 0);
 }
+// The best set's plate stack (UX-07's drawing) when it's a barbell lift.
+function finishPlatesHtml(b){
+  if(!isBarbellExercise(b.name)) return '';
+  const w = toDisplayWeight(b.weight), eq = getEquipment();
+  if(!(w >= eq.bar)) return '';
+  const load = platesPerSide(w, eq);
+  return `<div class="cover-bar">${barStackSvg(load.plates, weightUnit)}<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span></div></div>`;
+}
+
+// v3.599 (UX-09b): the flood enters once, as a circle opening from the Log
+// button (700 ms, --ease-out). Under Reduce Motion it is a cut. It never
+// replays: reopening the same session's sheet shows it already there.
+const finishFloodsPlayed = new Set();
+function playFinishFlood(el, key){
+  if(finishFloodsPlayed.has(key)) return false;
+  finishFloodsPlayed.add(key);
+  const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if(reduce || typeof el.animate !== 'function') return false;
+  const r = el.getBoundingClientRect();
+  const log = document.getElementById('upNextLog');
+  const o = log && log.getBoundingClientRect();
+  const x = o && o.width ? o.left + o.width / 2 - r.left : r.width / 2;
+  const y = o && o.height ? o.top + o.height / 2 - r.top : 0;
+  const far = Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y)) + 2;
+  el.animate([{clipPath: `circle(0px at ${x}px ${y}px)`}, {clipPath: `circle(${far}px at ${x}px ${y}px)`}],
+    {duration: 700, easing: 'cubic-bezier(.23,1,.32,1)'});
+  return true;
+}
+
 function closeFinishSheet(){
   const sheet = document.getElementById('finishSheet');
   if(!sheet || !sheet.classList.contains('active')) return;

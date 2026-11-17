@@ -30,9 +30,11 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot',
   'normalizeExEntry', 'parseExKey', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs',
   'sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs', 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
-  'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet'];
+  'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet',
+  // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
+  'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
-  'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL'];
+  'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed'];
 
 const TODAY = '2026-11-02';
 const BENCH = {name: 'Bench Press', sets: '4×4-6'};
@@ -52,7 +54,7 @@ function list(rows){
   return `<div class="exercise-block">` + rows.map((r, i) => `<div class="set-row" data-set-idx="${i}"><input class="ex-input ex-weight" value="${r ? 185 : ''}"><input class="ex-input ex-reps" value="${r || ''}"></div>`).join('') + `</div>`;
 }
 
-function mount({mode = 'progression', program = 'strength', store = {'ex:strength:d1:0': BENCH_LOG, 'ex:strength:d1:1': ROW_LOG}, inputs = [[BENCH, BENCH_LOG, 'chest'], [ROW, ROW_LOG, 'back']]} = {}){
+function mount({reduce = false, mode = 'progression', program = 'strength', store = {'ex:strength:d1:0': BENCH_LOG, 'ex:strength:d1:1': ROW_LOG}, inputs = [[BENCH, BENCH_LOG, 'chest'], [ROW, ROW_LOG, 'back']]} = {}){
   const storeJson = {};
   for(const [k, v] of Object.entries(store)) storeJson[k] = JSON.stringify(v);
   storeJson['workout-time:' + TODAY] = JSON.stringify({first: '17:05', last: '18:02'});
@@ -65,6 +67,9 @@ function mount({mode = 'progression', program = 'strength', store = {'ex:strengt
     var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;
     const __store = ${JSON.stringify(storeJson)};
     window.storage = { list: async () => ({keys: Object.keys(__store).filter(k => k.startsWith('ex:'))}), get: async k => (k in __store ? {value: __store[k]} : null) };
+    window.matchMedia = q => ({matches: ${reduce} && /reduce/.test(q)});
+    window.__anims = [];
+    Element.prototype.animate = function(frames, opts){ window.__anims.push({el: this, frames, opts}); return {}; };
     async function isDeloadWeek(){ return false; }
     async function getMesocycleWeek(){ return 2; }
     function preloadShareCardFont(){}
@@ -216,6 +221,84 @@ test('criterion 7: renderWorkout calls openFinishSheet( at exactly one site, the
   assert.ok(guard > -1 && body.slice(guard, at).split('{').length - body.slice(guard, at).split('}').length === 1, 'inside the completing-click branch');
   assert.match(body.slice(at, at + 140), /^openFinishSheet\(await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\)\);/);
   assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'the toast is gone from renderWorkout');
+});
+
+// ---- v3.599 (UX-09b): the flood and its motion -----------------------------
+test('09b criterion 2: with no record today, no element carries the flood class', async (assert)=>{
+  const ui = mount({store: {'ex:strength:d1:0': [{date: '2026-10-26', n: 'Bench Press', sets: [{weight: 200, reps: 5}]}, {date: TODAY, n: 'Bench Press', sets: [{weight: 185, reps: 5}]}]}});
+  await ui.open();
+  assert.strictEqual(ui.window.document.querySelectorAll('.finish-flood').length, 0);
+  assert.strictEqual(ui.window.__anims.length, 0, 'nothing plays');
+  const rec = mount();
+  await rec.open();
+  assert.strictEqual(rec.window.document.querySelectorAll('.finish-flood').length, 1, 'anchor: a record does flood');
+  assert.strictEqual(rec.$('finishBest').classList.contains('finish-flood'), true);
+});
+
+test('09b: the best set carries its plate stack (UX-07\'s drawing): 185 is 45 · 25 each side', async (assert)=>{
+  const ui = mount();
+  await ui.open();
+  const bar = ui.$('finishBest').querySelector('.cover-bar');
+  assert.ok(bar && bar.querySelector('svg .bar-plate'), 'drawn');
+  assert.strictEqual(bar.querySelector('.cover-bar-cap span').textContent, '45 · 25 each side');
+});
+
+test('09b criterion 4: the PR celebration still fires once per PR, at its one site; nothing in the finish sheet raises another', (assert)=>{
+  const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const code = strip(src);
+  assert.strictEqual((code.match(/triggerCelebration\('trophy', 'New PR!'/g) || []).length, 1, 'one PR celebration site');
+  for(const f of ['finishSheetModel', 'openFinishSheet', 'playFinishFlood', 'finishPlatesHtml', 'closeFinishSheet', 'nextTimeSuggestion']){
+    assert.ok(!/\btriggerCelebration\(/.test(strip(extractFunction(src, f))), f + ' raises no celebration');
+  }
+});
+
+test('09b criterion 6: a clinical program with a record: no flood, no trophy, no Share', async (assert)=>{
+  for(const program of ['medical', 'rehabAcl']){
+    const ui = mount({program});
+    const m = await ui.open();
+    assert.ok(m.best, program + ': anchor, there is a record');
+    assert.strictEqual(ui.window.document.querySelectorAll('.finish-flood').length, 0, program + ': no flood');
+    assert.ok(!/trophy/i.test(ui.$('finishSheet').innerHTML), program + ': no trophy');
+    assert.strictEqual(ui.$('finishShare').hidden, true, program + ': no Share');
+    assert.strictEqual(ui.window.__anims.length, 0);
+  }
+});
+
+test('09b motion: the flood opens once as a clip-path circle (700 ms, --ease-out), never on reopen, and is a cut under Reduce Motion', async (assert)=>{
+  const ui = mount();
+  await ui.open();
+  assert.strictEqual(ui.window.__anims.length, 1, 'played once');
+  const a = ui.window.__anims[0];
+  assert.strictEqual(a.el, ui.$('finishBest'));
+  assert.match(a.frames[0].clipPath, /^circle\(0px at /);
+  assert.match(a.frames[1].clipPath, /^circle\(\d+(\.\d+)?px at /);
+  assert.strictEqual(a.opts.duration, 700);
+  assert.strictEqual(a.opts.easing, 'cubic-bezier(.23,1,.32,1)', 'the --ease-out curve');
+  ui.$('finishDone').click();
+  await ui.open();
+  assert.strictEqual(ui.window.__anims.length, 1, 'reopening the same session does not replay it');
+  assert.ok(ui.$('finishBest').classList.contains('finish-flood'), 'it is simply there');
+  const calm = mount({reduce: true});
+  await calm.open();
+  assert.strictEqual(calm.window.__anims.length, 0, 'Reduce Motion: a cut');
+  const cs = calm.window.getComputedStyle(calm.$('finishBest'));
+  assert.ok((!cs.animationName || cs.animationName === 'none') && (!cs.transitionProperty || cs.transitionProperty === 'all' && (!cs.transitionDuration || cs.transitionDuration === '0s')), 'no animation or transition on the flood');
+  assert.ok(calm.$('finishBest').classList.contains('finish-flood'), 'the flood is still shown');
+});
+
+test('09b: the flood is the day\'s ink with its contrast-checked text ink, and Quiet keeps it quiet (real CSSOM)', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { window } = new JSDOM(`<style>${CSS}</style>`);
+  const rules = []; const walk = l => { for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  walk(window.document.styleSheets[0].cssRules);
+  const get = sel => rules.find(r => r.selectorText === sel);
+  assert.match(get('.finish-flood').style.getPropertyValue('background'), /^var\(--spot\b/);
+  assert.match(get('.finish-flood').style.getPropertyValue('color'), /^var\(--spot-ink\b/);
+  for(const ink of ['red', 'green', 'yellow']){
+    const r = rules.find(x => x.selectorText.split(',').map(t => t.trim()).includes(`body.day-${ink} .finish-flood`));
+    assert.ok(r && r.style.getPropertyValue('--spot-ink').trim() === `var(--block-on-${ink})`, ink + ': the same checked ink as the rest Log button (test-rest-cover.js)');
+  }
+  assert.match(get('body.cover-quiet .finish-flood').style.getPropertyValue('background'), /^var\(--surface-2\)/);
 });
 
 run();
