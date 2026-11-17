@@ -122,24 +122,26 @@
     --rule-strong:#3A3A3E; /* target #3A3A3E */
     --text-2:#A6A6A2; /* target #A6A6A2 */
     --text-3:#82827E; /* target #82827E */
-    --spot-red:var(--plate-red); /* target #D42F25 */
+    --spot-red:#D42F25; /* target #D42F25 */
     /* v3.580 (UX-03): the spot blue takes its target ahead of UX-05. The
        flat next-set chip and fills put --on-blue on it, and white on the dark
        --plate-blue (#5B7CFF) is only 3.6:1; on #2C5BD8 it is 5.6:1. */
     --spot-blue:#2C5BD8; /* target #2C5BD8 */
-    --spot-yellow:var(--plate-yellow); /* target #F2C200 */
-    --spot-green:var(--plate-green); /* target #1E9E4A */
-    --spot-white:var(--plate-white); /* target #E6E6E2 */
-    --spot-off:var(--plate-off); /* target #3A3A3D */
+    --spot-yellow:#F2C200; /* target #F2C200 */
+    --spot-green:#1E9E4A; /* target #1E9E4A */
+    --spot-white:#E6E6E2; /* target #E6E6E2 */
+    --spot-off:#3A3A3D; /* target #3A3A3D */
     --on-red:#FFFFFF; /* target #FFFFFF */
     --on-blue:#FFFFFF; /* target #FFFFFF */
     --on-yellow:#0C0C0D; /* target #0C0C0D */
     --on-green:#0C0C0D; /* target #0C0C0D */
     /* v3.589 (UX-12): text on a filled day block (History's month), chosen
-       per theme by the contrast pass. Dark: the on-ink, except red, whose
-       bright #FF453A carries white at only 3.4:1 and the ground ink at 6:1
-       (the spot red stays bright: it is also text, the day's hue). */
-    --block-on-red:#0C0C0D; --block-on-yellow:var(--on-yellow); --block-on-green:var(--on-green);
+       per theme by the contrast pass. v3.600 (UX-19): the spot inks are at
+       their targets, so every block takes its on-ink: white on #D42F25 is
+       4.96:1 (it was black on the bright #FF453A). */
+    --block-on-red:#FFFFFF; --block-on-yellow:var(--on-yellow); --block-on-green:var(--on-green);
+    /* v3.600 (UX-19): the Quiet cover's numeral on a yellow day. */
+    --quiet-figure-yellow:var(--spot-yellow);
     --on-white:#0C0C0D; /* target #0C0C0D */
     --on-off:#FFFFFF; /* target #FFFFFF */
     --deep-red:#6E1712; /* target #6E1712 */
@@ -418,20 +420,22 @@
       --rule-strong:#C4C4BF; /* target #C4C4BF */
       --text-2:#52524E; /* target #52524E */
       --text-3:#686863; /* target #686863 */
-      --spot-red:var(--plate-red); /* target #D42F25 */
+      --spot-red:#D42F25; /* target #D42F25 */
       --spot-blue:var(--plate-blue); /* target #2C5BD8 */
-      --spot-yellow:var(--plate-yellow); /* target #F2C200 */
-      --spot-green:var(--plate-green); /* target #1E9E4A */
-      --spot-white:var(--plate-white); /* target #E6E6E2 */
-      --spot-off:var(--plate-off); /* target #2E2E31 */
+      --spot-yellow:#F2C200; /* target #F2C200 */
+      --spot-green:#1E9E4A; /* target #1E9E4A */
+      --spot-white:#E6E6E2; /* target #E6E6E2 */
+      --spot-off:#2E2E31; /* target #2E2E31 */
       --on-red:#FFFFFF; /* target #FFFFFF */
       --on-blue:#FFFFFF; /* target #FFFFFF */
       --on-yellow:#0C0C0D; /* target #0C0C0D */
       --on-green:#0C0C0D; /* target #0C0C0D */
-      /* v3.589 (UX-12): the light yellow and green fills are darkened for text
-         on chalk (#8F6200, #187A33): their dark on-ink reads 3.6:1 on a day
-         block, white 5.0 and 5.5:1. */
-      --block-on-red:#FFFFFF; --block-on-yellow:#FFFFFF; --block-on-green:#FFFFFF;
+      /* v3.600 (UX-19): at their targets the yellow and green are bright
+         again, so their blocks take the dark on-ink (11.6:1 and 5.63:1);
+         white on the red is 4.96:1. */
+      --block-on-red:#FFFFFF; --block-on-yellow:#0C0C0D; --block-on-green:#0C0C0D;
+      /* #F2C200 on a white card is 1.6:1: the Quiet numeral takes the deep yellow (7:1). */
+      --quiet-figure-yellow:var(--deep-yellow);
       --on-white:#0C0C0D; /* target #0C0C0D */
       --on-off:#FFFFFF; /* target #FFFFFF */
       --deep-red:#6E1712; /* target #6E1712 */
@@ -842,9 +846,10 @@
      --on-cover. Two kinds of exception, both for contrast (UX-01's WCAG pass):
      a yellow day at night prints in the deep ink with the numeral in the
      yellow (#F2C200 full-bleed is the brightest thing in a dim gym), and where
-     the day's --on-spot fails 4.5:1 on its own field (dark red #FF453A with
-     white, 3.4:1; light yellow and green with the ground ink, 3.6:1) the text
-     takes the History blocks' contrast-checked --block-on-* ink instead.
+     the day's --on-spot fails 4.5:1 on its own field the text takes the
+     History blocks' contrast-checked --block-on-* ink instead. v3.600 (UX-19):
+     with the spot inks at their targets that is only green; red's override
+     (black on the bright #FF453A) is gone, white on #D42F25 is 4.96:1.
      No state colour sits on the field: state is an icon and a word. */
   .cover{
     --cover:var(--spot); --on-cover:var(--on-spot); --cover-figure:var(--on-cover); --cover-action:#0C0C0D; --on-cover-action:#FFFFFF;
@@ -855,7 +860,6 @@
     padding:12px var(--gutter-r) 18px var(--gutter-l);
     background:var(--cover, var(--surface-1)); color:var(--on-cover, var(--text));
   }
-  body.day-red .cover{--on-cover:var(--block-on-red);}
   body.day-green .cover{--on-cover:var(--block-on-green);}
   body.day-yellow .cover{--cover:var(--yellow-cover); --on-cover:var(--on-yellow-cover); --cover-figure:var(--yellow-cover-figure); --cover-action:var(--yellow-cover-action); --on-cover-action:var(--on-yellow-cover-action);}
   /* v3.594 (owner request): Settings > Today cover > Quiet, for anyone who
@@ -863,6 +867,7 @@
      card; the day's colour stays in the numeral (large text, >= 3:1) and a
      stripe along the top. After the day-ink rules, at their specificity. */
   body.cover-quiet .cover{--cover:var(--surface-1); --on-cover:var(--text); --cover-figure:var(--spot); --cover-action:var(--text); --on-cover-action:var(--ground); box-shadow:inset 0 6px 0 var(--spot, var(--rule)); --rest-field:var(--surface-1); --on-rest:var(--text);}
+  body.cover-quiet.day-yellow .cover{--cover-figure:var(--quiet-figure-yellow);} /* v3.600 (UX-19) */
   /* v3.597 (UX-08): rest. The field turns to the day's deep ink with white
      text (4.5:1 or more on every deep ink); the bright ink is a band along
      the top that shrinks as rest runs out. Quiet keeps its card. */
@@ -8099,7 +8104,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.599';
+const APP_VERSION = '3.600';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9727,6 +9732,9 @@ const WHATS_NEW = {
   '3.599': { headline: 'Records fill the finish screen', points: [
     'Set a record and the finish summary opens on it in the day\'s colour, spreading out from the Log button, with the plates for that weight drawn underneath.',
     'It plays once. With Reduce Motion on it just appears, and the Quiet cover setting keeps it quiet too.',
+  ]},
+  '3.600': { headline: 'The day colours, as designed', points: [
+    'Red, yellow, green and the rest days now use their final plate colours. A red day\'s cover is a deeper red with white text, and History\'s month and the plates on the bar match.',
   ]},
 };
 

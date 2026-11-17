@@ -1430,3 +1430,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Behaviour:** Share goes through `shareCelebrationCard(model.share, 'finishShare')` and is hidden on clinical programs. The sheet is in `SCROLL_LOCK_OVERLAYS` and `OVERLAY_CLOSERS`, and closing returns focus to `#upNextDayBtn`.
 - **Harness:** new `finish-{dark,light}-402` states.
 - **Next:** 09b, the flood (clip-path from Log, 700 ms; a cut under Reduce Motion; never replays) and `triggerCelebration` once per PR.
+
+## Addendum 124: UX-19, the spot inks at their targets (v3.600, PR #179, 2026-11-17)
+- **What:** the five spot inks (red, yellow, green, white, off) are literal target hexes in both themes. `--plate-*` is unchanged.
+- **Text inks:** `--block-on-red` is white in dark. The light `--block-on-yellow` and `--block-on-green` are #0C0C0D. The dark red cover override is gone.
+- **Quiet:** a new token, `--quiet-figure-yellow` (spot in dark, deep in light), is used by `body.cover-quiet.day-yellow .cover`.
+- **Built from:** the owner merged #178 (the Today coherence audit) and answered "all as recommended", as relayed by the planning session and verified on Branch-1. UX-20 is next.
