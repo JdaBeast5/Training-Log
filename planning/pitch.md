@@ -151,6 +151,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Owner (2026-11-17):** UX-18 launch animation approved: bar to Sash, with the lockjaw collar. The bands keep the icon's angle, and light mode keeps the ink tile.
 - **Owner (2026-11-09), program extensions (PR #99): "pull the PR fix forward, 41a, 42a, 45a":**
   - **The 0-rep fix:** pulled forward as a new item, **BL-77** (slot 9c, right after BL-53). A set logged with 0 reps is a miss and never counts as a PR or best lift.
   - **BL-41 (a):** the Powerlifting top single at RPE 8 with −10% back-offs in RPE mode, plus a stored meet date and a two-week taper. Ready after Phase 3, after BL-34 (slot 88a).
