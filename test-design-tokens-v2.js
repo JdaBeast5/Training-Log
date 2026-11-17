@@ -70,8 +70,13 @@ test('UX-03: ground, surface, rule and text aliases hold their target values in 
     for(const k of ['--ground', '--surface-1', '--surface-2', '--rule', '--rule-strong', '--text-2', '--text-3']){
       assert.strictEqual(rule.style.getPropertyValue(k).trim().toUpperCase(), t[k], `${theme} ${k}`);
     }
-    // the dark spot blue is the one exception: it holds its target (criterion 4, below)
-    for(const i of INKS) if(!(theme === 'dark' && i === 'blue')) assert.strictEqual(rule.style.getPropertyValue('--spot-' + i).trim(), `var(--plate-${i})`, `${theme} spot-${i}`);
+    // 2026-11-17 (v3.600, UX-19): the spot inks reached their targets; only the
+    // light blue still aliases its plate (UX-19 criterion 1, below, checks the rest).
+    for(const i of INKS){
+      const v = rule.style.getPropertyValue('--spot-' + i).trim();
+      if(theme === 'light' && i === 'blue') assert.strictEqual(v, 'var(--plate-blue)', 'light spot-blue');
+      else assert.strictEqual(v.toUpperCase(), t['--spot-' + i], `${theme} spot-${i} holds its target`);
+    }
   }
   assert.strictEqual(darkRoot.style.getPropertyValue('--r-sheet').trim(), 'var(--radius-card)');
 });
@@ -118,6 +123,9 @@ test('criterion 4: the Sash mark\'s hexes (header mark, the five launch layers, 
   assert.deepStrictEqual([...bandFills].sort(), want, 'launch bands');
   const icon = new JSDOM(fs.readFileSync(path.join(__dirname, 'tools/design/icon/option-b.svg'), 'utf8'), {contentType: 'image/svg+xml'}).window.document;
   assert.deepStrictEqual(fills([icon.documentElement]), want, 'option-b.svg');
+  // 2026-11-17 (v3.600, UX-19 criterion 4): and the live tokens, not just the recorded targets.
+  const live = ['red', 'blue', 'yellow', 'green', 'white'].map(i => darkRoot.style.getPropertyValue('--spot-' + i).trim().toUpperCase()).sort();
+  assert.deepStrictEqual(live, want, 'the live dark --spot-* values');
 });
 
 // ---- v3.580 (UX-03): flat ground everywhere. Real CSSOM over the real
@@ -199,9 +207,39 @@ test('UX-12: the day-block text tokens clear 4.5:1 on their fills in both themes
   for(const ink of ['red', 'yellow', 'green']){
     for(const [theme, st] of [['dark', darkRoot.style], ['light', lightRule.style]]){
       const on = res(st, st.getPropertyValue('--block-on-' + ink));
-      const fill = res(st, st.getPropertyValue('--plate-' + ink) || darkRoot.style.getPropertyValue('--plate-' + ink));
+      // 2026-11-17 (v3.600, UX-19): the blocks fill with the spot inks (History's .p-* rules), now at their targets.
+      const fill = res(st, st.getPropertyValue('--spot-' + ink) || darkRoot.style.getPropertyValue('--spot-' + ink));
       assert.ok(contrast(on, fill) >= 4.5, `${theme} ${ink}: ${on} on ${fill} ${contrast(on, fill).toFixed(2)}`);
     }
+  }
+});
+
+// ---- v3.600 (UX-19): the spot inks reach their targets ----------------------
+// Sabotage: put --spot-red back to var(--plate-red) and criterion 1 fails (and
+// test-today-cover.js's criterion 2: white on #FF453A is 3.41:1).
+test('UX-19 criterion 1: in both themes the red, yellow, green, white and off spot inks are literal hexes equal to the target on their own line', (assert)=>{
+  for(const [theme, marker] of [['dark', ':root{'], ['light', 'body:not(.gym-mode){\n      color-scheme:light;']]){
+    const block = CSS.slice(CSS.indexOf(marker));
+    for(const ink of ['red', 'yellow', 'green', 'white', 'off']){
+      const m = new RegExp(`--spot-${ink}:([^;]+); \\/\\* target (#[0-9A-Fa-f]{6}) \\*\\/`).exec(block);
+      assert.ok(m, `${theme} --spot-${ink} line found`);
+      assert.match(m[1].trim(), /^#[0-9A-Fa-f]{6}$/, `${theme} --spot-${ink} is a literal, not an alias`);
+      assert.strictEqual(m[1].trim().toUpperCase(), m[2].toUpperCase(), `${theme} --spot-${ink} equals its recorded target`);
+    }
+  }
+  assert.strictEqual(darkRoot.style.getPropertyValue('--spot-red').trim(), '#D42F25', 'anchor: the CSSOM agrees');
+});
+
+// The accents don't move: every --plate-* keeps its v3.599 value (UX-05's rule).
+const PLATES_V3599 = {
+  dark: {'--plate-red': '#FF453A', '--plate-blue': '#5B7CFF', '--plate-yellow': '#F5C518', '--plate-green': '#32D74B', '--plate-purple': '#B26BFF', '--plate-orange': '#FF7A33', '--plate-teal': '#2FB8C4', '--plate-white': '#E4E7EB', '--plate-off': '#4A5057'},
+  light: {'--plate-red': '#D70015', '--plate-orange': '#B04400', '--plate-yellow': '#8F6200', '--plate-green': '#187A33', '--plate-teal': '#0B7480', '--plate-purple': '#8436D6', '--plate-blue': '#3A57E0'},
+};
+test('UX-19 criterion 5: every --plate-* accent keeps its v3.599 value in both themes', (assert)=>{
+  for(const [theme, rule] of [['dark', darkRoot], ['light', lightRule]]){
+    const now = {};
+    for(const p of rule.style) if(p.startsWith('--plate-') && !p.endsWith('-rgb')) now[p] = rule.style.getPropertyValue(p).trim();
+    assert.deepStrictEqual(now, PLATES_V3599[theme], theme);
   }
 });
 

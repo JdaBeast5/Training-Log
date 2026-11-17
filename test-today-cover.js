@@ -313,7 +313,8 @@ test('criterion 4: the cover is var(--cover) with var(--on-cover) text; --cover 
   const c = one('.cover');
   assert.match(c.getPropertyValue('background'), /^var\(--cover\b/);
   assert.match(c.getPropertyValue('color'), /^var\(--on-cover\b/);
-  const BLOCK = {dark: ['red'], light: ['yellow', 'green']};
+  // 2026-11-17 (v3.600, UX-19): with the spot inks at their targets, red takes its own white on-ink (no override).
+  const BLOCK = {dark: ['green'], light: ['yellow', 'green']};
   for(const theme of ['dark', 'light']) for(const ink of ['red', 'blue', 'yellow', 'green']){
     const t = tokens(ink, theme);
     const cover = t.get('--cover'), on = t.get('--on-cover'), fig = t.get('--cover-figure');
@@ -431,7 +432,8 @@ test('v3.594 Quiet cover: the card surface and text ink; the numeral in the day 
     const t = tokens(ink, theme, 'cover-quiet');
     const cover = t.get('--cover'), on = t.get('--on-cover'), fig = t.get('--cover-figure');
     assert.strictEqual(cover, t.get('--surface-1'), `${theme} ${ink}: the card surface, not the spot field`);
-    assert.strictEqual(fig, t.get('--spot'), `${theme} ${ink}: the numeral keeps the day colour`);
+    // 2026-11-17 (v3.600, UX-19): light yellow (#F2C200, 1.6:1 on white) takes the deep yellow.
+    assert.strictEqual(fig, theme === 'light' && ink === 'yellow' ? t.get('--deep-yellow') : t.get('--spot'), `${theme} ${ink}: the numeral keeps the day colour`);
     assert.ok(/^#[0-9A-F]{6}$/i.test(on) && /^#[0-9A-F]{6}$/i.test(fig), `${theme} ${ink}: resolved (${on}, ${fig})`);
     assert.ok(contrast(on, cover) >= 4.5, `${theme} ${ink}: text ${contrast(on, cover).toFixed(2)}:1`);
     assert.ok(contrast(fig, cover) >= 3, `${theme} ${ink}: numeral ${fig} on ${cover} ${contrast(fig, cover).toFixed(2)}:1`);
@@ -478,6 +480,24 @@ test('v3.594 Quiet cover: the row sits in Settings under "During a workout", and
   const opts = [...document.querySelectorAll('#coverStyleSelect option')].map(o => o.value + ':' + o.textContent);
   assert.deepStrictEqual(opts, ['colour:Day colour', 'quiet:Quiet']);
   assert.ok(document.getElementById('settingsWorkoutSlot').closest('.settings-section').querySelector('.care-label').textContent.includes('During a workout'));
+});
+
+// ---- v3.600 (UX-19): the spot inks reach their targets ---------------------
+test('UX-19 criterion 2: every ink, both themes: cover text ≥ 4.5:1 on the cover, the rest band\'s ink ≥ 4.5:1 on the spot; dark red is white on #D42F25', (assert)=>{
+  for(const theme of ['dark', 'light']) for(const ink of ['red', 'blue', 'yellow', 'green']){
+    const t = tokens(ink, theme);
+    const cover = t.get('--cover'), on = t.get('--on-cover'), spot = t.get('--spot'), spotInk = t.get('--spot-ink');
+    assert.ok(contrast(on, cover) >= 4.5, `${theme} ${ink}: ${on} on ${cover} ${contrast(on, cover).toFixed(2)}`);
+    assert.ok(contrast(spotInk, spot) >= 4.5, `${theme} ${ink}: rest ink ${spotInk} on ${spot} ${contrast(spotInk, spot).toFixed(2)}`);
+  }
+  const red = tokens('red', 'dark');
+  assert.deepStrictEqual([red.get('--cover'), red.get('--on-cover')], ['#D42F25', '#FFFFFF'], 'the approved mock-up');
+});
+
+test('UX-19 criterion 3: no rule for the cover or anything in it points --on-cover at --block-on-red', (assert)=>{
+  const bad = RULES.filter(({r}) => /var\(--block-on-red\)/.test(r.style.getPropertyValue('--on-cover')));
+  assert.deepStrictEqual(bad.map(({r}) => r.selectorText), []);
+  assert.ok(RULES.some(({r}) => /var\(--block-on-green\)/.test(r.style.getPropertyValue('--on-cover'))), 'anchor: the walk does see the green override');
 });
 
 run();
