@@ -3624,7 +3624,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** the timer is load-bearing mid-session. Wake lock and notifications are untouched.
 - **Tools:** `Skill: review-animations` (the `scaleX` drain); `Skill: animation-performance` (composite-only); TOOL-01's harness (rest state, Reduce Motion pass: `rest-*` and `rest-dark-402-rm` are already in its matrix).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. The weight step now reuses `setSheetWeightStep` instead of a third copy of the plate logic; criterion 2 takes its expected values from it. The `scaleX`/`scaleY` disagreement with `design-vision.md` §3.8 is noted (`log-set.html` uses `scaleX`). Checked against `log-set.html` (15 px meta on the rest field). Scope unchanged.
-- **Status:** ready (after UX-06a)
+- **Status:** done (v3.597, PR #175). Deviation recorded: the bright ink is a shrinking band along the top, with the text on the deep ink; a full-field drain can't hold 4.5:1 text on both layers with the dark spot red and green.
 
 ### UX-09: Finish screen, with the PR moment
 - **Why:** a session ends in a toast today. The finish should close the session with the true numbers and say what changes next time and why (`renders/pr-dark.png`).
