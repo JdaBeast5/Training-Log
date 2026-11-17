@@ -1,5 +1,7 @@
 # Backlog
 
+**Today coherence audit (2026-11-17, against v3.599, design-engineer).** The owner said Today "looks hodgepodge, stuck between old and new". The audit and twelve fixes, UX-19 to UX-30, are at the end of the Design (UX) section, under "Today coherence audit". All are `ready`, slotted at roadmap 50a–50l ahead of MKT-16. The harness gained an opt-in `--today` mode (full-page Today and its states) for their evidence. Baseline green: `check.sh` and 246/246 suites.
+
 **Alignment round (2026-11-07, live v3.516).** Re-checked after the seven pre-D1 reviews; the reconciled position is `planning/alignment/consensus.md`. Changes in this file are marked "Alignment note (2026-11-07)". The app's display name is Liftnext (`APP_NAME`, v3.515). The **public name is open** (the owner decides; `planning/naming.md` is input), so items say "the app's name" and read `APP_NAME`, never a literal. New IDs this round:
 - BL-05b, BL-50, the BL-41–49 placeholder;
 - UX-01b;
@@ -3757,6 +3759,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Summit note (summit 2026-11-07):** Moved up to follow UX-10 (roadmap build 40): the owner uses a Duo daily, so the unfolded Today can't wait for Phase 4. For testability, drive the two panes from a `matchMedia` listener that sets a class, because jsdom can't evaluate container queries (summit §1.7).
 - **Tools:** TOOL-01's harness at 904×678 (WebKit when installed); `Skill: dataviz`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** found that v3.499's open-screen pane already does the two-pane Today with the lift's history and e1RM trend, keyed to `OPEN_POSTURE_QUERY`. The item is narrowed to what's missing (the plate stack and the shared chart in that pane) and drops the new 720 px container query, which would have been a parallel layout system (CLAUDE.md, "Consolidate duplication"). The summit's "drive it from a `matchMedia` listener" is exactly what exists. The owner may want to know the Duo work is smaller than planned; no question needed.
+- **Today audit note (2026-11-17):** at v3.599 the cover is in the right pane on the Duo (UX-06a made `#upNext` a direct child of `.posture-split`). UX-21 moves it to the head of the left pane first, so this item's "the left column is the cover and session list" holds when it builds.
 - **Status:** ready (after UX-07 and UX-10)
 
 ### UX-15: Retire the legacy look's leftovers
@@ -3771,6 +3774,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Summit note (summit 2026-11-07):** Always last among the UX items. It includes `.confetti-piece` once UX-09 has replaced the toast (summit F9). The PR lists every state rendered; the pixel-identity criterion is Playwright PR evidence.
 - **Tools:** TOOL-01's harness (its full state matrix is the sweep's state list).
 - **Alignment note (2026-11-07):** runs after UX-17 if the owner approves that. Must ship before any Phase 5 step, so the retired confetti isn't a post-launch removal (business-manager B3).
+- **Today audit note (2026-11-17):** UX-30 deletes the confetti and the 2.0 celebration look, and UX-19 to UX-29 retire Today's glass leftovers as they go, so this sweep finds less on Today. It still runs last.
 - **Status:** ready
 
 ### UX-16: The coach button moves into the header
@@ -3850,6 +3854,283 @@ Ready items are listed in build order, then needs-owner items.
   - (a) **Keep the icon's -30°** (the end frame is the Sash, full bleed; it reaches the corners on the Duo, and near them on a phone), or (b) turn the bands to the screen's own diagonal (about -65° on a portrait phone), so they run literally corner to corner, at the cost of the end frame no longer being the icon's angle.
   - **Light: the sleeve on the icon's ink tile** (as above), or a light-only hairline on the 5 kg plate instead.
 - **Status:** done (v3.591, PR #168). Lockjaw only; Chromium frames attached in the session; WebKit and the iPhone not checked.
+
+### Today coherence audit (design-engineer, 2026-11-17, against v3.599)
+
+The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old and new". The cover work shipped (UX-06a/06b, UX-07, UX-08, UX-09a/09b, UX-18), but everything around it is still the glass/2.0 Today. This audit shot Today top to bottom, and every state, with the harness's new opt-in **`--today` mode** (`node tools/visual/harness.js --today [--base <rev>]`; README "Today audit mode"). It never changes the default matrix. State ids below (`tday-*`) are that mode's, and every item's PR attaches its `--today` contact sheet **against the parent commit** as well as the default sheet. The baseline was green: `check.sh` passed and 246/246 suites passed.
+
+**What the audit found** (reference: the `tday-*` state where it shows; mock-ups `tools/design/today.html`, `today-yellow.html`; `design-vision.md` §3–§6; `design-directions.md` §5):
+
+| # | Region | Element still in the old look, or against the vision | Where it shows | Fixed by |
+|---|---|---|---|---|
+| A1 | Cover | Dark red cover is `#FF453A` with **black** text (`--spot-red` still aliases `--plate-red`; the cover takes `--block-on-red` = `#0C0C0D`). The mock-up is `#D42F25` with white (4.96:1). Plates and discs are the bright 2.0 green/yellow, not `#1E9E4A`/`#F2C200`. Light red is `#D70015`, not `#D42F25`. The PR flood repeats it. | `tday-dark-402`, `tday-finish-dark-402`, `tday-daysheet-dark-402` | UX-19 |
+| A2 | Chrome | The large title "Today", the profile eyebrow "Jordan · Lean Bulk program", the sub "5'11" · 184 lb · lean bulk", the yellow "8 wk" streak pill and the "‹ Today ›" date card stack 229 px of chrome above the cover. The mock starts the cover at the top: program line and icons on the field. | `tday-dark-402`, `tday-light-402` | UX-20 |
+| A3 | Chrome | Search, coach and Settings are 40–44 px filled circles with a border; the mock draws plain 44 pt icons in the cover's ink. | `tday-dark-402` | UX-20 |
+| A4 | Chrome | Backdating: the date card glows yellow and the yellow "Today" pill (`#todayFab`) floats over the cover's chips. | `tday-backdated-dark-402` | UX-20 |
+| A5 | Chrome | Light mode: the status scrim draws a grey band over the top edge. | `tday-light-402` | UX-20 |
+| A6 | Cover | The bar sits under Log (UX-07's recorded deviation, forced by the chrome above). The mock draws it above Log. The week line closes the cover instead of heading it. | `tday-dark-402` | UX-20 |
+| A7 | Unfolded | At 904×678 the cover is in the **right** pane, under the Bench history card (UX-06a placed `#upNext` as a direct child of `.posture-split`, which sends it to column 2). The left pane opens on the old workout card. | `tday-dark-904`, `tday-right-dark-904` | UX-21 |
+| A8 | Cover | "182.5" wraps "×6" onto a second line at 150 px. Geist Mono (retired from the UI, vision §3.3) is still on the cover's steppers and fields, the finish sheet's "Next time" loads, the duration line and every set chip. | `tday-backdated-dark-402`, `tday-rest-dark-402`, `tday-finish-dark-402` | UX-22 |
+| A9 | Below | `#workoutCard` is a 28 px-radius card holding a **second** day hero: a glowing 3D plate disc with a pictogram, "Day 1", and "Upper · Strength" in gradient text (`background-clip:text`, fading to red). It repeats the cover's headline. | `tday-dark-402` (y≈1060) | UX-23 |
+| A10 | Below | Phase pill, mono "~94 min (week 4 · +2 set · +1 exercise)", "Full session" and "Gym mode" pills (Gym mode with a blue border). | `tday-dark-402` | UX-23 |
+| A11 | Below | Exercise rows: checkbox + pictogram tile + blue swap glyph + blue chevron + a right-aligned two-line prescription; chips are 2.0 (green-tinted done, blue-filled ready with "=", mono figures). The mock's "Then" is a ruled list in the world's ink. | `tday-dark-402` (y≈1150–2400) | UX-23 |
+| A12 | Below | The open exercise: a glass panel with a second "Log set" logger, a blue "Same as Last Time" pill, pill History/Edit buttons. "+ Add custom exercise" and "Adapt…" are 20 px-radius pills; the "Balance insight" and standout banner are blue-tinted boxes; Getting Started is a card. | `tday-dark-402` (y≈2400–2700), `tday-firstrun-dark-402` | UX-24 |
+| A13 | Below | The sticky day header (scrolled, and at 904) is a raised bar with a glowing red dot, "Day 1 — Upper · Strength"; the vision pins "Set 2 of 4 · Bench Press". | `tday-left-dark-904` | UX-24 |
+| A14 | Rest day | The cover says "Rest day"; below it a second card repeats "Full Rest" with a moon disc, a session-length select and a **Gym mode** button on a rest day, then the day's note and "Mark today's rest day as done". | `tday-restday-dark-402` | UX-25 |
+| A15 | Day sheet | Seven glossy 3D discs with pictograms, inner highlight and drop shadow; blue "Done"; a pill "Reorder days". The vision's grammar is flat plate blocks. | `tday-daysheet-dark-402` | UX-26 |
+| A16 | Priorities | A card between the cover and the session; the vision puts it under the session, as one line. | `tday-dark-402` (y≈850) | UX-27 |
+| A17 | Below | Training Style (the program picker and overview) and Keep In Mind are cards at the foot of Today; the vision moves them to More/Settings and Progress. Keep In Mind on a lean bulk says "protects muscle in the deficit" and "recomp" (copy, flagged, not in scope). | `tday-dark-402` (y≈2750–3600) | UX-28 |
+| A18 | Rest | The 2.0 floating rest pill (blue ring, blue glow, "+15s ✕") sits over the cover while the cover already shows the rest. | `tday-rest-dark-402` | UX-29 |
+| A19 | Moments | The streak milestone is the old yellow-bordered modal with a gold glow, a spring "pop", 42 confetti pieces and a yellow Share. It opens centred over the cover, takes pointer events for 5 s and covers the Log button. Mid-session PRs use the same modal ("New PR!", trophy, confetti). | `tday-milestone-dark-402`, `tday-milestone-light-402` | UX-30 |
+| A20 | Gym mode | The entry point is the blue-bordered pill in A10 (UX-23 restyles it). Gym mode itself is the full 2.0 glass look (blue glows, mono, glass tiles). UX-03 left it out of scope and UX-17 decides its future. | `tday-gym-dark-402` | UX-23 (entry); owner question |
+| A21 | Finish | The Done button is a white pill with a blue focus ring at rest; the "Done" link in the sheet head is iOS blue. The flood is the A1 red. | `tday-finish-dark-402` | UX-19, UX-22 |
+
+**Where the things the owner relies on go** (nothing is dropped):
+- **Streak:** from the yellow pill under the title into the cover's program line as plain text ("8-week streak"), with the same element (`#streakBadge`), the same `aria-label` and the same hide-at-zero rule (UX-20). The milestone becomes a flat moment above the tab bar that never covers Log, and it keeps Share (UX-30).
+- **Day navigation:** the date bar's three controls (`#logDatePrev`, `#logDateLabelBtn` → calendar, `#logDateNext`, and `#logDateToday` when backdating) keep their IDs, handlers and one-tap counts. They become the first row on the cover, in the cover's ink, beside the icons (UX-20). Food keeps its date card. The day picker stays the headline (UX-06b).
+- **Profile summary:** the one-line profile ("5'11" · 184 lb · lean bulk") leaves Today. It is already the Profile card's summary (`#profileSummary`, "Jordan · 5'11" · 184 lb · Lean Bulk"), which UX-20 makes the first row of Settings, one tap from the cover's Settings icon. The name-and-goal eyebrow (`#headerEyebrow`) still heads Food, Progress and History. A first-run person still sees "Set up your profile" (Getting Started, and the unfinished profile card's top slot).
+- **Program picker and Keep In Mind:** move, they don't go (UX-28; non-blocking owner option there).
+
+**Build order** (roadmap slots 50a–50l, ahead of MKT-16): UX-19 → UX-20 → UX-21 → UX-22 → UX-23 → UX-24 → UX-25 → UX-26 → UX-27 → UX-28 → UX-29 → UX-30. Each is one version and leaves Today coherent at its own step: tokens first, then top to bottom.
+
+**Rules for UX-19 to UX-30**, on top of the UX rules above:
+- **Harness evidence:** `node tools/visual/harness.js --today --base <parent>` and the default `--base <parent>`; both contact sheets in the PR. Each item names the `tday-*` states that must change and the ones that must stay identical. A state outside an item's list that changes is a finding to explain in the PR, not a pass.
+- **Tap parity:** `test-tap-counts.js` keeps passing unchanged ("log the ready set" = 1, "log a recent food" = 1). Items that move a control add its count to that suite with the parent commit's count as the ceiling.
+- **IDs:** every element ID named below keeps its ID when it moves (tests and code read them).
+- **CSSOM checks** parse the real `<style>` with jsdom (as `test-light-mode.js` and `test-today-cover.js` do). "No glass" means no `backdrop-filter`, no `background-clip:text`, no `box-shadow` with a blur over 0 except on floating sheets and the toast (vision §3.4), and no `--glass-*` or `--cta-gradient-*` token.
+
+### UX-19: The spot inks reach their targets
+- **Why:** A1. UX-01 recorded the targets (`#D42F25`, `#2C5BD8`, `#F2C200`, `#1E9E4A`, `#E6E6E2`, off `#3A3A3D`) and warned "switch the spot inks to their targets before any screen uses an on/spot pair". Only blue moved (UX-03). So the dark cover is the bright 2.0 red, and white fails on it (3.41:1). UX-06a worked round that with black text (`--block-on-red`). The approved mock-up is `#D42F25` with white (4.96:1). The plates on the bar, the day discs, History's blocks and the PR flood all read the same tokens, so one token change fixes them together.
+- **Change:**
+  - In the dark `:root` (`index.html` 125–131) and the light rule (421–426), point `--spot-red`, `--spot-yellow`, `--spot-green`, `--spot-white` and `--spot-off` at their recorded target hexes instead of `var(--plate-*)`. `--plate-*` (the accent tokens, about 190 uses) **don't move** (UX-05's rule).
+  - With white at 4.96:1 on the target red, `body.day-red .cover{--on-cover:var(--block-on-red)}` (858) goes, and `--block-on-red` becomes `#FFFFFF` in dark (139) so History's red blocks and the rest-state Log button (`--spot-ink`, 869) match. Keep `--block-on-green` and `--block-on-yellow` as they are unless the WCAG check below says otherwise (`#0C0C0D` on `#1E9E4A` is 5.63:1; on `#F2C200` 11.6:1).
+  - The light yellow cover (443) keeps reading `--block-on-yellow`; re-check it against `#F2C200`.
+- **Acceptance criteria:**
+  1. CSSOM: in both theme rules, `--spot-red`, `--spot-yellow`, `--spot-green`, `--spot-white` and `--spot-off` are literal hexes equal to the target comment on the same line (parse the comment, so the test can't drift from the record).
+  2. WCAG (UX-01's luminance function): for each ink, the resolved cover text (`--on-cover` after the day rules) on the resolved `--cover` is ≥ 4.5:1 in both themes; the Quiet numeral (`--spot` on `--surface-1`, large text) is ≥ 3:1; the rest band's `--spot-ink` on `--spot` is ≥ 4.5:1.
+  3. CSSOM: no rule matching `.cover` or a descendant sets `--on-cover` to a `--block-on-*` token for red.
+  4. The Sash's literal hexes (header mark and launch layers) still equal the five `--spot-*` values: `test-design-tokens-v2.js` criterion 4 now compares against live values, not just comments.
+  5. Every `--plate-*` token keeps its v3.599 value in both themes (snapshot), so no accent moves.
+- **Harness:** must change: `tday-dark-402`, `tday-light-402`, `tday-finish-*`, `tday-daysheet-*`, `tday-backdated-*`, `tday-rest-*` (the band), default `history-*` (the month blocks), `today-*`. Must stay identical: `food-*`, `progress-*`.
+- **Test plan:** extend `test-design-tokens-v2.js` (criteria 1, 4, 5) and `test-today-cover.js` (2, 3). Sabotage: put `--spot-red` back to `var(--plate-red)`, and criteria 1 and 2 must fail.
+- **Files:** `index.html` (125–152, 421–443, 736–741, 850–871, 3470–3475, `APP_VERSION` 8102, `WHATS_NEW` 8123), `sw.js`. **Re-pins, with dated notes:** `test-rest-cover.js` (reads `--block-on-red`), `test-plate-stack.js` (reads `--spot-red` for the kg 25), `test-design-tokens-v2.js` (its target-value cases now see literals). Guards: `test-light-mode.js`, `test-css-mechanical-token-dedup.js`, `test-app-icon.js`.
+- **Risk:** low, visible and intended: History's red, yellow and green blocks and the green plates get deeper. No accent colour changes.
+- **Tools:** TOOL-01 (`--today` and default); `Skill: impeccable` (`audit` for contrast).
+- **Status:** ready
+
+### UX-20: Today chrome: the cover starts at the top
+- **Why:** A2–A6. Today opens on 229 px of the 2.0 header (title, profile eyebrow, sub line, streak pill, date card) before the cover. The mock-up starts the field at the top edge, with the program line and three plain icons on it, so the next set and the bar both sit above the fold and the Log button sits where a thumb is.
+- **Change** (Today only, not in gym mode; Food, Progress and History headers don't change):
+  - **The field starts at the top.** On Today the cover's ink paints from the top of the screen (under the status bar, `env(safe-area-inset-top)`), and the header row sits on it. Suggested mechanism: a `today-cover` class on `<body>`, set where `switchView` sets `header-compact` (42095) and cleared when the cover is hidden or in gym mode; the `--cover`/`--on-cover` family (850–865) is declared once on a selector list that includes `body.today-cover header` and the moved date row, so the yellow-night and Quiet overrides apply to the chrome too. `.status-scrim` (2996) takes the cover's ink on Today (A5).
+  - **Hidden on Today, kept in the DOM:** `#viewTitle` becomes visually hidden (the sr-only pattern; it stays the page's `h1` with the text "Today", so VoiceOver's heading rotor still lands); `#headerEyebrow`, `#headerSub` and the brand mark (`#brandHome`) aren't displayed on Today (there, the mark only scrolls to the top, which tapping the Today tab already does through `switchView`, and the iPhone status-bar tap does natively). They show on other tabs as now.
+  - **Row 1 (44 pt), on the field:** left, the date controls (`#logDatePrev`, `#logDateLabelBtn`, `#logDateNext`, `#logDateToday`) as flat controls in `--on-cover`, no card, no yellow backdating glow (backdating shows as the label's date plus the "Today" return button, `--cover-action` fill). Right, `#globalSearchBtn`, `#coachFab` and `#settingsCog` as plain 44 × 44 pt icon buttons in `--on-cover`, no fill, no border (the UX-16 flag). The date bar may be reparented into the cover on Today and back on Food (the `wireSettings` reparenting precedent), or positioned; IDs and listeners must not change. Food's date card is unchanged.
+  - **Row 2, the program line:** `#upNextWhere` moves from the cover's foot (899) to above the headline, with the program's label first ("Strength & Size · Week 4 of 5 · Accumulation"), 15 px. `#streakBadge` renders at its end as plain text in `--on-cover` ("· 8-week streak"): no pill, no yellow, no border, the outline flame at 15 px. Same `aria-label`, hidden at 0 as now; `renderStreak` (15034) and the milestone check are unchanged.
+  - **The mock-up order returns:** headline, lift row, prescription, numeral, **the bar above Log** (undoing UX-07's recorded deviation), Log + adjust, chips, reason.
+  - **The yellow `#todayFab`** isn't displayed on Today while the cover's row shows (the row's "Today" button does its job); on other tabs it stays as now.
+  - **Profile summary:** the Profile card (`#profileCard`, 6487) is Settings' first section when the profile is complete (`positionProfileCard`, 36441, already moves it there; make it the first child). An unfinished profile still takes `#profileCardTopSlot` on Today.
+  - **Quiet** (v3.594): the rows sit on `--surface-1` with the 6 px stripe at the very top edge. **Rest:** the rows sit on the deep rest field.
+- **Acceptance criteria:**
+  1. jsdom, real `switchView('today')` then `switchView('log')`: on Today the body has `today-cover`; on Food it doesn't, and `#logDateBar` is back in its Food position with the same element identity (`===`).
+  2. CSSOM (real style): on Today, `#viewTitle` matches an sr-only rule (clip/1 px), `#headerSub`, `#headerEyebrow` and `#brandHome` are `display:none`; under `header-compact` (other tabs) the eyebrow and title rules are unchanged from v3.599.
+  3. CSSOM: on Today the three icon buttons have no background fill or border, a computed size ≥ 44 × 44, and `color` resolving to `--on-cover`; each keeps its accessible name.
+  4. DOM order inside the cover: date row, `#upNextWhere`, `#upNextDayBtn`, lift row, numeral, `#upNextBar`, `.cover-log`, `#upNextChips`. `#streakBadge` is inside `#upNextWhere`'s row, keeps `aria-label` "8 training weeks in a row" on the fixture, and is hidden when the streak is 0 (real `renderStreak` with `computeWeekStreak` stubbed to 0 and 8).
+  5. Tap parity: add to `test-tap-counts.js`, counted with real clicks on the real wiring: previous day = 1 (`selectedLogDate` moves back one day), back to today = 1, open the calendar = 1, open Settings = 1, open the coach = 1, open the day sheet = 1. Each ceiling is the v3.599 count (all 1). "Log the ready set" stays 1.
+  6. Backdating: with `selectedLogDate` set to a past day, the label reads that date, `#logDateToday` shows, and `#todayFab` computes `display:none` on Today but not on Analysis.
+  7. CSSOM: no `backdrop-filter`, glow `box-shadow` or `--plate-yellow` on `#logDateBar` or its children under `today-cover`.
+  8. Harness (PR evidence): at 402×874 the cover's top edge is at y = 0; the Log button's top is ≤ 420 px with no safe-area inset, so with an iPhone's 59 px inset it stays under UX-06a's 480; the bar's rendered width equals the content width (UX-07 criterion 6).
+- **Harness:** must change: all `tday-*-402` but `tday-gym-*`; default `today-*`, `rest-*`, `finish-*` (behind the sheet). Must stay identical: `food-*`, `progress-*`, `history-*`, `gym-*`, `firstrun-*` (the picker).
+- **Test plan:** new `test-today-chrome.js` (1–4, 6, 7), extend `test-tap-counts.js` (5). Sabotage: leave `#headerSub` displayed on Today, and criterion 2 must fail; drop the date row's click wiring after the move, and criterion 5's previous-day count must fail.
+- **Files:** `index.html` (header 6107–6130, date bar 6168–6176, `.cover` markup 6219–6280, header CSS 586–640, `.log-date-bar` 3358, `.status-scrim` 2996, `#todayFab` 2650/7940, cover CSS 845–905, `switchView` 42083, `renderLogDateBar` 42458, `renderStreak` 15034, `renderUpNext` 32809 (the program line), `positionProfileCard` 36441, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-chrome.js` (new), `test-tap-counts.js`. **Re-pins, dated notes, read first:** `test-header-refresh.js` (`headerSub`, `headerEyebrow`, `streakBadge`, `logDateBar`, `stickyDayHeader`), `test-app-2-0.js` (`header-compact`, `viewTitle`, `logDateBar`), `test-tab-bar.js`, `test-view-switch-crossfade.js`, `test-gym-offer-tab-leak.js`, `test-nav-more-panel.js` (the date bar's display per tab), `test-today-no-glow.js` and `test-today-emoji-free.js` (`todayFab`), `test-today-cover.js` and `test-plate-stack.js` (cover order; UX-07's "bar under Log" pin), `test-first-launch.js` and `test-app-rename.js` (`#headerEyebrow` text must still be written; BIZ-02), `test-coach-header-button.js` (size), `test-sticky-day-header-overlap.js`, `test-pull-to-refresh.js`, `test-settings-grouped.js` (Profile first).
+- **Risk:** medium: the most-seen screen and shared chrome. The ID rule and criterion 1 keep Food's date bar intact. On a phone, the safe-area paint must be checked on device (the harness has no inset).
+- **Tools:** TOOL-01 (`--today`, default); `Skill: apple-hig` (status bar, nav bar items, 44 pt); `Skill: impeccable` (`layout`, `polish`).
+- **Status:** ready
+
+### UX-21: Unfolded Today: the cover leads the left pane
+- **Why:** A7. The vision's unfolded Today is "left, the session (cover + list); right, the selected exercise's history" (§4). UX-06a added `#upNext` as a direct child of `.posture-split`, and the open-posture grid sends every direct child but `.split-primary` to column 2 (5763–5764), so on the Duo the cover sits under the history card in the right pane, half off screen.
+- **Change:** move `#upNext` (and only it) to be the first child of `.today-session-pane.split-primary` (6286). On a phone nothing visible moves (the pane is the next block anyway, after the Priorities card, which UX-27 moves). Gym mode still hides the cover. UX-14 (the right pane's plate stack and chart) is unchanged and still waits on UX-10.
+- **Acceptance criteria:**
+  1. Real markup: `#upNext.parentElement` is `.today-session-pane` and it is that pane's first element child; there is exactly one `#upNext`.
+  2. CSSOM, with the open-posture media rule applied (the `test-duo-open-posture-layout.js` method): the cover's grid column resolves to 1, and `.exercise-detail-card` stays in column 2.
+  3. Phone order: in document order the cover still precedes `#workoutCard`, and `findNextSetRow` reads only `#exerciseList` rows (the cover's chips are not `.set-row`s).
+  4. `test-open-screen-2-0.js`, `test-foldable-tabletop.js`, `test-foldable-hinge.js` and every `test-duo-*.js` pass, re-pinned only where they assert `#upNext`'s parent, with a dated note.
+- **Harness:** must change: `tday-*-904`, default `today-*-904`. Must stay identical: every 402 state.
+- **Test plan:** extend `test-today-cover.js`. Sabotage: move the cover back under `.posture-split`, and criteria 1 and 2 must fail.
+- **Files:** `index.html` (6210–6290, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-cover.js`. Read: `test-duo-open-posture-layout.js`, `test-duo-open-posture-log-split.js`, `test-open-screen-2-0.js`, `test-pull-to-refresh.js`, `test-free-list-guard.js`, `test-today-session-first.js`.
+- **Risk:** low. The sticky left pane scrolls itself (v3.509), so a 600 px cover makes the list start lower in the pane; that is the intended order.
+- **Tools:** TOOL-01 at 904×678 (`tday-left-*`, `tday-right-*`).
+- **Status:** ready
+
+### UX-22: One figure face on Today, and a numeral that fits
+- **Why:** A8, A21. Geist Mono is retired from the UI (vision §3.3: "it stays for the build stamp only"), but Today still sets figures in it in five places, so the cover's steppers, the finish sheet and the chips read as a different app from the numeral. And a five-character load ("182.5") pushes "×6" to its own line at 150 px.
+- **Change:**
+  - Figures on Today and its sheets use Geist with `font-variant-numeric: tabular-nums` (text sizes) or the display face (34 px and up): `.cover-step output` (891), `.cover .up-next-field input` (930), `.finish-next-load` (933), `.duration-tag` (1078) and the set chips (`.set-chip`, 785; gym mode's 5296 is out of scope). The footer build stamp stays mono.
+  - The cover numeral fits one line: `renderCoverNumeral` sets a size class from the weight's character count (≤ 3: 150 px; 4–5: 120 px; 6+: 100 px), and `.cover-numeral` doesn't wrap its weight and "×reps". The rest time ("2:30") keeps 150 px.
+  - The finish sheet's "Done" loses its blue focus ring when not focused by keyboard (`:focus-visible`, not `:focus`), and the sheet head's "Done" is in `--text`, not blue.
+- **Acceptance criteria:**
+  1. CSSOM: none of the five selectors above resolves `font-family` to `--font-mono` or a family starting "Geist Mono"; each sets `tabular-nums`.
+  2. jsdom, the real `renderCoverNumeral`: weights "95", "185", "182.5" and "1102.5" give the classes for 150, 120 and 100 px as above; the class for "185" is unchanged from v3.599 (150).
+  3. CSSOM: `.cover-numeral` has `flex-wrap: nowrap`.
+  4. CSSOM: `.finish-sheet .finish-done` has no `outline` or `box-shadow` under `:focus` that isn't also under `:focus-visible`; `test-dialog-focus-ring.js` still passes.
+- **Harness:** must change: `tday-backdated-*` (182.5 on one line), `tday-rest-*` (steppers), `tday-finish-*`, `tday-*-402` (chips). Must stay identical: `food-*`, `progress-*`, `history-*`, `gym-*`.
+- **Test plan:** extend `test-today-cover.js` (2, 3) and add a case to `test-finish-sheet.js` (4); criterion 1 in `test-today-cover.js`. Sabotage: drop the size class for 5 characters, and criterion 2 must fail on "182.5".
+- **Files:** `index.html` (785–795, 891, 930, 933, 950–953, 1078, `renderCoverNumeral` ~32882, finish CSS 906–945, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Re-pins: `test-set-chips.js`, `test-workout-card-type-scale.js` and `test-label-floor.js` if they pin the chip or duration font; `test-css-mechanical-token-dedup.js`.
+- **Risk:** low. Tabular Geist keeps columns aligned the way mono did.
+- **Tools:** `Skill: impeccable` (`typeset`); TOOL-01.
+- **Status:** ready
+
+### UX-23: "Then": the session list in the world's ink
+- **Why:** A9–A11, A20. Under the cover, Today switches back to 2.0: a big card with a second day hero (glowing disc, gradient title), pills, mono, blue chevrons and tinted chips. The mock's "Then" is a ruled list on the ground: the day's remaining work, quiet and exact.
+- **Change** (not in gym mode, whose look UX-17 decides):
+  - `#workoutCard` loses its card: no fill, border or radius; a section on the ground with 1 px `--rule` dividers, like `today.html`'s `.ex` list.
+  - While the cover shows, `.workout-hero` (the disc `#dayPlateIcon`, `#dayHeroEyebrow`, `#dayTitle`) isn't displayed: the cover's headline names the day. The elements stay in the DOM with their IDs (gym mode and tests read them).
+  - **The section head** reads "Then", with one quiet line in `--text-2` and Geist: the phase (`#mesocyclePhaseTag`, no pill), the length (`#dayDuration`) and `#sessionCalTotal`, joined with " · ".
+  - **The two ways to change how you run it** sit in that head as plain controls: the session length (`#sessionLengthSelector`) as text with a chevron, and **Gym mode** (`#gymEnterBtn`) as a 44 pt text button with its icon in `--text-2`, no pill, no blue border. Same handlers.
+  - **Rows:** name 16/600; the prescription and RIR words under the name in `--text-2` 13 px (not right-aligned beside it); the swap glyph and chevron in `--text-3`; the pictogram without its tile fill; the checkbox a 22 px square in `--rule-strong`. The row of the exercise on the cover gets a 4 px `--spot` rule along its left edge (it stays in the list: the cover logs into its rows).
+  - **Chips** take the cover's grammar on the ground: done = `--text` fill, `--ground` text, a check icon; ready = 2.5 px `--text` border; pending = 1.5 px dashed `--rule-strong`. No green tint, no blue fill, no "=" glyph (the ready border carries "next"). Superset tags (DC/TP) stay as text.
+  - The superset label is a text line with the ⇄ glyph, not a pill.
+- **Acceptance criteria:**
+  1. CSSOM: `#workoutCard` (not in gym mode) has transparent background, no border and radius 0; no rule under `#workoutCard` sets `backdrop-filter`, `background-clip:text`, a blurred `box-shadow`, `--glass-*` or `--cta-gradient-*`.
+  2. CSSOM: with `#upNext` not hidden, `.workout-hero` computes `display:none`; with `body.gym-mode`, it is displayed as at v3.599.
+  3. jsdom, the real `renderWorkout`'s head builder (or the strings it writes): the head line contains the phase text and the duration text that `#mesocyclePhaseTag` and `#dayDuration` held at v3.599 for the fixture (no wording change).
+  4. CSSOM: `#gymEnterBtn` has no border colour from `--plate-blue`, a computed height ≥ 44, and its accessible name "Gym mode"; one click still runs the real gym entry (`test-session-actions.js` path), counted in `test-tap-counts.js`: enter Gym mode = 1 (v3.599: 1).
+  5. CSSOM: `.set-chip.is-done` background resolves to `--text`, `.is-ready` has a ≥ 2.5 px border in `--text`, and neither uses `--plate-green` or `--plate-blue`. The real chip builder writes no "=" text in a ready chip.
+  6. The cover's exercise row has the "now" marker (a class set by `renderUpNext` from the row it reads), and exactly one row has it.
+  7. `test-set-chips.js`, `test-superset-chips.js`, `test-gym-set-chips.js` and `test-tap-counts.js` pass; any assertion on the "=" glyph or chip colours is re-pinned with a dated note.
+- **Harness:** must change: `tday-*-402` below the cover, `tday-left-*-904`, default `today-*-904`. Must stay identical: the cover region of every state (crop check in the PR), `gym-*`, `tday-gym-*`.
+- **Test plan:** new `test-today-then.js` (1–3, 5, 6), extend `test-tap-counts.js` (4). Sabotage: show the hero beside the cover, and criterion 2 must fail; put the blue back on the ready chip, and criterion 5 must fail.
+- **Files:** `index.html` (`#workoutCard` markup 6293–6322, `.workout-hero` 743 onward, `.duration-tag` 1078, `.session-actions`, `.gym-enter-btn` 5338, `.set-chip` 785–795, exercise row CSS, `renderWorkout` 30441, the chip builder, `renderUpNext` 32809, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-then.js` (new), `test-tap-counts.js`. **Re-pins, read first:** `test-today-hero-glow-flat-buttons.js`, `test-header-refresh.js` (`workout-hero`), `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-today-session-first.js`, `test-today-workout-emoji.js`, `test-workout-card-type-scale.js`, `test-glass-cards.js`, `test-today-no-glow.js`, `test-neutral-rgba-consolidation.js`, `test-css-mechanical-token-dedup.js` (`.day-hero-plate`).
+- **Risk:** medium: the list is where people tap chips all session. Behaviour is unchanged (criterion 7); only paint and the hero's display move.
+- **Tools:** `Skill: impeccable` (`polish`), `Skill: taste-skill` (app screens), TOOL-01.
+- **Status:** ready
+
+### UX-24: The open exercise and the session's extras in the world's ink
+- **Why:** A12, A13. Opening an exercise shows a glass panel with its own Log button, a blue pill and pill buttons; below the list, pills and tinted boxes; the sticky header glows. These are the last 2.0 surfaces in the session.
+- **Change** (not in gym mode):
+  - **The open exercise:** the in-block logger panel is flat (`--surface-1`, 1 px `--rule`, radius 14, no gradient or inset sheen), its fields as on the cover's adjust row; its Log button is the cover's action style (`--text` fill, `--ground` text); "Same as Last Time" (`.same-as-last-btn`) is a text button in `--text`; History and Edit are 44 pt text buttons with icons in `--text-2`; "+ Add set" a dashed `--rule-strong` row.
+  - **Extras:** `#addCustomExerciseBtn` and `#adaptWorkoutBtn` become full-width text rows with a leading icon and a top rule (not pills). The day insight ("Balance insight") and `#todayStandoutBanner` are note rows: `--text`, a 2 px `--rule-strong` left rule, no tinted fill or coloured border. Getting Started (`#onboardingCard`) loses its card the same way (a ruled list, the check circles in `--rule-strong`).
+  - **The sticky header** (`#stickyDayHeader`, 7588): the lexicon line from vision §2, "Set 3 of 6 · Bench Press", from the same values the cover prints (`#upNextLabel`, `#upNextLift`), on `--ground` with a 1 px `--rule` hairline and a 10 px square in `--spot`; no raised shadow, no glowing dot. When there's no next set it falls back to the day name, as now.
+- **Acceptance criteria:**
+  1. CSSOM: no rule matching the open block's logger, `.same-as-last-btn`, `.ex-history-btn`, `.ex-edit-btn`, `#addCustomExerciseBtn`, `#adaptWorkoutBtn`, `.today-standout-banner`, the day-insight note or `#onboardingCard` sets `backdrop-filter`, a gradient, a blurred `box-shadow`, `--plate-blue` or a radius ≥ 20 px.
+  2. Every control above has a computed height ≥ 44 and an accessible name (jsdom, the real markup).
+  3. jsdom, the real sticky-header updater with the fixture: the text is "Set 3 of 6 · Bench Press" while the cover shows, and the day name ("Day 1 — Upper · Strength") when `#upNext` has no next set. Its `box-shadow` has no blur.
+  4. `test-exercise-logger.js`, `test-set-next-button.js`, `test-sticky-day-header-overlap.js` and `test-a11y-keyboard-focus.js` pass; changed text assertions are re-pinned with dated notes.
+- **Harness:** must change: `tday-*-402` (lower half), `tday-firstrun-*`, `tday-left-*-904`. Must stay identical: the cover region, `gym-*`.
+- **Test plan:** extend `test-today-then.js` (UX-23). Sabotage: restore the logger panel's gradient, and criterion 1 must fail.
+- **Files:** `index.html` (`.up-next` / `.ex-logger` CSS ~995 onward, `.same-as-last-btn`, `.custom-toggle` 4184, `.adapt-workout-toggle` 4191, `.today-standout-banner` 1110, the day-insight note, `#onboardingCard` 6267, `.sticky-day-header` 1694/5828/5980 and its updater, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Read: `test-cta-blue-unification.js`, `test-glass-controls.js`, `test-header-refresh.js` (`stickyDayHeader`), `test-app-2-0.js`, `test-nav-more-panel.js`, `test-tab-bar.js`, `test-view-switch-crossfade.js`.
+- **Risk:** low to medium (the sticky header text is a visible wording change, from the vision).
+- **Tools:** `Skill: impeccable` (`polish`), TOOL-01.
+- **Status:** ready
+
+### UX-25: A rest day is one quiet field
+- **Why:** A14. On a rest day the cover says "Rest day", then a second card repeats "Full Rest" under a moon disc, offers a session length and a Gym mode button for a day with nothing to lift, and only then shows the day's note and its one action. The vision: "rest days get a white or off-grey field with the day's note" (UX-06).
+- **Change:**
+  - On a rest day the cover carries the day's note (`day.note`) under "Rest day", replacing the generic "Training today instead?…" line, and the "Mark … rest day as done" row (`#restDoneCheckbox`, `#restDoneLabel`) as its action, styled as a 56 pt toggle row in the cover's ink. The headline still opens the day sheet (the way to train instead).
+  - Below the cover on a rest day: no hero, no session length, no Gym mode, no "+ Add custom exercise"; `#exerciseList` holds nothing visible.
+  - The rest-log storage key, its JSON and the `recordActivity`/`renderStreak` call on check are unchanged.
+- **Acceptance criteria:**
+  1. jsdom, the real rest-day branch of `renderWorkout` (30475–30500) and `renderUpNext`: `#restDoneCheckbox` is inside `#upNext`, exactly once in the document, and the note text equals the day's `note`.
+  2. Checking it writes `rest-log:<date>:<program>:<day>` = `{"done":true}` and calls `recordActivity` once (stubbed), and the label reads "Marked as done for today", as at v3.599.
+  3. On a rest day, `#gymEnterBtn`, `#sessionLengthSelector`'s wrap and `#addCustomExerciseBtn` compute `display:none`; on a training day they don't.
+  4. Tap parity in `test-tap-counts.js`: mark the rest day done = 1 (v3.599: 1).
+- **Harness:** must change: `tday-restday-*`. Must stay identical: every training-day state.
+- **Test plan:** new cases in `test-today-cover.js` (1, 3), `test-tap-counts.js` (4), and criterion 2 in the same file. Sabotage: render the checkbox in `#exerciseList` as before, and criterion 1 must fail.
+- **Files:** `index.html` (30441–30500, `renderUpNext` 32809, rest cover CSS 940–945, `.rest-done-row` 2139–2146, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Read: `test-care-mark-resting-confirmation.js`, `test-streak.js`, `test-fetch-day-statuses.js`, `test-free-list-guard.js`.
+- **Risk:** low; same key, same handler.
+- **Tools:** TOOL-01 (`tday-restday-*`).
+- **Status:** ready
+
+### UX-26: The day sheet as plate blocks
+- **Why:** A15. The day picker opens from the cover onto the 2.0 discs: glossy, pictogram-centred, with inner highlights and drop shadows, a blue Done and a pill "Reorder days". The vision's grammar for days is flat plate blocks in their inks (§3.6).
+- **Change:** `renderTabs` (27516) and its markup, focus restore and reorder mode are unchanged. CSS only for `.day-sheet .tab` and its children: each day is a 56 × 56 rounded square (radius 14) filled flat in its `.p-*` ink, with the day number in Archivo in `--on-<ink>`; rest days are `--spot-off` with a 1 px rule; the pictogram drops to 18 px in the on-ink (or goes, if the number carries the day: design call in the PR, both acceptable). Selected = a 2.5 px `--text` ring outside a 2 px ground gap. No `box-shadow` with blur, no inset sheen. "Done" in `--text`; "Reorder days" a text button.
+- **Acceptance criteria:**
+  1. CSSOM: no rule matching `.day-sheet .tab` or a descendant sets a blurred `box-shadow`, an inset highlight, a gradient or `backdrop-filter`.
+  2. Contrast: each `.p-<ink>` fill with its label colour ≥ 4.5:1 in both themes (UX-01's function); the selected ring against `--surface-1` ≥ 3:1.
+  3. `test-day-sheet.js`, `test-a11y-keyboard-focus.js` and `test-superset-field-chaining.js` (they drive `renderTabs`) pass unchanged; tap parity: choose a day = 2 from Today (open, pick; v3.599: 2).
+  4. Each tab is ≥ 44 × 44 and keeps its accessible name.
+- **Harness:** must change: `tday-daysheet-*`. Must stay identical: everything else.
+- **Test plan:** new cases in `test-day-sheet.js`. Sabotage: restore the disc shadow, and criterion 1 must fail.
+- **Files:** `index.html` (`.tab`/`.plate` CSS 660–730, `.day-sheet` 905–938, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-day-sheet.js`. Read: `test-day-ink.js`, `test-header-refresh.js`.
+- **Risk:** low.
+- **Tools:** `Skill: impeccable` (`polish`), `Skill: apple-hig` (sheets), TOOL-01.
+- **Status:** ready
+
+### UX-27: Today's Priorities under the session, as one line
+- **Why:** A16. Priorities sits between the cover and the session as a card. The vision moves it "under the session, collapsed to one line ('2 notes · Readiness: shoulder resting')" (§4), so the cover and "Then" read as one block.
+- **Change:**
+  - `#todayInsightsCard` moves after `.today-session-pane` (on a phone, after the list; at 904, it stays in the right column, as now).
+  - It becomes an `expand-wrap` section: a 56 pt summary row "n notes · <first row's headline>" with a chevron, collapsed by default; tapping toggles it. The open/closed state is a `window.storage` preference (`today-priorities-open`), as Analysis groups do.
+  - **Safety never hides:** if any row comes from `getPregnancyHeatInsight`, `getDeficitGuardrailInsight`, `getReadinessInsight`, `getEarlyDeloadInsight` or `getStaleRestingRegionInsight`, the section opens regardless of the preference and the summary names that row first.
+  - Card styling goes (ruled section, note rows as UX-24's). Swipe to hide stays.
+- **Acceptance criteria:**
+  1. Real markup: `#todayInsightsCard` follows `.today-session-pane` in document order.
+  2. jsdom, the real `renderTodayInsights` (15803) with the getters stubbed: with only the weekly recap row, the summary reads "1 note · Last week: …" and the wrap is closed; with a readiness row present, it is open and the summary leads with readiness.
+  3. Toggling writes `today-priorities-open` through `window.storage` and a re-render honours it (except criterion 2's safety case).
+  4. `test-today-priorities.js`, `test-cycle-phase-nutrition-insight.js`, `test-manual-deload-override.js`, `test-supplement-condition-cycle-nudge.js` and `test-year-recap.js` pass; swipe-to-hide unchanged.
+- **Harness:** must change: `tday-*-402`, `tday-right-*-904`. Must stay identical: the cover, `gym-*`.
+- **Test plan:** extend `test-today-priorities.js`. Sabotage: drop the safety override, and criterion 2's readiness case must fail.
+- **Files:** `index.html` (6276–6280, `renderTodayInsights` 15803, Priorities CSS, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-priorities.js`. Read: `test-today-session-first.js`, `test-swipe-*.js`, `test-collapsible-list-batching.js`.
+- **Risk:** medium: notes are one tap further when collapsed. Safety rows can't be (criterion 2). Not a stored-data change (a new preference key only).
+- **Tools:** `Skill: impeccable` (`clarify`), TOOL-01.
+- **Status:** ready
+
+### UX-28: Training Style and Keep In Mind leave Today
+- **Why:** A17. Today ends with two set-once cards: Training Style (the program picker and its overview) and Keep In Mind (general tips). The vision: "The profile prompt, Training Style and Keep In Mind cards move to More (Training Style) and Progress (insights)" (§4). They lengthen Today by about 900 px, and are reached in a month of sessions perhaps twice.
+- **Change:**
+  - The Training Style card (`#programHeader` and `#programSelector`, 6374–6380, with its overview and "What this is based on") is reparented into Settings as a "Program" section, after Profile, by `wireSettings` (50864), as it already does for other cards. IDs and handlers unchanged.
+  - Keep In Mind (`#tipsAlways`, `#tipsExpandWrap`, 6478) moves to the end of Progress's Insights group.
+  - The search index entries that jump to them (global search "Go to") point at the new places.
+- **Acceptance criteria:**
+  1. After the real `wireSettings`, `#programSelector` is inside `#settingsOverlay` and exactly once in the document; changing it runs the same program switch (the real handler, stubbed at `saveActiveProgram` or its equivalent, called once).
+  2. `#tipsAlways` is inside `#analysisView`, once.
+  3. Global search for "Training Style" and for "Keep in mind" opens the view that now holds each and scrolls it into view (`test-global-search-techniques.js` / `test-search-index-freshness.js` method).
+  4. Tap parity: change program = Settings icon + select (2) vs v3.599's scroll + select. Recorded in `test-tap-counts.js` as 2, the new ceiling, with a dated note that this is a relocation agreed in the vision, not a regression of a counted action.
+  5. Store frame 4 (`store-program`) still finds `#programHeader` (update `STORE_STEPS.program` to open Settings first; tooling change in the same PR).
+- **Harness:** must change: `tday-*-402` (shorter), default `progress-*` if Insights is open. Must stay identical: the cover, `food-*`, `history-*`.
+- **Test plan:** new `test-today-relocations.js`. Sabotage: skip the reparent, and criterion 1 must fail.
+- **Files:** `index.html` (6365–6485, `wireSettings` 50864, the search index, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `tools/visual/harness.js` (`STORE_STEPS.program`), `test-today-relocations.js` (new). Read: `test-program-overview.js`, `test-program-intro-divider-fix.js`, `test-learn-tab-card-order.js`, `test-settings-grouped.js`, `test-settings-overlay-scroll-lock.js`, `test-research-sources-view.js`.
+- **Risk:** medium: a habit moves. Nothing is removed and no data changes.
+- **Owner option (non-blocking; default in bold):** **move both** (the vision), or keep Training Style at the foot of Today, restyled as a ruled section, and move only Keep In Mind.
+- **Flagged, not in scope:** Keep In Mind on a lean bulk tells the fixture's user to protect muscle "in the deficit" and calls the phase "recomp"; the tips don't follow the goal. A copy item, not a design one.
+- **Tools:** `Skill: impeccable` (`layout`), TOOL-01, `--store` for frame 4.
+- **Status:** ready
+
+### UX-29: The rest pill steps aside for the cover
+- **Why:** A18. During rest the cover shows the time, +30 s, Skip and the next set (UX-08), and the 2.0 floating pill (`#restTimer`: blue ring, blue glow, "+15s ✕") sits on top of it, covering the Log button's top edge. Two clocks for one rest.
+- **Change:** `startRestTimer` (32233) and the pill's logic are unchanged. While Today is showing, not in gym mode, and the cover is in view, the pill isn't displayed (a `cover-in-view` body class from an `IntersectionObserver` on `#upNext`, threshold 0.25). Scrolled down the list, or on another tab, the pill shows. Its look goes flat: `--surface-2`, 1 px `--rule-strong`, no coloured border or glow, the ring in `--spot`, the time in tabular Geist; the urgent state is the ring in `--warning`, not a red glow pulse.
+- **Acceptance criteria:**
+  1. jsdom with a stub `IntersectionObserver` (callable entries): cover intersecting → `#restTimer` computes `display:none` (or `visibility:hidden` with `aria-hidden`); not intersecting → shown; in `body.gym-mode` → shown regardless.
+  2. The rest still runs and ends identically: the real `startRestTimer`'s end callback fires once in both visibility states (fake timers).
+  3. CSSOM: `.rest-timer` and `.rest-timer.urgent` have no `--plate-blue`/`--plate-red` border or shadow and no blurred coloured shadow.
+  4. With no `IntersectionObserver` (old WebKit), the pill shows as now (fallback).
+- **Harness:** must change: `tday-rest-*`, default `rest-*`. Must stay identical: `gym-*` (the pill stays there; its flat look shows in `tday-gym-*` only if the gym pill shares the rule; say so in the PR).
+- **Test plan:** extend `test-rest-cover.js`. Sabotage: hide the pill unconditionally, and criterion 1's not-intersecting case must fail.
+- **Files:** `index.html` (`.rest-timer` 1781–2060, 4727, 5333; `#restTimer` 7629; the observer beside `syncCoverRest` 32901; `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-rest-cover.js`. Read: `test-audit-fixes.js`, `test-glyphs.js`, `test-gym-offer-tab-leak.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-tab-bar.js`.
+- **Risk:** low; one listener, a fallback.
+- **Tools:** `Skill: review-animations` (the pill's enter/leave on scroll: opacity 160 ms, instant under Reduce Motion), TOOL-01.
+- **Status:** ready
+
+### UX-30: Milestones and celebrations as Plate & Press moments
+- **Why:** A19. The streak milestone and the mid-session PR use the 2.0 celebration modal: a yellow-bordered card with a gold glow, a spring "pop" that rotates the icon, 42 confetti pieces, and a yellow Share, centred over the cover. The big variant takes pointer events for 5 s, so the Log button underneath can't be tapped. The vision: "Earned, not confetti… no streak guilt, no confetti, no badges" (§1); "the PR: the new best is set huge, with the arithmetic beside it".
+- **Change:**
+  - `triggerCelebration` (31382) keeps its signature and every caller; what it shows changes. The banner becomes a **moment** anchored above the tab bar (`bottom: var(--above-bar)`), full width minus the gutters, flat in the day's ink (`--spot` field, `--spot-ink` text; Quiet: `--surface-2` with the stripe), radius 14, no glow. It holds: the figure in the display face (the streak's weeks, or the PR's load), the words, and Share (in `--cover-action` style) when share data is given. It never overlaps `#upNextLog` (the cover is above it).
+  - Motion: enters with `translateY(12px)`→0 and opacity, 220 ms `--ease-out`; leaves with opacity 160 ms. No spring, no icon rotation. Reduce Motion: appears and goes without motion. Hold times unchanged (5 s with Share, 2.8 s big, 2.2 s small). It takes pointer events only on its own box.
+  - `spawnConfetti` (31364), `CONFETTI_COLORS` and `.confetti-piece` (1772, 4865) are deleted (UX-15's summit note planned this once UX-09 replaced the toast).
+  - The PR moment's words come from the finish sheet's labeller (31511: "Heaviest weight yet" / "Best estimated 1RM yet"), lifted into one helper both call, instead of "New PR!". The share card's `headline` data is unchanged (MKT cards own their copy).
+  - The streak moment reads "8 weeks in a row" with "Rest days included." as now; its once-only key (`week-streak-last-celebrated`) is unchanged.
+- **Acceptance criteria:**
+  1. jsdom, the real `triggerCelebration`: after a big call with share data, `#celebrateBanner` is active, `#celebrateShareBtn` is displayed and wired once (two calls → one listener, as now), and no `.confetti-piece` exists in the document.
+  2. Real source (comments stripped): no `spawnConfetti` identifier and no `confetti` class remain; `triggerCelebration` has the same parameter list.
+  3. CSSOM: `.celebrate-banner` has `bottom` set from `--above-bar`, no `top:50%`, no `box-shadow` with `--plate-yellow`, no `border-color` of `--plate-yellow`, and `pointer-events:auto` only on itself; `.celebrate-icon` has no animation with `rotate`.
+  4. CSSOM under `prefers-reduced-motion: reduce`: `.celebrate-banner` has `transition: none` (or duration 0).
+  5. jsdom, the PR path (`commitSet`'s PR branch, 34572, with `saveExSet` stubbed to `isPR:true`): the text equals the shared labeller's output for a weight PR ("Heaviest weight yet") and the finish sheet's best label uses the same helper (one-site count: the helper is called from both).
+  6. Harness (PR evidence): in `tday-milestone-*` the moment's box doesn't intersect `#upNextLog`'s box, and the Log button receives a click while the moment shows (`elementFromPoint` at Log's centre is Log).
+  7. Tap parity: "log the ready set" stays 1 with a milestone showing (new case in `test-tap-counts.js`).
+- **Harness:** must change: `tday-milestone-*`. Must stay identical: every other state.
+- **Test plan:** new `test-moments.js` (1–5), extend `test-tap-counts.js` (7). Sabotage: centre the moment again, and criterion 3 must fail; leave one `spawnConfetti(` call, and criterion 2 must fail.
+- **Files:** `index.html` (`.celebrate-*` 1742–1770, `.confetti-piece` 1772/4865, 4687/4723, `spawnConfetti` and `triggerCelebration` 31359–31420, the PR call 34572, the finish best label 31511, `checkStreakMilestone` 14986, `#celebrateBanner` 7593, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-moments.js` (new), `test-tap-counts.js`. **Re-pins, read first:** `test-glyphs.js` (`celebrateBanner`, `spawnConfetti`), `test-coach-header-button.js` (mentions confetti), `test-finish-sheet.js` (the label helper), `test-partial-set-reactions.js`, `test-auto-check-sets.js`, `test-noweight-consistency.js`, `test-cardio-distance-gate.js`, `test-fallback-entry-consolidation.js`, `test-emoji-check-icon-migration.js`, `test-backdating-rest-timer-suppression.js` (all stub `triggerCelebration`; the signature stays, so they should pass unchanged).
+- **Risk:** low to medium: confetti goes (decoration, not a feature; the vision and UX-15 already retire it), and "New PR!" becomes "Heaviest weight yet" (F6's wording, already on the finish sheet).
+- **Tools:** `Skill: animate`, `Skill: review-animations`, `Skill: animation-performance` (transform and opacity only), TOOL-01.
+- **Status:** ready
 
 ---
 

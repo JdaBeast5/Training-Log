@@ -122,7 +122,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - 38b. ~~**BL-46:** cycling FTP anchor, retest and interval progression~~ *(parked: owner no, 2026-11-08)*
   - 38c. ~~**BL-47:** swimming CSS anchor and set progression~~ *(parked: owner no, 2026-11-08)*
 
-### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 4 if approved)
+### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 12 from the Today audit at 50a–50l, plus 4 if approved)
 **Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.** *(Done 2026-11-16: the owner looked at v3.584 on device and said go, and moved UX-16 up to right after UX-04, because the solid coach button covers buttons and text.)*
 
 39. BIZ-05: the first-set hint (also the cover's empty state)
@@ -139,6 +139,19 @@ This is the one order every build run follows. It supersedes the "Requested buil
 48. UX-08: rest takes over the cover
 49. MKT-04: session share data (sets, lifts, minutes; no total load by default), as a named builder that UX-09 reuses
 50. **UX-09a:** the finish sheet: totals, "Next time", Share, Done
+**Finish Today first (design-engineer audit, 2026-11-17, against v3.599; owner: Today "looks hodgepodge, stuck between old and new").** UX-06a to UX-09b and UX-18 shipped the cover, but the chrome above it and everything below it are still the 2.0 Today. These twelve items run **next, before MKT-16 and the rest of Phase 2**, in this order. Each is one version and leaves Today coherent at its step. Specs and the audit table are in `backlog.md` → "Today coherence audit". All are ready; three carry a non-blocking owner option or question (UX-28; Gym mode's look and the profile line, in the PR).
+50a. **UX-19:** the spot inks reach their targets (dark red `#D42F25` with white text on the cover; plates, discs, History blocks follow)
+50b. **UX-20:** Today chrome: the cover starts at the top (title, profile line, streak pill and date card fold into the cover's first rows; the bar returns above Log)
+50c. **UX-21:** unfolded Today: the cover leads the left pane
+50d. **UX-22:** one figure face on Today (Geist Mono out), and a numeral that fits one line
+50e. **UX-23:** "Then": the session list in the world's ink (no second day hero; Gym mode's entry restyled)
+50f. **UX-24:** the open exercise, the session's extras and the sticky header in the world's ink
+50g. **UX-25:** a rest day is one quiet field
+50h. **UX-26:** the day sheet as plate blocks
+50i. **UX-27:** Today's Priorities under the session, as one line (safety rows never collapse)
+50j. **UX-28:** Training Style and Keep In Mind leave Today (Settings and Progress)
+50k. **UX-29:** the rest pill steps aside for the cover
+50l. **UX-30:** milestones and celebrations as Plate & Press moments (no confetti; never over Log)
 51. **MKT-16:** the session bib card *(moved in; the owner's chosen edge)*
 52. **MKT-17:** "Your number"
 53. **MKT-18:** pin the bib on your own photo

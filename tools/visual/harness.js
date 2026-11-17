@@ -13,6 +13,10 @@
 //   --store         store-screenshot mode: shoot the store-* frames at 440x956
 //                   DPR 3 and compose the Apple (1320x2868) and Play (1080x1920)
 //                   images (planning/store/screenshots.md). Output in <out>/store/
+//   --today         Today audit mode: Today top to bottom (full page) and its
+//                   states (rest, finish, rest day, backdated, Quiet, first run,
+//                   the day sheet, the streak milestone, the 904 panes), at DPR 1.
+//                   Output in <out>/today/. --base, --rev and --only work.
 //
 // Output (all under --out, which is gitignored):
 //   <label>/<state>.png      one PNG per state (label = "worktree" or a short sha)
@@ -148,9 +152,42 @@ function buildStates(){
   return states;
 }
 
+// ---- Today audit mode (--today) ------------------------------------------------
+// The Today coherence audit (planning/backlog.md, UX-19 onward). The default
+// matrix shoots one viewport per view; this one shoots Today top to bottom and
+// the states its items change. It never changes the default mode's states or
+// bytes. Every state except "milestone" seeds the 8-week streak as already
+// celebrated, so the milestone moment shows only where it is the subject.
+// Steps only call what a user taps (or the finish sheet's own opener, as the
+// default finish state does).
+const SEEN_MILESTONE = { 'week-streak-last-celebrated': '8' };
+function buildTodayStates(){
+  const states = [];
+  const t = (id, size, theme, extra) => states.push({
+    id, group: 'today', view: 'today', theme, size, motion: 'no-preference', dpr: 1,
+    storage: SEEN_MILESTONE, ...extra,
+  });
+  for(const theme of ['dark', 'light']){
+    t(`tday-${theme}-402`, 402, theme, { fullPage: true });
+    t(`tday-rest-${theme}-402`, 402, theme, { fullPage: true, rest: true });
+    t(`tday-quiet-${theme}-402`, 402, theme, { fullPage: true, storage: { ...SEEN_MILESTONE, 'cover-style': 'quiet' } });
+    t(`tday-restday-${theme}-402`, 402, theme, { fullPage: true, pickDay: 7 });
+    t(`tday-backdated-${theme}-402`, 402, theme, { fullPage: true, back: 7 });
+    t(`tday-finish-${theme}-402`, 402, theme, { finish: true });
+    t(`tday-daysheet-${theme}-402`, 402, theme, { daySheet: true });
+    t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
+    t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
+    t(`tday-gym-${theme}-402`, 402, theme, { fullPage: true, gym: true });
+    t(`tday-${theme}-904`, 904, theme, {});
+    t(`tday-left-${theme}-904`, 904, theme, { scrollPane: ['.posture-split > .split-primary', 650] });
+    t(`tday-right-${theme}-904`, 904, theme, { scrollPane: ['#todayView', 1000] });
+  }
+  return states;
+}
+
 // ---- CLI -------------------------------------------------------------------
 function parseArgs(argv){
-  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null, store: false };
+  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null, store: false, today: false };
   for(let i = 0; i < argv.length; i++){
     const k = argv[i];
     const v = () => { const x = argv[++i]; if(x === undefined) throw new Error(`${k} needs a value`); return x; };
@@ -159,6 +196,7 @@ function parseArgs(argv){
     else if(k === '--out') a.out = path.resolve(v());
     else if(k === '--only') a.only = v().split(',').map(s => s.trim()).filter(Boolean);
     else if(k === '--store') a.store = true;
+    else if(k === '--today') a.today = true;
     else if(k === '-h' || k === '--help'){ console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 25).join('\n')); process.exit(0); }
     else throw new Error(`unknown option ${k}`);
   }
@@ -320,6 +358,31 @@ async function runStoreStep(page, state){
   await page.evaluate(() => { delete window.__storeTarget; });
 }
 
+// --today steps: the taps a person would make (the day sheet, the date bar),
+// or a pane scrolled. A base without the element fails loudly, never silently.
+async function runTodayStep(page, state){
+  if(state.firstRun) return;
+  await settle(page);
+  if(state.daySheet || state.pickDay){
+    await page.click('#upNextDayBtn');
+    await page.waitForSelector('#daySheet.active', { timeout: 10000 });
+    if(state.pickDay){
+      await page.click(`#daySheet #tabs .tab:nth-child(${state.pickDay})`);
+      await settle(page);
+      if(await page.$('#daySheet.active')) await page.click('#daySheetClose');
+    }
+  }
+  if(state.back) for(let i = 0; i < state.back; i++){ await page.click('#logDatePrev'); await settle(page); }
+  if(state.scrollPane){
+    const [sel, y] = state.scrollPane;
+    await page.evaluate(([s, top]) => {
+      const el = document.querySelector(s);
+      if(!el) throw new Error('no pane ' + s);
+      el.scrollTop = top;
+    }, [sel, y]);
+  }
+}
+
 async function shootAll({ dir, label }, states, outRoot, fixtures){
   const server = await serve(dir);
   const origin = `http://127.0.0.1:${server.address().port}`;
@@ -358,6 +421,12 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
       await page.goto(origin + '/index.html', { waitUntil: 'load' });
       if(state.firstRun){
         await page.waitForSelector('#userPickerOverlay.active', { timeout: 15000 });
+        if(state.createProfile){
+          // --today: a first profile made the way a person makes one.
+          await page.fill('#newUserNameInput', 'Sam');
+          await page.click('#newUserCreateBtn');
+          await page.waitForFunction(() => !document.querySelector('#userPickerOverlay.active') && typeof BOOT_MARKS !== 'undefined' && BOOT_MARKS.initEnd, null, { timeout: 30000 });
+        }
       }else{
         await page.waitForFunction(() => typeof BOOT_MARKS !== 'undefined' && BOOT_MARKS.initEnd, null, { timeout: 30000 });
         if(state.gym) await page.waitForSelector('body.gym-mode', { timeout: 10000 });
@@ -372,10 +441,11 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
           if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
         }
       }
+      if(state.group === 'today') await runTodayStep(page, state);
       if(state.step) await runStoreStep(page, state);
       await settle(page);
       const file = path.join(outDir, `${state.id}.png`);
-      await page.screenshot({ path: file, animations: 'disabled', caret: 'hide', scale: 'device' });
+      await page.screenshot({ path: file, animations: 'disabled', caret: 'hide', scale: 'device', fullPage: !!state.fullPage });
       run.states.push({ id: state.id, ms: Date.now() - t0, bytes: fs.statSync(file).size });
       process.stdout.write(`  ${label} ${state.id.padEnd(22)} ${String(Date.now() - t0).padStart(5)} ms\n`);
       await context.close();
@@ -451,6 +521,7 @@ const GROUP_TITLES = {
   904: 'Duo unfolded 904×678: Today, Food, Progress, History (dark, then light)',
   extra: 'Gym mode, rest timer, first-run sheet, finish sheet (402×874, dark and light)',
   reduce: 'Reduce Motion pass (402×874, dark)',
+  today: 'Today audit (--today): 402 full page top to bottom, the states, and 904 viewports (dark, then light; DPR 1)',
 };
 
 async function contactSheet(states, headDir, file, meta, report){
@@ -458,6 +529,7 @@ async function contactSheet(states, headDir, file, meta, report){
   const fig = s => {
     const r = report && report[s.id];
     const changed = r && r.result === 'changed';
+    if(s.group === 'today') return `<figure class="${s.size === 904 ? 'tw' : 'tp'}${changed ? ' changed' : ''}"><img src="${dataUrl(path.join(headDir, `${s.id}.png`))}"><figcaption>${esc(s.id)}${changed ? ` · ${r.pixels} px` : ''}</figcaption></figure>`;
     return `<figure class="${s.size === 904 ? 'w' : 'p'}${changed ? ' changed' : ''}"><img src="${dataUrl(path.join(headDir, `${s.id}.png`))}"><figcaption>${esc(s.id)}${changed ? ` · ${r.pixels} px` : ''}</figcaption></figure>`;
   };
   const section = g => {
@@ -475,6 +547,7 @@ async function contactSheet(states, headDir, file, meta, report){
     img{display:block;border:1px solid #2c2c33;border-radius:3px}
     .p img{width:84px} .w img{width:178px}
     .p{width:84px} .w{width:178px}
+    .tp img,.tp{width:112px} .tw img,.tw{width:236px} .gtoday{align-items:flex-start}
     figcaption{color:#9a9aa4;font-size:9px;overflow-wrap:anywhere}
     .changed img{border:3px solid #ff2d55} .changed figcaption{color:#ff6b86}
   </style></head><body>
@@ -482,6 +555,7 @@ async function contactSheet(states, headDir, file, meta, report){
   <div class="meta">${esc(meta.line)}</div>
   ${section('402')}${section('904')}
   <div class="pair">${section('extra')}${section('reduce')}</div>
+  ${section('today')}
   </body></html>`;
   await withPage(async page => {
     await page.setContent(html, { waitUntil: 'load' });
@@ -641,7 +715,8 @@ async function main(){
       'store-deload': readFixture('fixture-store-deload.json'),
     });
   }
-  let states = buildStates();
+  let states = args.today ? buildTodayStates() : buildStates();
+  if(args.today) args.out = path.join(args.out, 'today');
   if(args.only){
     const unknown = args.only.filter(id => !states.some(s => s.id === id));
     if(unknown.length) throw new Error(`unknown state id(s): ${unknown.join(', ')}`);
@@ -666,7 +741,7 @@ async function main(){
 
     const blocked = H.run.blocked.length + (B ? B.run.blocked.length : 0);
     const errors = H.run.pageErrors.concat(B ? B.run.pageErrors : []);
-    const line = `${states.length} states · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · DPR ${DPR}`
+    const line = `${states.length} states · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · DPR ${args.today ? 1 : DPR}`
       + ` · outbound requests blocked: ${blocked}` + (base ? ` · diff vs ${base.label.replace(/^base-/, '')}` : '');
     const sheet = path.join(args.out, 'contact-sheet.png');
     const bytes = await contactSheet(states, H.outDir, sheet, { label: head.label, appVersion: H.run.appVersion, line }, report);
