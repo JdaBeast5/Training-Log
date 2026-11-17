@@ -3849,7 +3849,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Owner options (non-blocking; defaults in bold):**
   - (a) **Keep the icon's -30°** (the end frame is the Sash, full bleed; it reaches the corners on the Duo, and near them on a phone), or (b) turn the bands to the screen's own diagonal (about -65° on a portrait phone), so they run literally corner to corner, at the cost of the end frame no longer being the icon's angle.
   - **Light: the sleeve on the icon's ink tile** (as above), or a light-only hairline on the 5 kg plate instead.
-- **Status:** needs-owner (approve the prototype). Then ready; roadmap slot 42a, after UX-05 and before UX-07.
+- **Status:** ready (owner approved 2026-11-17: "Lock jaw approve": the prototype with the **lockjaw** collar; bands keep the icon's -30°; light mode keeps the ink tile). Roadmap slot 42a, after UX-05 and before UX-07. Build only the lockjaw; the prototype's none/spring toggle is for review only.
 
 ---
 

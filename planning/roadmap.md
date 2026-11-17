@@ -130,7 +130,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 41. UX-04: the tab bar
 41a. **UX-16: the coach button into the header** *(moved up from #62, owner 2026-11-16: "Go, and move coach up")*
 42. UX-05: the day sets the ink (reads `dayInk`; re-points `--plate-*`)
-42a. **UX-18: launch animation, from bar to Sash** *(owner 2026-11-17: "now let's connect the vision"; needs-owner: approve `tools/design/launch/prototype.html`)*
+42a. **UX-18: launch animation, from bar to Sash** *(owner 2026-11-17: "now let's connect the vision"; prototype approved 2026-11-17 with the lockjaw collar)*
 43. **UX-13: Food in the world's ink** (moved from #59; asserts recents and BIZ-03's line, and tap parity)
 44. **UX-12: History as a month of plate blocks** (moved from #58)
 45. **UX-06a:** the cover: numeral, Log button, chips, and fields behind "adjust" (tap parity)
