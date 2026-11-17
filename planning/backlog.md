@@ -4019,7 +4019,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (`.up-next` / `.ex-logger` CSS ~995 onward, `.same-as-last-btn`, `.custom-toggle` 4184, `.adapt-workout-toggle` 4191, `.today-standout-banner` 1110, the day-insight note, `#onboardingCard` 6267, `.sticky-day-header` 1694/5828/5980 and its updater, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Read: `test-cta-blue-unification.js`, `test-glass-controls.js`, `test-header-refresh.js` (`stickyDayHeader`), `test-app-2-0.js`, `test-nav-more-panel.js`, `test-tab-bar.js`, `test-view-switch-crossfade.js`.
 - **Risk:** low to medium (the sticky header text is a visible wording change, from the vision).
 - **Tools:** `Skill: impeccable` (`polish`), TOOL-01.
-- **Status:** ready
+- **Status:** done (v3.605, PR #184). Also flattened: the open block's blue gradient (`.exercise-block.open`) and `#weekShareBtn` (flagged in UX-23). Fixed a UX-23 side effect: the sticky header's observer watched `#dayTitle`, which UX-23 hides beside the cover; it now follows the cover while the cover shows. Flagged, not changed: the blue "Technique & focus" link, the mono "Volume / Last top set" summary.
 
 ### UX-25: A rest day is one quiet field
 - **Why:** A14. On a rest day the cover says "Rest day", then a second card repeats "Full Rest" under a moon disc, offers a session length and a Gym mode button for a day with nothing to lift, and only then shows the day's note and its one action. The vision: "rest days get a white or off-grey field with the day's note" (UX-06).

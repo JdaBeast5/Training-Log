@@ -1466,3 +1466,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Now marker:** `renderUpNext` sets `.is-now` on the cover's block (or its superset member). The 4 px `::after` rule sits at left -12px; unfolded, `.today-session-pane` has margin-left -12px with padding-left 12px so its scroll box doesn't clip it.
 - **Test note:** jsdom drops computed shorthands that hold `var()`, and computes no pseudo-elements. `test-today-then.js` has a small `cascade()` helper that reads the winning CSSOM declaration.
 - **Left for UX-24:** Add custom exercise, Adapt and `#weekShareBtn` (not named in UX-24's spec).
+
+## Addendum 129: UX-24, the open exercise and the extras (v3.605, PR #184, 2026-11-17)
+- **CSS:** one block, scoped `body:not(.gym-mode)`, straight after the UX-23 block. It covers the open block (no blue gradient), `.ex-logger` (flat), the actions as text buttons, the dashed Add set, the extras as ruled rows with an `.extra-icon` SVG in the markup, the notes with a 2 px left rule, `#onboardingCard` as a plain list, and the sticky header on `--ground`.
+- **Sticky header:** `syncStickyDayTitle()` prints "Set n of N · Lift" from `#upNextLabel`/`#upNextLift`. The day name falls back from `#stickyDayTitle.dataset.day`, which `renderWorkout` writes. `renderUpNext` calls it on every path.
+- **Observer:** `setupStickyDayHeaderObserver` watches `#upNext` and `#dayTitle`, and `stickyDayAnchor()` picks whichever leads. The click handler scrolls to that same anchor.
+- **Fixtures:** any test that loads the real `renderUpNext` must also load `syncStickyDayTitle`.
+- **Pause, relayed from another session (2026-11-17):** stop after UX-30, slot 50l. Don't start MKT-16 until the owner resumes on Sunday 2026-11-22 at 5:00 AM ET. Only upkeep on the open Today stack until then, and the last PR in the stack must say it's the last one.
