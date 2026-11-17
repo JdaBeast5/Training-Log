@@ -100,6 +100,19 @@
     transform-origin:50% 100%;}
   .clip-arm-1{transform:rotate(8deg);}
   .clip-arm-2{transform:rotate(30deg);}
+  /* The lockjaw collar (owner, 2026-11-17, after the spring clip's handles read as hairlines at phone size):
+     the default. A Lock-Jaw-style block clamp seen from the side: one solid barrel 48u wide and 136u tall
+     (about 40 × 113 mm), 12u past the 5 kg plate, and one lever tab (26 × 36u) on its top edge. Both are cut
+     from the sleeve and from each other by the same 5u ink rim, so the clamp reads as two parts at 0.37 px
+     per unit (the barrel is about 18 × 50 px on a 402 px phone, the tab about 9.5 × 13 px). No thin wires. */
+  .steel-lockjaw{left:0; top:0; width:0; height:0; background:none;}
+  .steel-lockjaw > i{position:absolute; background:var(--steel); box-shadow:0 0 0 calc(var(--u) * 5) #0C0C0D;}
+  .jaw-tab{left:calc(var(--u) * 251); width:calc(var(--u) * 26); top:calc(var(--u) * -100); height:calc(var(--u) * 36); border-radius:calc(var(--u) * 6);}
+  .jaw-body{left:calc(var(--u) * 240); width:calc(var(--u) * 48); top:calc(var(--u) * -68); height:calc(var(--u) * 136); border-radius:calc(var(--u) * 10);}
+
+  /* Prototype toggle (not app code): ?collar=none|spring|lockjaw, lockjaw by default. The app ships one. */
+  body:not([data-collar="spring"]) .steel-clip{display:none;}
+  body:not([data-collar="lockjaw"]) .steel-lockjaw{display:none;}
   @keyframes launchSteelOut{to{opacity:0;}}
 
   /* The five bands, drawn at their FINAL size: 84u thick, 4400u long (past every edge of a phone or the
@@ -168,10 +181,12 @@
   .controls{position:fixed; z-index:20; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); display:flex; gap:8px; justify-content:center;}
   .controls button{min-height:44px; min-width:44px; padding:0 16px; border-radius:14px; border:1px solid rgba(127,127,127,.4);
     background:rgba(20,20,22,.82); color:#F2F2F0; font:600 15px/1 inherit;}
+  .collar-pick{display:flex; align-items:center; gap:6px; color:#F2F2F0; font:600 15px/1 inherit;}
+  .collar-pick select{min-height:44px; border-radius:14px; padding:0 10px; background:rgba(20,20,22,.82); color:#F2F2F0; border:1px solid rgba(127,127,127,.4); font:inherit;}
   body.framing .controls{display:none;}
 </style>
 </head>
-<body>
+<body data-collar="lockjaw">
 <div class="app" aria-hidden="true"></div>
 
 <div class="launch" id="launch" aria-hidden="true">
@@ -194,6 +209,7 @@
         <div class="band b5"></div>
       </div>
       <div class="steel steel-clip"><i class="clip-coil"></i><i class="clip-arm clip-arm-1"></i><i class="clip-arm clip-arm-2"></i></div>
+      <div class="steel steel-lockjaw"><i class="jaw-tab"></i><i class="jaw-body"></i></div>
     </div></div>
   </div>
 </div>
@@ -201,6 +217,9 @@
 <div class="controls">
   <button type="button" id="replay">Replay</button>
   <button type="button" id="slow">Replay at quarter speed</button>
+  <label class="collar-pick">Collar <select id="collar" aria-label="Outer collar">
+    <option value="lockjaw">Lockjaw</option><option value="spring">Spring clip</option><option value="none">None</option>
+  </select></label>
 </div>
 
 <script>
@@ -230,6 +249,13 @@ function play(rate){
   timers.push(setTimeout(open, CAP / rate));
   el.addEventListener('pointerdown', open);
 }
+// Collar toggle: ?collar=none|spring|lockjaw (default lockjaw); the select replays with the chosen collar.
+(function(){
+  var pick = document.getElementById('collar');
+  var q = (location.search.match(/[?&]collar=(none|spring|lockjaw)/) || [])[1] || 'lockjaw';
+  document.body.setAttribute('data-collar', q); pick.value = q;
+  pick.addEventListener('change', function(){ document.body.setAttribute('data-collar', pick.value); play(1); });
+})();
 document.getElementById('replay').addEventListener('click', function(){ play(1); });
 document.getElementById('slow').addEventListener('click', function(){ play(.25); });
 play(1);
