@@ -1365,3 +1365,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **For BL-31:** read `computeWeeklyMuscleSets` for per-muscle weekly sets. For UX-10: move `renderMuscleLedgerHtml`, don't redraw it.
 - **Screenshots of Progress need the harness clock** (`page.clock.setFixedTime(FROZEN_NOW)`), or the fixture's week is empty and Weekly Volume hides.
 - **Next:** UX-06a (the cover) in sequence; BL-31 is buildable.
+
+## Addendum 115: UX-18 (v3.591, PR #168, 2026-11-17)
+- **What:** the prototype's launch in index.html, all rules scoped to `.launch`; script opens with `is-open` (minMs 900 / 250 reduced, removal 750 / 220, cap 4 s).
+- **Rendering launch frames:** block the service worker (`serviceWorkers:'block'`): in a fresh context its first-install reload skips the launch as a repeat. Pause the clock (`clock.install` + `pauseAt`) and step `getAnimations()` by `currentTime`.
+- **Next:** UX-06a (the cover), then UX-06b; BL-31 is buildable.

@@ -1,43 +1,44 @@
 'use strict';
 // v3.385 — Launch (owner: "design ... initial launching animation, to match
 // the highly sophisticated and dynamic design of the app ... auto adjust to
-// light mode dark mode, gray scale, etc."). Once per cold launch the app's
-// mark draws itself — rim clockwise from the cut, hub, the lit seventh, the
-// bore — then dissolves into the app. Dark: the app's own background and
-// aura, so the hand-off is seamless. Light: porcelain, graphite mark.
-// Increase Contrast: no aura. Reduce Motion: the finished mark, cross-fade.
-// A tap skips it; a reload in the same session (pull to refresh) skips it;
-// it never holds the app for more than 4s.
+// light mode dark mode, gray scale, etc."). Once per cold launch, then into the
+// app. A tap skips it; a reload in the same session skips it; it never holds
+// the app for more than 4s. (v3.387: transform and opacity only, composited, on
+// one gentle ease-out. v3.516: the mark became the app icon, six SVG layers.)
 //
-// Confirmed in Chromium at 390x844 (frames at 60-1500ms) in dark and light
-// with motion, and with Reduce Motion: drawn by ~1s, gone by 1.5s (0.3s
-// reduced), removed from the DOM, and not replayed on reload.
+// 2026-11-17 (v3.591, UX-18): the bar-to-Sash launch replaces v3.516's six
+// layers (owner: "start off like one side of the weight plates on an Olympic
+// weight bar floating into the frame, then turn to an angle and then have the
+// lines extend ... before entering the app"; "make it smooth then have it open
+// to the screen"). Ported from tools/design/launch/prototype.html with the
+// lockjaw collar the owner approved. The tile/b25..b5 SVG layers, the single
+// launchSettle keyframe, the 70ms stagger, the 1.35s hold, .is-out and the
+// 600ms removal are all gone on purpose: criteria 1-5 and 8 below replace
+// them; the tap, reload and cap tests (6-7) keep the harness, re-timed.
 //
-// 2026-10-26 (v3.387, owner: "make the starting animation more smooth"):
-// the mark no longer DRAWS (stroke-dashoffset runs on the main thread and
-// stuttered while the app's large script loaded; its phases also had
-// different speeds and a bouncing bore). It is four stacked layers — rim,
-// lit seventh, hub, bore — moved with transform and opacity only, which are
-// composited, on one gentle ease-out: the rim turns in, the lit seventh
-// orbits round and settles, the hub and bore ease in. No overshoot. Frames
-// every 100ms in Chromium show even, decaying motion, settled by ~0.9s.
-//
-// 2026-11-07 (v3.516): the mark is now the Liftnext icon ("Sash"). Six layers
-// instead of four: the ink tile eases in, then the five plate bands slide
-// along their rising line into place, heaviest first, 70ms apart, clipped by
-// the container's rounded square. Same single keyframe, same ease, same
-// timings and exits; the geometry check now compares against the new icon.
+// Sabotage (each run and reverted): animate a band's height -> criterion 3
+// fails; drop will-change from .band -> 3 fails; minMs 2500 -> 4 fails; drop
+// animation:none from the Reduce Motion .band rule -> 5 fails.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, makeRunner } = require('./testHelpers.js');
+const { makeRunner } = require('./testHelpers.js');
 const { test, run } = makeRunner('test-launch.js');
 
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-const bodyStart = html.slice(html.indexOf('<body>'), html.indexOf('<body>') + 6000);
+const bodyStart = html.slice(html.indexOf('<body>'), html.indexOf('<body>') + 8000);
 const script = bodyStart.match(/<script>\s*(\(function launch\(\)\{[\s\S]*?\}\)\(\);)\s*<\/script>/)[1];
-const markup = bodyStart.match(/<div class="launch" id="launch"[\s\S]*?<\/svg>\s*<\/div>\s*<\/div>/)[0];
+const markup = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.getElementById('launch').outerHTML;
 const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+const sheetDoc = new JSDOM(`<style>${CSS}</style>`).window.document;
+const ALL = [];
+(function walk(list, media){ for(const r of list){ if(r.type === 1) ALL.push({r, media}); else if(r.type === 7) ALL.push({r, media, kf: true}); else if(r.cssRules) walk(r.cssRules, r.media ? r.media.mediaText : media); } })(sheetDoc.styleSheets[0].cssRules, null);
+const LAUNCH = ALL.filter(x => !x.kf && /^\.launch\b/.test(x.r.selectorText));
+const rule = (sel, media = null) => { const f = LAUNCH.filter(x => x.r.selectorText === sel && x.media === media); if(f.length !== 1) throw new Error(`${sel} @${media}: ${f.length}`); return f[0].r.style; };
+const KEYFRAMES = ALL.filter(x => x.kf && /^launch/.test(x.r.name));
+const REDUCE = '(prefers-reduced-motion: reduce)';
+const num = v => { const m = /calc\(var\(--u\) \* (-?[\d.]+)\)/.exec(v); if(!m) throw new Error('not a --u length: ' + v); return +m[1]; };
+const secs = t => /ms$/.test(t) ? parseFloat(t) / 1000 : parseFloat(t);
 
 function boot({ played = false, reduce = false } = {}){
   const dom = new JSDOM(`<!doctype html><body>${markup}</body>`, { runScripts: 'outside-only', url: 'https://example.test/' });
@@ -49,80 +50,134 @@ function boot({ played = false, reduce = false } = {}){
 }
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
-test('REAL markup: the launch is the first thing in <body>, hidden from assistive tech, and draws the icon\'s geometry', (assert)=>{
+test('criterion 1: the launch is first in <body>, hidden from assistive tech, and is exactly the cam > float > rig tree with two doors, four steel (lockjaw last), two sides and five bands', (assert)=>{
   assert.match(bodyStart, /^<body>\s*<!--[\s\S]*?-->\s*<div class="launch" id="launch" aria-hidden="true">/);
-  const layers = [...markup.matchAll(/<svg class="launch-layer launch-(\w+)" viewBox="0 0 1024 1024" aria-hidden="true">/g)].map(m => m[1]);
-  assert.deepStrictEqual(layers, ['tile', 'b25', 'b20', 'b15', 'b10', 'b5'], 'v3.516: the tile and five bands, heaviest first, each hidden from assistive tech');
-  const icon = fs.readFileSync(path.join(__dirname, 'icon.svg'), 'utf8');
-  assert.ok(icon.includes('<rect width="1024" height="1024" fill="#0C0C0D"/>') && markup.includes('<rect width="1024" height="1024" fill="#0C0C0D"/>'), 'same ink ground as icon.svg');
-  const bandsOf = t => [...t.matchAll(/<rect x="-400" y="(\d+)" width="1824" height="84" fill="(#[0-9A-F]{6})"/g)].map(m => m[1] + m[2]);
-  assert.strictEqual(bandsOf(markup).length, 5, 'anchor: five bands drawn');
-  assert.deepStrictEqual(bandsOf(markup), bandsOf(icon), 'each band at the icon\'s place, in the icon\'s ink');
-  assert.strictEqual((markup.match(/transform="rotate\(-30 512 512\)"/g) || []).length, 5, 'on the icon\'s rising line');
+  const d = new JSDOM(markup).window.document;
+  const el = d.getElementById('launch');
+  assert.strictEqual(el.querySelectorAll('.launch-cam').length, 1);
+  const rig = el.querySelector('.launch-cam > .launch-float > .launch-rig');
+  assert.ok(rig, 'cam > float > rig');
+  const kids = [...rig.children].map(c => c.className);
+  assert.deepStrictEqual(kids, ['door door-a', 'door door-b', 'steel steel-bar', 'steel steel-collar', 'steel steel-sleeve', 'side side-a', 'side side-b', 'steel steel-lockjaw']);
+  assert.deepStrictEqual([...rig.querySelector('.steel-lockjaw').children].map(c => c.className), ['jaw-tab', 'jaw-body']);
+  assert.deepStrictEqual([...rig.querySelectorAll('.side-a > .band')].map(b => b.classList[1]), ['b25', 'b20', 'b15']);
+  assert.deepStrictEqual([...rig.querySelectorAll('.side-b > .band')].map(b => b.classList[1]), ['b10', 'b5']);
+  assert.strictEqual(el.querySelectorAll('.band').length, 5, 'anchor: five bands');
+  assert.strictEqual(el.querySelectorAll('svg').length, 0, 'plain divs with flat fills, no SVG');
 });
 
-test('REAL invocation: a cold launch plays, a tap skips it, and it removes itself', async (assert)=>{
+test('criterion 2: geometry from option-a.svg: each band starts on its plate and ends at the icon\'s pitch; the turn lands at 60deg; the lockjaw sits between the 5 kg plate and the sleeve tip', (assert)=>{
+  const svg = fs.readFileSync(path.join(__dirname, 'tools/design/icon/option-a.svg'), 'utf8');
+  const plates = [...svg.matchAll(/<rect x="(\d+)" y="(\d+)" width="(\d+)" height="(\d+)" rx="\d+" fill="(#[0-9A-F]{6})"\/>/g)].map(m => ({x: +m[1], w: +m[3], h: +m[4]}));
+  assert.strictEqual(plates.length, 5, 'anchor: five plates in option-a.svg');
+  const extend = KEYFRAMES.find(k => k.r.name === 'launchExtend').r;
+  assert.strictEqual(extend.cssRules[0].style.getPropertyValue('transform'), 'translateX(calc(var(--u) * var(--x1))) scale(1, 1)');
+  ['25', '20', '15', '10', '5'].forEach((k, i) => {
+    const st = rule('.launch .b' + k);
+    const p = plates[i];
+    assert.strictEqual(+st.getPropertyValue('--x0'), p.x + p.w / 2 - 512, `b${k} --x0`);
+    assert.strictEqual(+st.getPropertyValue('--x1'), [-204, -102, 0, 102, 204][i], `b${k} --x1`);
+    assert.ok(Math.abs(+st.getPropertyValue('--sx') - p.w / 84) < 1e-3, `b${k} --sx`);
+    assert.ok(Math.abs(+st.getPropertyValue('--sy') - p.h / 4400) < 1e-4, `b${k} --sy`);
+  });
+  assert.strictEqual(KEYFRAMES.find(k => k.r.name === 'launchTurn').r.cssRules[0].style.getPropertyValue('transform'), 'rotate(60deg)');
+  const body = rule('.launch .jaw-body'), tab = rule('.launch .jaw-tab');
+  const [bl, bw, bt, bh] = ['left', 'width', 'top', 'height'].map(k => num(body.getPropertyValue(k)));
+  const [tl, tw, tt, th] = ['left', 'width', 'top', 'height'].map(k => num(tab.getPropertyValue(k)));
+  const fiveOuter = plates[4].x + plates[4].w - 512, sleeveTip = 270 + 590 - 512;
+  assert.strictEqual(fiveOuter, 228); assert.strictEqual(sleeveTip, 348);
+  assert.ok(bl > fiveOuter && bl + bw < sleeveTip, 'between the 5 kg plate and the sleeve tip');
+  assert.ok(bh > 60 && bh < 220 && bw >= 40, 'a block: taller than the sleeve, shorter than the inner collar, at least 40u wide');
+  assert.ok(tt + th >= bt && tt < bt && tl >= bl && tl + tw <= bl + bw, 'the tab touches the barrel\'s top edge');
+  assert.ok(Math.min(bw, tw) >= 20, 'nothing thinner than 20u');
+  assert.match(rule('.launch .steel').getPropertyValue('animation'), /launchSteelOut/);
+  for(const sel of ['.launch .jaw-tab', '.launch .jaw-body', '.launch .steel-lockjaw > i']) assert.strictEqual(rule(sel).getPropertyValue('animation'), '', sel + ': static');
+});
+
+test('criterion 3: composited only: every launch keyframe sets only transform or opacity; no other property transitions; every animated element has will-change', (assert)=>{
+  assert.ok(KEYFRAMES.length >= 8, 'anchor: keyframes ' + KEYFRAMES.length);
+  for(const {r} of KEYFRAMES) for(const f of r.cssRules) for(let i = 0; i < f.style.length; i++) assert.ok(['transform', 'opacity'].includes(f.style[i]), `${r.name}: ${f.style[i]}`);
+  for(const {r} of LAUNCH) assert.strictEqual(r.style.getPropertyValue('transition'), '', r.selectorText + ' transitions');
+  assert.doesNotMatch(KEYFRAMES.map(k => k.r.cssText).join(' '), /stroke-dash|filter|clip-path|width|height/);
+  // Every element a launch animation lands on (open state included) carries will-change.
+  const d = new JSDOM(markup.replace('class="launch"', 'class="launch is-open"')).window.document;
+  const animated = LAUNCH.filter(x => /launch\w+/.test(x.r.style.getPropertyValue('animation')));
+  assert.ok(animated.length >= 8, 'anchor: animated rules');
+  for(const {r} of animated){
+    const els = [...d.querySelectorAll(r.selectorText.split(',').map(s => s.trim()).join(','))].concat(r.selectorText.split(',').some(s => d.getElementById('launch').matches(s.trim())) ? [d.getElementById('launch')] : []);
+    assert.ok(els.length, r.selectorText + ': matches the real markup');
+    for(const el of els) assert.ok(LAUNCH.some(x => x.r.style.getPropertyValue('will-change') && el.matches(x.r.selectorText)), `${r.selectorText}: ${el.className} has will-change`);
+  }
+});
+
+test('criterion 4: timings: the Sash forms by 1.2s, the open ends by 0.75s, minMs 900, removal 750ms after is-open, one 4s cap, no overshoot', (assert)=>{
+  const anims = LAUNCH.filter(x => x.media === null).map(x => ({sel: x.r.selectorText, a: x.r.style.getPropertyValue('animation')})).filter(x => /launch\w+/.test(x.a));
+  for(const {sel, a} of anims){
+    for(const part of a.split(/,(?![^(]*\))/)){
+      const times = part.match(/-?[\d.]+m?s/g).map(secs);
+      const end = times[0] + (times[1] || 0);
+      if(/is-open/.test(sel)) assert.ok(end <= 0.75 + 1e-9, `${sel}: open ends at ${end}s`);
+      else assert.ok(end <= 1.2 + 1e-9, `${sel}: pre-open ends at ${end}s`);
+    }
+  }
+  const code = script.replace(/\/\/.*$/gm, '');
+  assert.match(code, /var minMs = reduce \? 250 : 900;/);
+  assert.match(code, /el\.classList\.add\('is-open'\);\s*setTimeout\(function\(\)\{ if\(el\.parentNode\) el\.parentNode\.removeChild\(el\); \}, reduce \? 220 : 750\);/);
+  assert.strictEqual((code.match(/setTimeout\(open, 4000\)/g) || []).length, 1, 'one cap');
+  for(const v of [rule('.launch').getPropertyValue('--launch-ease'), rule('.launch').getPropertyValue('--launch-ease-open')]){
+    const pts = v.match(/-?[\d.]+/g).map(Number);
+    assert.strictEqual(pts.length, 4, v);
+    for(const n of pts) assert.ok(n >= 0 && n <= 1, `${v}: no control point past 1`);
+  }
+});
+
+test('criterion 5: Reduce Motion shows the finished Sash still, draws no steel, and cross-fades in 200ms (real script: is-open by ~250ms, gone by ~500ms)', async (assert)=>{
+  for(const [sel, t] of [['.launch .launch-float', 'none'], ['.launch .launch-rig', 'rotate(60deg)'], ['.launch .band', 'translateX(calc(var(--u) * var(--x1)))'], ['.launch .strap', 'none']]){
+    const st = rule(sel, REDUCE);
+    assert.strictEqual(st.getPropertyValue('animation'), 'none', sel);
+    assert.strictEqual(st.getPropertyValue('transform'), t, sel);
+  }
+  assert.strictEqual(rule('.launch .steel', REDUCE).getPropertyValue('display'), 'none');
+  assert.strictEqual(rule('.launch.is-open', REDUCE).getPropertyValue('animation'), 'launchOpenFade .2s linear forwards');
+  assert.strictEqual(rule('.launch.is-open .launch-cam', REDUCE).getPropertyValue('animation'), 'none');
+  assert.strictEqual(rule('.launch.is-open .door,.launch.is-open .side', REDUCE).getPropertyValue('animation'), 'none');
+  const w = boot({ reduce: true });
+  await wait(300);
+  const el = w.document.getElementById('launch');
+  assert.ok(el && el.classList.contains('is-open'), 'open by ~250ms');
+  await wait(250);
+  assert.strictEqual(w.document.getElementById('launch'), null, 'gone by ~500ms');
+});
+
+test('criterion 6: a tap opens at once, and the layer leaves the page 800ms later; without a tap it opens by itself after the Sash forms', async (assert)=>{
   const w = boot();
   const el = w.document.getElementById('launch');
-  assert.ok(el && !el.classList.contains('is-out'), 'playing');
-  assert.strictEqual(w.sessionStorage.getItem('launch-played'), '1', 'remembered for this session');
+  assert.ok(el && !el.classList.contains('is-open'), 'playing');
   el.dispatchEvent(new w.Event('pointerdown'));
-  assert.ok(el.classList.contains('is-out'), 'a tap starts the fade at once');
-  await wait(650); // v3.387: a 0.55s fade, removed at 600ms
+  assert.ok(el.classList.contains('is-open'), 'a tap opens at once');
+  await wait(800);
   assert.strictEqual(w.document.getElementById('launch'), null, 'and it leaves the page');
-});
-
-test('REAL invocation: a reload in the same session skips it entirely', (assert)=>{
-  const w = boot({ played: true });
-  assert.strictEqual(w.document.getElementById('launch'), null);
-});
-
-test('REAL invocation: without a tap it fades on its own once drawn — sooner under Reduce Motion', async (assert)=>{
-  const reduced = boot({ reduce: true });
-  await wait(300);
-  assert.ok(reduced.document.getElementById('launch').classList.contains('is-out'), 'Reduce Motion: out by ~250ms');
   const full = boot();
   await wait(300);
-  assert.ok(!full.document.getElementById('launch').classList.contains('is-out'), 'full motion: still drawing at 300ms');
-  await wait(1150); // v3.387: holds 1.35s so the settle finishes first
-  assert.ok(!full.document.getElementById('launch') || full.document.getElementById('launch').classList.contains('is-out'), 'full motion: out by ~1.35s');
-  assert.match(script, /setTimeout\(finish, 4000\)/, 'never holds the app longer than 4s');
+  assert.ok(!full.document.getElementById('launch').classList.contains('is-open'), 'still forming at 300ms');
+  await wait(700);
+  assert.ok(full.document.getElementById('launch').classList.contains('is-open'), 'open by ~900ms once loaded');
 });
 
-test('REAL CSS: dark uses the app\'s own background; light, Increase Contrast and Reduce Motion each have their branch', (assert)=>{
-  // 2026-11-16 (v3.580, UX-03, flat ground): the launch is the flat --ground in
-  // both themes (the light tokens set it), so the light branch with its halos
-  // and porcelain #F3F0EA is gone.
+test('criterion 7: once per session: a reload skips it entirely; a cold launch remembers it', (assert)=>{
+  assert.strictEqual(boot({ played: true }).document.getElementById('launch'), null);
+  assert.strictEqual(boot().sessionStorage.getItem('launch-played'), '1');
+});
+
+test('criterion 8: the ink strap exists only in the light theme; the ground and the two Increase Contrast branches are unchanged', (assert)=>{
+  assert.strictEqual(rule('.launch .strap').getPropertyValue('display'), 'none');
+  assert.strictEqual(rule('.launch .strap', '(prefers-color-scheme: light)').getPropertyValue('display'), 'block');
+  assert.ok(LAUNCH.filter(x => /strap/.test(x.r.selectorText) && x.r.style.getPropertyValue('display') === 'block').every(x => x.media === '(prefers-color-scheme: light)'));
   assert.match(CSS, /\.launch\{[^}]*background:var\(--ground\);/);
-  assert.doesNotMatch(CSS, /@media \(prefers-color-scheme: light\)\{\s*\.launch\{/);
-  assert.doesNotMatch(CSS, /#F3F0EA/);
-  assert.match(CSS, /@media \(prefers-contrast: more\)\{\s*\.launch\{background:var\(--bg\);\}/);
-  const reduce = CSS.slice(CSS.indexOf('@media (prefers-reduced-motion: reduce){\n    .launch-layer'));
-  assert.match(reduce, /\.launch-layer\{opacity:1; transform:none; animation:none;\}/, 'the mark is shown finished, not animated');
+  assert.match(CSS, /@media \(prefers-contrast: more\)\{\s*\.launch\{background:var\(--bg\);\}\s*\}/);
+  assert.match(CSS, /@media \(prefers-contrast: more\) and \(prefers-color-scheme: light\)\{ \.launch\{background:#FFFFFF;\} \}/);
   assert.match(CSS, /\.launch\{[^}]*z-index:2147483000/, 'above everything, including the profile picker');
-});
-
-test('REAL CSS (v3.387): the launch animates transform and opacity only, on one gentle ease-out, with no overshoot', (assert)=>{
-  // 2026-10-28 (v3.477): the app's own light token block now comes first in
-  // the file, so the slice ends at the launch's light block, after .launch{.
-  const launchStart = CSS.indexOf('.launch{');
-  const launchCss = CSS.slice(launchStart, CSS.indexOf('@media (prefers-color-scheme: light)', launchStart));
-  assert.doesNotMatch(launchCss, /stroke-dash/, 'nothing is drawn with stroke dashes any more');
-  const frames = CSS.match(/@keyframes launch\w+\{[^}]*\}\}/g) || [];
-  assert.deepStrictEqual(frames, ['@keyframes launchSettle{to{opacity:1; transform:none;}}'], 'one keyframe, compositor-friendly properties only');
-  const anims = [...launchCss.matchAll(/\.launch-(tile|b25|b20|b15|b10|b5)\{transform:([^;]+); animation:launchSettle ([\d.]+)s (cubic-bezier\([^)]+\)) ([\d.]+)s/g)];
-  assert.strictEqual(anims.length, 6, 'anchor: all six layers');
-  // v3.516: the bands slide in heaviest first, evenly staggered, and every
-  // layer has settled before the launch's 1.35s hold ends.
-  const bandDelays = anims.slice(1).map(a => +a[5]);
-  for(let i = 1; i < bandDelays.length; i++) assert.ok(Math.abs(bandDelays[i] - bandDelays[i-1] - 0.07) < 1e-9, 'bands 70ms apart');
-  for(const a of anims) assert.ok(+a[3] + +a[5] <= 1.35, `${a[1]}: settled within the 1.35s hold`);
-  assert.match(launchCss, /\.launch-mark\{[^}]*border-radius:22\.5%; overflow:hidden/, 'the tile\'s rounded square clips the bands');
-  for(const a of anims){
-    assert.strictEqual(a[4], 'cubic-bezier(.33,1,.68,1)', `${a[1]}: the same gentle ease-out`);
-    for(const n of a[4].match(/[\d.]+/g).map(Number)) assert.ok(n <= 1, `${a[1]}: no control point past 1, so no overshoot`);
-  }
-  assert.match(launchCss, /\.launch-layer\{[^}]*will-change:transform, opacity/, 'each layer is promoted to its own compositing layer');
+  assert.strictEqual(rule('.launch.is-open').getPropertyValue('background'), 'transparent', 'the doors reveal the app');
 });
 
 run();

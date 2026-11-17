@@ -105,9 +105,17 @@ test('criterion 4: the Sash mark\'s hexes (header mark, the five launch layers, 
   const doc = new JSDOM(html).window.document;
   const fills = (els) => [...new Set(els.flatMap(el => [...el.querySelectorAll('[fill]')].map(n => n.getAttribute('fill').toUpperCase())).filter(f => /^#[0-9A-F]{6}$/.test(f) && f !== '#0C0C0D'))].sort();
   assert.deepStrictEqual(fills([doc.querySelector('#brandHome svg')]), want, 'header mark');
-  const layers = ['launch-b25', 'launch-b20', 'launch-b15', 'launch-b10', 'launch-b5'].map(c => doc.querySelector('svg.' + c)).filter(Boolean);
-  assert.strictEqual(layers.length, 5, 'five launch layers');
-  assert.deepStrictEqual(fills(layers), want, 'launch layers');
+  // 2026-11-17 (v3.591, UX-18): the launch draws its five bands as divs with CSS fills
+  // (.launch .b25 ... .b5 read --ink-25 ... --ink-5 from the .launch rule), not SVG layers.
+  const launchRule = rules.find(r => r.selectorText === '.launch' && !r.parentRule);
+  const bandFills = ['25', '20', '15', '10', '5'].map(k => {
+    const band = rules.find(r => r.selectorText === '.launch .b' + k);
+    assert.ok(band, '.launch .b' + k);
+    const m = /^var\((--[\w-]+)\)$/.exec(band.style.getPropertyValue('background').trim());
+    return launchRule.style.getPropertyValue(m[1]).trim().toUpperCase();
+  });
+  assert.strictEqual(doc.querySelectorAll('#launch .band').length, 5, 'five launch bands');
+  assert.deepStrictEqual([...bandFills].sort(), want, 'launch bands');
   const icon = new JSDOM(fs.readFileSync(path.join(__dirname, 'tools/design/icon/option-b.svg'), 'utf8'), {contentType: 'image/svg+xml'}).window.document;
   assert.deepStrictEqual(fills([icon.documentElement]), want, 'option-b.svg');
 });
