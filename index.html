@@ -899,6 +899,8 @@
   .cover-rir-words:empty{display:none;}
   @media (prefers-reduced-motion: reduce){ .cover-drain{transition:none;} }
   .cover[hidden]{display:none;}
+  /* v3.602 (UX-21): unfolded, the cover leads the left pane: a block in the pane, not full-bleed. */
+  .today-session-pane > .cover{margin:0 0 16px; padding:16px 18px 18px; border-radius:var(--radius-card, 22px); overflow:hidden;}
   /* v3.601 (UX-20): Today's chrome on the cover. The field starts at the top
      edge (under the status bar); the header keeps only its title, read by
      VoiceOver; the date controls, the three icon buttons and the streak sit
@@ -8144,7 +8146,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.601';
+const APP_VERSION = '3.602';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9779,6 +9781,9 @@ const WHATS_NEW = {
   '3.601': { headline: 'Today starts at the top', points: [
     'The cover now fills Today from the top of the screen. The date, Search, the coach and Settings sit on it, and your program, week and streak are the first line.',
     'The loaded bar is back above Log set, and a finished profile is now the first thing in Settings.',
+  ]},
+  '3.602': { headline: 'Unfolded, the next set leads', points: [
+    'On an unfolded phone, the cover with your next set now sits at the top of the left side, with the session under it, instead of halfway down the right side.',
   ]},
 };
 
@@ -42155,6 +42160,14 @@ function syncTodayChrome(){
   // Single column only: unfolded, the cover sits in the right pane, and until
   // UX-21 moves it to the top of the left pane the chrome stays in the header.
   const unfolded = typeof isOpenPosture === 'function' && isOpenPosture();
+  // v3.602 (UX-21): unfolded, the cover leads the left pane (the session);
+  // in a single column it leads Today, above everything, as before.
+  const pane = document.querySelector('#todayView > .today-session-pane');
+  if(card && pane){
+    if(!card._home){ card._home = document.createComment('home:upNext'); card.before(card._home); }
+    if(unfolded && pane.firstElementChild !== card) pane.prepend(card);
+    else if(!unfolded && card.previousSibling !== card._home) card._home.after(card);
+  }
   const on = !!(header && !header.classList.contains('header-compact') && card && !card.hidden && !document.body.classList.contains('gym-mode') && !unfolded);
   document.body.classList.toggle('today-cover', on);
   for(const [id, slotId] of TODAY_CHROME_MOVES){
