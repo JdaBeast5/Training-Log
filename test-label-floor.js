@@ -98,7 +98,9 @@ test('REAL CSSOM (v3.284): Today\'s word-carrying text is in the text face with 
     assert.strictEqual(ff(sel).getPropertyValue('font-family'), 'var(--font-sans)', sel);
     assert.strictEqual(ff(sel).getPropertyValue('font-variant-numeric'), 'tabular-nums', `${sel} keeps aligned figures`);
   }
-  assert.strictEqual(ff('.duration-tag').getPropertyValue('font-family'), 'var(--font-mono)', '"~63 min" is a figure and keeps mono');
+  // 2026-11-17 (v3.603, UX-22): Geist Mono is retired from the UI (the build stamp keeps it); figures are Geist, tabular.
+  assert.strictEqual(ff('.duration-tag').getPropertyValue('font-family'), 'var(--font-sans)', '"~63 min" is Geist now');
+  assert.match(ff('.duration-tag').getPropertyValue('font-variant-numeric'), /tabular-nums/, 'with tabular figures');
 });
 
 run();
