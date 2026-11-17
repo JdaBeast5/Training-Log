@@ -135,6 +135,9 @@ function buildStates(){
     states.push({ id: `gym-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', gym: true });
     states.push({ id: `rest-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', rest: true });
     states.push({ id: `firstrun-${theme}-402`, group: 'extra', theme, size: 402, motion: 'no-preference', firstRun: true });
+    // v3.598 (UX-09a): the finish sheet, opened on the fixture's session the
+    // way the completing set opens it.
+    states.push({ id: `finish-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', finish: true });
   }
   // The Reduce Motion pass: the states where motion matters most, with
   // prefers-reduced-motion: reduce emulated.
@@ -359,6 +362,15 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
         await page.waitForFunction(() => typeof BOOT_MARKS !== 'undefined' && BOOT_MARKS.initEnd, null, { timeout: 30000 });
         if(state.gym) await page.waitForSelector('body.gym-mode', { timeout: 10000 });
         if(state.rest) await page.waitForSelector('#restTimer.active', { timeout: 10000 });
+        if(state.finish){
+          // A base from before v3.598 has no finish sheet: it shoots plain Today.
+          const opened = await page.evaluate(async () => {
+            if(typeof openFinishSheet !== 'function') return false;
+            openFinishSheet(await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram));
+            return true;
+          });
+          if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
+        }
       }
       if(state.step) await runStoreStep(page, state);
       await settle(page);
@@ -437,7 +449,7 @@ const SHEET_WIDTH = 980;
 const GROUP_TITLES = {
   402: 'iPhone 402×874: Today, Food, Progress, History (dark, then light)',
   904: 'Duo unfolded 904×678: Today, Food, Progress, History (dark, then light)',
-  extra: 'Gym mode, rest timer, first-run sheet (402×874, dark and light)',
+  extra: 'Gym mode, rest timer, first-run sheet, finish sheet (402×874, dark and light)',
   reduce: 'Reduce Motion pass (402×874, dark)',
 };
 

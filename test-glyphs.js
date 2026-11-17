@@ -218,7 +218,8 @@ test('REAL ICONS (v3.425): trophy, flame and flag are one path each, on the card
 
 test('REAL invocation (v3.425): every celebration names a drawn icon; the banner draws it', (assert)=>{
   const names = [...src.matchAll(/triggerCelebration\('([^']+)'/g)].map(m => m[1]);
-  assert.ok(names.length >= 10, 'anchor: the real call sites');
+  // 2026-11-17 (v3.598, UX-09a): the "Session complete!" celebration became the finish sheet (9 sites left).
+  assert.ok(names.length >= 9, 'anchor: the real call sites');
   const shared = [...src.matchAll(/\{icon:'([^']+)', headline:/g)].map(m => m[1]);
   assert.ok(shared.length >= 3, 'anchor: the share-card data');
   for(const n of [...names, ...shared]) assert.ok(ICONS[n], n + ' is an ICONS name');

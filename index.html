@@ -903,6 +903,30 @@
   button.cover-day{display:flex; align-items:center; gap:6px; min-height:44px; margin:-6px 0; padding:0; border:0; background:none; color:inherit; text-align:left; cursor:pointer;}
   .cover-day-chev{width:22px; height:22px; flex:0 0 auto; margin-top:3px;}
   .day-sheet .tabs-header{padding-top:10px;}
+  /* v3.598 (UX-09a): the finish sheet. */
+  .finish-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; margin-top:6px; color:var(--text);}
+  .finish-best[hidden]{display:none;}
+  .finish-best{margin-top:16px; padding:16px; border-radius:var(--r-control); background:var(--surface-2); color:var(--text);}
+  .finish-best-label, .finish-best-was{font-size:15px; color:var(--text-2);}
+  .finish-best-fig{display:flex; align-items:baseline; gap:6px; font-family:var(--font-display); font-stretch:68%; margin:4px 0;}
+  .finish-best-w{font-size:64px; font-weight:800; line-height:.9;}
+  .finish-best-x{font-size:30px; font-weight:700;}
+  .finish-best-u{font-family:var(--font-sans); font-size:16px; font-weight:600;}
+  .finish-totals{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; margin-top:16px; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);}
+  .finish-total{padding:12px 0; text-align:left;}
+  .finish-total + .finish-total{padding-left:12px; border-left:1px solid var(--rule);}
+  .finish-total-v{font-family:var(--font-display); font-stretch:84%; font-size:30px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums;}
+  .finish-total-v small{font-size:18px; color:var(--text-2); font-weight:600;}
+  .finish-total-l{font-size:13px; color:var(--text-2);}
+  .finish-next-head{font-size:15px; font-weight:600; color:var(--text); margin:18px 0 4px;}
+  .finish-next-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--rule);}
+  .finish-next-name{font-size:16px; font-weight:600; color:var(--text); min-width:0;}
+  .finish-next-why{font-size:13px; font-weight:400; color:var(--text-2); margin-top:2px;}
+  .finish-next-load{font-family:var(--font-mono); font-size:16px; color:var(--text); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .finish-actions{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:12px; margin-top:18px;}
+  .finish-share{min-height:48px; border-radius:var(--radius-pill); border:1px solid var(--rule-strong); background:none; color:var(--text); font-family:var(--font-sans); font-size:16px; font-weight:600; cursor:pointer;}
+  .finish-share[hidden]{display:none;}
+  .finish-sheet .finish-done{margin:0; min-height:48px;}
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
   /* A rest day: the field (white or off, the day's own ink) and its name, so
      the day picker is always one tap away; nothing to log. */
@@ -7855,6 +7879,25 @@
   </div>
 </div>
 
+<!-- v3.598 (UX-09a): the finish sheet, opened by the completing set of a
+     session (renderWorkout) in place of the "Session complete!" toast. -->
+<div class="sub-modal-overlay finish-sheet" id="finishSheet" role="dialog" aria-modal="true" aria-labelledby="finishTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="finishTitle">Session complete</div>
+      <button type="button" class="sub-modal-close" id="finishClose" aria-label="Close the session summary">Done</button>
+    </div>
+    <div class="finish-day" id="finishDay"></div>
+    <div class="finish-best" id="finishBest" hidden></div>
+    <div class="finish-totals" id="finishTotals"></div>
+    <div class="finish-next" id="finishNext"></div>
+    <div class="finish-actions">
+      <button type="button" class="finish-share" id="finishShare" hidden>Share</button>
+      <button type="button" class="save-btn finish-done" id="finishDone">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="navMoreOverlay" role="dialog" aria-modal="true" aria-labelledby="navMoreTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -8048,7 +8091,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.597';
+const APP_VERSION = '3.598';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9668,6 +9711,10 @@ const WHATS_NEW = {
   '3.597': { headline: 'Rest happens on the cover', points: [
     'After a set, the top of Today shows the rest countdown big, with +30 s and Skip, and a bar of the day\'s colour that runs down as rest ends.',
     'Under it, set up the next set while you rest: weight and reps steppers and how many reps you had left, then Log set.',
+  ]},
+  '3.598': { headline: 'A proper finish to every session', points: [
+    'Logging the last set opens a summary: sets done, lifts and minutes, any record you set with the one it beat, and what each lift will ask of you next time, with the reason.',
+    'Share sends your session card; Done takes you back to Today.',
   ]},
 };
 
@@ -27586,6 +27633,9 @@ function chooseDayFromSheet(e){
 }
 document.getElementById('upNextDayBtn').addEventListener('click', openDaySheet);
 document.getElementById('daySheetClose').addEventListener('click', closeDaySheet);
+document.getElementById('finishClose').addEventListener('click', closeFinishSheet); // v3.598 (UX-09a)
+document.getElementById('finishDone').addEventListener('click', closeFinishSheet);
+document.getElementById('finishSheet').addEventListener('click', (e)=>{ if(e.target.id === 'finishSheet') closeFinishSheet(); });
 document.getElementById('daySheet').addEventListener('click', (e)=>{ if(e.target.id === 'daySheet') closeDaySheet(); });
 document.getElementById('tabs').addEventListener('click', chooseDayFromSheet);
 document.getElementById('tabs').addEventListener('keydown', chooseDayFromSheet);
@@ -29144,9 +29194,12 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
 
 // Builds the last 3 past sessions for an exercise in the {weight, reps, avgRpe}
 // shape analyzeProgressionSignal expects, most-recent first.
-function buildPastSessions(log){
+// v3.598 (UX-09a): `excludeDate` defaults to the day on screen; the finish
+// sheet passes null to read today's session as the most recent one.
+function buildPastSessions(log, excludeDate){
+  const skip = excludeDate === undefined ? selectedLogDate : excludeDate;
   return [...log]
-    .filter(e=> e.date !== selectedLogDate)
+    .filter(e=> e.date !== skip)
     .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'))
     .slice(0, 3)
     .map(e=>{
@@ -30538,6 +30591,9 @@ async function renderWorkout(){
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, slotIdOf(ex, i), subVariantOf(ex)))); // v3.561 (BL-72)
   // v3.535 (BL-51): what suggestions read; today's sets still come from logs[i].
   const ownLogs = logs.map((log, i)=> entriesForExercise(log, renderExercises[i] && renderExercises[i].name));
+  // v3.598 (UX-09a): what the finish sheet's "Next time" rows read.
+  const finishListEl = document.getElementById('exerciseList');
+  if(finishListEl) finishListEl._finishInputs = renderExercises.map((ex, i)=> ({ex, log: ownLogs[i], category: (exerciseInfo[ex.name] || {}).category}));
   const restingRegions = await getRestingRegions();
 
   // Warm-up ramps are scoped to the first exercise of the day, plus the
@@ -31135,7 +31191,8 @@ async function renderWorkout(){
         // confetti burst are already built, and the one moment in the app that
         // has genuinely earned them is the last set of a session logged on a
         // screen stripped down to nothing but the work.
-        triggerCelebration('flag', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive, await sessionShareStats(document.getElementById('exerciseList'), selectedLogDate, activeProgram));
+        // v3.598 (UX-09a): the finish sheet, in place of the "Session complete!" toast.
+        openFinishSheet(await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram));
         maybeShowTodayStandout();
         // The second way out of gym mode. This branch is already gated to the
         // actual completing click — a re-render never fires a checkbox 'change'
@@ -31368,6 +31425,101 @@ async function sessionShareStats(listEl, dateKey, program){
   try{ prs = (await reconstructAllPRs()).filter(e=> e.date === dateKey).length; }catch(e){}
   if(prs > 0) stats.push({value: String(prs), label: 'PRS'});
   return {icon: 'flag', headline: 'SESSION COMPLETE', stats, kind: 'session', dayId: activeDay};
+}
+
+// v3.598 (UX-09a): the finish sheet. Its content comes from one builder,
+// finishSheetModel, which reads the page and storage the way sessionShareStats
+// does: sets done of planned, lifts and minutes (no volume: D15); the best
+// set if today holds a PR, with the record it beat (reconstructAllPRs); and a
+// "Next time" row per exercise from the same suggestion engine the set fields
+// use (computeSuggestedSet), with today's session as the most recent one.
+// Clinical programs: no Share (sessionShareStats returns nothing for them).
+async function finishSheetModel(listEl, dateKey, program){
+  const clinical = program === 'medical' || !!MEDICAL_STYLES[program];
+  const hasReps = (row)=>{ const r = row.querySelector('.ex-reps'); return !!r && String(r.value).trim() !== ''; };
+  const rows = listEl ? [...listEl.querySelectorAll('.set-row')] : [];
+  const blocks = listEl ? [...listEl.querySelectorAll('.exercise-block')] : [];
+  const share = clinical ? undefined : await sessionShareStats(listEl, dateKey, program);
+  const min = share && share.stats.find(st=> st.label === 'MIN');
+  let best = null;
+  try{
+    const events = await reconstructAllPRs();
+    const today = events.filter(e=> e.date === dateKey);
+    if(today.length){
+      const top = today.find(e=> e.type === 'weight') || today[0];
+      const before = events.find(e=> e.name === top.name && e.date < dateKey);
+      best = {name: top.name, weight: top.weight, reps: top.reps, type: top.type,
+        prior: before ? {weight: before.weight, reps: before.reps, date: before.date} : null};
+    }
+  }catch(e){}
+  const inDeload = await isDeloadWeek().catch(()=> false);
+  const week = await getMesocycleWeek().catch(()=> null);
+  const next = [];
+  for(const inp of ((listEl && listEl._finishInputs) || [])){
+    const s = nextTimeSuggestion(inp, dateKey, program, inDeload, week);
+    if(s) next.push(s);
+  }
+  const dayTitle = document.getElementById('dayTitle');
+  return {day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
+    lifts: blocks.filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length, minutes: min ? Number(min.value) : null,
+    best, next, share, clinical};
+}
+
+// One exercise's next session, as its set fields will suggest it: today's
+// entry is the prior session and the newest of the past ones.
+function nextTimeSuggestion(inp, dateKey, program, inDeload, week){
+  const {ex, log, category} = inp;
+  const today = (log || []).find(e=> e.date === dateKey);
+  if(!today || !(today.sets || []).some(st=> st && st.weight != null && st.reps != null)) return null;
+  const past = buildPastSessions(log, null);
+  const signal = analyzeProgressionSignal(past, ex, category, program);
+  const rpeCtx = {e1rm: recentBestE1RM(past), week, program, category};
+  const basis = priorSetForSlot(today, 0, ex, false);
+  // With nothing to change, the set fields ghost today's own numbers (as
+  // renderWorkout's placeholders do), so that is what next time holds at.
+  const s = computeSuggestedSet(basis, signal, inDeload, category, ex, sessionTopOf(today), rpeCtx, today)
+    || (basis && basis.weight != null ? {weight: toDisplayWeight(basis.weight), reps: basis.reps, reason: 'hold'} : null);
+  if(!s || s.weight == null) return null;
+  const words = s.reason === 'increase' ? 'Every set reached the top of the range: up a step.'
+    : s.reason === 'decrease' ? 'Reps fell short: a little lighter.'
+    : s.reason === 'deload' ? 'Deload: lighter on purpose.'
+    : s.reason === 'rpe' ? `From your recent best, at RPE ${s.targetRpe}.`
+    : 'Hold until every set reaches the top of the range.';
+  return {name: ex.name, weight: s.weight, reps: s.reps, reason: s.reason || 'hold', words};
+}
+
+function openFinishSheet(model){
+  const sheet = document.getElementById('finishSheet');
+  if(!sheet || !model) return;
+  document.getElementById('finishDay').textContent = model.day;
+  const best = document.getElementById('finishBest');
+  if(model.best){
+    const b = model.best;
+    const gain = b.prior && b.type === 'weight' ? ` · +${fmtWeight(b.weight - b.prior.weight)} on your best, ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : '';
+    best.innerHTML = `<div class="finish-best-label">${b.type === 'weight' ? 'Heaviest weight yet' : 'Best estimated 1RM yet'} · ${escapeHtml(b.name)}</div>
+      <div class="finish-best-fig"><span class="finish-best-w">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))}</span><span class="finish-best-u">${escapeHtml(weightUnit)}</span><span class="finish-best-x">×${escapeHtml(String(b.reps))}</span></div>
+      <div class="finish-best-was">${escapeHtml(gain.replace(/^ · /, '') || (b.prior ? `Your best before: ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : 'Your first record on this lift.'))}</div>`;
+    best.hidden = false;
+  } else { best.innerHTML = ''; best.hidden = true; }
+  const totals = [[`${model.sets}<small>/${model.planned}</small>`, 'Sets'], [String(model.lifts), 'Lifts']];
+  if(model.minutes) totals.push([String(model.minutes), 'Minutes']);
+  document.getElementById('finishTotals').innerHTML = totals.map(([v, l])=> `<div class="finish-total"><div class="finish-total-v">${v}</div><div class="finish-total-l">${l}</div></div>`).join('');
+  const nextEl = document.getElementById('finishNext');
+  nextEl.innerHTML = model.next.length ? `<h3 class="finish-next-head">Next time</h3>` + model.next.map(n=> `<div class="finish-next-row"><div class="finish-next-name">${escapeHtml(n.name)}<div class="finish-next-why">${escapeHtml(n.words)}</div></div><div class="finish-next-load">${escapeHtml(trimUnitNum(n.weight))} ${escapeHtml(weightUnit)}${n.reps != null ? ` × ${escapeHtml(String(n.reps))}` : ''}</div></div>`).join('') : '';
+  const shareBtn = document.getElementById('finishShare');
+  const fresh = shareBtn.cloneNode(true);
+  shareBtn.parentNode.replaceChild(fresh, shareBtn);
+  fresh.hidden = !model.share;
+  if(model.share){ preloadShareCardFont(); fresh.addEventListener('click', ()=> shareCelebrationCard(model.share, 'finishShare')); }
+  sheet.classList.add('active');
+  setTimeout(()=>{ const d = document.getElementById('finishDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll:true}); }, 0);
+}
+function closeFinishSheet(){
+  const sheet = document.getElementById('finishSheet');
+  if(!sheet || !sheet.classList.contains('active')) return;
+  sheet.classList.remove('active');
+  const back = document.getElementById('upNextDayBtn') || document.getElementById('todayView');
+  if(back){ try{ back.focus({preventScroll:true}); }catch(e){} }
 }
 
 // [SHARE CARD] --------------------------------------------------------------
@@ -42019,7 +42171,7 @@ const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
   'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay',
-  'whatsNewOverlay', 'navMoreOverlay', 'daySheet'
+  'whatsNewOverlay', 'navMoreOverlay', 'daySheet', 'finishSheet'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -42092,6 +42244,7 @@ const OVERLAY_CLOSERS = {
   whatsNewOverlay:      ()=> closeWhatsNew(),
   navMoreOverlay:       ()=> closeNavMoreOverlay(),
   daySheet:             ()=> closeDaySheet(), // v3.595 (UX-06b)
+  finishSheet:          ()=> closeFinishSheet(), // v3.598 (UX-09a)
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
