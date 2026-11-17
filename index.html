@@ -135,6 +135,11 @@
     --on-blue:#FFFFFF; /* target #FFFFFF */
     --on-yellow:#0C0C0D; /* target #0C0C0D */
     --on-green:#0C0C0D; /* target #0C0C0D */
+    /* v3.589 (UX-12): text on a filled day block (History's month), chosen
+       per theme by the contrast pass. Dark: the on-ink, except red, whose
+       bright #FF453A carries white at only 3.4:1 and the ground ink at 6:1
+       (the spot red stays bright: it is also text, the day's hue). */
+    --block-on-red:#0C0C0D; --block-on-yellow:var(--on-yellow); --block-on-green:var(--on-green);
     --on-white:#0C0C0D; /* target #0C0C0D */
     --on-off:#FFFFFF; /* target #FFFFFF */
     --deep-red:#6E1712; /* target #6E1712 */
@@ -419,6 +424,10 @@
       --on-blue:#FFFFFF; /* target #FFFFFF */
       --on-yellow:#0C0C0D; /* target #0C0C0D */
       --on-green:#0C0C0D; /* target #0C0C0D */
+      /* v3.589 (UX-12): the light yellow and green fills are darkened for text
+         on chalk (#8F6200, #187A33): their dark on-ink reads 3.6:1 on a day
+         block, white 5.0 and 5.5:1. */
+      --block-on-red:#FFFFFF; --block-on-yellow:#FFFFFF; --block-on-green:#FFFFFF;
       --on-white:#0C0C0D; /* target #0C0C0D */
       --on-off:#FFFFFF; /* target #FFFFFF */
       --deep-red:#6E1712; /* target #6E1712 */
@@ -3286,6 +3295,19 @@
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.3) inset, 0 6px 16px -8px rgba(var(--plate-blue-rgb),0.6);
   }
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
+  /* v3.589 (UX-12): History's month as plate blocks: a trained date is filled
+     with its session's day ink (the same --spot-* as the day discs), its
+     number in that ink's on-colour, so a month's consistency reads by colour.
+     The fill is restated here: .calendar-cell's own background comes later. */
+  #historyHeatmapGrid .calendar-cell.plate-block{border-radius:8px; font-weight:600;}
+  .legend-plate-block{display:inline-flex; gap:2px; margin-right:6px; vertical-align:middle;}
+  .legend-plate-block b{width:7px; height:10px; border-radius:2px;}
+  #historyHeatmapGrid .plate-block.p-red{background:var(--spot-red); color:var(--block-on-red);}
+  #historyHeatmapGrid .plate-block.p-blue{background:var(--spot-blue); color:var(--on-blue);}
+  #historyHeatmapGrid .plate-block.p-yellow{background:var(--spot-yellow); color:var(--block-on-yellow);}
+  #historyHeatmapGrid .plate-block.p-green{background:var(--spot-green); color:var(--block-on-green);}
+  #historyHeatmapGrid .plate-block.p-white{background:var(--spot-white); color:var(--on-white);}
+  #historyHeatmapGrid .plate-block.p-off{background:var(--spot-off); color:var(--on-off);}
   .calendar-close-btn{
     width:100%; background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); color:var(--text);
     box-shadow:var(--rim);
@@ -6947,7 +6969,8 @@
         </div>
         <div class="calendar-grid" id="historyHeatmapGrid"></div>
         <div class="calendar-legend">
-          <span><i class="calendar-cell-dot mark-trained"></i>Trained</span>
+          <!-- v3.589 (UX-12): a trained day is a block in that day's colour. -->
+          <span><i class="legend-plate-block" aria-hidden="true"><b class="p-red"></b><b class="p-blue"></b><b class="p-yellow"></b></i>Trained, in the day's colour</span>
           <span><i class="calendar-cell-dot mark-rest"></i>Rest day</span>
           <span><i class="calendar-cell-dot mark-off"></i>No training</span>
         </div>
@@ -7747,7 +7770,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.588';
+const APP_VERSION = '3.589';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9334,6 +9357,9 @@ const WHATS_NEW = {
   ]},  '3.588': { headline: 'A cleaner Food screen', points: [
     'Under calories left, today\'s calories, protein, carbs and fat now sit in one row of numbers, each with its target, in place of four bars.',
     'Each food you\'ve eaten shows its calories and macros on a second line, and the buttons for adding food are full-size.',
+  ]},  '3.589': { headline: 'History\'s calendar in colour', points: [
+    'On History, each day you trained is now a block in that day\'s colour, so you can see a month\'s consistency at a glance. Tap a day to jump to it, as before.',
+    'Rest days and days with nothing logged keep their small marks.',
   ]},
 };
 
@@ -41786,6 +41812,41 @@ function closeCalendarModal(){
 let historyHeatmapViewYear = null;
 let historyHeatmapViewMonth = null;
 let _historyHeatmapDayStatus = null;
+let _historyHeatmapDayInk = null; // v3.589 (UX-12): date -> the main session's ink
+
+// v3.589 (UX-12): the ink of a trained date is its main session's day ink: the
+// program day with the most logged sets that date (a set with weight, reps or
+// distance), ties to the earliest in the day order. Without any logged set the
+// checked-off days count (exercises ticked, under the active program). Pure:
+// it reads only the two corpora it is given. null when nothing was trained.
+function inkForDate(workoutCorpus, exCorpus, date){
+  const counts = new Map();
+  const add = (prog, dayId, n)=>{ if(n > 0){ const k = prog + '|' + dayId; counts.set(k, (counts.get(k) || 0) + n); } };
+  for(const {parsed, log} of exCorpus || []){
+    if(!parsed) continue;
+    for(const e of log || []){
+      if(e.date !== date) continue;
+      add(parsed.program, parsed.dayId, (e.sets || []).filter(st=> st.weight != null || st.reps != null || st.distance != null).length);
+    }
+  }
+  if(counts.size === 0){
+    for(const w of workoutCorpus || []){
+      if(w.date === date && w.anyDone) add(activeProgram, w.dayId, Object.values(w.completed || {}).filter(v=> v === true).length);
+    }
+  }
+  if(counts.size === 0) return null;
+  const place = (prog, id)=>{
+    const order = (prog === activeProgram && Array.isArray(dayOrder)) ? dayOrder : Object.keys(((programs[prog] || {}).days) || {});
+    const i = order.indexOf(id);
+    return i < 0 ? Infinity : i;
+  };
+  let best = null;
+  for(const [k, n] of counts){
+    const [prog, id] = k.split('|');
+    if(!best || n > best.n || (n === best.n && place(prog, id) < place(best.prog, best.id))) best = {prog, id, n};
+  }
+  return dayInk(best.id, best.prog);
+}
 
 async function renderHistoryHeatmap(){
   const wrap = document.getElementById('historyHeatmap');
@@ -41800,6 +41861,17 @@ async function renderHistoryHeatmap(){
   }
   wrap.style.display = '';
   _historyHeatmapDayStatus = dayStatus;
+  // v3.589 (UX-12): each trained date's block takes its main session's ink.
+  const inks = new Map();
+  try{
+    const [workoutCorpus, exCorpus] = await Promise.all([readWorkoutCorpus(), readExCorpus()]);
+    for(const [date, status] of dayStatus){
+      if(status !== 'trained') continue;
+      const ink = inkForDate(workoutCorpus, exCorpus, date);
+      if(ink) inks.set(date, ink);
+    }
+  }catch(e){}
+  _historyHeatmapDayInk = inks;
   // Only ever set once per page load — a re-render (tab revisit, search
   // filter changing) must not snap the calendar back to the current month
   // out from under someone who navigated it elsewhere.
@@ -41830,6 +41902,10 @@ function renderHistoryHeatmapMonth(){
     const status = dayStatus.get(dateKey);
     if(!status){ cells += `<div class="calendar-cell${isToday?' today':''}" aria-hidden="true">${day}</div>`; continue; }
     const label = status === 'trained' ? ' — trained' : status === 'rest' ? ' — rest day' : ' — no training logged';
+    // v3.589 (UX-12): a trained date is a plate block in its session's ink;
+    // rest and off keep their dots.
+    const ink = status === 'trained' && _historyHeatmapDayInk ? _historyHeatmapDayInk.get(dateKey) : null;
+    if(ink){ cells += `<button type="button" class="calendar-cell plate-block p-${ink}${isToday?' today':''}" data-jump-date="${dateKey}" aria-label="${dateKey}${label}">${day}</button>`; continue; }
     cells += `<button type="button" class="calendar-cell${isToday?' today':''}" data-jump-date="${dateKey}" aria-label="${dateKey}${label}">${day}<span class="calendar-cell-dot mark-${status}"></span></button>`;
   }
   document.getElementById('historyHeatmapGrid').innerHTML = cells;

@@ -45,6 +45,7 @@ function fetchDayStatusesGlobals(entries){
     window.historyHeatmapViewYear = null;
     window.historyHeatmapViewMonth = null;
     window._historyHeatmapDayStatus = null;
+    window._historyHeatmapDayInk = null; // 2026-11-16 (v3.589, UX-12)
   `;
 }
 
@@ -84,18 +85,25 @@ test('labels the currently-viewed month/year and renders a full grid', (assert)=
   assert.strictEqual(numberedCells.length, 30);
 });
 
-test('a day with a status renders as a clickable cell with the right dot class and aria-label, keyed to that exact date', (assert)=>{
+// 2026-11-16 (v3.589, UX-12): a trained date is a plate block in its session's
+// ink (class p-<ink>, no dot); without a known ink it keeps the trained dot.
+test('a day with a status renders as a clickable cell: a trained day is a plate block in its ink (no dot), with its aria-label, keyed to that exact date', (assert)=>{
   const { document, window } = runJsdom(historyViewHtml, '', baseChunks);
   const todayKey = window.getTodayKey();
   const [y, m] = todayKey.split('-').map(Number);
   window.historyHeatmapViewYear = y;
   window.historyHeatmapViewMonth = m - 1;
   window._historyHeatmapDayStatus = new Map([[todayKey, 'trained']]);
+  window._historyHeatmapDayInk = new Map([[todayKey, 'red']]);
   window.renderHistoryHeatmapMonth();
   const cell = document.querySelector(`[data-jump-date="${todayKey}"]`);
   assert.ok(cell, 'expected a real button for the trained day, keyed by its exact date');
   assert.strictEqual(cell.tagName, 'BUTTON');
-  assert.ok(cell.querySelector('.calendar-cell-dot.mark-trained'));
+  assert.ok(cell.classList.contains('plate-block') && cell.classList.contains('p-red'), cell.className);
+  assert.strictEqual(cell.querySelector('.calendar-cell-dot'), null, 'the block replaces the dot');
+  window._historyHeatmapDayInk = new Map();
+  window.renderHistoryHeatmapMonth();
+  assert.ok(document.querySelector(`[data-jump-date="${todayKey}"] .calendar-cell-dot.mark-trained`), 'no known ink: the trained dot stays');
   assert.match(cell.getAttribute('aria-label'), /trained/);
   assert.ok(cell.classList.contains('today'), 'today must get the same .today highlight as the backdating picker');
 });
@@ -257,6 +265,66 @@ test('jumpToHistoryDay does not re-fill an already-open, already-filled month (a
   window.jumpToHistoryDay('2026-06-15');
 
   assert.strictEqual(window.__calls, undefined, 'fillHistoryMonth must only be called when the group was actually opened by this call, matching how renderHistory itself opens groups');
+});
+
+// ---- v3.589 (UX-12): History's month as plate blocks ---------------------
+// Real renderHistoryHeatmap -> renderHistoryHeatmapMonth over the real
+// #historyView, the real inkForDate and dayInk over the real programs, with
+// fetchDayStatuses and the two corpora stubbed at their storage boundary.
+const INK_CHUNKS = [extractConst(src, 'programs'), extractConst(src, 'DAY_INKS'), extractConst(src, 'CUSTOM_PLATES'),
+  extractFunction(src, 'dayInk'), extractFunction(src, 'inkForDate'), extractFunction(src, 'renderHistoryHeatmap')];
+// A month before the current one, so every date in it is in the past.
+const PAST = (() => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 1); return {y: d.getFullYear(), m: d.getMonth()}; })();
+const pastKey = (day) => `${PAST.y}-${String(PAST.m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+const sets = (n) => Array.from({length: n}, () => ({weight: 100, reps: 5}));
+const ex = (dayId, date, n, program = 'strength') => ({parsed: {program, dayId, idx: 0}, log: [{date, sets: sets(n)}]});
+
+async function blocksFor(statuses, exCorpus, workoutCorpus = []){
+  const { document, window } = runJsdom(historyViewHtml, `
+    window.fetchDayStatuses = async ()=> new Map(${JSON.stringify(statuses)});
+    window.readExCorpus = async ()=> ${JSON.stringify(exCorpus)};
+    window.readWorkoutCorpus = async ()=> ${JSON.stringify(workoutCorpus)};
+    window.historyHeatmapViewYear = ${PAST.y}; window.historyHeatmapViewMonth = ${PAST.m};
+    window._historyHeatmapDayStatus = null; window._historyHeatmapDayInk = null;
+    var activeProgram = 'strength', dayOrder = ['d1','d2','d3','d4','d5','d6','d7'];
+    window.__jumps = []; window.jumpToHistoryDay = (d)=> window.__jumps.push(d);`, [...baseChunks, ...INK_CHUNKS]);
+  await window.renderHistoryHeatmap();
+  return {document, window, blocks: [...document.querySelectorAll('#historyHeatmapGrid .plate-block')]};
+}
+
+test('UX-12 criterion 1: each trained date renders exactly one block in its main session\'s dayInk (a strength d1 date is red); dates without a session stay plain', async (assert)=>{
+  const statuses = [[pastKey(3), 'trained'], [pastKey(4), 'trained'], [pastKey(10), 'rest']];
+  const { document, blocks } = await blocksFor(statuses, [ex('d1', pastKey(3), 5), ex('d2', pastKey(4), 6)]);
+  assert.deepStrictEqual(blocks.map(b => [b.dataset.jumpDate, [...b.classList].filter(c => /^p-/.test(c)).join()]),
+    [[pastKey(3), 'p-red'], [pastKey(4), 'p-blue']]);
+  assert.ok(document.querySelector(`[data-jump-date="${pastKey(10)}"] .calendar-cell-dot.mark-rest`), 'rest keeps its own look');
+  const plain = document.querySelector('#historyHeatmapGrid .calendar-cell:not(.empty):not([data-jump-date])');
+  assert.ok(plain && plain.tagName === 'DIV' && !plain.classList.contains('plate-block'), 'an empty date is a plain, non-interactive cell');
+});
+
+test('UX-12 criterion 2: tapping a block calls the real jumpToHistoryDay with that date, which scrolls the matching day card into view once', async (assert)=>{
+  const { document, window, blocks } = await blocksFor([[pastKey(3), 'trained']], [ex('d1', pastKey(3), 5)]);
+  // The real jump chain (as the cases above), on this document.
+  window.eval(JUMP_SRC + '\nwindow.jumpToHistoryDay = jumpToHistoryDay; window.fillHistoryMonth = ()=>{};');
+  const details = document.createElement('details'); details.className = 'month-group'; details.dataset.month = pastKey(3).slice(0, 7);
+  const card = document.createElement('div'); card.className = 'day-card'; card.dataset.date = pastKey(3);
+  let scrolled = 0; card.scrollIntoView = () => { scrolled++; };
+  details.appendChild(card); document.getElementById('historyList').appendChild(details);
+  window.renderHistoryHeatmapMonth(); // rewire the blocks to the real jump
+  document.querySelector(`#historyHeatmapGrid .plate-block[data-jump-date="${pastKey(3)}"]`).click();
+  assert.strictEqual(scrolled, 1);
+  assert.strictEqual(details.open, true);
+  assert.ok(blocks.length === 1);
+});
+
+test('UX-12 criterion 3: a date with two sessions (d1 with 12 sets, d3 with 4) takes d1\'s ink; a tie goes to the earlier day', async (assert)=>{
+  const { blocks } = await blocksFor([[pastKey(5), 'trained']], [ex('d3', pastKey(5), 4), ex('d1', pastKey(5), 12)]);
+  assert.deepStrictEqual(blocks.map(b => b.className.match(/p-\w+/)[0]), ['p-red']);
+  const tie = await blocksFor([[pastKey(5), 'trained']], [ex('d3', pastKey(5), 6), ex('d2', pastKey(5), 6)]);
+  assert.deepStrictEqual(tie.blocks.map(b => b.className.match(/p-\w+/)[0]), ['p-blue'], 'a tie takes d2 (blue) before d3');
+  // No logged sets: the checked-off day (workout corpus) decides.
+  const ticked = await blocksFor([[pastKey(6), 'trained']], [], [{date: pastKey(6), dayId: 'd4', anyDone: true, completed: {0: true}}]);
+  assert.deepStrictEqual(ticked.blocks.map(b => b.className.match(/p-\w+/)[0]), ['p-yellow'], 'strength d4 is yellow');
 });
 
 run();
