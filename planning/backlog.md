@@ -3654,7 +3654,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** 09a: TOOL-01's harness, `Skill: apple-hig` (sheets). 09b: `Skill: animate` and `Skill: review-animations` (the `clip-path` flood), `Skill: animation-performance`.
 - **Split of criteria (spec refresh 3):** 09a owns 1, 3, 5, 6 (no Share, no trophy part) and 7; 09b owns 2, 4, the flood half of 6, and the motion (Reduce Motion: a cut, never replays on reopen; assert with `matchMedia` stubbed, no `animation`/`transition` on the flood element).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: "volume" in the totals contradicted D15 and the corrected `pr.html`; the sheet's trigger is inside `renderWorkout`, so content moves to a driven builder plus a one-site call count; the harness has no finish state, so 09a adds one; criteria split between 09a and 09b. Checked against `pr.html` ("Heaviest weight yet", hold at 160). Scope unchanged.
-- **Status:** ready (after BL-08 and MKT-04)
+- **Status:** 09a done (v3.598, PR #176): `finishSheetModel`, `nextTimeSuggestion`, `openFinishSheet`, `closeFinishSheet`; `test-finish-sheet.js`; harness `finish-*-402`. 09b (the flood and its motion, criteria 2, 4 and the flood half of 6) ready.
 
 ### UX-10: Progress leads with the answer
 - **Why:** Analysis opens on an AI button that needs a key (BIZ-06) and 13 collapsible cards. "Am I getting stronger?" should be answered first (`renders/progress-dark.png`).
