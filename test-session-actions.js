@@ -38,7 +38,9 @@ test('REAL markup: phase and length share one meta line; length and Gym mode sha
   assert.strictEqual($('sessionLengthSelector').closest('.session-actions'), actions, 'the select is in the same row');
   assert.strictEqual(actions.children.length, 2, 'exactly the two controls');
   assert.ok(precedes(meta, $('sessionCalTotal')) && precedes($('sessionCalTotal'), actions), 'meta, calories, actions');
-  assert.ok(precedes(actions, $('upNext')), 'the controls come before Up next');
+  // 2026-11-17 (v3.593, UX-06a): Up next left the workout card for the top of
+  // Today as its cover, so it now comes before the card and these controls.
+  assert.ok(precedes($('upNext'), actions) && !$('upNext').closest('#workoutCard'), 'Up next (the cover) leads Today, ahead of the controls');
   assert.strictEqual(document.querySelectorAll('#gymEnterBtn').length, 1, 'sabotage anchor: one Gym mode button, not a leftover copy');
 });
 

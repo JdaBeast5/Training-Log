@@ -1375,3 +1375,14 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What broke:** v3.591 shipped an unescaped apostrophe in a single-quoted WHATS_NEW string; the main inline script failed to parse, so the live app showed an empty Today and no programs (owner's screenshots).
 - **Why it got out:** the suite catches it, but the line was edited after check.sh passed and committed without a re-run.
 - **Rule:** run `bash check.sh` as the LAST step before every commit, after every edit, however small (wording included). Prefer "it's"-free wording or escape with \' in single-quoted strings.
+
+## Addendum 117: UX-06a, the Today cover (v3.593, PR #171, 2026-11-17)
+- **What:** `#upNext` left the workout card and became `<section class="cover">`, the first child of `#todayView`: the day headline, the lift and "Set n of N", the prescription with BL-10's effort words (read from the row's `.ex-rir` label), BIZ-05's first-set hint, the cover numeral (weight and ×reps; reps alone without a weight field; the target reps on a first-ever lift), Log and adjust (16 px apart), the fields behind adjust (`expand-wrap`, IDs kept), the lift's chips (drawn from the real strip as `.cover-chip`, a tap forwards to the real `.set-chip`), the resting-region caution and swap, the set-to-set note, and the week/phase line at the foot.
+- **Logging:** `logUpNext` now goes through `commitSet` (the chips' path, with Undo). The progress ring is gone; `#upNextProgress` keeps the spoken count.
+- **Tokens:** `--cover`, `--on-cover`, `--cover-figure`, `--cover-action` and `--on-cover-action` are declared on `.cover` (two suites require exactly one bare `body` rule). A yellow day reads `--yellow-cover*`, which `:root` sets to the deep ink and the light token block sets to the spot field. Where `--on-spot` fails 4.5:1 (dark red, light yellow and green), the text takes `--block-on-*`.
+- **Unverified:** on device. Wet-thumb spacing and the 150 px numeral were checked only in Chromium at 402 × 874 (Log top y = 471).
+- **Flags (not fixed):**
+  - On a 904 px foldable, the cover sits in the right pane below the exercise details.
+  - Rest days still hide the cover; the spec's white/off field is open.
+  - The light `--on-green` (#0C0C0D on #187A33, 3.6:1) is used on other green fills (the done check, the buttons at `.spot-green` sites). That's for the contrast pass, not this item.
+  - The duplicate `'3.592'` WHATS_NEW key is still there; it's harmless.

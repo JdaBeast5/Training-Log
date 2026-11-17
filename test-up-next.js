@@ -22,7 +22,13 @@ const src = readIndexSource();
 // v3.298: logUpNext writes through writeSetToRow, shared with the set chips.
 // 2026-10-26 (v3.376): each open exercise carries its own logger (exLoggerHtml
 // in the template; fillSetLogger/readSetLogger shared with Up next).
-const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow'].map(n => extractFunction(src, n));
+// 2026-11-17 (v3.593, UX-06a): Up next became Today's cover (test-today-cover.js
+// covers what is new). renderUpNext also draws the cover's numeral, chips and
+// caution, and logUpNext logs through commitSet (the chips' path, with Undo),
+// so those come along; the set chips themselves are stubbed (none here).
+const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow',
+  'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
+const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; }";
 
 // One row, shaped like renderWorkout's .set-row template.
 function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', rv = '', rpev = ''} = {}){
@@ -38,23 +44,23 @@ function mount(listHtml){
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${listHtml}</div>`,
     // 2026-11-03 (v3.499): renderUpNext steers the open-screen details pane
     // unless pinned; pinned here, since that pane is not what this tests.
-    'var weightUnit = "lb"; var exerciseDetailPinned = true;', [...FNS, 'window.__render = renderUpNext; window.__log = logUpNext; window.__find = findNextSetRow;']);
+    'var weightUnit = "lb"; var exerciseDetailPinned = true;' + STUBS, [...FNS, 'window.__render = renderUpNext; window.__log = logUpNext; window.__find = findNextSetRow;']);
   const $ = id => window.document.getElementById(id);
   return { window, $, render: () => window.__render(), log: () => window.__log() };
 }
 const BENCH_DONE = block('4×4-6', [0,1,2,3].map(i => row(0, i, 'Bench Press', {wv:'185', rv:'5'})).join(''));
 
-test('REAL invocation: the card shows the first set without reps — label, lift, prescription (calorie tag excluded), ring', (assert)=>{
+// 2026-11-17 (v3.593, UX-06a): the label reads "Set 1 of 4" beside the lift
+// (the cover says "Up next" by being the cover), and the ring is gone; the
+// spoken progress stays.
+test('REAL invocation: the card shows the first set without reps — label, lift, prescription (calorie tag excluded), progress', (assert)=>{
   const ui = mount(BENCH_DONE + block('4×6-8', [0,1,2,3].map(i => row(1, i, 'Barbell Row')).join('')));
   ui.render();
   assert.strictEqual(ui.$('upNext').hidden, false);
-  assert.strictEqual(ui.$('upNextLabel').textContent, 'Up next · set 1 of 4');
+  assert.strictEqual(ui.$('upNextLabel').textContent, 'Set 1 of 4');
   assert.strictEqual(ui.$('upNextLift').textContent, 'Barbell Row');
   assert.strictEqual(ui.$('upNextTarget').textContent, '4×6-8 reps');
-  assert.strictEqual(ui.$('upNextRingText').textContent, '4/8');
-  assert.strictEqual(ui.$('upNextRingFill').getAttribute('stroke-dashoffset'), '50');
-  // The ring is decoration to assistive tech; its meaning is spoken from hidden text.
-  assert.strictEqual(ui.window.document.querySelector('.up-next-ring').getAttribute('aria-hidden'), 'true');
+  assert.strictEqual(ui.window.document.querySelector('.up-next-ring'), null, 'the ring went with UX-06a');
   assert.strictEqual(ui.$('upNextProgress').textContent, '4 of 8 sets done');
 });
 
@@ -89,7 +95,7 @@ test('REAL invocation: Log set writes into the REAL row and fires its change eve
   ui.$('upNextWeight').value = '135'; ui.$('upNextReps').value = '8'; ui.$('upNextRpe').value = '7';
   assert.strictEqual(ui.log(), true);
   assert.deepStrictEqual(order, ['weight:135', 'rpe:7', 'reps:8']);
-  assert.strictEqual(ui.$('upNextLabel').textContent, 'Up next · set 2 of 2', 'the card moved on');
+  assert.strictEqual(ui.$('upNextLabel').textContent, 'Set 2 of 2', 'the card moved on');
 });
 
 test('GUARD: with reps empty, Log set writes nothing and puts the cursor in reps', (assert)=>{
@@ -113,8 +119,9 @@ test('REAL invocation: exercises ticked done are skipped; superset rows are take
 test('REAL invocation: a finished session says so; a rest day (no rows) hides the card', (assert)=>{
   const ui = mount(BENCH_DONE);
   ui.render();
-  assert.strictEqual(ui.$('upNextLabel').textContent, 'Session complete');
-  assert.strictEqual(ui.$('upNextLift').textContent, 'All 4 sets logged');
+  // 2026-11-17 (v3.593): the lift line says it, the prescription line counts it.
+  assert.strictEqual(ui.$('upNextLift').textContent, 'Session complete');
+  assert.strictEqual(ui.$('upNextTarget').textContent, 'All 4 sets logged');
   assert.ok(ui.$('upNext').classList.contains('is-done'));
   const rest = mount('');
   rest.render();
@@ -152,7 +159,7 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
     window.storage = { get: async () => null, set: async () => {} };
     function formatLogDateLabel(){ return 'Today'; }
     function recordActivity(){ return Promise.resolve(); } function renderStreak(){}
-  `, [...FNS, `window.__render = renderUpNext;
+  ` + STUBS, [...FNS, `window.__render = renderUpNext;
     window.__rest = async function(day){ const list = document.getElementById('exerciseList'); list.innerHTML = ''; ${branch} };`]);
   const $ = id => window.document.getElementById(id);
   window.__render();
@@ -166,23 +173,24 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
 // v3.292 (Impeccable distill): the input wells lose their hairline (the panel
 // already draws the edge) and the fields→button gap tightens so the inputs and
 // Log set read as one group, set apart from the heading above.
-// v3.293: checked on the COMPUTED style of the real card, not the rule text —
-// the rule-text version of this test passed while the global .save-btn rule
-// (later in the sheet, same specificity) silently overrode the gap. Also: the
-// primary is never set smaller than the 16px controls row above it.
-test('REAL computed style (v3.292/3): borderless wells; fields→button gap tighter than heading→fields; Log set ≥ 16px', (assert)=>{
+// v3.293: checked on the COMPUTED style of the real card, not the rule text.
+// 2026-11-17 (v3.593, UX-06a): the cover no longer has a glass panel: its
+// fields sit behind "adjust", under the Log button, outlined in the field's
+// own ink (test-today-cover.js). The panel these rules shaped lives on as each
+// open exercise's logger (exLoggerHtml), so that is what this now checks; the
+// gap ordering went with the cover's layout (Log comes first there now).
+test('REAL computed style (v3.292/3): the exercise logger keeps borderless wells and a Log set ≥ 16px', (assert)=>{
   const fs = require('fs'), path = require('path'), { JSDOM } = require('jsdom');
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const css = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-  const { window } = new JSDOM(`<style>${css}</style>${extractElementById(src, 'upNext')}`);
+  const logger = extractFunction(src, 'exLoggerHtml');
+  const { window } = new JSDOM(`<style>${css}</style><div id="m"></div><script>${logger}; document.getElementById('m').innerHTML = exLoggerHtml();</script>`, {runScripts: 'dangerously'});
   const cs = sel => window.getComputedStyle(window.document.querySelector(sel));
-  assert.match(cs('.up-next-field').borderTopColor, /^(transparent|rgba\(0, 0, 0, 0\))$/, 'no visible hairline on the wells');
+  assert.match(cs('.ex-logger .up-next-field').borderTopColor, /^(transparent|rgba\(0, 0, 0, 0\))$/, 'no visible hairline on the wells');
   // jsdom drops var() borders when computing, so also pin the declared value.
-  assert.match(html.match(/\.up-next-field\{[^}]*\}/)[0], /border:1px solid transparent/, 'declared border stays transparent');
-  const gapAbove = parseFloat(cs('.up-next-fields').marginTop);
-  const gapBelow = parseFloat(cs('#upNextLog').marginTop);
-  assert.ok(gapBelow < gapAbove, `fields→button (${gapBelow}px) must be tighter than heading→fields (${gapAbove}px)`);
-  assert.ok(parseFloat(cs('#upNextLog').fontSize) >= 16, `Log set renders at ${cs('#upNextLog').fontSize}`);
+  // (the bare rule, not the cover's `.cover .up-next-field` override)
+  assert.match(html.match(/\n\s*\.up-next-field\{[^}]*\}/)[0], /border:1px solid transparent/, 'declared border stays transparent');
+  assert.ok(parseFloat(cs('.ex-logger-go').fontSize) >= 16, `Log set renders at ${cs('.ex-logger-go').fontSize}`);
 });
 
 run();

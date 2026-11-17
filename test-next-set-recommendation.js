@@ -59,8 +59,10 @@ test('REAL invocation: the set sheet and Up next show the same call the chip car
       <div class="set-chips"><button class="set-chip" data-ex-idx="1" data-set-idx="1"></button></div>
       <div class="sets-block"><div class="set-row" data-ex-idx="1" data-set-idx="0"><span class="set-row-owner">Barbell Row</span><input class="ex-weight" value="135"><input class="ex-reps" value="8"><input class="ex-rpe" value="7"></div>
       <div class="set-row" data-ex-idx="1" data-set-idx="1"><span class="set-row-owner">Barbell Row</span><input class="ex-weight" placeholder="lb"><input class="ex-reps" placeholder="reps"><input class="ex-rpe" placeholder="RPE"></div></div></div></div>`,
-    "var weightUnit = 'lb';",
+    // 2026-11-17 (v3.593, UX-06a): renderUpNext draws the cover too (its numeral, chips and caution).
+    "var weightUnit = 'lb', activeProgram = 'p', exerciseDetailPinned = true; function icon(){ return ''; }",
     [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'numericPlaceholder'), extractFunction(src, 'renderUpNext'), extractFunction(src, 'fillSetLogger'), // v3.376: shared with the exercise logger
+     ...['readSetLogger', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'escapeHtml'].map(n => extractFunction(src, n)),
      `document.querySelector('.set-chip')._values = ${JSON.stringify(values)}; renderUpNext();`]).window;
   assert.strictEqual(card.document.getElementById('upNextWhy').textContent, 'Go up 5 — 8 reps at RPE 7 last set');
   assert.strictEqual(card.document.getElementById('upNextWhy').hidden, false);
