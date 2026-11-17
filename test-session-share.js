@@ -66,12 +66,17 @@ test('criterion 3: a clinical program (the medical program, or a MEDICAL_STYLES 
   assert.strictEqual(await build({program: 'rehabAcl'}), undefined);
 });
 
-test('criterion 4: renderWorkout has exactly one Session complete! celebration, passing the awaited sessionShareStats( result fifth', (assert)=>{
-  const body = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
-  const calls = [...body.matchAll(/triggerCelebration\(\s*'flag',\s*'Session complete!'([^\n]*)/g)];
-  assert.strictEqual(calls.length, 1, 'one completing celebration');
-  assert.match(calls[0][1], /,\s*gymModeActive,\s*await sessionShareStats\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\)\);/);
-  assert.strictEqual((body.match(/\bsessionShareStats\(/g) || []).length, 1, 'one real call');
+// 2026-11-17 (v3.598, UX-09a): the "Session complete!" toast became the finish
+// sheet. Its Share reuses this builder through finishSheetModel, which
+// renderWorkout calls once at the completing click (test-finish-sheet.js).
+test('criterion 4: the session\'s share data reaches the finish sheet: one real sessionShareStats( call, in finishSheetModel, and renderWorkout opens the sheet from it', (assert)=>{
+  const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const body = strip(extractFunction(src, 'renderWorkout'));
+  assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'no toast');
+  assert.strictEqual((body.match(/\bopenFinishSheet\(await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\)\);/g) || []).length, 1);
+  const model = strip(extractFunction(src, 'finishSheetModel'));
+  assert.strictEqual((model.match(/\bsessionShareStats\(listEl, dateKey, program\)/g) || []).length, 1, 'one real call');
+  assert.match(strip(extractFunction(src, 'openFinishSheet')), /shareCelebrationCard\(model\.share, 'finishShare'\)/);
 });
 
 run();

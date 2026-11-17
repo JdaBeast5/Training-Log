@@ -173,6 +173,8 @@ function buildWiredPair(){
     window.triggerCelebration = ()=>{};
     // 2026-11-16 (v3.581, MKT-04): the completing click now builds share data; stubbed at its boundary like the celebration.
     window.sessionShareStats = async ()=> undefined;
+    // 2026-11-17 (v3.598, UX-09a): ...and opens the finish sheet (test-finish-sheet.js), stubbed the same way.
+    window.finishSheetModel = async ()=> null; window.openFinishSheet = ()=>{};
     window.maybeShowTodayStandout = ()=>{};
     window.finishGymWorkout = ()=>{};
     window.day = {label:'Day 1', sub:'Upper'};

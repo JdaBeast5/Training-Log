@@ -1419,3 +1419,14 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Look:** the field is `--spot-deep` with white text. `.cover-drain` is a 10 px band of `--spot`, `scaleX(left/total)`, `transition: transform 1s linear`; inline `none` under Reduce Motion. In Quiet mode the rest field is the card surface.
 - **Unverified:** on device.
 - **Flag:** the floating rest pill still shows while the cover rests.
+
+## Addendum 122: UX-09a, the finish sheet (v3.598, PR #176, 2026-11-17)
+- **What:** at the completing click, `renderWorkout` calls `openFinishSheet(await finishSheetModel(list, selectedLogDate, activeProgram))` instead of the "Session complete!" `triggerCelebration`.
+- **The model:**
+  - totals from the rows, with minutes from `sessionShareStats`' MIN;
+  - the best set from `reconstructAllPRs` (today's weight record first) and the earlier record for that lift;
+  - Next time from `nextTimeSuggestion`. It runs `buildPastSessions(log, null)` (new optional argument; today included), then `analyzeProgressionSignal` and `computeSuggestedSet`, and falls back to today's first set ("hold"), as the placeholders do.
+- **Inputs:** `renderWorkout` stores `{ex, log, category}` per exercise on `#exerciseList._finishInputs`.
+- **Behaviour:** Share goes through `shareCelebrationCard(model.share, 'finishShare')` and is hidden on clinical programs. The sheet is in `SCROLL_LOCK_OVERLAYS` and `OVERLAY_CLOSERS`, and closing returns focus to `#upNextDayBtn`.
+- **Harness:** new `finish-{dark,light}-402` states.
+- **Next:** 09b, the flood (clip-path from Log, 700 ms; a cut under Reduce Motion; never replays) and `triggerCelebration` once per PR.

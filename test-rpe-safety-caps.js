@@ -258,10 +258,13 @@ test('criterion 11: all three analyzeProgressionSignal( call sites pass a fourth
     }
     calls.push(args.map(a => a.trim()));
   }
-  assert.strictEqual(calls.length, 3, 'call sites: ' + JSON.stringify(calls));
+  // 2026-11-17 (v3.598, UX-09a): a fourth site, the finish sheet's "Next time"
+  // (nextTimeSuggestion), passes its own `program` parameter, which its only
+  // caller, finishSheetModel, is given as activeProgram (test-finish-sheet.js).
+  assert.strictEqual(calls.length, 4, 'call sites: ' + JSON.stringify(calls));
   for(const a of calls){
     assert.strictEqual(a.length, 4, 'four arguments: ' + a.join(', '));
-    assert.strictEqual(a[3], 'activeProgram');
+    assert.ok(a[3] === 'activeProgram' || (a[0] === 'past' && a[3] === 'program'), a.join(', '));
   }
 });
 
