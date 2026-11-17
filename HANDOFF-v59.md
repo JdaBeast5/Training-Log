@@ -1457,3 +1457,12 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Fonts:** five selectors moved from Mono to Geist with tabular figures. Gym chips keep Mono (`body.gym-mode .set-chip`).
 - **Numeral:** `renderCoverNumeral` toggles `.is-m` (4–5 characters, 120 px) and `.is-s` (6 or more, 100 px). `.cover-numeral` is `nowrap`.
 - **Finish sheet:** Done is focused with `focusVisible:false`, and the head Done uses `var(--text)`.
+
+## Addendum 128: UX-23, "Then" (v3.604, PR #183, 2026-11-17)
+- **Flat list:** every rule is scoped to `body:not(.gym-mode)` and sits in one block after `.gym-enter-icon`. `body.has-cover` is toggled by `syncTodayChrome` whenever `#upNext` isn't hidden, in either layout, and hides `.workout-hero` and shows `.then-title`.
+- **Head line:** `#sessionCalTotal` now lives inside `.duration-row`. The " · " separators come from CSS (`:not(:empty) ~ :not(:empty)::before`), so no strings changed.
+- **Rows:** a grid outside gym mode (checkbox, thumb, name over sets, delete, chevron).
+- **Chips:** the cover's grammar. Done chips get a `.set-chip-check` span from `renderSetChips`, hidden in gym mode. A "same" trend mark is hidden outside gym mode.
+- **Now marker:** `renderUpNext` sets `.is-now` on the cover's block (or its superset member). The 4 px `::after` rule sits at left -12px; unfolded, `.today-session-pane` has margin-left -12px with padding-left 12px so its scroll box doesn't clip it.
+- **Test note:** jsdom drops computed shorthands that hold `var()`, and computes no pseudo-elements. `test-today-then.js` has a small `cascade()` helper that reads the winning CSSOM declaration.
+- **Left for UX-24:** Add custom exercise, Adapt and `#weekShareBtn` (not named in UX-24's spec).
