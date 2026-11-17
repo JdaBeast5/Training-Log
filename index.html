@@ -848,6 +848,8 @@
      No state colour sits on the field: state is an icon and a word. */
   .cover{
     --cover:var(--spot); --on-cover:var(--on-spot); --cover-figure:var(--on-cover); --cover-action:#0C0C0D; --on-cover-action:#FFFFFF;
+    --rest-field:var(--spot-deep, var(--surface-2)); --on-rest:#FFFFFF; --spot-ink:var(--on-spot); /* v3.597 (UX-08): rest */
+    position:relative;
     --meta-on-spot:15px;
     margin:0 calc(var(--gutter-r) * -1) 18px calc(var(--gutter-l) * -1);
     padding:12px var(--gutter-r) 18px var(--gutter-l);
@@ -860,7 +862,37 @@
      finds a full field of red too much. The surface and ink of every other
      card; the day's colour stays in the numeral (large text, >= 3:1) and a
      stripe along the top. After the day-ink rules, at their specificity. */
-  body.cover-quiet .cover{--cover:var(--surface-1); --on-cover:var(--text); --cover-figure:var(--spot); --cover-action:var(--text); --on-cover-action:var(--ground); box-shadow:inset 0 6px 0 var(--spot, var(--rule));}
+  body.cover-quiet .cover{--cover:var(--surface-1); --on-cover:var(--text); --cover-figure:var(--spot); --cover-action:var(--text); --on-cover-action:var(--ground); box-shadow:inset 0 6px 0 var(--spot, var(--rule)); --rest-field:var(--surface-1); --on-rest:var(--text);}
+  /* v3.597 (UX-08): rest. The field turns to the day's deep ink with white
+     text (4.5:1 or more on every deep ink); the bright ink is a band along
+     the top that shrinks as rest runs out. Quiet keeps its card. */
+  body.day-red .cover{--spot-ink:var(--block-on-red);}
+  body.day-green .cover{--spot-ink:var(--block-on-green);}
+  body.day-yellow .cover{--spot-ink:var(--block-on-yellow);}
+  .cover.is-resting{background:var(--rest-field); color:var(--on-rest);}
+  .cover-drain{position:absolute; top:0; left:0; right:0; height:10px; background:var(--spot, var(--text)); transform-origin:left center; transform:scaleX(0); transition:transform 1s linear; pointer-events:none;}
+  .cover:not(.is-resting) .cover-drain{display:none;}
+  .cover.is-resting .cover-numeral:not(.cover-rest-time), .cover.is-resting .cover-bar, .cover.is-resting .cover-hint, .cover.is-resting .cover-adjust, .cover.is-resting .cover-fields-wrap{display:none;}
+  body:not(.cover-quiet) .cover.is-resting .cover-go{background:var(--spot); color:var(--spot-ink);}
+  .cover.is-resting .cover-log{grid-template-columns:1fr;}
+  .cover-rest[hidden]{display:none;}
+  .cover-rest{margin-top:8px;}
+  .cover-rest-label{font-size:var(--meta-on-spot); font-weight:600;}
+  .cover-rest-time{margin-top:4px;}
+  .cover.is-resting .cover-rest-time{color:var(--on-rest);} /* the deep field's ink, not the bright field's figure */
+  .cover-rest-actions{display:flex; gap:12px; margin-top:12px;}
+  .cover-rest-btn{flex:1; min-height:44px; border-radius:var(--r-control); border:1.5px solid currentColor; background:none; color:inherit; font-family:var(--font-sans); font-size:var(--meta-on-spot); font-weight:600; cursor:pointer;}
+  .cover-steppers{margin-top:14px; display:grid; gap:10px;}
+  .cover-steppers[hidden], .cover-step[hidden]{display:none;}
+  .cover-step, .cover-rir{display:grid; grid-template-columns:84px 44px 1fr 44px; align-items:center; gap:8px;}
+  .cover-rir{grid-template-columns:84px repeat(4, 1fr);}
+  .cover-step-label{font-size:var(--meta-on-spot); font-weight:600;}
+  .cover-step button, .cover-rir button{min-height:44px; border-radius:12px; border:1.5px solid currentColor; background:none; color:inherit; font-family:var(--font-sans); font-size:18px; font-weight:600; cursor:pointer;}
+  .cover-step output{text-align:center; font-family:var(--font-mono); font-size:20px; font-variant-numeric:tabular-nums;}
+  .cover-rir button[aria-checked="true"]{background:var(--on-rest); color:var(--rest-field); border-color:transparent;}
+  .cover-rir-words{font-size:var(--meta-on-spot); margin:0;}
+  .cover-rir-words:empty{display:none;}
+  @media (prefers-reduced-motion: reduce){ .cover-drain{transition:none;} }
   .cover[hidden]{display:none;}
   /* The week and phase close the cover: the Log button has to sit above
      y = 480 on a 402 x 874 phone, under the app header. */
@@ -6153,6 +6185,7 @@
        no reps yet, and logging goes through commitSet into THAT row, so
        saving, PRs, the rest timer, Undo and auto-check run as for a chip. -->
   <section class="cover" id="upNext" aria-labelledby="upNextLift" hidden>
+    <div class="cover-drain" id="coverDrain" aria-hidden="true"></div>
     <button type="button" class="cover-day" id="upNextDayBtn" aria-haspopup="dialog" aria-controls="daySheet"><span id="upNextDay"></span><svg class="cover-day-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="cover-lift-row">
       <h2 class="cover-lift" id="upNextLift"></h2>
@@ -6162,6 +6195,27 @@
     <p class="cover-hint" id="upNextHint" hidden></p>
     <div class="cover-numeral" id="upNextNumeral"><span class="cover-w"></span><span class="cover-u"></span><span class="cover-x"></span></div>
     <span class="cover-sr" id="upNextProgress"></span>
+    <!-- v3.597 (UX-08): rest takes over the cover. Shown while the rest timer
+         runs (it follows the timer; startRestTimer is unchanged): the time left
+         as the numeral, +30 s and Skip (the timer's own controls), and the next
+         set's steppers, which write the cover's own fields that Log reads. -->
+    <div class="cover-rest" id="coverRest" hidden>
+      <div class="cover-rest-label">Rest</div>
+      <div class="cover-numeral cover-rest-time" role="timer" aria-live="off"><span class="cover-w" id="coverRestTime">0:00</span><span class="cover-u" id="coverRestOf"></span></div>
+      <div class="cover-rest-actions">
+        <button type="button" class="cover-rest-btn" id="coverRestAdd" aria-label="Add 30 seconds to rest">+30 s</button>
+        <button type="button" class="cover-rest-btn" id="coverRestSkip">Skip rest</button>
+      </div>
+      <div class="cover-steppers" id="coverSteppers">
+        <div class="cover-step" data-field="weight"><span class="cover-step-label">Weight</span><button type="button" data-step="-1" aria-label="Less weight">&minus;</button><output id="coverStepWeight" aria-live="polite"></output><button type="button" data-step="1" aria-label="More weight">+</button></div>
+        <div class="cover-step" data-field="reps"><span class="cover-step-label">Reps</span><button type="button" data-step="-1" aria-label="One rep fewer">&minus;</button><output id="coverStepReps" aria-live="polite"></output><button type="button" data-step="1" aria-label="One rep more">+</button></div>
+        <div class="cover-rir" role="radiogroup" aria-labelledby="coverRirLabel">
+          <span class="cover-step-label" id="coverRirLabel">Reps left</span>
+          <button type="button" role="radio" aria-checked="false" data-rir="3">3+</button><button type="button" role="radio" aria-checked="false" data-rir="2">2</button><button type="button" role="radio" aria-checked="false" data-rir="1">1</button><button type="button" role="radio" aria-checked="false" data-rir="0">0</button>
+        </div>
+        <p class="cover-rir-words" id="coverRirWords"></p>
+      </div>
+    </div>
     <div class="cover-log">
       <button type="button" class="save-btn cover-go" id="upNextLog">Log set</button>
       <button type="button" class="cover-adjust" id="upNextAdjust" aria-expanded="false" aria-controls="upNextFieldsWrap" aria-label="Adjust weight, reps or effort"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -7994,7 +8048,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.596';
+const APP_VERSION = '3.597';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9610,6 +9664,10 @@ const WHATS_NEW = {
   '3.596': { headline: 'See the plates to load', points: [
     'On a barbell lift, the cover draws the loaded bar under Log set: the plates for each side, heaviest against the collar, in the usual plate colours, with "45 · 10 · 2.5 each side" written out.',
     'It follows the weight as you adjust it, and uses your own bar and plates from your equipment settings.',
+  ]},
+  '3.597': { headline: 'Rest happens on the cover', points: [
+    'After a set, the top of Today shows the rest countdown big, with +30 s and Skip, and a bar of the day\'s colour that runs down as rest ends.',
+    'Under it, set up the next set while you rest: weight and reps steppers and how many reps you had left, then Log set.',
   ]},
 };
 
@@ -32613,6 +32671,7 @@ function renderUpNext(){
   fillSetLogger(card, n, chip, target);
   card._range = target ? (target.textContent.split('×')[1] || '').trim() : '';
   card._exName = n.name.trim(); // v3.596 (UX-07): the plate stack is for barbell lifts only
+  card._row = n.row; card._rirWords = rir ? rir.getAttribute('aria-label') : ''; // v3.597 (UX-08): the rest steppers
   renderCoverNumeral(card);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
@@ -32634,6 +32693,66 @@ function renderCoverNumeral(card){
   else { w.textContent = reps; u.textContent = reps ? repsUnit : ''; x.textContent = ''; }
   el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
   renderCoverBar(card, hasWeight ? v.weight : '');
+}
+
+// v3.597 (UX-08): rest takes over the cover. It follows the rest timer (a
+// watcher on the timer's own text and class, below), so startRestTimer and
+// its callers are unchanged. The bright layer is a band along the top that
+// shrinks with the time left (scaleX, linear; static under Reduce Motion);
+// the text sits on the deep ink, where white holds 4.5:1 for every day.
+function syncCoverRest(){
+  const card = document.getElementById('upNext');
+  const box = document.getElementById('coverRest');
+  if(!card || !box) return;
+  const resting = !!restTimerEndsAt && !card.hidden && !card.classList.contains('is-rest');
+  card.classList.toggle('is-resting', resting);
+  box.hidden = !resting;
+  const drain = document.getElementById('coverDrain');
+  if(!resting){ if(drain) drain.style.transform = ''; return; }
+  const left = restRemainingSeconds();
+  const total = Math.max(1, restTimerTotal || left);
+  document.getElementById('coverRestTime').textContent = formatTimer(left);
+  document.getElementById('coverRestOf').textContent = 'of ' + formatTimer(total);
+  if(drain){
+    const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    drain.style.transition = reduce ? 'none' : '';
+    drain.style.transform = `scaleX(${Math.max(0, Math.min(1, left / total)).toFixed(4)})`;
+  }
+  renderCoverSteppers(card);
+}
+
+// The next set's steppers read and write the cover's own fields, so Log
+// logs exactly what they show. Weight steps by the set sheet's own step
+// (twice the smallest plate on a barbell, the dumbbell increment on
+// dumbbells); reps by 1; "Reps left" writes RPE as 10 - RIR.
+function renderCoverSteppers(card){
+  const steppers = document.getElementById('coverSteppers');
+  if(!steppers) return;
+  steppers.hidden = card.classList.contains('is-done') || !card._row;
+  const w = card.querySelector('.up-next-field[data-field="weight"]');
+  steppers.querySelector('.cover-step[data-field="weight"]').hidden = !w || w.hidden;
+  const unit = w ? w.querySelector('small').textContent : '';
+  document.getElementById('coverStepWeight').textContent = (document.getElementById('upNextWeight').value || '0') + ' ' + unit;
+  document.getElementById('coverStepReps').textContent = document.getElementById('upNextReps').value || '0';
+  const rpe = parseFloat(document.getElementById('upNextRpe').value);
+  const rir = isNaN(rpe) ? null : Math.max(0, Math.min(3, Math.round(10 - rpe)));
+  steppers.querySelectorAll('.cover-rir [data-rir]').forEach(b => b.setAttribute('aria-checked', String(rir != null && Number(b.dataset.rir) === rir)));
+  document.getElementById('coverRirWords').textContent = card._rirWords ? 'Target: ' + card._rirWords : '';
+}
+function stepCoverField(field, dir){
+  const card = document.getElementById('upNext');
+  const input = document.getElementById(field === 'weight' ? 'upNextWeight' : 'upNextReps');
+  const step = field === 'weight' ? (card._row ? setSheetWeightStep(card._row) : (weightUnit === 'kg' ? 2.5 : 5)) : 1;
+  const next = Math.max(0, Math.round(((parseFloat(input.value) || 0) + dir * step) * 100) / 100);
+  input.value = String(next);
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+  renderCoverSteppers(card);
+}
+function setCoverRepsLeft(rir){
+  const input = document.getElementById('upNextRpe');
+  input.value = String(10 - rir);
+  input.dispatchEvent(new Event('input', {bubbles: true}));
+  renderCoverSteppers(document.getElementById('upNext'));
 }
 
 // v3.596 (UX-07): the loaded bar under the Log button, for barbell lifts:
@@ -33307,6 +33426,27 @@ function stepSetSheet(field, dir){
 document.getElementById('upNextLog').addEventListener('click', logUpNext);
 document.getElementById('upNextAdjust').addEventListener('click', ()=> setCoverAdjust(document.getElementById('upNextAdjust').getAttribute('aria-expanded') !== 'true'));
 document.getElementById('upNextFields').addEventListener('input', ()=> renderCoverNumeral(document.getElementById('upNext')));
+// v3.597 (UX-08): the rest controls on the cover call the timer's own.
+document.getElementById('coverRest').addEventListener('click', (e)=>{
+  const b = e.target.closest && e.target.closest('button');
+  if(!b) return;
+  if(b.id === 'coverRestAdd'){ adjustRestTimer(30); return; }
+  if(b.id === 'coverRestSkip'){ document.getElementById('restTimerClose').click(); return; }
+  if(b.dataset.step) return stepCoverField(b.closest('.cover-step').dataset.field, Number(b.dataset.step));
+  if(b.dataset.rir != null) setCoverRepsLeft(Number(b.dataset.rir));
+});
+(function watchRestForCover(){
+  const time = document.getElementById('restTimerTime'), el = document.getElementById('restTimer');
+  if(!time || !el || typeof MutationObserver === 'undefined') return;
+  const mo = new MutationObserver(()=> syncCoverRest());
+  mo.observe(time, {childList: true, characterData: true, subtree: true});
+  mo.observe(el, {attributes: true, attributeFilter: ['class']});
+  // And when the cover itself first shows: a timer restored on reopening is
+  // running before Today has rendered the cover, and the next tick is a
+  // second away.
+  const card = document.getElementById('upNext');
+  if(card) mo.observe(card, {attributes: true, attributeFilter: ['hidden']});
+})();
 document.getElementById('upNextChips').addEventListener('click', (e)=>{
   const c = e.target.closest && e.target.closest('.cover-chip');
   const real = c && document.querySelector(`#exerciseList .set-chip[data-ex-idx="${c.dataset.exIdx}"][data-set-idx="${c.dataset.setIdx}"]`);
