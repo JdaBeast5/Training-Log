@@ -4001,7 +4001,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (`#workoutCard` markup 6293–6322, `.workout-hero` 743 onward, `.duration-tag` 1078, `.session-actions`, `.gym-enter-btn` 5338, `.set-chip` 785–795, exercise row CSS, `renderWorkout` 30441, the chip builder, `renderUpNext` 32809, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-then.js` (new), `test-tap-counts.js`. **Re-pins, read first:** `test-today-hero-glow-flat-buttons.js`, `test-header-refresh.js` (`workout-hero`), `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-today-session-first.js`, `test-today-workout-emoji.js`, `test-workout-card-type-scale.js`, `test-glass-cards.js`, `test-today-no-glow.js`, `test-neutral-rgba-consolidation.js`, `test-css-mechanical-token-dedup.js` (`.day-hero-plate`).
 - **Risk:** medium: the list is where people tap chips all session. Behaviour is unchanged (criterion 7); only paint and the hero's display move.
 - **Tools:** `Skill: impeccable` (`polish`), `Skill: taste-skill` (app screens), TOOL-01.
-- **Status:** ready
+- **Status:** done (v3.604, PR #183). Deviation: criterion 1 is tested on the head and the list; the extras under the list (Add custom exercise, Adapt, the week's share button) are UX-24's criterion 1. `#weekShareBtn` isn't named in UX-24: flagged. `#sessionCalTotal` moved into `.duration-row` so the head line joins all three parts.
 
 ### UX-24: The open exercise and the session's extras in the world's ink
 - **Why:** A12, A13. Opening an exercise shows a glass panel with its own Log button, a blue pill and pill buttons; below the list, pills and tinted boxes; the sticky header glows. These are the last 2.0 surfaces in the session.
