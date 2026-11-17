@@ -1403,3 +1403,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Reorder mode:** tapping a day keeps the sheet open; closing the sheet ends reorder mode.
 - **Rest days:** the cover now shows on rest days (`.is-rest`: the white/off field, "Rest day", the headline) so the picker is always reachable. This fills in the spec's rest-day field that 06a left open.
 - **Not done (flag):** the workout card's hero still repeats the day title under the cover. Removing it isn't in 06b's spec; it's a candidate for UX-07/UX-09 or an owner call.
+
+## Addendum 120: UX-07, the plate stack (v3.596, PR #174, 2026-11-17)
+- **What:** `platesPerSide(weight, eq)` is a greedy fill per side after the bar. It works in hundredths so 2.5 and 1.25 plates add exactly, and it returns `{plates, remainder}` with the remainder per side.
+- **Caption:** `plateCaption` gives "45 · 10 · 2.5 each side", or "About …", or "Just the bar".
+- **Drawing:** `barStackSvg` follows today.html's 362×80 bar, with plates heaviest against the collar and squeezed to fit the sleeve. `PLATE_INKS` holds the lb and kg plate codes; change plates are steel.
+- **Where:** `renderCoverBar` (called from `renderCoverNumeral`, so it follows adjust) fills `#upNextBar`, under the Log row. It shows for barbell lifts at or above the bar weight only.
+- **Fixtures:** suites that drive `renderUpNext` now need `renderCoverBar` (real in `test-today-cover`, stubbed elsewhere).
+- **Process note:** when scanning `check.sh` output, grep for `FAIL:` as well. A suite that throws while loading prints no "N failed" line.

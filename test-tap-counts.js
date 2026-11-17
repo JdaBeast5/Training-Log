@@ -71,7 +71,8 @@ test('log the ready set: one tap on the cover\'s Log button commits exactly the 
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true, exerciseInfo = {};
     function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
     function isBarbellExercise(){ return true; } function isDumbbellExercise(){ return false; }
-    function showUndoToast(){} function refreshGymLogBtn(){} function icon(){ return ''; }`,
+    function showUndoToast(){} function refreshGymLogBtn(){} function icon(){ return ''; }
+    function renderCoverBar(){} // 2026-11-17 (v3.596, UX-07): the loaded bar, driven by test-plate-stack.js`,
     [...FNS, statement("document.getElementById('upNextLog').addEventListener('click', logUpNext);").split('\n')[0],
      'window.__commits = 0; const __c = commitSet; commitSet = function(r, v, f){ window.__commits++; return __c(r, v, f); };',
      'renderAllSetChips(); renderUpNext();']);

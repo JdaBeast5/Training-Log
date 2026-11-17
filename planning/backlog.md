@@ -3605,7 +3605,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** a kg user's colour mapping (criterion 7). White plates vanish on chalk in light mode: give them the `--rule-strong` rim (`design-vision.md` §9).
 - **Tools:** TOOL-01's harness; `Skill: dataviz` isn't needed (a diagram, not a chart).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped (`getEquipment` 32919, `BARBELL_STANDARDS` 32896, `isBarbellExercise` 31966). Found: three names the new code must not use (a removed-feature guard and the day disc's `.plate` class); criteria 5 and 6 are now jsdom/CSSOM checks with the harness as evidence; a kg case added (the old spec named one but didn't write it). Checked against `today.html`'s bar. Scope unchanged.
-- **Status:** ready (after UX-06a)
+- **Status:** done (v3.596, 2026-11-17, PR #174): `platesPerSide`, `plateCaption`, `barStackSvg`, `renderCoverBar`; `test-plate-stack.js`. Two recorded deviations: the bar sits under the Log row (above it, as drawn, Log would fall below y = 480, against UX-06a criterion 5), and criterion 1's 142 lb case leaves 1 lb per side, not 1.5 (spec arithmetic).
 
 ### UX-08: Rest takes over the cover, with the next set's adjusters
 - **Why:** the rest timer today is a separate bar. During rest the eye is on the cover, so the countdown should be there, with the next set ready to adjust and log beneath it (`renders/log-set-dark.png`).

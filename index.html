@@ -901,6 +901,22 @@
   .cover .up-next-field input{width:100%; background:none; border:0; padding:0; color:inherit; font-family:var(--font-mono); font-size:22px !important; font-variant-numeric:tabular-nums;}
   .cover .up-next-field input:focus, .cover .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
   .cover .up-next-field input::placeholder{color:inherit; opacity:.6; font-size:17px;}
+  /* v3.596 (UX-07): the loaded bar, full width, under the Log button (the
+     mock-up has it above Log; there it would push Log below y = 480). */
+  .cover-bar{margin-top:14px;}
+  .cover-bar[hidden]{display:none;}
+  .cover-bar svg{display:block; width:100%; height:auto; overflow:visible;}
+  .cover-bar .bar-steel{fill:#BDBDB8; stroke:#0C0C0D; stroke-width:2;}
+  .cover-bar .bar-collar{fill:#1B1B1D;}
+  .cover-bar .bar-plate{stroke:#0C0C0D; stroke-width:2;}
+  .cover-bar .ink-red{fill:var(--spot-red);}
+  .cover-bar .ink-blue{fill:var(--spot-blue);}
+  .cover-bar .ink-yellow{fill:var(--spot-yellow);}
+  .cover-bar .ink-green{fill:var(--spot-green);}
+  .cover-bar .ink-white{fill:var(--spot-white);}
+  .cover-bar .ink-steel{fill:#8B8B88;}
+  .cover-bar-cap{display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-size:var(--meta-on-spot); font-weight:600;}
+  .cover.is-rest .cover-bar, .cover.is-done .cover-bar{display:none;}
   .cover-chips{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; margin-top:12px;}
   .cover-chips:empty{display:none;}
   .cover-chip{min-height:44px; border-radius:12px; border:1.5px dashed currentColor; background:none; color:inherit; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 6px; font-family:var(--font-sans); font-size:var(--meta-on-spot); font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; overflow:hidden; white-space:nowrap;}
@@ -6160,6 +6176,7 @@
         </div>
       </div>
     </div>
+    <div class="cover-bar" id="upNextBar" hidden></div>
     <div class="cover-chips" id="upNextChips" role="group"></div>
     <p class="cover-caution" id="upNextCaution" hidden></p>
     <p class="cover-why" id="upNextWhy" hidden></p>
@@ -7977,7 +7994,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.595';
+const APP_VERSION = '3.596';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9589,6 +9606,10 @@ const WHATS_NEW = {
   '3.595': { headline: 'Pick the day from the top of Today', points: [
     'Tap the day name on the cover to open the day picker. Choosing a day switches to it and closes the picker; Reorder days is in there too.',
     'Rest days now show the cover as well, so the picker is always one tap away.',
+  ]},
+  '3.596': { headline: 'See the plates to load', points: [
+    'On a barbell lift, the cover draws the loaded bar under Log set: the plates for each side, heaviest against the collar, in the usual plate colours, with "45 · 10 · 2.5 each side" written out.',
+    'It follows the weight as you adjust it, and uses your own bar and plates from your equipment settings.',
   ]},
 };
 
@@ -32591,6 +32612,7 @@ function renderUpNext(){
   renderCoverChips(block, exIdx);
   fillSetLogger(card, n, chip, target);
   card._range = target ? (target.textContent.split('×')[1] || '').trim() : '';
+  card._exName = n.name.trim(); // v3.596 (UX-07): the plate stack is for barbell lifts only
   renderCoverNumeral(card);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
@@ -32611,6 +32633,23 @@ function renderCoverNumeral(card){
   if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
   else { w.textContent = reps; u.textContent = reps ? repsUnit : ''; x.textContent = ''; }
   el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
+  renderCoverBar(card, hasWeight ? v.weight : '');
+}
+
+// v3.596 (UX-07): the loaded bar under the Log button, for barbell lifts:
+// the plates on each side, heaviest against the collar, and a caption that is
+// what VoiceOver reads (the drawing is aria-hidden). Follows the weight as it
+// is adjusted.
+function renderCoverBar(card, weight){
+  const box = document.getElementById('upNextBar');
+  if(!box) return;
+  const w = parseFloat(weight);
+  const eq = getEquipment();
+  if(!card._exName || !isBarbellExercise(card._exName) || !(w >= eq.bar)){ box.hidden = true; box.innerHTML = ''; return; }
+  const load = platesPerSide(w, eq);
+  box.innerHTML = barStackSvg(load.plates, weightUnit)
+    + `<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span><span>${escapeHtml(String(eq.bar))} ${escapeHtml(weightUnit)} bar</span></div>`;
+  box.hidden = false;
 }
 
 // The lift's own set chips, drawn for the cover from the real strip in
@@ -33915,6 +33954,60 @@ const BARBELL_EXERCISES = new Set([
   'Snatch Pull','Squat','Trap Bar Jump Squat',
 ]);
 function isBarbellExercise(name){ return BARBELL_EXERCISES.has(name); }
+
+// v3.596 (UX-07): the plates for one side of the bar. A greedy fill from the
+// largest plate down (eq.plates is sorted descending, as getEquipment
+// returns it), after the bar, in the display unit. `remainder` is what is
+// left over per side when the weight can't be loaded exactly. Worked in
+// hundredths so 2.5 and 1.25 plates add up exactly.
+function platesPerSide(weight, eq){
+  const c = x => Math.round(x * 100);
+  let left = Math.max(0, (c(weight) - c(eq.bar)) / 2);
+  const plates = [];
+  for(const p of eq.plates){
+    const pc = c(p);
+    if(pc <= 0) continue;
+    while(left + 1e-9 >= pc){ plates.push(p); left -= pc; }
+  }
+  return {plates, remainder: Math.round(left) / 100};
+}
+
+// "45 · 10 · 2.5 each side"; "About ..." when it can't be loaded exactly.
+function plateCaption(load){
+  if(!load.plates.length) return load.remainder > 0 ? 'Not loadable with your plates' : 'Just the bar';
+  return (load.remainder > 0 ? 'About ' : '') + load.plates.join(' · ') + ' each side';
+}
+
+// The plate code: lb 55 red, 45 blue, 35 yellow, 25 green, 10 white; kg 25
+// red, 20 blue, 15 yellow, 10 green, 5 white; change plates are steel.
+const PLATE_INKS = {
+  lb: {55: 'red', 45: 'blue', 35: 'yellow', 25: 'green', 10: 'white'},
+  kg: {25: 'red', 20: 'blue', 15: 'yellow', 10: 'green', 5: 'white'},
+};
+
+// The loaded bar, as tools/design/today.html draws it (viewBox 362 x 80):
+// sleeves, shaft, collars, and each side's plates from the inner collar
+// outward, heaviest first, sized by weight (squeezed if a heavy load would
+// overrun the sleeve).
+function barStackSvg(plates, unit){
+  const full = unit === 'kg' ? 25 : 45;
+  const size = p => { const r = Math.sqrt(Math.min(p, full * 1.25) / full); return {w: Math.round(6 + 18 * r), h: Math.round(30 + 48 * r)}; };
+  const sizes = plates.map(size);
+  const total = sizes.reduce((a, s) => a + s.w, 0);
+  const k = total > 104 ? 104 / total : 1;
+  const rect = (p, s, x) => `<rect class="bar-plate ink-${(PLATE_INKS[unit] || {})[p] || 'steel'}" data-lb="${p}" x="${x.toFixed(1)}" y="${(40 - s.h / 2).toFixed(1)}" width="${(s.w * k).toFixed(1)}" height="${s.h}" rx="3"/>`;
+  let left = 110, right = 252, out = '';
+  plates.forEach((p, i) => {
+    const w = sizes[i].w * k;
+    left -= w; out += rect(p, sizes[i], left);
+    out += rect(p, sizes[i], right); right += w;
+  });
+  return `<svg viewBox="0 0 362 80" aria-hidden="true" focusable="false">
+    <rect class="bar-steel" x="1" y="34" width="117" height="12" rx="2"/><rect class="bar-steel" x="244" y="34" width="117" height="12" rx="2"/>
+    <rect class="bar-steel" x="116" y="36.5" width="130" height="7"/>
+    <rect class="bar-collar" x="110" y="26" width="8" height="28" rx="1"/><rect class="bar-collar" x="244" y="26" width="8" height="28" rx="1"/>
+    ${out}</svg>`;
+}
 
 
 // Checks whether every set in this exercise now has weight (when the

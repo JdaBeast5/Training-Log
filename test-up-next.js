@@ -28,7 +28,8 @@ const src = readIndexSource();
 // so those come along; the set chips themselves are stubbed (none here).
 const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow',
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
-const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; }";
+// 2026-11-17 (v3.596, UX-07): the cover's loaded bar is stubbed here; test-plate-stack.js drives it.
+const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; } function renderCoverBar(){}";
 
 // One row, shaped like renderWorkout's .set-row template.
 function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', rv = '', rpev = ''} = {}){

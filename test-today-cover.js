@@ -38,6 +38,10 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
   'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'setCoverAdjust',
   'targetRirLabel', 'getRepRangeTier', 'firstSetHint', 'rirLabelHtml'].map(n => extractFunction(src, n));
+// 2026-11-17 (v3.596, UX-07): renderCoverNumeral also draws the loaded bar
+// (test-plate-stack.js), so its real builder and the equipment it reads come along.
+FNS.push(...['renderCoverBar', 'platesPerSide', 'plateCaption', 'barStackSvg', 'getEquipment'].map(n => extractFunction(src, n)),
+  extractConst(src, 'BARBELL_STANDARDS'), extractConst(src, 'DUMBBELL_DEFAULTS'), extractConst(src, 'PLATE_INKS'), 'var equipmentProfile = null;');
 FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractConst(src, 'RIR_TARGETS'), extractConst(src, 'RIR_SPEED_CATEGORIES'),
   extractConst(src, 'RIR_NO_LABEL_CATEGORIES'), extractConst(src, 'RIR_NO_LABEL_NAME'));
 
