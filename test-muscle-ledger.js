@@ -106,11 +106,9 @@ test('criterion 6: the group rows render unchanged for the same fixture (their t
   // Snapshot of the group rows for this fixture at v3.589 (the parent commit), taken by
   // running that commit's renderVolumeTrend: the ledger must leave them exactly as they were.
   assert.deepStrictEqual(text(after), GROUP_ROWS_V3589);
-  const ledger = after.document.querySelector('#volumeTrend .muscle-ledger');
-  assert.ok(ledger, 'the ledger is inside the Weekly Volume card');
-  assert.ok(after.document.querySelector('#volumeTrend .vol-row').compareDocumentPosition(ledger) & 4, 'below the group rows');
-  assert.match(ledger.textContent, /Chest\s+7\.0 \/ 10\+/);
-  assert.match(ledger.textContent, /Quads\s+5\.0 \/ 10\+/);
+  // 2026-11-22 (v3.621, UX-10): the ledger moved to Progress's lead (renderProgressLead; its rows,
+  // for this kind of fixture, are checked in test-progress-lead.js). The group rows stay here, unchanged.
+  assert.strictEqual(after.document.querySelector('#volumeTrend .muscle-ledger'), null, 'no longer in the Weekly Volume card');
 });
 
 run();

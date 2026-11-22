@@ -128,6 +128,7 @@
        --plate-blue (#5B7CFF) is only 3.6:1; on #2C5BD8 it is 5.6:1. */
     --spot-blue:#2C5BD8; /* target #2C5BD8 */
     --spot-yellow:#F2C200; /* target #F2C200 */
+    --chart-yellow:var(--spot-yellow); /* v3.621 (UX-10): a yellow chart line; the light block takes the deep step (yellow on white is under 3:1) */
     --spot-green:#1E9E4A; /* target #1E9E4A */
     --spot-white:#E6E6E2; /* target #E6E6E2 */
     --spot-off:#3A3A3D; /* target #3A3A3D */
@@ -423,6 +424,7 @@
       --spot-red:#D42F25; /* target #D42F25 */
       --spot-blue:var(--plate-blue); /* target #2C5BD8 */
       --spot-yellow:#F2C200; /* target #F2C200 */
+      --chart-yellow:var(--deep-yellow); /* v3.621 (UX-10) */
       --spot-green:#1E9E4A; /* target #1E9E4A */
       --spot-white:#E6E6E2; /* target #E6E6E2 */
       --spot-off:#2E2E31; /* target #2E2E31 */
@@ -1583,6 +1585,30 @@
     /* Wraps instead of widening the cell, so the exercise name keeps its room. */
     white-space:normal; max-width:68px; margin-left:auto;
   }
+  /* v3.621 (UX-10): Progress's lead and the shared estimated-max chart. */
+  .progress-lead{margin:4px 2px 22px; max-width:640px;}
+  .progress-lead[hidden]{display:none;}
+  .pl-lifts{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; margin-bottom:16px; scrollbar-width:none;}
+  .pl-lifts::-webkit-scrollbar{display:none;}
+  .pl-lift{flex:0 0 auto; min-height:44px; padding:0 18px; border-radius:var(--radius-pill); border:1px solid var(--rule-strong); background:none; color:var(--text-2); font-family:var(--font-sans); font-size:16px; font-weight:600; cursor:pointer;}
+  .pl-lift[aria-pressed="true"]{background:var(--text); border-color:var(--text); color:var(--surface-1);}
+  .pl-label{font-size:14px; color:var(--text-2);}
+  .pl-answer{display:flex; align-items:baseline; gap:6px; margin:2px 0 6px;}
+  .pl-fig{font-family:var(--font-display); font-stretch:68%; font-weight:800; font-size:72px; line-height:1; color:var(--text); font-variant-numeric:tabular-nums;}
+  .pl-unit{font-size:20px; color:var(--text-2);}
+  .pl-change{margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; font-size:14px; color:var(--text-2);}
+  .pl-delta{font-weight:700; font-size:16px;}
+  .pl-next{font-size:15px; line-height:1.4; color:var(--text); margin:8px 0 18px;}
+  .e1rm-chart{display:block; width:100%; height:auto; --e1rm-line:var(--text);}
+  .e1rm-chart.ink-red{--e1rm-line:var(--spot-red);}
+  .e1rm-chart.ink-blue{--e1rm-line:var(--spot-blue);}
+  .e1rm-chart.ink-green{--e1rm-line:var(--spot-green);}
+  .e1rm-chart.ink-yellow{--e1rm-line:var(--chart-yellow);}
+  .e1rm-grid{stroke:var(--rule); stroke-width:1;}
+  .e1rm-axis{fill:var(--text-2); font-family:var(--font-sans); font-size:20px;}
+  .e1rm-line{stroke:var(--e1rm-line);}
+  .e1rm-end-dot{fill:var(--e1rm-line);}
+  .e1rm-end{fill:var(--text); font-family:var(--font-sans); font-size:22px; font-weight:700;}
   /* v3.620 (BL-31): why this row has a set more or fewer than the program. */
   .ex-adjust-note{font-family:var(--font-sans); font-size:12px; line-height:1.3; color:var(--text-2); margin-top:2px;}
   .ex-chevron{
@@ -7336,6 +7362,10 @@
   </div>
 
   <div id="analysisView" style="display:none">
+    <!-- v3.621 (UX-10): the answer first. Filled by renderProgressLead; hidden
+         until there is a lift (or a week of sets) to show. Not a card: the
+         groups, their collapse and the jump rail below are untouched. -->
+    <section class="progress-lead" id="progressLead" aria-label="Am I getting stronger?" hidden></section>
     <!-- Populated by renderAnalysisIndex() from whatever survived
          applyAnalysisEmptyState. Empty and hidden until there is enough on the
          tab for an index to be worth having. -->
@@ -8377,7 +8407,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.620';
+const APP_VERSION = '3.621';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10073,6 +10103,9 @@ const WHATS_NEW = {
   ]},
   '3.620': { headline: 'Sets that follow how you did', points: [
     'Each week, a muscle whose sets all hit their target at the effort asked gets one more set the next week, and one whose reps dropped at the same weight gets one fewer. The row says why. It needs your RPE logged to add a set, and it starts fresh each block.',
+  ]},
+  '3.621': { headline: 'Progress answers first', points: [
+    'Progress now opens on your main lifts: pick one to see its estimated max, how much it has moved, a clean chart of every session, and your next set. Your sets per muscle this week sit right under it.',
   ]},
 };
 
@@ -34848,6 +34881,42 @@ async function openExerciseHistory(exIdx, ex){
 
 // v3.499: what the exercise history sheet shows, as HTML, so the open-screen
 // details pane on Today (renderExerciseDetail) shows the same thing.
+// v3.621 (UX-10): the one estimated-max chart, for Progress's lead and the
+// exercise sheet (and UX-14's pane): design-vision §3.6. A 2.5 px line in the
+// lift's day ink, no fill, 4 gridlines on round steps, the dates under it and
+// the last value labelled at its end. series: [{date, v}] oldest first, v in lb.
+function e1rmChartSvg(series, ink){
+  if(!series || series.length < 2) return '';
+  const W = 600, H = 230, L = 72, R = 84, T = 28, B = 34; // room for "227.5" left and "142.9" right
+  const vals = series.map(d => toDisplayWeight(d.v));
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  // A flat or tiny range still gets round gridlines (at least 2 units apart), not 225.1, 225.2.
+  const rough = Math.max(hi - lo, 6) / 3, mag = Math.pow(10, Math.floor(Math.log10(rough)));
+  let step = 0, base = 0;
+  for(const m of [1, 2, 2.5, 5, 10, 20, 25, 50]){
+    step = m * mag; base = Math.floor(lo / step) * step;
+    if(step >= rough && base + 3 * step >= hi) break;
+  }
+  const top = base + 3 * step;
+  const x = i => L + (i / (series.length - 1)) * (W - L - R);
+  const y = v => T + ((top - v) / (top - base)) * (H - T - B);
+  const grid = [0, 1, 2, 3].map(k => {
+    const v = base + k * step, gy = y(v).toFixed(1);
+    return `<line class="e1rm-grid" x1="${L}" x2="${W - R}" y1="${gy}" y2="${gy}" vector-effect="non-scaling-stroke"/>`
+      + `<text class="e1rm-axis" x="${L - 10}" y="${gy}" text-anchor="end" dominant-baseline="middle">${trimUnitNum(Math.round(v * 10) / 10)}</text>`;
+  }).join('');
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const n = series.length, mid = Math.floor((n - 1) / 2);
+  const dates = [[0, 'start'], ...(n >= 3 ? [[mid, 'middle']] : []), [n - 1, 'end']]
+    .map(([i, a]) => `<text class="e1rm-axis" x="${x(i).toFixed(1)}" y="${H - 8}" text-anchor="${a}">${escapeHtml(formatShortDate(series[i].date))}</text>`).join('');
+  const lx = x(n - 1).toFixed(1), ly = y(vals[n - 1]).toFixed(1);
+  const label = `Estimated max over ${n} sessions, ${trimUnitNum(vals[0])} to ${trimUnitNum(vals[n - 1])} ${weightUnit}`;
+  return `<svg class="e1rm-chart ink-${escapeHtml(ink || 'off')}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeHtml(label)}">${grid}${dates}`
+    + `<polyline class="e1rm-line" fill="none" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>`
+    + `<circle class="e1rm-end-dot" cx="${lx}" cy="${ly}" r="6"/>`
+    + `<text class="e1rm-end" x="${(Number(lx) + 12).toFixed(1)}" y="${ly}" text-anchor="start" dominant-baseline="middle">${trimUnitNum(vals[n - 1])}</text></svg>`;
+}
+
 async function buildExerciseHistoryHtml(exIdx, ex, opts){
   const log = await getExLog(activeDay, slotIdOf(ex, exIdx), subVariantOf(ex)); // v3.561 (BL-72)
   const sessions = (log || [])
@@ -34869,30 +34938,13 @@ async function buildExerciseHistoryHtml(exIdx, ex, opts){
 
   let chartHtml = '';
   if(e1rmSeries.length >= 2){
-    const w = 600, h = 70, pad = 8;
-    const vals = e1rmSeries.map(d=> d.v);
-    const min = Math.min(...vals), max = Math.max(...vals);
-    const range = (max-min) || 1;
-    const pts = e1rmSeries.map((d,i)=>{
-      const x = pad + (i/(e1rmSeries.length-1)) * (w-2*pad);
-      const y = h - pad - ((d.v-min)/range) * (h-2*pad);
-      return `${x},${y}`;
-    }).join(' ');
+    // v3.621 (UX-10): drawn by e1rmChartSvg, the same chart Progress leads with.
     const first = e1rmSeries[0].v, last = e1rmSeries[e1rmSeries.length-1].v;
     const delta = toDisplayWeight(last - first);
     const cls = delta > 0 ? 'perf-up' : delta < 0 ? 'perf-down' : 'w-flat'; // v3.322: a higher max is good
     chartHtml = `
       <div class="exh-section-label">Estimated 1RM</div>
-      <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="gradExHistory" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--plate-green)" stop-opacity="0.30"/>
-            <stop offset="100%" stop-color="var(--plate-green)" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradExHistory)"/>
-        <polyline fill="none" stroke="var(--plate-green)" stroke-width="2.5" points="${pts}"/>
-      </svg>
+      ${e1rmChartSvg(e1rmSeries, dayInk(activeDay))}
       <div class="trend-labels">
         <span>${trimUnitNum(toDisplayWeight(first))} ${weightUnit}</span>
         <span class="${cls}">${delta>=0?'+':''}${trimUnitNum(delta)} ${weightUnit} over ${e1rmSeries.length} sessions</span>
@@ -49620,7 +49672,7 @@ async function renderVolumeTrend(){
         ${landmarkHtml}
       </div>
     `;
-  }).join('') + renderMuscleLedgerHtml(computeWeeklyMuscleSets(corpus, todayMonday)); // v3.590 (BL-20)
+  }).join(''); // v3.621 (UX-10): the per-muscle ledger (BL-20) now renders in Progress's lead (renderProgressLead).
 }
 
 // --- RPE Trend: weekly average RPE across every logged set, all exercises
@@ -51522,6 +51574,108 @@ function placeAiInsightsCard(hasKey){
   card.classList.toggle('group-collapsed', !!header && header.classList.contains('collapsed'));
 }
 
+// v3.621 (UX-10): Progress leads with the answer. The person's top 4 lifts by
+// sessions; for the selected one, its estimated max (the highest over the
+// window) and the change from the window's first session to its last, one
+// e1rmChartSvg point per session, the rate per week and the next prescribed set
+// (nextTimeSuggestion, the finish sheet's reader, so it says what the set
+// fields will). Then the per-muscle ledger (BL-20). The choice of lift is kept
+// for the session only.
+const PROGRESS_LEAD_SESSIONS = 12, PROGRESS_LEAD_LIFTS = 4;
+let progressLeadLift = null;
+// One point per session with a top set: topSetOf + estimated1RM, oldest first.
+// A weightless top set (bodyweight, 0 lb) has no estimated max; one lift logged
+// twice on one date (two slots) is one session, at its higher estimate.
+function progressLeadSeries(log){
+  const byDate = new Map();
+  for(const e of (log || []).map(normalizeExEntry)){
+    const t = topSetOf(e), v = t ? estimated1RM(t.weight, t.reps) : null;
+    if(!(v > 0)) continue;
+    const had = byDate.get(e.date);
+    if(!had || v > had.v) byDate.set(e.date, {date: e.date, v});
+  }
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+// The corpus entry holding a lift's newest session: its day (for the ink) and
+// program (for the next set), the same "most recent wins" as groupCorpusByExercise.
+function progressLeadHome(corpus, name){
+  let best = null, bestDate = '';
+  for(const c of corpus || []){
+    if(!c.parsed || canonicalExName(c.exDef && c.exDef.name) !== name) continue;
+    for(const e of c.log || []) if(e && e.date > bestDate){ bestDate = e.date; best = c; }
+  }
+  return best;
+}
+// Compound lifts (COMPOUND_CATEGORIES, as accumulation uses) lead: an estimated
+// max from a 15-rep calf raise says little. Anything else only when no compound
+// lift has been logged.
+function progressLeadLifts(corpus){
+  const all = groupCorpusByExercise(corpus || [])
+    .map(g => ({g, series: progressLeadSeries(g.log)}))
+    .filter(x => x.series.length);
+  const compound = all.filter(x => { const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[x.g.name] : null; return !!info && COMPOUND_CATEGORIES.has(info.category); });
+  return (compound.length ? compound : all)
+    .sort((a, b) => b.series.length - a.series.length || String(b.g.newest).localeCompare(String(a.g.newest)))
+    .slice(0, PROGRESS_LEAD_LIFTS);
+}
+function progressLeadNextLine(g, lastDate, program, inDeload, week){
+  const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[g.name] : null;
+  const s = nextTimeSuggestion({ex: g.exDef, log: g.log.map(normalizeExEntry), category: info ? info.category : null}, lastDate, program, inDeload, week);
+  if(!s) return '';
+  const load = `${trimUnitNum(s.weight)}${s.reps != null ? ` × ${s.reps}` : ''}`;
+  if(s.reason === 'hold'){
+    const n = parseSetCount(g.exDef && g.exDef.sets), m = /×\s*\d+\s*-\s*(\d+)/.exec((g.exDef && g.exDef.sets) || '');
+    if(n && m) return `Next session ${load}, held there until all ${n} sets reach ${m[1]}.`;
+  }
+  return `Next session ${load}. ${s.words}`;
+}
+async function renderProgressLead(){
+  const el = document.getElementById('progressLead');
+  if(!el) return;
+  let corpus = [];
+  try{ corpus = await readExCorpus(); }catch(e){}
+  const lifts = progressLeadLifts(corpus);
+  const ledger = renderMuscleLedgerHtml(computeWeeklyMuscleSets(corpus, mondayOf(getTodayKey())));
+  if(!lifts.length && !ledger){ el.hidden = true; el.innerHTML = ''; return; }
+  if(!lifts.some(x => x.g.name === progressLeadLift)) progressLeadLift = lifts.length ? lifts[0].g.name : null;
+  let answer = '';
+  const sel = lifts.find(x => x.g.name === progressLeadLift);
+  if(sel){
+    const win = sel.series.slice(-PROGRESS_LEAD_SESSIONS);
+    const max = Math.max(...win.map(p => p.v));
+    const first = win[0], last = win[win.length - 1];
+    const delta = toDisplayWeight(last.v - first.v);
+    const change = win.length >= 2
+      ? `<span class="pl-delta ${delta > 0 ? 'perf-up' : delta < 0 ? 'perf-down' : ''}">${delta >= 0 ? '+' : '−'}${trimUnitNum(Math.abs(Math.round(delta * 10) / 10))} ${escapeHtml(weightUnit)}</span><span class="pl-over">over ${win.length} sessions</span>`
+      : `<span class="pl-over">your first session on the log</span>`;
+    const weeks = (new Date(last.date + 'T00:00:00') - new Date(first.date + 'T00:00:00')) / (7 * 86400000);
+    const rate = win.length >= 2 && weeks >= 1 ? Math.round((delta / weeks) * 10) / 10 : null;
+    const inDeload = await isDeloadWeek().catch(() => false), week = await getMesocycleWeek().catch(() => null);
+    // "Next session" follows the newest logged session (a session of misses has no point on the chart but still decides it).
+    const newestLogged = sel.g.log.map(normalizeExEntry).filter(e => (e.sets || []).some(st => st && st.weight != null && st.reps != null))
+      .reduce((d, e) => (e.date > d ? e.date : d), '');
+    const home = progressLeadHome(corpus, sel.g.name);
+    const next = progressLeadNextLine(sel.g, newestLogged || last.date, (home && home.parsed.program) || activeProgram, inDeload, week);
+    const ink = home && home.parsed.dayId ? dayInk(home.parsed.dayId, home.parsed.program) : 'off';
+    const rateLine = rate == null ? '' : rate === 0 ? 'Holding steady. ' : `About ${rate > 0 ? '+' : '−'}${trimUnitNum(Math.abs(rate))} ${escapeHtml(weightUnit)} a week. `;
+    answer = `<div class="pl-label">Estimated max, from your heaviest set each session</div>
+      <div class="pl-answer"><span class="pl-fig">${trimUnitNum(Math.round(toDisplayWeight(max)))}</span><span class="pl-unit">${escapeHtml(weightUnit)}</span><span class="pl-change">${change}</span></div>
+      ${e1rmChartSvg(win.map(p => ({date: p.date, v: p.v})), ink)}
+      ${rateLine || next ? `<p class="pl-next">${rateLine}${escapeHtml(next)}</p>` : ''}`;
+  }
+  el.innerHTML = (lifts.length ? `<div class="pl-lifts" role="group" aria-label="Lift">${lifts.map(x => `<button type="button" class="pl-lift" data-lift="${escapeHtml(x.g.name)}" aria-pressed="${x.g.name === progressLeadLift}">${escapeHtml(x.g.name)}</button>`).join('')}</div>` : '')
+    + answer + ledger;
+  el.hidden = false;
+  el.querySelectorAll('.pl-lift').forEach(b => b.addEventListener('click', async () => {
+    if(progressLeadLift === b.dataset.lift) return;
+    progressLeadLift = b.dataset.lift;
+    await renderProgressLead();
+    // The chips were rebuilt: keep focus on the chosen one (keyboard and VoiceOver).
+    const again = [...el.querySelectorAll('.pl-lift')].find(x => x.dataset.lift === progressLeadLift);
+    if(again) again.focus({preventScroll: true});
+  }));
+}
+
 async function renderAnalysis(){
   placeAiInsightsCard(!!(await getApiKey()));
   const tableEl = document.getElementById('weeklyTable');
@@ -51543,6 +51697,7 @@ async function renderAnalysis(){
   // Run together rather than in sequence — they touch independent storage keys
   // and serialising them would make the tab noticeably slower to settle.
   await Promise.all([
+    renderProgressLead(), // v3.621 (UX-10)
     renderVolumeTrend(),
     renderExerciseProgress(),
     renderStrengthContext(),

@@ -40,7 +40,8 @@ test('REAL invocation: a heavier lift since the first log is green; a lighter on
 
 test('REAL source: the estimated-max and distance trends use the performance colours; bodyweight keeps red for up', (assert)=>{
   const uses = cls => (src.match(new RegExp(`'${cls}'`, 'g')) || []).length;
-  assert.strictEqual(uses('perf-up'), 3, 'exercise progress, estimated max, distance');
+  // 2026-11-22 (v3.621, UX-10): + Progress's lead (its change over the window), 3 → 4.
+  assert.strictEqual(uses('perf-up'), 4, 'exercise progress, estimated max, distance, the Progress lead');
   assert.match(src, /const cls = delta > 0 \? 'perf-up'[^\n]*\n\s*chartHtml = `/, 'estimated-max trend');
   assert.match(src, /const deltaClass = distDelta > 0 \? 'perf-up'/, 'distance trend');
   assert.match(src, /const deltaClass = deltaLb > 0 \? 'w-up'/, 'bodyweight trend unchanged');
