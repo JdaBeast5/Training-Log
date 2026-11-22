@@ -120,4 +120,31 @@ test('criterion 5: the store frame for the program (STORE_STEPS.program) opens S
   assert.ok(card && card.id === 'programCard' && card.contains(window.document.getElementById('programHeader')), 'it returns the Training Style card');
 });
 
+test('UX-32: in Settings the program picker shows one arrow (the Settings mark), full width, the name in the ink (the real wireSettings, the real stylesheet)', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { window } = runJsdom(`<style>${CSS}</style>` + BODY, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){}`,
+    [extractIIFE(src, 'wireSettings') + '\nwireSettings();']);
+  const doc = window.document, sel = doc.getElementById('programSelector');
+  assert.ok(sel.closest('#settingsProgramSlot'), 'anchor: the picker is in Settings');
+  const cs = window.getComputedStyle(sel);
+  const rules = []; const walk = l => { for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  for(const sh of doc.styleSheets) walk(sh.cssRules);
+  // The Settings mark: jsdom's computed background-image is wiped by .program-select's lower-specificity
+  // background:var() shorthand (a browser keeps it), so this reads the rule that wins on the image.
+  const mark = rules.find(r => r.selectorText === '.settings-panel-body .settings-group select');
+  assert.ok(sel.matches(mark.selectorText) && /data:image\/svg\+xml/.test(mark.style.getPropertyValue('background-image')), 'the Settings up/down mark applies');
+  const matches = (el, selText) => selText.split(/,(?![^(]*\))/).some(t => { try{ return el.matches(t.trim()); }catch(e){ return false; } });
+  assert.ok(!rules.some(r => r !== mark && matches(sel, r.selectorText) && /url\(/.test(r.style.getPropertyValue('background-image'))), 'and no second arrow image');
+  // jsdom computes no pseudo-elements: the card's chevron is the wrap's ::after, hidden by the one rule for it here.
+  const hide = rules.filter(r => r.selectorText === '#settingsProgramSlot .program-select-wrap::after');
+  assert.strictEqual(hide.length, 1);
+  assert.strictEqual(hide[0].style.getPropertyValue('display'), 'none', 'the card\'s own chevron is hidden');
+  assert.ok(sel.parentElement.matches('#settingsProgramSlot .program-select-wrap'), 'and it is this picker\'s wrap');
+  assert.strictEqual(cs.maxWidth, 'none', 'full width');
+  assert.strictEqual(cs.textAlign, 'left');
+  assert.strictEqual(cs.color, 'var(--text)', 'the name in the ink');
+  // On Today (where the card no longer lives) the chevron rule is untouched.
+  assert.ok(rules.some(r => r.selectorText === '.program-select-wrap::after' && /var\(--plate-blue\)/.test(r.style.cssText)), 'the base chevron rule still exists for other pickers');
+});
+
 run();

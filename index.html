@@ -2123,6 +2123,12 @@
   /* Rows start at one edge: the cards' icons would indent three rows past the
      plain ones, and their chevrons go grey like every other disclosure row. */
   .settings-group .card .card-icon{display:none;}
+  /* v3.613 (UX-32): Training Style in Settings (UX-28) showed two arrows: the
+     Settings select's up/down mark and the card's own chevron. One stays (the
+     Settings mark), and the program's name, the section's main control, reads
+     in the ink across the row. */
+  #settingsProgramSlot .program-select-wrap::after{display:none;}
+  .settings-panel-body .settings-group #programSelector{width:100%; max-width:none; text-align:left; text-align-last:left; color:var(--text); font-weight:600;}
   .settings-group .card .ex-chevron{color:var(--text-muted);}
   .settings-group .card .nutrition-summary{margin:2px 0;}
   /* A row's one-line summary is for when it is closed; open, the detail
@@ -8352,7 +8358,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.612';
+const APP_VERSION = '3.613';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10023,6 +10029,9 @@ const WHATS_NEW = {
   ]},
   '3.612': { headline: 'The date reads on every cover', points: [
     'On a white rest-day cover the date at the top was white on white; it now takes the cover\'s own ink, like everything else on it.',
+  ]},
+  '3.613': { headline: 'One arrow on the program picker', points: [
+    'In Settings, the program picker showed two arrows; it now shows one, with the program\'s name in full.',
   ]},
 };
 
