@@ -976,6 +976,23 @@
   /* A rest day: the field (white or off, the day's own ink) and its name, so
      the day picker is always one tap away; nothing to log. */
   .cover.is-rest .cover-numeral, .cover.is-rest .cover-log, .cover.is-rest .cover-fields-wrap, .cover.is-rest .cover-chips, .cover.is-rest .cover-of{display:none;}
+  /* v3.606 (UX-25): a rest day is one quiet field: the day's note, then its
+     one action, a 56 pt toggle row in the cover's ink. The card under the
+     cover drops its session controls (nothing to lift). */
+  .cover-rest-day[hidden]{display:none;}
+  .cover .rest-note{margin:10px 0 0; color:inherit; font-size:17px; line-height:1.45;}
+  .cover .rest-done-row{min-height:56px; margin:18px 0 0; padding:0 16px; gap:12px; background:none; border:1.5px solid currentColor; border-radius:var(--r-control); color:inherit; font-size:16px; font-weight:600;}
+  .cover .rest-done-row input[type=checkbox]{background:none; border-color:currentColor;}
+  .cover .rest-done-row input[type=checkbox]:checked{background:currentColor; border-color:currentColor; box-shadow:none;}
+  .cover .rest-done-row input[type=checkbox]:checked::after{border-color:var(--cover);}
+  #todayView #workoutCard.is-rest-day .workout-hero,
+  #todayView #workoutCard.is-rest-day .then-title,
+  #todayView #workoutCard.is-rest-day .duration-row,
+  #todayView #workoutCard.is-rest-day .session-actions,
+  #todayView #workoutCard.is-rest-day .session-length-wrap,
+  #todayView #workoutCard.is-rest-day #gymEnterBtn,
+  #todayView #workoutCard.is-rest-day #addCustomExerciseBtn,
+  #todayView #workoutCard.is-rest-day #customExerciseForm{display:none;}
   .cover-lift-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:8px;}
   .cover-lift{font-size:22px; font-weight:600; letter-spacing:-0.01em; line-height:1.2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
@@ -6386,6 +6403,8 @@
       <span class="cover-of" id="upNextLabel"></span>
     </div>
     <p class="cover-rx" id="upNextTarget"></p>
+    <!-- v3.606 (UX-25): a rest day's note and its one action, written by renderWorkout's rest branch. -->
+    <div class="cover-rest-day" id="coverRestDay" hidden></div>
     <p class="cover-hint" id="upNextHint" hidden></p>
     <div class="cover-numeral" id="upNextNumeral"><span class="cover-w"></span><span class="cover-u"></span><span class="cover-x"></span></div>
     <span class="cover-sr" id="upNextProgress"></span>
@@ -8263,7 +8282,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.605';
+const APP_VERSION = '3.606';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9913,6 +9932,9 @@ const WHATS_NEW = {
     'Opening an exercise shows a plain panel with the cover\'s fields and Log button; Same as Last Time, History and Edit are simple text buttons.',
     'Add custom exercise and Adapt are ruled rows, tips are notes with a thin rule, and Getting Started is a plain list.',
     'Scroll past the cover and the bar at the top shows the set you\'re on, like "Set 3 of 6 · Bench Press". Tap it to go back up.',
+  ]},
+  '3.606': { headline: 'A rest day is one quiet field', points: [
+    'On a rest day the cover shows the day\'s own note and the button to mark it done; the session length, Gym mode and Add custom exercise are gone, since there\'s nothing to lift.',
   ]},
 };
 
@@ -30650,6 +30672,11 @@ async function renderWorkout(){
   const list = document.getElementById('exerciseList');
   list.innerHTML = '';
   renderDayInsight(day);
+  // v3.606 (UX-25): a rest day is one quiet field: its note and "mark as
+  // done" live on the cover, and the card under it drops the session controls.
+  const restSlot = document.getElementById('coverRestDay');
+  restSlot.innerHTML = ''; restSlot.hidden = true;
+  document.getElementById('workoutCard').classList.toggle('is-rest-day', !!day.rest);
 
   if(day.rest){
     document.getElementById('dayDuration').textContent = day.duration;
@@ -30669,13 +30696,14 @@ async function renderWorkout(){
     }catch(e){}
 
     const dateLabel = formatLogDateLabel(selectedLogDate).toLowerCase();
-    list.innerHTML = `
-      <div class="rest-note">${day.note}</div>
+    restSlot.innerHTML = `
+      <p class="rest-note">${day.note}</p>
       <label class="rest-done-row">
         <input type="checkbox" id="restDoneCheckbox" ${restDone ? 'checked' : ''}>
         <span id="restDoneLabel">${restDone ? `Marked as done for ${dateLabel}` : `Mark ${dateLabel}'s rest day as done`}</span>
       </label>
     `;
+    restSlot.hidden = false;
     document.getElementById('restDoneCheckbox').addEventListener('change', async (e)=>{
       const done = e.target.checked;
       try{ await window.storage.set(restKey, JSON.stringify({done})); }catch(err){}
@@ -33046,7 +33074,9 @@ function renderUpNext(){
     card.classList.remove('is-done');
     document.getElementById('upNextLabel').textContent = '';
     document.getElementById('upNextLift').textContent = 'Rest day';
-    document.getElementById('upNextTarget').textContent = 'Training today instead? Tap the day above to pick one.';
+    // v3.606 (UX-25): the day's own note (renderWorkout's rest branch) replaces the generic line.
+    const restSlot = document.getElementById('coverRestDay');
+    document.getElementById('upNextTarget').textContent = restSlot && !restSlot.hidden && restSlot.textContent.trim() ? '' : 'Training today instead? Tap the day above to pick one.';
     document.getElementById('upNextChips').innerHTML = '';
     document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
     document.getElementById('upNextProgress').textContent = '';

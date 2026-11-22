@@ -530,4 +530,78 @@ test('UX-22 criteria 2–3: the real renderCoverNumeral sizes the weight by its 
   assert.strictEqual(rule.r.style.getPropertyValue('flex-wrap'), 'nowrap');
 });
 
+// ── v3.606 (UX-25): a rest day is one quiet field ──────────────────────────
+// The real renderWorkout (its rest branch returns before anything else runs)
+// and the real renderUpNext, over the real page markup (scripts stripped)
+// under the real stylesheet. The calls before the rest branch that aren't
+// about the cover are stubbed; the storage is a Map.
+const PAGE_BODY = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
+async function mountDay(dayDef, {restDone = false} = {}){
+  const { window } = runJsdom(`<style>${CSS}</style>` + PAGE_BODY, `
+    var store = new Map(${JSON.stringify(restDone ? [['rest-log:2026-11-02:strength:d4', '{"done":true}']] : [])});
+    window.storage = { get: async k => store.has(k) ? {value: store.get(k)} : null, set: async (k, v) => { store.set(k, v); } };
+    window.__store = store;
+    var activeDay = 'd4', activeProgram = 'strength', selectedLogDate = '2026-11-02', distanceUnit = 'km', weightUnit = 'lb';
+    var exerciseDetailDay = 'd4', exerciseDetailPinned = true, exerciseDetailIdx = null;
+    var dayDefs = { d4: ${JSON.stringify(dayDef)} };
+    window.__activity = 0;
+    function recordActivity(){ window.__activity++; return Promise.resolve(); } function renderStreak(){}
+    function renderTodayInsights(){} function renderArchiveWeekVisibility(){} function renderDayInsight(){}
+    function getDayPlateClass(){ return 'p-off'; } function applyDayInk(){ document.body.classList.add('day-off'); return 'off'; } function dayGlyphSvg(){ return ''; }
+    function formatLogDateLabel(){ return 'Today'; }
+    function renderCoverBar(){} function refreshGymLogBtn(){} function focusExerciseDetail(){}
+  `, [...FNS, extractFunction(src, 'renderWorkout'), extractFunction(src, 'syncStickyDayTitle'),
+    // A training day carries on past the rest branch into code this fixture
+    // doesn't load; everything the rest branch sets happens before that.
+    'window.__render = () => renderWorkout().catch(e => { window.__err = e; });', 'window.__done = window.__render();']);
+  await window.__done;
+  return { window, doc: window.document, $: id => window.document.getElementById(id), cs: el => window.getComputedStyle(el) };
+}
+const REST_DAY = {label: 'Day 4', sub: 'Full Rest', rest: true, plateNum: 'OFF', duration: 'Rest day', note: 'Walk, stretch, sleep. Let the week land.'};
+
+test('UX-25 criterion 1: on a rest day the cover carries the day\'s note and #restDoneCheckbox (once in the document, inside #upNext); the list holds nothing', async (assert)=>{
+  const ui = await mountDay(REST_DAY);
+  assert.strictEqual(ui.$('upNextLift').textContent, 'Rest day', 'anchor: the cover says so');
+  assert.strictEqual(ui.doc.querySelectorAll('#restDoneCheckbox').length, 1, 'exactly once');
+  assert.ok(ui.$('restDoneCheckbox').closest('#upNext'), 'inside the cover');
+  assert.strictEqual(ui.doc.querySelector('#upNext .rest-note').textContent, REST_DAY.note, 'the day\'s own note');
+  assert.strictEqual(ui.$('upNextTarget').textContent, '', 'the generic "Training today instead?" line gives way to the note');
+  assert.strictEqual(ui.$('exerciseList').innerHTML.trim(), '', 'nothing in the list');
+  assert.strictEqual(ui.$('restDoneLabel').textContent, 'Mark today\'s rest day as done');
+  const row = ui.doc.querySelector('#upNext .rest-done-row');
+  assert.ok(parseFloat(ui.cs(row).minHeight) >= 56, 'a 56 pt toggle row');
+  assert.strictEqual(ui.cs(row).color, ui.cs(ui.$('upNext')).color, 'in the cover\'s ink');
+  const rowRule = [...ui.doc.styleSheets].flatMap(sh => [...sh.cssRules]).find(r => r.selectorText === '.cover .rest-done-row');
+  assert.match(rowRule.style.getPropertyValue('border'), /^1\.5px solid( currentcolor)?$/i, 'its rule in that ink too (no colour = currentColor; jsdom drops the keyword)');
+});
+
+test('UX-25 criterion 2: checking it writes rest-log:<date>:<program>:<day> = {"done":true}, calls recordActivity once, and reads "Marked as done for today" (as at v3.599)', async (assert)=>{
+  const ui = await mountDay(REST_DAY);
+  const cb = ui.$('restDoneCheckbox');
+  cb.click(); // checks it and fires change
+  await new Promise(r => setTimeout(r, 0));
+  assert.strictEqual(ui.window.__store.get('rest-log:2026-11-02:strength:d4'), '{"done":true}');
+  assert.strictEqual(ui.window.__activity, 1, 'recordActivity once');
+  assert.strictEqual(ui.$('restDoneLabel').textContent, 'Marked as done for today');
+  const again = await mountDay(REST_DAY, {restDone: true});
+  assert.ok(again.$('restDoneCheckbox').checked, 'a done rest day comes back checked');
+  assert.strictEqual(again.$('restDoneLabel').textContent, 'Marked as done for today');
+});
+
+test('UX-25 criterion 3: on a rest day Gym mode, the session length and Add custom exercise compute display:none; on a training day they don\'t, and the cover\'s rest slot is cleared', async (assert)=>{
+  const rest = await mountDay(REST_DAY);
+  rest.doc.body.classList.add('has-cover');
+  for(const el of [rest.$('gymEnterBtn'), rest.$('sessionLengthSelector').closest('.session-length-wrap'), rest.$('addCustomExerciseBtn')])
+    assert.strictEqual(rest.cs(el).display, 'none', (el.id || el.className) + ' on a rest day');
+  // The same page, then a training day: the real renderWorkout clears the slot and the class.
+  const train = rest;
+  train.window.eval(`dayDefs.d4 = {label: 'Day 1', sub: 'Upper · Strength', duration: '~60 min', exercises: []};`);
+  await train.window.__render();
+  assert.ok(!train.$('workoutCard').classList.contains('is-rest-day'), 'a training day: no is-rest-day');
+  assert.ok(train.$('coverRestDay').hidden && train.$('coverRestDay').innerHTML === '', 'the cover\'s rest slot is cleared');
+  assert.strictEqual(train.doc.querySelectorAll('#restDoneCheckbox').length, 0, 'no rest checkbox on a training day');
+  for(const el of [train.$('gymEnterBtn'), train.$('sessionLengthSelector').closest('.session-length-wrap'), train.$('addCustomExerciseBtn')])
+    assert.notStrictEqual(train.cs(el).display, 'none', (el.id || el.className) + ' on a training day');
+});
+
 run();

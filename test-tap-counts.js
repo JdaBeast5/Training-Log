@@ -27,7 +27,9 @@ const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1,
   // v3.601 (UX-20): the controls that moved onto the Today cover. At v3.600 each took one tap.
   previousDay: 1, backToToday: 1, openCalendar: 1, openSettings: 1, openCoach: 1, openDaySheet: 1,
   // v3.604 (UX-23): Gym mode became a plain text button in the "Then" head. At v3.603 it took one tap.
-  enterGymMode: 1};
+  enterGymMode: 1,
+  // v3.606 (UX-25): the rest day's "mark as done" moved onto the cover. At v3.605 it took one tap.
+  markRestDone: 1};
 
 function statement(startText){
   const i = src.indexOf(startText);
@@ -161,6 +163,30 @@ test('UX-23: entering Gym mode from the "Then" head takes one tap on #gymEnterBt
   const taps = {enterGymMode: 1};
   assert.ok(window.document.body.classList.contains('gym-mode'), 'one tap: gym mode is on');
   assert.ok(window.__calls.includes('showView') && window.__calls.includes('persistGymSession'), 'the real entry ran');
+  for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
+});
+
+test('UX-25: marking a rest day done takes one tap on the cover (the real renderWorkout rest branch and renderUpNext)', async (assert)=>{
+  const FNS = ['escapeHtml', 'findNextSetRow', 'renderUpNext', 'syncStickyDayTitle', 'renderWorkout'].map(f => extractFunction(src, f));
+  const page = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
+  const { window } = runJsdom(page, `
+    var store = new Map();
+    window.storage = { get: async k => store.has(k) ? {value: store.get(k)} : null, set: async (k, v) => { store.set(k, v); } };
+    window.__store = store;
+    var activeDay = 'd4', activeProgram = 'strength', selectedLogDate = '2026-11-02';
+    var exerciseDetailDay = 'd4', exerciseDetailPinned = true, exerciseDetailIdx = null;
+    var dayDefs = { d4: {label: 'Day 4', sub: 'Full Rest', rest: true, plateNum: 'OFF', duration: 'Rest day', note: 'Walk and stretch.'} };
+    function recordActivity(){ return Promise.resolve(); } function renderStreak(){}
+    function renderTodayInsights(){} function renderArchiveWeekVisibility(){} function renderDayInsight(){}
+    function getDayPlateClass(){ return 'p-off'; } function applyDayInk(){ return 'off'; } function dayGlyphSvg(){ return ''; }
+    function formatLogDateLabel(){ return 'Today'; }`, [...FNS, 'window.__done = renderWorkout();']);
+  await window.__done;
+  const cb = window.document.getElementById('restDoneCheckbox');
+  assert.ok(cb && cb.closest('#upNext'), 'anchor: the action is on the cover');
+  cb.click();
+  const taps = {markRestDone: 1};
+  await new Promise(r => setTimeout(r, 0));
+  assert.strictEqual(window.__store.get('rest-log:2026-11-02:strength:d4'), '{"done":true}', 'one tap marks it done');
   for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
 });
 

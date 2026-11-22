@@ -165,7 +165,9 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
     function formatLogDateLabel(){ return 'Today'; }
     function recordActivity(){ return Promise.resolve(); } function renderStreak(){}
   ` + STUBS, [...FNS, `window.__render = renderUpNext;
-    window.__rest = async function(day){ const list = document.getElementById('exerciseList'); list.innerHTML = ''; ${branch} };`]);
+    window.__rest = async function(day){ const list = document.getElementById('exerciseList'); list.innerHTML = '';
+      /* 2026-11-22 (v3.606, UX-25): renderWorkout defines the cover's rest slot just above the branch. */
+      const restSlot = document.getElementById('coverRestDay'); restSlot.innerHTML = ''; restSlot.hidden = true; ${branch} };`]);
   const $ = id => window.document.getElementById(id);
   window.__render();
   assert.strictEqual($('upNextLift').textContent, 'Squat', 'anchor: the training day filled the card');
@@ -174,7 +176,9 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
   // 2026-11-17 (v3.595, UX-06b): the cover stays (as the day picker's way in), with no lift.
   assert.strictEqual($('upNextLift').textContent, 'Rest day', 'no lift on a rest day');
   assert.ok($('upNext').classList.contains('is-rest'));
-  assert.match($('exerciseList').textContent, /Full rest day\./, 'the rest note is what shows');
+  // 2026-11-22 (v3.606, UX-25): the note shows on the cover now, not in the list.
+  assert.match($('coverRestDay').textContent, /Full rest day\./, 'the rest note is what shows');
+  assert.strictEqual($('exerciseList').textContent.trim(), '', 'the list holds nothing');
 });
 
 // v3.292 (Impeccable distill): the input wells lose their hairline (the panel
