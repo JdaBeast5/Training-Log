@@ -8368,7 +8368,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.615';
+const APP_VERSION = '3.616';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10048,6 +10048,9 @@ const WHATS_NEW = {
   ]},
   '3.615': { headline: 'Technique & focus in the ink', points: [
     'In an open exercise, Technique & focus and its form-video link are now in the same ink as everything around them, not blue.',
+  ]},
+  '3.616': { headline: 'Tips that fit your goal', points: [
+    'Keep In Mind on Strength & Size no longer assumes you\'re cutting: protein, sleep and steps tips now give the reason that fits your goal, whether you\'re losing, building, recomping or maintaining.',
   ]},
 };
 
@@ -36137,11 +36140,11 @@ const TIP_COLORS = ['', 'var(--plate-red)', 'var(--plate-yellow)', 'var(--plate-
 
 const TIPS_BY_PROGRAM = {
   strength: [
-    "<b>Protein first.</b> Hit __PROTEIN_TARGET__g before worrying about anything else — this is what protects muscle in the deficit.",
+    "<b>Protein first.</b> Hit __PROTEIN_TARGET__g before worrying about anything else — this is what __GOAL_PROTEIN__.",
     "<b>Progressive overload.</b> Hit the top of a rep range on all sets → add weight next session.",
-    "<b>Sleep 7-9 hrs.</b> Non-negotiable for recomp — this is when muscle actually rebuilds.",
+    "<b>Sleep 7-9 hrs.</b> Non-negotiable __GOAL_SLEEP__— this is when muscle actually rebuilds.",
     "<b>Zone 2 cardio, 2-3x/week.</b> 20-30 min incline walk or bike. Don't turn it into HIIT — that eats into lifting recovery.",
-    "<b>8-10k steps/day.</b> Your biggest fat-loss lever that doesn't cost you strength.",
+    "<b>8-10k steps/day.</b> __GOAL_STEPS__",
     "<b>Weigh in weekly, not daily.</b> Track the trend over 2-3 weeks, not day-to-day noise.",
     "<b>Order doesn't matter, consistency does.</b> Shift days around your week freely — just land on a rest day after 2 straight lifting days when you can.",
   ],
@@ -36566,8 +36569,25 @@ function getActiveTips(){
 
 }
 
+// v3.616 (UX-35): the tips' few goal-specific phrases follow the profile's
+// goal (Strength & Size's tips assumed a cut: "in the deficit", "for recomp",
+// "your biggest fat-loss lever"). The advice is the same; the reason fits.
+const TIP_GOAL_PHRASES = {
+  lose:        {protein: 'protects muscle in the deficit', sleep: 'in a deficit ', steps: 'Your biggest fat-loss lever that doesn\'t cost you strength.'},
+  recomp:      {protein: 'lets you build muscle while you lose fat', sleep: 'for a recomp ', steps: 'Your biggest fat-loss lever that doesn\'t cost you strength.'},
+  gain:        {protein: 'turns your training into new muscle', sleep: 'while you build ', steps: 'Keeps your heart and recovery in shape without costing you strength.'},
+  leanbulk:    {protein: 'turns your training into new muscle', sleep: 'while you build ', steps: 'Keeps the bulk lean without costing you strength.'},
+  maintain:    {protein: 'keeps the muscle you have', sleep: '', steps: 'Keeps your heart and recovery in shape without costing you strength.'},
+  performance: {protein: 'repairs what training breaks down', sleep: 'for performance ', steps: 'Keeps your heart and recovery in shape without costing you strength.'},
+};
+function applyTipGoal(html, goal){
+  const g = TIP_GOAL_PHRASES[goal] || TIP_GOAL_PHRASES.maintain;
+  return html.replace('__GOAL_PROTEIN__', g.protein).replace('__GOAL_SLEEP__', g.sleep).replace('__GOAL_STEPS__', g.steps);
+}
+
 function renderTips(){
-  const tips = getActiveTips().map(html=> html.replace('__PROTEIN_TARGET__', targets.pro));
+  const goal = (typeof userProfile !== 'undefined' && userProfile && userProfile.goal) || 'maintain';
+  const tips = getActiveTips().map(html=> applyTipGoal(html.replace('__PROTEIN_TARGET__', targets.pro), goal));
   const buildTip = (html, idx) => `<div class="tip"><div class="tip-icon" style="background:${TIP_COLORS[idx % TIP_COLORS.length] || 'var(--plate-yellow)'}"></div><div>${html}</div></div>`;
   document.getElementById('tipsAlways').innerHTML = tips.slice(0,3).map(buildTip).join('');
   document.getElementById('tipsMore').innerHTML = tips.slice(3).map((html,i)=>buildTip(html, i+3)).join('');
