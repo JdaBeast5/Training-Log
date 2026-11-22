@@ -1518,3 +1518,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **UX-33 (v3.614, #193):** `body:not(.gym-mode) .rest-timer .rt-add, .rt-close` are in `--text`, 44 pt.
 - **UX-34 (v3.615, #194):** `.ex-details` summary, `.ex-icon` and `.ex-video-link` are in the ink outside gym mode.
 - **UX-35 (v3.616, #195):** `TIP_GOAL_PHRASES` + `applyTipGoal`; `__GOAL_PROTEIN__`, `__GOAL_SLEEP__`, `__GOAL_STEPS__` in Strength & Size's tips. All five follow-ups are built.
+
+## Addendum 137: MKT-16, the session bib card (v3.617, PR #196, 2026-11-22)
+- **What:** `drawStoryCard` hands a session card with `bib` data to `drawBibCard`: ink ground, tilted white bib, event band, "No. N" (`trainingDayNumber`: distinct set dates in the whole corpus up to the day), the loaded bar on barbell days, the lead lift (`bibLeadLift`) with its next-time note, tear-off tabs. `finishSheetModel` builds `share.bib`.
+- **Shared change:** `wrapCanvasText(…, fromTop, maxLines)`; the last kept line ends in ….
+- **Evidence:** real-browser renders on five inks (scratch script, not the harness, which has no share-card state). The first render put the note over the tabs; fixed and pinned by a tear-line test.
+- **Next:** MKT-17 reuses `trainingDayNumber`.
