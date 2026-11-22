@@ -26,7 +26,8 @@ const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
 const DEFS = [extractConst(src, 'BARBELL_STANDARDS'), extractConst(src, 'DUMBBELL_DEFAULTS'), extractConst(src, 'BARBELL_EXERCISES'), extractConst(src, 'PLATE_INKS'),
-  ...['getEquipment', 'isBarbellExercise', 'platesPerSide', 'plateCaption', 'barStackSvg', 'renderCoverBar', 'escapeHtml'].map(f => extractFunction(src, f))];
+  ...['getEquipment', 'isBarbellExercise', 'platesPerSide', 'plateCaption', 'barStackSvg', 'plateStackInner' /* 2026-11-22 (v3.622, UX-14): the cover and the pane share it */, 'renderCoverBar', 'escapeHtml'].map(f => extractFunction(src, f)),
+  'function renderExerciseDetailBar(){} /* 2026-11-22 (v3.622, UX-14): renderCoverBar refreshes the pane (test-open-screen-2-0.js) */'];
 function mount(unit = 'lb', profile = null){
   const { window } = runJsdom(extractElementById(src, 'upNextBar').replace(' hidden>', ' hidden>'), `
     var weightUnit = ${JSON.stringify(unit)}; var equipmentProfile = ${JSON.stringify(profile)};`,

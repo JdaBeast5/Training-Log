@@ -1055,6 +1055,8 @@
   /* v3.596 (UX-07): the loaded bar, full width, under the Log button (the
      mock-up has it above Log; there it would push Log below y = 480). */
   .cover-bar{margin-top:14px;}
+  #exerciseDetailBar[hidden]{display:none;}
+  #exerciseDetailBar .cover-bar{margin-top:6px; color:var(--text);} /* v3.622 (UX-14): the pane's plate stack */
   .cover-bar[hidden]{display:none;}
   .cover-bar svg{display:block; width:100%; height:auto; overflow:visible;}
   .cover-bar .bar-steel{fill:#BDBDB8; stroke:#0C0C0D; stroke-width:2;}
@@ -6981,6 +6983,7 @@
   <div class="card exercise-detail-card" id="exerciseDetailCard" hidden>
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span><span id="exerciseDetailTitle"></span></div>
     <div class="history-hint">Your history with this lift. Open another exercise to see it here.</div>
+    <div id="exerciseDetailBar" hidden></div>
     <div id="exerciseDetailBody"></div>
   </div>
   <div id="profileCardPermanentSlot"></div>
@@ -8407,7 +8410,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.621';
+const APP_VERSION = '3.622';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10106,6 +10109,9 @@ const WHATS_NEW = {
   ]},
   '3.621': { headline: 'Progress answers first', points: [
     'Progress now opens on your main lifts: pick one to see its estimated max, how much it has moved, a clean chart of every session, and your next set. Your sets per muscle this week sit right under it.',
+  ]},
+  '3.622': { headline: 'The loaded bar on the big screen', points: [
+    'Unfolded, the lift pane beside your session now shows the bar loaded for your next set, above its estimated-max chart and your last five sessions.',
   ]},
 };
 
@@ -33726,6 +33732,7 @@ function renderUpNext(){
     document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
     document.getElementById('upNextProgress').textContent = '';
     syncStickyDayTitle(); // v3.605 (UX-24)
+    renderExerciseDetailBar(); // v3.622 (UX-14): no next set, no stack
     return;
   }
   document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
@@ -33739,6 +33746,7 @@ function renderUpNext(){
     document.getElementById('upNextChips').innerHTML = '';
     hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
     syncStickyDayTitle(); // v3.605 (UX-24)
+    renderExerciseDetailBar(); // v3.622 (UX-14): session complete clears the pane's stack
     return;
   }
   document.getElementById('upNextLabel').textContent = `Set ${n.setNum} of ${n.setCount}`;
@@ -33770,6 +33778,7 @@ function renderUpNext(){
   renderCoverNumeral(card);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
+  renderExerciseDetailBar(); // v3.622 (UX-14): the pane's plate stack follows the next set, pinned or not
 }
 
 // v3.593 (UX-06a): the cover numeral is the set Log will write: the weight in
@@ -33864,10 +33873,14 @@ function renderCoverBar(card, weight){
   const w = parseFloat(weight);
   const eq = getEquipment();
   if(!card._exName || !isBarbellExercise(card._exName) || !(w >= eq.bar)){ box.hidden = true; box.innerHTML = ''; return; }
-  const load = platesPerSide(w, eq);
-  box.innerHTML = barStackSvg(load.plates, weightUnit)
-    + `<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span><span>${escapeHtml(String(eq.bar))} ${escapeHtml(weightUnit)} bar</span></div>`;
+  box.innerHTML = plateStackInner(platesPerSide(w, eq), eq);
   box.hidden = false;
+  renderExerciseDetailBar(); // v3.622 (UX-14): the pane's stack follows the cover's weight as it's stepped
+}
+// The drawing and its caption, shared by the cover and the open-screen pane (v3.622, UX-14).
+function plateStackInner(load, eq){
+  return barStackSvg(load.plates, weightUnit)
+    + `<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span><span>${escapeHtml(String(eq.bar))} ${escapeHtml(weightUnit)} bar</span></div>`;
 }
 
 // The lift's own set chips, drawn for the cover from the real strip in
@@ -35023,6 +35036,48 @@ function focusExerciseDetail(exIdx, pinned){
   renderExerciseDetail();
 }
 
+// v3.622 (UX-14): the focused lift's next set, read as the cover reads it
+// (fillSetLogger): when it is the cover's lift, the weight on the cover (as
+// stepped); otherwise the set chip's suggestion for its first unlogged set,
+// else the weight field's numeric placeholder, else the set just logged. null
+// when every set is logged or the lift is ticked done (findNextSetRow's rules).
+function nextSetLoadFor(exIdx){
+  const list = document.getElementById('exerciseList');
+  if(!list || exIdx == null) return null;
+  const rows = [...list.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`)];
+  const isDone = r => { const rp = r.querySelector('.ex-reps'); return !!rp && rp.value !== ''; };
+  const row = rows.find(r => r.querySelector('.ex-reps') && !isDone(r));
+  if(!row) return null;
+  const block = row.closest('.exercise-block'), tick = block && block.querySelector('input[type=checkbox]');
+  if(tick && tick.checked) return null;
+  const card = document.getElementById('upNext');
+  if(card && !card.hidden && card._row === row){
+    const typed = parseFloat((card.querySelector('.up-next-field[data-field="weight"] input') || {}).value);
+    if(typed > 0) return typed;
+  }
+  const chip = list.querySelector(`.set-chip[data-ex-idx="${exIdx}"][data-set-idx="${row.dataset.setIdx}"]`);
+  const field = row.querySelector('.ex-weight');
+  const prev = rows[rows.indexOf(row) - 1], prevField = prev && prev.querySelector('.ex-weight');
+  const v = chip && chip._values && chip._values.weight != null && chip._values.weight !== '' ? chip._values.weight
+    : (numericPlaceholder(field) || (prevField ? prevField.value : ''));
+  const w = parseFloat(v);
+  return w > 0 ? w : null;
+}
+// The pane's plate stack for a barbell lift (UX-07's drawing), at that load.
+// Refreshed on focus and after each set (renderUpNext), so a pinned lift's
+// stack follows the next set too.
+function renderExerciseDetailBar(){
+  const box = document.getElementById('exerciseDetailBar');
+  if(!box) return;
+  const card = document.getElementById('exerciseDetailCard');
+  const ex = exerciseDetailIdx != null ? exerciseDetailByIdx[exerciseDetailIdx] : null;
+  const w = ex && card && !card.hidden && isBarbellExercise(ex.name) ? nextSetLoadFor(exerciseDetailIdx) : null;
+  const eq = getEquipment();
+  if(w == null || !(w >= eq.bar)){ box.hidden = true; box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="exh-section-label">Next set · ${escapeHtml(trimUnitNum(w))} ${escapeHtml(weightUnit)}</div><div class="cover-bar">${plateStackInner(platesPerSide(w, eq), eq)}</div>`;
+  box.hidden = false;
+}
+
 async function renderExerciseDetail(){
   const card = document.getElementById('exerciseDetailCard');
   if(!card) return;
@@ -35038,6 +35093,7 @@ async function renderExerciseDetail(){
   const shownIdx = exerciseDetailIdx;
   const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
   if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
+  renderExerciseDetailBar(); // v3.622 (UX-14)
   document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
 }
 // Folding or unfolding shows or hides it straight away, not at the next set.

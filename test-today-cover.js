@@ -40,7 +40,7 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'targetRirLabel', 'getRepRangeTier', 'firstSetHint', 'rirLabelHtml'].map(n => extractFunction(src, n));
 // 2026-11-17 (v3.596, UX-07): renderCoverNumeral also draws the loaded bar
 // (test-plate-stack.js), so its real builder and the equipment it reads come along.
-FNS.push(...['renderCoverBar', 'platesPerSide', 'plateCaption', 'barStackSvg', 'getEquipment'].map(n => extractFunction(src, n)),
+FNS.push(...['renderCoverBar', 'plateStackInner' /* 2026-11-22 (v3.622, UX-14) */, 'platesPerSide', 'plateCaption', 'barStackSvg', 'getEquipment'].map(n => extractFunction(src, n)),
   extractConst(src, 'BARBELL_STANDARDS'), extractConst(src, 'DUMBBELL_DEFAULTS'), extractConst(src, 'PLATE_INKS'), 'var equipmentProfile = null;');
 FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractConst(src, 'RIR_TARGETS'), extractConst(src, 'RIR_SPEED_CATEGORIES'),
   extractConst(src, 'RIR_NO_LABEL_CATEGORIES'), extractConst(src, 'RIR_NO_LABEL_NAME'));
@@ -85,7 +85,7 @@ const INFO = {
 function mount(listHtml, {exercises = []} = {}){
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
       <div id="mesocyclePhaseTag">Week 4 of 5 · Accumulation</div><div id="exerciseList">${listHtml}</div>`, `
-    var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
+    var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true; /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
     var exerciseInfo = ${JSON.stringify(INFO)};
     var COMPOUND_CATEGORIES = new Set(['chest', 'back', 'legs', 'shoulders']);
     function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
@@ -549,7 +549,7 @@ async function mountDay(dayDef, {restDone = false} = {}){
     function renderTodayInsights(){} function renderArchiveWeekVisibility(){} function renderDayInsight(){}
     function getDayPlateClass(){ return 'p-off'; } function applyDayInk(){ document.body.classList.add('day-off'); return 'off'; } function dayGlyphSvg(){ return ''; }
     function formatLogDateLabel(){ return 'Today'; }
-    function renderCoverBar(){} function refreshGymLogBtn(){} function focusExerciseDetail(){}
+    function renderCoverBar(){} function refreshGymLogBtn(){} function focusExerciseDetail(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
   `, [...FNS, extractFunction(src, 'renderWorkout'), extractFunction(src, 'syncStickyDayTitle'),
     // A training day carries on past the rest branch into code this fixture
     // doesn't load; everything the rest branch sets happens before that.

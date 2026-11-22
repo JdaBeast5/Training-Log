@@ -29,7 +29,9 @@ const src = readIndexSource();
 const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow',
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
 // 2026-11-17 (v3.596, UX-07): the cover's loaded bar is stubbed here; test-plate-stack.js drives it.
-const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; } function renderCoverBar(){}";
+const STUBS = "var distanceUnit = 'km', activeProgram = 'p'; function renderAllSetChips(){} function showUndoToast(){} function icon(){ return ''; } function renderCoverBar(){}"
+  // 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js).
+  + " window.__bars = 0; function renderExerciseDetailBar(){ window.__bars++; }";
 
 // One row, shaped like renderWorkout's .set-row template.
 function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', rv = '', rpev = ''} = {}){
@@ -136,6 +138,19 @@ test('REAL invocation: a finished session says so; a rest day (no rows) hides th
 // 2026-10-26 (v3.391): twice now — once at the end of the rest-day branch
 // (which returns early), once at the end of a training day. Before, the rest
 // branch skipped it and the card kept the previous day's lift.
+test('UX-14 (v3.622): every exit of the real renderUpNext refreshes the open-screen pane\'s plate stack: a next set, session complete, a rest day', (assert)=>{
+  const next = mount(BENCH_DONE + block('4×6-8', [0, 1].map(i => row(1, i, 'Barbell Row')).join('')));
+  next.render();
+  assert.strictEqual(next.window.__bars, 1, 'a next set');
+  const done = mount(BENCH_DONE);
+  done.render();
+  assert.match(done.$('upNextLift').textContent, /Session complete/, 'anchor: the complete branch');
+  assert.strictEqual(done.window.__bars, 1, 'session complete: refreshed (it clears)');
+  const rest = mount('');
+  rest.render();
+  assert.strictEqual(rest.window.__bars, 1, 'a rest day: refreshed');
+});
+
 test('REAL source, comments stripped: renderWorkout refreshes the card once per path, after the rows exist', (assert)=>{
   const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
   assert.strictEqual((fn.match(/\brenderUpNext\(\)/g) || []).length, 2);

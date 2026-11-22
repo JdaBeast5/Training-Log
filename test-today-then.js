@@ -256,6 +256,7 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
       <div id="mesocyclePhaseTag"></div><div id="exerciseList">${LIST}</div>`, `
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
     function renderCoverBar(){} // the plate stack (test-plate-stack.js)
+    /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
     function refreshGymLogBtn(){} ${STUBS}`, FNS);
   const doc = window.document;
   const now = () => [...doc.querySelectorAll('#exerciseList .is-now')];
@@ -395,7 +396,7 @@ test('UX-24 criterion 3: the sticky header prints "Set 3 of 6 · Bench Press" fr
   const { window } = runJsdom(extractElementById(src, 'upNext') + extractElementById(src, 'stickyDayHeader') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
       <div id="mesocyclePhaseTag"></div><div id="exerciseList">${list}</div>`, `
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
-    function renderCoverBar(){} function refreshGymLogBtn(){} ${STUBS}`, FNS);
+    function renderCoverBar(){} function refreshGymLogBtn(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){} ${STUBS}`, FNS);
   const doc = window.document, title = doc.getElementById('stickyDayTitle');
   title.dataset.day = 'Day 1 — Upper · Strength'; // as renderWorkout writes it
   window.renderAllSetChips(); window.renderUpNext();

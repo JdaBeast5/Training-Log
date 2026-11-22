@@ -94,17 +94,22 @@ test('REAL source (v3.498): none of this applies on a phone — every rule lives
 // sessions), cues and form video. It follows Up next until you open an
 // exercise yourself, then stays on yours until the day changes.
 const HIST_FNS = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet' /* v3.537 (BL-77) */, 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'slugifyExerciseName', 'slotIdOf' /* v3.561 (BL-72) */, 'dayInk', 'e1rmChartSvg' /* 2026-11-22 (v3.621, UX-10): the sheet's chart is the shared one */, 'buildExerciseHistoryHtml'];
+// 2026-11-22 (v3.622, UX-14): renderExerciseDetail draws the plate stack too (renderExerciseDetailBar).
+const PLATE_FNS = ['isBarbellExercise', 'getEquipment', 'platesPerSide', 'plateCaption', 'barStackSvg', 'plateStackInner', 'numericPlaceholder', 'nextSetLoadFor', 'renderExerciseDetailBar'];
+const PLATE_CONSTS = ['BARBELL_EXERCISES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'PLATE_INKS'];
 function detailWindow(open){
   const sessions = Array.from({length:8}, (_, i) => ({ date:`2026-10-${String(27 - i * 3).padStart(2, '0')}`, sets:[{weight:150 - i * 5, reps:8}, {weight:150 - i * 5, reps:7}] }));
   const html = extractElementById(src, 'exerciseDetailCard');
   const { window } = runJsdom(html, `
-    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
     window.__open = ${open};
     function isOpenPosture(){ return window.__open; }
     async function getExLog(){ return ${JSON.stringify(sessions)}; }
     var exerciseInfo = { 'Bench Press': { cues:['Shoulder blades back', 'Bar to lower chest', 'Drive feet'], videoQuery:'bench press form' } };`,
-    [...HIST_FNS.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+    [...PLATE_CONSTS.map(c => extractConst(src, c)),
+     ...HIST_FNS.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
      ...['metresPerDisplayUnit'].map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+     ...PLATE_FNS.map(n => extractFunction(src, n)),
      `var exerciseDetailByIdx = {}; var exerciseDetailIdx = null; var exerciseDetailPinned = false; var exerciseDetailDay = null;`,
      extractFunction(src, 'focusExerciseDetail'), extractFunction(src, 'renderExerciseDetail'),
      "exerciseDetailByIdx['0'] = {name:'Bench Press'}; exerciseDetailByIdx['2'] = {name:'Overhead Press'};"]);
@@ -481,6 +486,115 @@ test('REAL invocation (v3.509): which scrolls count as the app\'s, and which one
   }
   assert.strictEqual(w.appScrollerOf(card), d.getElementById('logView'), 'right pane: the tab');
   assert.strictEqual(w.appScrollerOf(inPane), d.getElementById('logPane'), 'left pane: the pane');
+});
+
+// v3.622 (UX-14): the unfolded pane gains UX-07's plate stack for the focused
+// barbell lift, at its next set's load (the set chip's suggestion, as the
+// cover reads it), and draws UX-10's e1rmChartSvg (one call per focus).
+// Real invocation: the real focusExerciseDetail, renderExerciseDetail,
+// renderExerciseDetailBar, nextSetLoadFor, buildExerciseHistoryHtml,
+// e1rmChartSvg (wrapped only to count calls), platesPerSide, plateCaption and
+// barStackSvg, over the real pane markup and a #exerciseList with set rows and
+// chips. Sabotage: chart the first exercise always and criterion 1 fails.
+function paneWindow(open){
+  // Slot 0 (Bench Press) has 8 sessions, slot 2 (DB Curl) 3: each focus must chart its own.
+  const logs = {0: 8, 2: 3};
+  const html = extractElementById(src, 'exerciseDetailCard') + `<div id="exerciseList">
+    <div class="exercise-block"><div class="set-row" data-ex-idx="0" data-set-idx="0"><input class="ex-weight" value="185"><input class="ex-reps" value="5"></div>
+      <div class="set-row" data-ex-idx="0" data-set-idx="1"><input class="ex-weight" placeholder="lb"><input class="ex-reps" value=""></div>
+      <div class="set-chips"><button class="set-chip" data-ex-idx="0" data-set-idx="1"></button></div></div>
+    <div class="exercise-block"><div class="set-row" data-ex-idx="2" data-set-idx="0"><input class="ex-weight" placeholder="30"><input class="ex-reps" value=""></div></div></div>`;
+  const { window } = runJsdom(html, `
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    window.__open = ${open};
+    function isOpenPosture(){ return window.__open; }
+    async function getExLog(day, slot){ const n = ${JSON.stringify(logs)}[String(slot)] || 0;
+      return Array.from({length: n}, (_, i) => ({date: '2026-10-' + String(27 - i * 3).padStart(2, '0'), sets: [{weight: 150 - i * 5, reps: 8}]})); }
+    var exerciseInfo = {};
+    window.__charts = [];`,
+    [...PLATE_CONSTS.map(c => extractConst(src, c)),
+     ...HIST_FNS.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+     ...['metresPerDisplayUnit'].map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+     ...PLATE_FNS.map(n => extractFunction(src, n)),
+     `const __chart = e1rmChartSvg; e1rmChartSvg = function(series, ink){ window.__charts.push(series.length); return __chart(series, ink); };`,
+     `var exerciseDetailByIdx = {}; var exerciseDetailIdx = null; var exerciseDetailPinned = false; var exerciseDetailDay = null;`,
+     extractFunction(src, 'focusExerciseDetail'), extractFunction(src, 'renderExerciseDetail'),
+     "exerciseDetailByIdx['0'] = {name:'Bench Press'}; exerciseDetailByIdx['2'] = {name:'DB Curl'};",
+     "document.querySelector('.set-chip')._values = {weight: '190'};"]);
+  return window;
+}
+
+test('UX-14 criterion 1: focusing an exercise (open) titles the pane with it and calls e1rmChartSvg exactly once per focus, with that lift\'s own sessions', async (assert)=>{
+  const w = paneWindow(true);
+  w.focusExerciseDetail('0', false); await settle();
+  assert.strictEqual(w.document.getElementById('exerciseDetailTitle').textContent, 'Bench Press');
+  assert.deepStrictEqual([...w.__charts], [8], 'one call, Bench\'s 8 sessions');
+  assert.ok(w.document.querySelector('#exerciseDetailBody svg.e1rm-chart'), 'the shared chart is in the pane');
+  assert.ok(!w.document.querySelector('#exerciseDetailBody .sparkline'), 'not the old sparkline');
+  w.focusExerciseDetail('2', true); await settle();
+  assert.strictEqual(w.document.getElementById('exerciseDetailTitle').textContent, 'DB Curl');
+  assert.deepStrictEqual([...w.__charts], [8, 3], 'one more call, DB Curl\'s 3 sessions');
+  assert.match(w.document.querySelector('#exerciseDetailBody svg.e1rm-chart').getAttribute('aria-label'), /over 3 sessions/);
+});
+
+test('UX-14 criterion 2: Bench Press shows one plate stack whose caption is platesPerSide for the next set\'s load (the chip\'s 190); DB Curl shows none', async (assert)=>{
+  const w = paneWindow(true);
+  w.focusExerciseDetail('0', false); await settle();
+  const bar = w.document.getElementById('exerciseDetailBar');
+  assert.strictEqual(bar.hidden, false);
+  assert.strictEqual(bar.querySelectorAll('.cover-bar').length, 1, 'one stack');
+  const expected = w.eval('plateCaption(platesPerSide(190, getEquipment()))');
+  assert.ok(expected.length > 0, 'anchor: a real caption');
+  assert.strictEqual(bar.querySelector('.cover-bar-cap span').textContent, expected);
+  assert.match(bar.querySelector('.exh-section-label').textContent, /^Next set · 190 lb$/);
+  assert.ok(bar.querySelector('svg'), 'the drawing');
+  w.focusExerciseDetail('2', true); await settle();
+  assert.strictEqual(bar.hidden, true, 'DB Curl: no stack');
+  assert.strictEqual(bar.innerHTML, '');
+  // The next set moves on (a pinned lift too): the stack follows when renderUpNext refreshes it.
+  w.focusExerciseDetail('0', true); await settle();
+  w.document.querySelector('.set-chip')._values = {weight: '200'};
+  w.renderExerciseDetailBar();
+  assert.match(bar.querySelector('.exh-section-label').textContent, /200 lb/);
+  // (renderUpNext calls it on every exit, real-invocation counted in test-up-next.js.)
+});
+
+test('UX-14 review: the load is read as the cover reads it — the cover\'s stepped weight when it is the cover\'s lift; else the chip, the placeholder, the set just logged; nothing for a lift ticked done', async (assert)=>{
+  const w = paneWindow(true);
+  w.focusExerciseDetail('0', false); await settle();
+  const doc = w.document, bar = doc.getElementById('exerciseDetailBar');
+  // No chip value: the row's placeholder is "lb", so the set just logged (185) carries forward, as fillSetLogger does.
+  doc.querySelector('.set-chip')._values = {};
+  w.renderExerciseDetailBar();
+  assert.match(bar.querySelector('.exh-section-label').textContent, /^Next set · 185 lb$/);
+  // The cover on this row, stepped to 195: the pane follows the cover.
+  doc.body.insertAdjacentHTML('beforeend', '<div id="upNext"><label class="up-next-field" data-field="weight"><input value="195"></label></div>');
+  doc.getElementById('upNext')._row = doc.querySelector('.set-row[data-ex-idx="0"][data-set-idx="1"]');
+  w.renderExerciseDetailBar();
+  assert.match(bar.querySelector('.exh-section-label').textContent, /195 lb/);
+  assert.strictEqual(bar.querySelector('.cover-bar-cap span').textContent, w.eval('plateCaption(platesPerSide(195, getEquipment()))'));
+  // Ticked done with a set unlogged: no "Next set".
+  doc.querySelector('.exercise-block').insertAdjacentHTML('afterbegin', '<input type="checkbox" checked>');
+  w.renderExerciseDetailBar();
+  assert.strictEqual(bar.hidden, true);
+});
+
+test('UX-14 criterion 3: not open, nothing renders in the pane (no stack, no chart)', async (assert)=>{
+  const w = paneWindow(false);
+  w.focusExerciseDetail('0', false); await settle();
+  assert.strictEqual(w.document.getElementById('exerciseDetailCard').hidden, true);
+  assert.strictEqual(w.document.getElementById('exerciseDetailBar').innerHTML, '');
+  assert.strictEqual(w.document.getElementById('exerciseDetailBody').innerHTML, '');
+  assert.strictEqual(w.__charts.length, 0);
+  w.renderExerciseDetailBar();
+  assert.strictEqual(w.document.getElementById('exerciseDetailBar').innerHTML, '', 'a refresh on a phone draws nothing');
+});
+
+test('UX-14: the cover and the pane draw the stack with one builder (plateStackInner)', (assert)=>{
+  const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  assert.strictEqual((strip(extractFunction(src, 'renderCoverBar')).match(/\bplateStackInner\(/g) || []).length, 1);
+  assert.strictEqual((strip(extractFunction(src, 'renderExerciseDetailBar')).match(/\bplateStackInner\(/g) || []).length, 1);
+  assert.strictEqual((src.match(/\nfunction plateStackInner\(/g) || []).length, 1);
 });
 
 // v3.511 put a drawn demo at the head of the details pane; v3.513 made it 3D.
