@@ -4037,7 +4037,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (30441–30500, `renderUpNext` 32809, rest cover CSS 940–945, `.rest-done-row` 2139–2146, `APP_VERSION`, `WHATS_NEW`), `sw.js`. Read: `test-care-mark-resting-confirmation.js`, `test-streak.js`, `test-fetch-day-statuses.js`, `test-free-list-guard.js`.
 - **Risk:** low; same key, same handler.
 - **Tools:** TOOL-01 (`tday-restday-*`).
-- **Status:** ready
+- **Status:** done (v3.606, PR #185). The note and the row moved to a new `#coverRestDay` slot on the cover; `#workoutCard.is-rest-day` hides the hero, "Then", the head line, the session controls and Add custom exercise. Flagged: the date bar's "Today" label is near-invisible on a white rest-day cover (since UX-20); Adapt still shows on a rest day (not in spec).
 
 ### UX-26: The day sheet as plate blocks
 - **Why:** A15. The day picker opens from the cover onto the 2.0 discs: glossy, pictogram-centred, with inner highlights and drop shadows, a blue Done and a pill "Reorder days". The vision's grammar for days is flat plate blocks in their inks (§3.6).

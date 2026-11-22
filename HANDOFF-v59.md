@@ -1472,4 +1472,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Sticky header:** `syncStickyDayTitle()` prints "Set n of N · Lift" from `#upNextLabel`/`#upNextLift`. The day name falls back from `#stickyDayTitle.dataset.day`, which `renderWorkout` writes. `renderUpNext` calls it on every path.
 - **Observer:** `setupStickyDayHeaderObserver` watches `#upNext` and `#dayTitle`, and `stickyDayAnchor()` picks whichever leads. The click handler scrolls to that same anchor.
 - **Fixtures:** any test that loads the real `renderUpNext` must also load `syncStickyDayTitle`.
-- **Pause, relayed from another session (2026-11-17):** stop after UX-30, slot 50l. Don't start MKT-16 until the owner resumes on Sunday 2026-11-22 at 5:00 AM ET. Only upkeep on the open Today stack until then, and the last PR in the stack must say it's the last one.
+- **Pause, confirmed by the owner in the builder session (2026-11-17, "Yes"):** stop after UX-30, slot 50l. Don't start MKT-16 until the owner resumes on Sunday 2026-11-22 at 5:00 AM ET. Only upkeep on the open Today stack until then, and the last PR in the stack must say it's the last one.
+
+## Addendum 130: UX-25, a rest day is one quiet field (v3.606, PR #185, 2026-11-22)
+- **Resumed:** the batch picked up on Sunday 2026-11-22, as planned. Pacing is about four PRs a run, relayed from the owner's session.
+- **Rest day:** `renderWorkout`'s rest branch writes the note and `#restDoneCheckbox` into `#coverRestDay`, a new slot under `#upNextTarget`. `renderUpNext`'s rest path blanks the generic line when that slot has a note. `renderWorkout` clears the slot and toggles `#workoutCard.is-rest-day` on every render.
+- **CSS:** the `#todayView #workoutCard.is-rest-day …{display:none}` rules need the `#todayView` id to beat UX-23's `body:not(.gym-mode) #workoutCard …` rules.
+- **Watch out:** a test that runs the rest branch on its own must define `restSlot`, as `test-up-next.js` does.
+- **Flagged:** the date bar's "Today" label is near-invisible on a white rest-day cover.
