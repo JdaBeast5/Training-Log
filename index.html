@@ -973,6 +973,30 @@
   .finish-sheet .finish-done{margin:0; min-height:48px;}
   .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
+  /* v3.607 (UX-26): the day sheet as plate blocks. Each day is a flat
+     56 × 56 square in its own ink, the pictogram 18 px in that ink's
+     contrast-checked label colour (the History calendar's pairs); rest days
+     are --spot-off with a 1 px rule. No disc sheen, no drop shadow, no
+     dimming: the selected day is a 2.5 px ink ring outside a 2 px gap in the sheet's own surface.
+     The day's name stays under its block (the pictogram stays: the label
+     carries "Day n", so the block needs no number; design call, UX-26). */
+  .day-sheet .tab .plate{width:56px; height:56px; border-radius:14px; border:none; box-shadow:none; opacity:1;}
+  .day-sheet .tab .plate svg{width:18px; height:18px;}
+  .day-sheet .tab .plate.p-red{color:var(--block-on-red);}
+  .day-sheet .tab .plate.p-blue{color:var(--on-blue);}
+  .day-sheet .tab .plate.p-yellow{color:var(--block-on-yellow);}
+  .day-sheet .tab .plate.p-green{color:var(--block-on-green);}
+  .day-sheet .tab .plate.p-white{color:var(--on-white); box-shadow:inset 0 0 0 1px var(--rule);}
+  .day-sheet .tab .plate.p-off{background:var(--spot-off); color:var(--on-off); box-shadow:inset 0 0 0 1px var(--rule);}
+  .day-sheet .tab.active{transform:none;}
+  .day-sheet .tab.active .plate{box-shadow:0 0 0 2px var(--surface-1), 0 0 0 4.5px var(--text);}
+  .day-sheet .tab.active .plate.p-white,
+  .day-sheet .tab.active .plate.p-off{box-shadow:inset 0 0 0 1px var(--rule), 0 0 0 2px var(--surface-1), 0 0 0 4.5px var(--text);}
+  .day-sheet .tab .plate-label{font-size:13px;}
+  .day-sheet .sub-modal-close{color:var(--text);}
+  .day-sheet .reorder-btn,
+  .day-sheet .reorder-btn.active{min-height:44px; padding:0 2px; background:none; border:none; border-radius:0; color:var(--text); font-size:15px;}
+  .day-sheet .reorder-btn.active{text-decoration:underline; text-underline-offset:4px;}
   /* A rest day: the field (white or off, the day's own ink) and its name, so
      the day picker is always one tap away; nothing to log. */
   .cover.is-rest .cover-numeral, .cover.is-rest .cover-log, .cover.is-rest .cover-fields-wrap, .cover.is-rest .cover-chips, .cover.is-rest .cover-of{display:none;}
@@ -8282,7 +8306,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.606';
+const APP_VERSION = '3.607';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9935,6 +9959,9 @@ const WHATS_NEW = {
   ]},
   '3.606': { headline: 'A rest day is one quiet field', points: [
     'On a rest day the cover shows the day\'s own note and the button to mark it done; the session length, Gym mode and Add custom exercise are gone, since there\'s nothing to lift.',
+  ]},
+  '3.607': { headline: 'Days as plate blocks', points: [
+    'The day picker shows each day as a flat square in its own colour, the chosen day ringed in ink, with a plain Done and Reorder days.',
   ]},
 };
 
