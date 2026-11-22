@@ -1524,3 +1524,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Shared change:** `wrapCanvasText(…, fromTop, maxLines)`; the last kept line ends in ….
 - **Evidence:** real-browser renders on five inks (scratch script, not the harness, which has no share-card state). The first render put the note over the tabs; fixed and pinned by a tear-line test.
 - **Next:** MKT-17 reuses `trainingDayNumber`.
+
+## Addendum 138: MKT-18, the photo bib (v3.618, PR #197, 2026-11-22). MKT-17 needs the owner.
+- **What:** `wireFinishPhoto(share)` (called by `openFinishSheet`) shows `#finishPhoto` with a bib; tap → `#finishPhotoInput` (image/*); `pinBibOnPhoto` → `loadPickedImage` → `buildShareCardBlob({...share, photo})`; `drawBibCard` draws the photo cover-fit and the bib at 70% about (540, 1100); the URL is revoked in `finally`. `shareCelebrationCard` takes a ready `cardData.blob`. `waitForShareCardFont(ms)` is the font wait, shared.
+- **Two taps:** the picker's change event isn't user activation on iOS, so the button becomes "Share the photo". Unverified on an iPhone.
+- **MKT-17:** `needs-owner` for its new key `number-last-celebrated`; recommendation: allow it.
+- **Next:** MKT-17 if allowed; otherwise the next ready slot after 53.
