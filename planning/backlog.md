@@ -4153,7 +4153,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 ### UX-33: The rest pill's +15s and × in the ink
 - **Why:** owner, 2026-11-22 (as UX-31). The flat pill (UX-29) still has a green "+15s" and a red "×".
 - **Change:** outside gym mode, both in `--text`, ≥ 44 pt, named; gym mode unchanged.
-- **Status:** ready
+- **Status:** done (v3.614, PR #193).
 
 ### UX-34: "Technique & focus" in the ink
 - **Why:** owner, 2026-11-22 (as UX-31). The open exercise's "Technique & focus" link is the last plate-blue text in the session (UX-24 flag).

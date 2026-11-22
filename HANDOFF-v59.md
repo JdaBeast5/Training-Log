@@ -1515,3 +1515,4 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Request:** the owner asked for the five flags to be made "based on your recommendations". They are in the backlog as UX-31 to UX-35, built as stacked PRs from #191.
 - **UX-31 (v3.612, #191):** `.cover .log-date-label-wrap` gets `color:inherit`.
 - **UX-32 (v3.613, #192):** `#settingsProgramSlot .program-select-wrap::after{display:none}`; the select is full width in ink. Note: jsdom wipes a computed `background-image` when a lower-specificity `background:var()` shorthand also matches, so read the winning rule instead.
+- **UX-33 (v3.614, #193):** `body:not(.gym-mode) .rest-timer .rt-add, .rt-close` are in `--text`, 44 pt.
