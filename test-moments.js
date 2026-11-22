@@ -123,7 +123,8 @@ test('criterion 5: the PR moment says what the finish sheet says: "Heaviest weig
   assert.strictEqual(ui.window.bestLabel('weight'), 'Heaviest weight yet');
   assert.strictEqual(ui.window.bestLabel('e1rm'), 'Best estimated 1RM yet');
   const uses = (SCRIPT.match(/\bbestLabel\(/g) || []).length;
-  assert.strictEqual(uses, 3, 'defined once and called from the PR branch and the finish sheet (' + uses + ')');
+  // 2026-11-22 (v3.623, UX-11): + the weekly recap sheet's new records, 3 → 4.
+  assert.strictEqual(uses, 4, 'defined once and called from the PR branch, the finish sheet and the weekly recap (' + uses + ')');
   assert.ok(/bestLabel\(b\.type\)/.test(strip(extractFunction(src, 'openFinishSheet'))), 'the finish sheet uses it');
   assert.ok(!/'Heaviest weight yet'/.test(strip(extractFunction(src, 'openFinishSheet'))), 'with no copy of its own');
 });

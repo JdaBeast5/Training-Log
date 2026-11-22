@@ -144,6 +144,10 @@ function buildStates(){
     // v3.598 (UX-09a): the finish sheet, opened on the fixture's session the
     // way the completing set opens it.
     states.push({ id: `finish-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', finish: true });
+    // v3.623 (UX-11): the weekly recap sheet, as the first Today of the week opens it
+    // (the streak milestone already celebrated, so its banner doesn't cover the sheet).
+    states.push({ id: `recap-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', recap: true,
+      storage: { 'week-streak-last-celebrated': '8' } });
   }
   // The Reduce Motion pass: the states where motion matters most, with
   // prefers-reduced-motion: reduce emulated.
@@ -250,6 +254,9 @@ function seedFor(state, fixture, appVersion){
   for(const [k, v] of Object.entries(fixture)) seed[k] = v === '__APP_VERSION__' ? appVersion : v;
   const ns = 'trainingLog_usr1:';
   seed[ns + 'active-view'] = state.view;
+  // v3.623 (UX-11): this week's recap sheet already seen, except in the recap states
+  // (the fixture's today is Monday 2 November 2026), so it covers no other state.
+  if(!state.recap) seed[ns + 'weekly-recap-seen'] = TODAY_KEY;
   if(state.gym){
     // In the gym for 23 minutes; restoreGymMode re-enters gym mode on boot.
     seed[ns + 'gym-session'] = JSON.stringify({ date: TODAY_KEY, accumMs: 0, startedAt: FROZEN_NOW - 23 * 60 * 1000 });

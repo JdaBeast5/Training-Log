@@ -202,9 +202,13 @@ test('the shared file is named <slug>-<kind>-<date>.png by the real shareCelebra
 
 test('the three share call sites name their kind and the day they happened on (comments stripped)', (assert)=>{
   const code = src.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
-  for(const [k, day] of [['pr', 'activeDay'], ['streak', 'activeDay'], ['week', 'shareDay']]){
+  for(const [k, day] of [['pr', 'activeDay'], ['streak', 'activeDay']]){
     assert.strictEqual((code.match(new RegExp(`\\{icon:'[a-z]+', headline:[^\\n]*, kind:'${k}', dayId: ${day}\\}`, 'g')) || []).length, 1, k);
   }
+  // 2026-11-22 (v3.623, UX-11): the week card is built by weekShareCardData (shared with the recap sheet);
+  // "Save this week" still passes the day the week was finished on.
+  assert.strictEqual((code.match(/\{icon:'flag', headline:'WEEK COMPLETE', stats, kind:'week', dayId\}/g) || []).length, 1, 'week');
+  assert.strictEqual((code.match(/\bweekShareCardData\(workoutsCount, training, shareDay\)/g) || []).length, 1, 'week: the day it was finished on');
 });
 
 test('review fixes: a long stat value is cut to fit beside its label; a long detail runs down from under the headline', (assert)=>{

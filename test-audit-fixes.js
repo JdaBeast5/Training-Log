@@ -113,7 +113,7 @@ test('REAL markup + CSSOM (v3.356): every sheet closes with a Done or Cancel tex
   const doc = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document;
   const closes = Object.fromEntries([...doc.querySelectorAll('.sub-modal-close')].map(b => [b.id, b.textContent.trim()]));
   // 2026-11-17 (v3.595, UX-06b): the day picker sheet joins them, with Done.
-  assert.deepStrictEqual(closes, {subModalClose:'Cancel', exEditClose:'Cancel', globalSearchClose:'Cancel', exHistoryClose:'Done', whatsNewClose:'Done', navMoreClose:'Done', daySheetClose:'Done', finishClose:'Done'}); // + the finish sheet (v3.598, UX-09a)
+  assert.deepStrictEqual(closes, {subModalClose:'Cancel', exEditClose:'Cancel', globalSearchClose:'Cancel', exHistoryClose:'Done', whatsNewClose:'Done', navMoreClose:'Done', daySheetClose:'Done', finishClose:'Done', recapClose:'Done'}); // + the finish sheet (v3.598, UX-09a); + the weekly recap sheet (2026-11-22, v3.623, UX-11)
   assert.strictEqual(doc.getElementById('settingsClose').textContent.trim(), 'Done', 'anchor: matches Settings');
   assert.strictEqual(declared('.sub-modal-close', 'min-height'), '44px');
   assert.strictEqual(declared('.sub-modal-close', 'color'), 'var(--plate-blue)');
