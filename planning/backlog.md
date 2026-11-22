@@ -3706,7 +3706,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Summit note (summit 2026-11-07):** Share is hidden while a `MEDICAL_STYLES` program is active. "New bests" uses summit R6 wording. Define a **first-week variant**: done against planned, and what week 2 brings, never "0 weeks" (summit §1.2). MKT-05 later adds the block-complete variant to this sheet.
 - **Tools:** TOOL-01's harness; `Skill: dataviz` (the week strip); `Skill: apple-hig` (sheets).
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found the v3.476 Monday recap line in Priorities; the sheet now replaces it for that week instead of saying the same thing twice. The summit's medical and first-week rules are numbered criteria; the harness needs a recap state. Checked against `recap.html` (strip in plate inks, hatched missed, "Bench holds at 160", "Heaviest weight yet"). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.623, PR #202). Owner allowed `weekly-recap-seen` (2026-11-22). Strip = program days in order; "Sets" not "Hard sets"; title names the week only when known. Flagged: workout keys carry no program (fetchDayStatuses' known limit).
 
 ### UX-12: History as a month of plate blocks
 - **Why:** History is a calendar plus a long list. The week-strip grammar scales to a month: you can scan a month's consistency by colour.
