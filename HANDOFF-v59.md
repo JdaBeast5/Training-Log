@@ -1547,3 +1547,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `#progressLead` (first in `#analysisView`, a section, not a card) filled by `renderProgressLead` (in `renderAnalysis`'s Promise.all): `progressLeadLifts` (top 4 compound lifts by sessions), `progressLeadSeries` (one positive e1RM per date), `progressLeadHome` (newest entry: ink and program), `progressLeadNextLine` (nextTimeSuggestion). BL-20's ledger renders here now, not in Weekly Volume.
 - **Shared chart:** `e1rmChartSvg(series, ink)` — the exercise sheet uses it too (UX-14 should). `.e1rm-chart.ink-*` sets `--e1rm-line`; `--chart-yellow` token (deep step in light).
 - **Unverified:** iPhone; kg rendering.
+
+## Addendum 142: UX-14, the unfolded pane's loaded bar (v3.622, PR #201, 2026-11-22)
+- **What:** `#exerciseDetailBar` (in `#exerciseDetailCard`) filled by `renderExerciseDetailBar()` — from `renderExerciseDetail`, every exit of `renderUpNext`, and `renderCoverBar` — at `nextSetLoadFor(exIdx)` (cover's stepped weight on its own row; else chip → placeholder → previous set; null if ticked or all logged). `plateStackInner(load, eq)` is the one builder for cover and pane. The chart is UX-10's `e1rmChartSvg` via `buildExerciseHistoryHtml`.
+- **Fixtures:** any suite running the real `renderUpNext` or `renderCoverBar` needs a `renderExerciseDetailBar` stub (six got one).
+- **Flagged:** rest-day switch leaves the old pane (pre-existing); finish card's own stack caption.
