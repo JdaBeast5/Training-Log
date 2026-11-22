@@ -179,7 +179,8 @@ test('criterion 5: with a MEDICAL_STYLES program active, no share data is built 
 test('criterion 6: no body weight, calorie or sleep value on the card', (assert)=>{
   const r = drawn(card());
   assert.ok(!r.text.some(t => /\b(kcal|cal|calories|sleep|hrs?|body ?weight|BMI)\b/i.test(t.txt)), r.text.map(t => t.txt).join(' | '));
-  assert.ok(!/bodyweight|userProfile|targets\.|sleep|cal/i.test(extractFunction(src, 'drawBibCard').replace(/\/\/.*$/gm, '')), 'the drawing reads none of it');
+  // 2026-11-22 (v3.618, MKT-18): \bcal, so ctx.scale (the photo bib's 70%) isn't read as a calorie.
+  assert.ok(!/bodyweight|userProfile|targets\.|sleep|\bcal/i.test(extractFunction(src, 'drawBibCard').replace(/\/\/.*$/gm, '')), 'the drawing reads none of it');
 });
 
 test('criterion 7: no tab label matches LOAD or VOLUME; the first tab is SETS; on a barbell day the plates are drawn; the big figure is never a load', (assert)=>{
