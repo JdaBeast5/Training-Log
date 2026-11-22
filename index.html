@@ -8368,7 +8368,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.616';
+const APP_VERSION = '3.617';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10051,6 +10051,9 @@ const WHATS_NEW = {
   ]},
   '3.616': { headline: 'Tips that fit your goal', points: [
     'Keep In Mind on Strength & Size no longer assumes you\'re cutting: protein, sleep and steps tips now give the reason that fits your goal, whether you\'re losing, building, recomping or maintaining.',
+  ]},
+  '3.617': { headline: 'Your session, as a race bib', points: [
+    'Sharing a finished session now makes a race-bib card in the day\'s colour: your training-day number on the log ("No. 47"), the loaded bar on a barbell day, your lead lift\'s sets and what comes next, and tear-off tabs for sets, lifts and minutes.',
   ]},
 };
 
@@ -31820,6 +31823,22 @@ async function finishSheetModel(listEl, dateKey, program){
     const s = nextTimeSuggestion(inp, dateKey, program, inDeload, week);
     if(s) next.push(s);
   }
+  // v3.617 (MKT-16): what the bib card draws, from the same session.
+  if(share){
+    let corpus = [];
+    try{ corpus = await readExCorpus(); }catch(e){}
+    const lead = bibLeadLift((listEl && listEl._finishInputs) || [], dateKey);
+    const stat = label => { const st = share.stats.find(x => x.label === label); return st ? st.value : ''; };
+    let leadOut = null;
+    if(lead){
+      const unit = weightUnit, disp = toDisplayWeight(lead.topLb);
+      const nxt = next.find(n => n.name === lead.name);
+      leadOut = {name: lead.name, reps: lead.reps, weightLabel: fmtWeight(lead.topLb), unit, note: nxt ? nxt.words : '',
+        plates: isBarbellExercise(lead.name) ? platesPerSide(disp, getEquipment()).plates : []};
+    }
+    share.bib = {number: trainingDayNumber(corpus, dateKey), program: (programs[program] || {}).label || '', week: typeof week === 'number' ? week : null,
+      dateLabel: fmtDayLabel(dateKey), sets: stat('SETS'), lifts: stat('LIFTS'), minutes: stat('MIN'), lead: leadOut};
+  }
   const dayTitle = document.getElementById('dayTitle');
   return {key: dateKey + '|' + (typeof activeDay !== 'undefined' ? activeDay : ''), day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
     lifts: blocks.filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length, minutes: min ? Number(min.value) : null,
@@ -31929,7 +31948,7 @@ function closeFinishSheet(){
 // Promise<Blob> (PNG); canvas.toBlob's callback form is used rather than the
 // promise-returning variant, same reason downscaleImage already does —
 // Safari's promise support for it arrived late.
-function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, fromTop){
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, fromTop, maxLines){
   const words = text.split(' ');
   const lines = [];
   let line = '';
@@ -31943,6 +31962,13 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, fromTop){
     }
   }
   if(line) lines.push(line);
+  // v3.617 (MKT-16): an optional line cap; the last kept line ends in … when the text runs on.
+  if(maxLines && lines.length > maxLines){
+    let last = lines[maxLines - 1];
+    while(last && ctx.measureText(last + '…').width > maxWidth) last = last.slice(0, -1);
+    lines.length = maxLines;
+    lines[maxLines - 1] = last.replace(/\s+$/, '') + '…';
+  }
   // Centred on y (the square card), or with the first line at y (fromTop).
   const startY = fromTop ? y : y - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((l, i)=> ctx.fillText(l, x, startY + i * lineHeight));
@@ -32029,10 +32055,139 @@ function drawShareCardFoot(ctx, format, W, H, nameFont, nameColor){
   ctx.fillText(name, row.textX, row.textY);
 }
 
+// v3.617 (MKT-16): the lifetime training-day number. Distinct dates with a
+// logged set (reps or a distance) up to and including dateKey, read from the
+// whole set corpus (not activity-dates, which is pruned to two years), so it
+// only goes up and deleting a session corrects it. MKT-17 reuses this.
+function trainingDayNumber(corpus, dateKey){
+  const days = new Set();
+  for(const c of corpus || []){
+    for(const e of (c && c.log) || []){
+      if(!e || !e.date || e.date > dateKey) continue;
+      if((e.sets || []).some(st => st && ((st.reps != null && st.reps !== '') || (st.distance != null && st.distance !== '')))) days.add(e.date);
+    }
+  }
+  return days.size;
+}
+const ordinalSuffix = n => { const t = n % 100; return (t >= 11 && t <= 13) ? 'th' : ({1: 'st', 2: 'nd', 3: 'rd'}[n % 10] || 'th'); };
+
+// The session's lead lift for the bib: the first exercise with a weighted
+// set today; its top weight and the reps of the sets at that weight.
+function bibLeadLift(inputs, dateKey){
+  for(const inp of inputs || []){
+    const today = (inp.log || []).find(e => e.date === dateKey);
+    const sets = ((today && today.sets) || []).filter(st => st && st.weight != null && st.weight !== '' && st.reps != null && st.reps !== '');
+    if(!sets.length) continue;
+    const top = Math.max(...sets.map(st => Number(st.weight)));
+    return {name: inp.ex.name, topLb: top, reps: sets.filter(st => Number(st.weight) === top).map(st => String(st.reps))};
+  }
+  return null;
+}
+
+// v3.617 (MKT-16): the session story card as a race bib (design-directions
+// §5–6): the day's ink as the ground, a white bib tilted 2.5° with four pin
+// holes, one event band (the Sash, NAME · PROGRAM · WK n, the date), the big
+// "No. 47" (never a load), the loaded bar on barbell days (UX-07's plate
+// maths, heaviest against the collar), the lead lift's sets and its honest
+// next-time line (the finish sheet's), and tear-off tabs: SETS, LIFTS, MIN
+// (only when known). No total load, no finish time, no body data. All text
+// sits between y 250 and 1620; the sponsor strip stays empty until BIZ-08.
+function drawBibCard(ctx, card, W, H){
+  const b = card.bib;
+  const ink = dayInk(card.dayId ?? activeDay, activeProgram);
+  const spot = SHARE_CARD_INKS.spot[ink], on = SHARE_CARD_INKS.on[ink];
+  const paper = '#FAFAF7', inkText = '#0C0C0D', mute = '#5C5C58';
+  const display = (px)=>{ ctx.font = `800 condensed ${px}px Archivo, Geist, sans-serif`; };
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 0, W, H);
+  const x0 = 120, y0 = 330, bw = 840, bh = 1220, cx = W/2, cy = y0 + bh/2;
+  ctx.save();
+  ctx.translate(cx, cy); ctx.rotate(2.5 * Math.PI / 180); ctx.translate(-cx, -cy);
+  ctx.fillStyle = paper;
+  ctx.fillRect(x0, y0, bw, bh);
+  if(ink === 'white' || ink === 'off'){ ctx.strokeStyle = inkText; ctx.lineWidth = 3; ctx.strokeRect(x0, y0, bw, bh); }
+  // Pin holes, in the ground's ink.
+  ctx.fillStyle = spot;
+  for(const [px, py] of [[x0 + 34, y0 + 34], [x0 + bw - 34, y0 + 34], [x0 + 34, y0 + bh - 34], [x0 + bw - 34, y0 + bh - 34]]){
+    ctx.beginPath(); ctx.arc(px, py, 11, 0, Math.PI * 2); ctx.fill();
+  }
+  // The event band: one band in the day's ink (black on a white day).
+  const bandInk = ink === 'white' ? inkText : spot, bandOn = ink === 'white' ? '#FFFFFF' : on;
+  // Two lines: the event (shrunk, then cut, to fit), and the date under it.
+  const bandY = y0 + 70, bandH = 140;
+  ctx.fillStyle = bandInk;
+  ctx.fillRect(x0, bandY, bw, bandH);
+  drawSashMark(ctx, x0 + 40, bandY + 40, 60);
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = bandOn;
+  const event = [APP_NAME.toUpperCase(), (b.program || '').toUpperCase(), b.week ? 'WK ' + b.week : ''].filter(Boolean).join(' · ');
+  const evW = bw - 164;
+  let es = 34; ctx.font = `700 ${es}px Geist, sans-serif`;
+  while(es > 24 && ctx.measureText(event).width > evW){ es -= 2; ctx.font = `700 ${es}px Geist, sans-serif`; }
+  let ev = event;
+  while(ev.length > 4 && ctx.measureText(ev).width > evW) ev = ev.slice(0, -2) + '…';
+  ctx.fillText(ev, x0 + 124, bandY + 50);
+  if(b.dateLabel){ ctx.font = '600 26px Geist, sans-serif'; ctx.fillText(b.dateLabel.toUpperCase(), x0 + 124, bandY + 100); }
+  // The number.
+  ctx.textAlign = 'center'; ctx.fillStyle = inkText;
+  ctx.font = '700 40px Geist, sans-serif';
+  ctx.fillText('No.', cx, y0 + 250);
+  let ns = 330; const num = String(b.number);
+  display(ns);
+  while(ns > 160 && ctx.measureText(num).width > bw - 120){ ns -= 10; display(ns); }
+  ctx.fillText(num, cx, y0 + 420);
+  ctx.font = '500 36px Geist, sans-serif'; ctx.fillStyle = mute;
+  ctx.fillText(`your ${b.number}${ordinalSuffix(b.number)} training day on the log`, cx, y0 + 590);
+  // The loaded bar (barbell days): sleeves, collars, plates heaviest at the collar.
+  let y = y0 + 630;
+  if(b.lead && b.lead.plates && b.lead.plates.length){
+    const barY = y + 60, steel = '#8E8E93';
+    ctx.fillStyle = steel;
+    ctx.fillRect(x0 + 60, barY - 10, bw - 120, 20);
+    const colL = cx - 190, colR = cx + 190;
+    ctx.fillStyle = inkText; ctx.fillRect(colL - 12, barY - 36, 12, 72); ctx.fillRect(colR, barY - 36, 12, 72);
+    const full = b.lead.unit === 'kg' ? 25 : 45;
+    const size = p => { const r = Math.sqrt(Math.min(p, full * 1.25) / full); return {w: Math.round(14 + 30 * r), h: Math.round(50 + 80 * r)}; };
+    let left = colL - 12, right = colR + 12;
+    for(const p of b.lead.plates){
+      const s = size(p), plateInk = (PLATE_INKS[b.lead.unit] || {})[p];
+      ctx.fillStyle = plateInk ? SHARE_CARD_INKS.spot[plateInk] : steel;
+      left -= s.w + 3; ctx.fillRect(left, barY - s.h/2, s.w, s.h);
+      ctx.fillRect(right + 3, barY - s.h/2, s.w, s.h); right += s.w + 3;
+    }
+    y += 140;
+  }
+  // The lead lift: its sets and the honest next-time line.
+  if(b.lead){
+    ctx.textAlign = 'left'; ctx.fillStyle = inkText;
+    ctx.font = '700 44px Geist, sans-serif';
+    ctx.fillText(b.lead.name, x0 + 60, y + 40);
+    ctx.font = '500 38px Geist, sans-serif';
+    ctx.fillText(`${b.lead.weightLabel} × ${b.lead.reps.join(', ')}`, x0 + 60, y + 95);
+    // The note: at most two lines, so it always clears the tear-off tabs (the second ends in … if it runs on).
+    if(b.lead.note){ ctx.fillStyle = mute; ctx.font = '500 30px Geist, sans-serif'; wrapCanvasText(ctx, b.lead.note, x0 + 60, y + 145, bw - 120, 38, true, 2); }
+  }
+  // Tear-off tabs along the foot: SETS first, then LIFTS, then MIN when known.
+  const tabs = [{v: b.sets, l: 'SETS'}, {v: b.lifts, l: 'LIFTS'}].concat(b.minutes ? [{v: b.minutes, l: 'MIN'}] : []);
+  const tabTop = y0 + bh - 210, tabW = bw / tabs.length;
+  ctx.strokeStyle = mute; ctx.lineWidth = 2;
+  if(ctx.setLineDash) ctx.setLineDash([10, 10]);
+  ctx.beginPath(); ctx.moveTo(x0 + 20, tabTop); ctx.lineTo(x0 + bw - 20, tabTop); ctx.stroke();
+  tabs.forEach((t, i) => {
+    if(i){ ctx.beginPath(); ctx.moveTo(x0 + tabW * i, tabTop); ctx.lineTo(x0 + tabW * i, y0 + bh - 40); ctx.stroke(); }
+    ctx.textAlign = 'center'; ctx.fillStyle = inkText; display(84);
+    ctx.fillText(String(t.v), x0 + tabW * i + tabW/2, tabTop + 80);
+    ctx.font = '600 28px Geist, sans-serif'; ctx.fillStyle = mute;
+    ctx.fillText(t.l, x0 + tabW * i + tabW/2, tabTop + 150);
+  });
+  if(ctx.setLineDash) ctx.setLineDash([]);
+  ctx.restore();
+}
+
 // Story format (1080x1920, the default since v3.547): printed, not lit
 // (design-vision §3): a flat ground, the session day's spot ink as one field,
 // Archivo condensed for the headline and figures (Geist if it isn't loaded).
 function drawStoryCard(ctx, cardData, W, H){
+  if(cardData.kind === 'session' && cardData.bib){ drawBibCard(ctx, cardData, W, H); return; } // v3.617 (MKT-16)
   const ink = dayInk(cardData.dayId ?? activeDay, activeProgram);
   const spot = SHARE_CARD_INKS.spot[ink], on = SHARE_CARD_INKS.on[ink];
   const hasStats = cardData.stats && cardData.stats.length;
