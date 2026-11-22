@@ -4092,7 +4092,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Owner option (non-blocking; default in bold):** **move both** (the vision), or keep Training Style at the foot of Today, restyled as a ruled section, and move only Keep In Mind.
 - **Flagged, not in scope:** Keep In Mind on a lean bulk tells the fixture's user to protect muscle "in the deficit" and calls the phase "recomp"; the tips don't follow the goal. A copy item, not a design one.
 - **Tools:** `Skill: impeccable` (`layout`), TOOL-01, `--store` for frame 4.
-- **Status:** ready
+- **Status:** done (v3.608, PR #187). Owner option: the default, move both. Training Style is `#programCard` in a new Settings "Program" section (`#settingsProgramSlot`, after You); Keep In Mind is `#tipsCard` at the end of Insights (a static markup move). Global search needed no change (it reads the DOM). Flagged: two arrow indicators on the program picker inside Settings.
 
 ### UX-29: The rest pill steps aside for the cover
 - **Why:** A18. During rest the cover shows the time, +30 s, Skip and the next set (UX-08), and the 2.0 floating pill (`#restTimer`: blue ring, blue glow, "+15s ✕") sits on top of it, covering the Log button's top edge. Two clocks for one rest.

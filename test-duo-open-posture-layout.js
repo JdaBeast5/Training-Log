@@ -110,7 +110,11 @@ test('gym mode still hides every Today card except the session (its selector now
   const hidden = [...document.querySelectorAll('#todayView > .card:not(#workoutCard)')];
   assert.ok(!hidden.some(c=> c.id === 'workoutCard'));
   assert.ok(!hidden.some(c=> c.closest('.today-session-pane')), 'nothing inside the session pane may be hidden by it');
-  assert.ok(hidden.some(c=> /Keep In Mind/.test(c.textContent)), 'the Keep In Mind card is still hidden in gym mode');
+  // 2026-11-22 (v3.608, UX-28): Keep In Mind left Today for Progress; the
+  // Training Style card (in Today's markup until wireSettings reparents it)
+  // is the card this checks now.
+  assert.ok(hidden.some(c=> c.id === 'programCard'), 'the Training Style card is still hidden in gym mode');
+  assert.ok(!document.querySelector('#todayView #tipsCard'), 'Keep In Mind is no longer on Today');
 });
 
 test('real positionProfileCard still lands the profile card in the right-hand flow (a direct child of #todayView, outside the pane)', (assert)=>{

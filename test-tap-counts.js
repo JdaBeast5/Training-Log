@@ -17,7 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, extractIIFE, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
@@ -29,7 +29,11 @@ const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1,
   // v3.604 (UX-23): Gym mode became a plain text button in the "Then" head. At v3.603 it took one tap.
   enterGymMode: 1,
   // v3.606 (UX-25): the rest day's "mark as done" moved onto the cover. At v3.605 it took one tap.
-  markRestDone: 1};
+  markRestDone: 1,
+  // v3.608 (UX-28): Training Style moved into Settings. At v3.607 changing program was a scroll to the foot of Today
+  // and the select; it is now the Settings icon and the select: 2, the new ceiling. A relocation agreed in the vision
+  // (planning/design-vision.md §4), not a regression of a counted action.
+  changeProgram: 2};
 
 function statement(startText){
   const i = src.indexOf(startText);
@@ -188,6 +192,21 @@ test('UX-25: marking a rest day done takes one tap on the cover (the real render
   await new Promise(r => setTimeout(r, 0));
   assert.strictEqual(window.__store.get('rest-log:2026-11-02:strength:d4'), '{"done":true}', 'one tap marks it done');
   for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
+});
+
+test('UX-28: changing program takes 2 taps: the Settings icon, then #programSelector (the real wireSettings reparents it)', (assert)=>{
+  const page = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
+  const { window } = runJsdom(page, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){}`,
+    [extractIIFE(src, 'wireSettings') + '\nwireSettings();',
+     "window.__switched = 0; document.getElementById('programSelector').onchange = () => { window.__switched++; }; // renderProgramSelector's handler: test-today-relocations.js"]);
+  const doc = window.document;
+  let taps = 0;
+  doc.getElementById('settingsCog').click(); taps++;
+  const sel = doc.getElementById('programSelector');
+  assert.ok(doc.getElementById('settingsOverlay').classList.contains('active') && sel.closest('#settingsOverlay'), 'one tap: Settings, with the picker in it');
+  sel.dispatchEvent(new window.Event('change')); taps++;
+  assert.strictEqual(window.__switched, 1, 'the second: the switch');
+  assert.ok(taps <= PARENT_TAPS.changeProgram, `changeProgram: ${taps} > ${PARENT_TAPS.changeProgram}`);
 });
 
 run();

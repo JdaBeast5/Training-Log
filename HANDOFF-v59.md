@@ -1485,3 +1485,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **CSS:** under `.day-sheet .tab` only, after `.day-sheet .tabs`. The ink/label pairs match the History calendar (`#historyHeatmapGrid .plate-block.p-*`). The selected ring is `0 0 0 2px var(--surface-1), 0 0 0 4.5px var(--text)`.
 - **Stack:** #186 sits on #185; merge oldest first.
 - **UX-27 is needs-owner:** its `today-priorities-open` key counts as "a new stored key" under §4a. Recommended: allow it.
+
+## Addendum 132: UX-28, Training Style and Keep In Mind leave Today (v3.608, PR #187, 2026-11-22)
+- **Training Style:** `wireSettings` runs `move('programCard', 'settingsProgramSlot')`. The Settings section "Program" sits after "You". In the static markup the card is still on Today until startup (`test-today-session-first.js` reads it there).
+- **Keep In Mind:** `#tipsCard` is a static child of `#analysisView`, last in the Insights group (before the body-health header).
+- **Harness:** `STORE_STEPS.program` clicks `#settingsCog` first.
+- **Stack now:** #185 ← #186 ← #187, merge in order. UX-27 is needs-owner.

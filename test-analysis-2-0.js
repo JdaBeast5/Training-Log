@@ -142,7 +142,8 @@ test('REAL markup (v3.440): the print button is the last thing on Analysis, afte
   assert.ok(view.contains(btn));
   assert.strictEqual(view.lastElementChild, btn);
   const cards = view.querySelectorAll('.card');
-  assert.strictEqual(cards.length, 19, 'anchor: the real 19 Analysis cards');
+  // 2026-11-22 (v3.608, UX-28): Keep In Mind moved here from Today (20 cards).
+  assert.strictEqual(cards.length, 20, 'anchor: the real 20 Analysis cards');
   for(const c of cards) assert.ok(c.compareDocumentPosition(btn) & doc.defaultView.Node.DOCUMENT_POSITION_FOLLOWING, (c.id || 'a card') + ' comes first');
   assert.strictEqual(btn.classList.contains('card'), false, 'not swept up by group collapse');
 });
