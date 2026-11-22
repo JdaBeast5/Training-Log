@@ -1552,3 +1552,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `#exerciseDetailBar` (in `#exerciseDetailCard`) filled by `renderExerciseDetailBar()` — from `renderExerciseDetail`, every exit of `renderUpNext`, and `renderCoverBar` — at `nextSetLoadFor(exIdx)` (cover's stepped weight on its own row; else chip → placeholder → previous set; null if ticked or all logged). `plateStackInner(load, eq)` is the one builder for cover and pane. The chart is UX-10's `e1rmChartSvg` via `buildExerciseHistoryHtml`.
 - **Fixtures:** any suite running the real `renderUpNext` or `renderCoverBar` needs a `renderExerciseDetailBar` stub (six got one).
 - **Flagged:** rest-day switch leaves the old pane (pre-existing); finish card's own stack caption.
+
+## Addendum 143: UX-11, the weekly recap sheet (v3.623, PR #202, 2026-11-22)
+- **What:** `VIEW_RENDERERS.today` → `maybeShowWeeklyRecap()` (in-flight guard, `recapMayOpen` checked before and after the build, session-cached empty week) → `weeklyRecapModel(lastMonday)` (`computeWeekStats`, `weekShareTrainingStats`, `weekStripStates`, PRs, phase) → `openRecapSheet`. `#recapSheet` uses the finish sheet's frame. `weekly-recap-seen` = this Monday (owner-allowed); `getWeeklyRecapInsight` returns null once set. `weekShareCardData` is the week card for both "Save this week" and the sheet.
+- **Harness:** every state seeds `weekly-recap-seen` = TODAY_KEY except `recap-*-402`. A future Today-ish state that wants the sheet needs `recap: true`.
+- **Flagged:** workout keys carry no program (strip may mark another program's days); Priorities render race.
+- **Next:** BIZ-02 (slot 63).

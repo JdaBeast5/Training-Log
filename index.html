@@ -977,6 +977,22 @@
   .finish-share[hidden]{display:none;}
   .finish-photo{display:block; width:100%; margin-top:10px;}
   .finish-sheet .finish-done{margin:0; min-height:48px;}
+  /* v3.623 (UX-11): the weekly recap sheet (the finish sheet's frame). */
+  .recap-range{font-size:14px; color:var(--text-2); align-self:center;}
+  .recap-title{font-size:44px; margin:2px 0 14px;}
+  .recap-strip{display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;}
+  .recap-block{height:112px; border-radius:10px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:10px; box-sizing:border-box;
+    font-family:var(--font-display); font-stretch:68%; font-weight:800; font-size:22px; font-variant-numeric:tabular-nums;}
+  .recap-block.is-trained.ink-red{background:var(--spot-red); color:var(--on-red);}
+  .recap-block.is-trained.ink-blue{background:var(--spot-blue); color:var(--on-blue);}
+  .recap-block.is-trained.ink-yellow{background:var(--spot-yellow); color:var(--on-yellow);}
+  .recap-block.is-trained.ink-green{background:var(--spot-green); color:var(--on-green);}
+  .recap-block.is-trained.ink-white{background:var(--spot-white); color:var(--on-white); box-shadow:inset 0 0 0 2px var(--rule-strong);}
+  .recap-block.is-trained.ink-off, .recap-block.is-rest{background:var(--spot-off); color:var(--on-off);}
+  .recap-block.is-missed{background:repeating-linear-gradient(135deg, transparent 0 9px, var(--rule-strong) 9px 10px); box-shadow:inset 0 0 0 2px var(--rule-strong); color:var(--text-2);}
+  .recap-day-label{text-align:center; font-size:13px; color:var(--text-2); margin-top:6px;}
+  .recap-missed{font-size:15px; line-height:1.4; color:var(--text); margin:14px 0 6px;}
+  .recap-next{font-size:15px; line-height:1.4; color:var(--text); margin:16px 0 4px;}
   .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
   /* v3.607 (UX-26): the day sheet as plate blocks. Each day is a flat
@@ -8217,6 +8233,27 @@
   </div>
 </div>
 
+<!-- v3.623 (UX-11): the weekly recap sheet, once per week on the first Today
+     (maybeShowWeeklyRecap). Filled by openRecapSheet. -->
+<div class="sub-modal-overlay finish-sheet recap-sheet" id="recapSheet" role="dialog" aria-modal="true" aria-labelledby="recapTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="recap-range" id="recapRange"></div>
+      <button type="button" class="sub-modal-close" id="recapClose" aria-label="Close last week's recap">Done</button>
+    </div>
+    <h2 class="finish-day recap-title" id="recapTitle"></h2>
+    <div class="recap-strip" id="recapStrip" role="img"></div>
+    <p class="recap-missed" id="recapMissed"></p>
+    <div class="finish-totals" id="recapTotals"></div>
+    <div class="finish-next" id="recapBests"></div>
+    <p class="recap-next" id="recapNext"></p>
+    <div class="finish-actions">
+      <button type="button" class="finish-share" id="recapShare" hidden>Share</button>
+      <button type="button" class="save-btn finish-done" id="recapDone">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="navMoreOverlay" role="dialog" aria-modal="true" aria-labelledby="navMoreTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -8410,7 +8447,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.622';
+const APP_VERSION = '3.623';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10112,6 +10149,9 @@ const WHATS_NEW = {
   ]},
   '3.622': { headline: 'The loaded bar on the big screen', points: [
     'Unfolded, the lift pane beside your session now shows the bar loaded for your next set, above its estimated-max chart and your last five sessions.',
+  ]},
+  '3.623': { headline: 'Your week, on Monday', points: [
+    'The first time you open Today in a new week, last week shows up as a sheet: a strip of your days (done, skipped or rest), sessions against plan, sets and time, any new records, and what this week brings. It shows once a week and replaces the one-line recap in Priorities.',
   ]},
 };
 
@@ -15960,6 +16000,8 @@ async function getReadinessInsight(){
 async function getWeeklyRecapInsight(){
   const today = getTodayKey();
   if(parseDateKey(today).getDay() !== 1) return null;
+  // v3.623 (UX-11): once this week's recap sheet has opened, it is the recap (one, not two).
+  if(await weeklyRecapSeenThisWeek()) return null;
   const [last, before] = await Promise.all([
     computeWeekStats(dateKeyMinusDays(today, 7)), computeWeekStats(dateKeyMinusDays(today, 14)),
   ]);
@@ -28063,6 +28105,9 @@ document.getElementById('daySheetClose').addEventListener('click', closeDaySheet
 document.getElementById('finishClose').addEventListener('click', closeFinishSheet); // v3.598 (UX-09a)
 document.getElementById('finishDone').addEventListener('click', closeFinishSheet);
 document.getElementById('finishSheet').addEventListener('click', (e)=>{ if(e.target.id === 'finishSheet') closeFinishSheet(); });
+document.getElementById('recapClose').addEventListener('click', closeRecapSheet); // v3.623 (UX-11)
+document.getElementById('recapDone').addEventListener('click', closeRecapSheet);
+document.getElementById('recapSheet').addEventListener('click', (e)=>{ if(e.target.id === 'recapSheet') closeRecapSheet(); });
 document.getElementById('daySheet').addEventListener('click', (e)=>{ if(e.target.id === 'daySheet') closeDaySheet(); });
 document.getElementById('tabs').addEventListener('click', chooseDayFromSheet);
 document.getElementById('tabs').addEventListener('keydown', chooseDayFromSheet);
@@ -43267,7 +43312,7 @@ const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
   'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay',
-  'whatsNewOverlay', 'navMoreOverlay', 'daySheet', 'finishSheet'
+  'whatsNewOverlay', 'navMoreOverlay', 'daySheet', 'finishSheet', 'recapSheet'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -43341,6 +43386,7 @@ const OVERLAY_CLOSERS = {
   navMoreOverlay:       ()=> closeNavMoreOverlay(),
   daySheet:             ()=> closeDaySheet(), // v3.595 (UX-06b)
   finishSheet:          ()=> closeFinishSheet(), // v3.598 (UX-09a)
+  recapSheet:           ()=> closeRecapSheet(), // v3.623 (UX-11)
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -44139,6 +44185,8 @@ const VIEW_RENDERERS = {
     // drop expanded-card and scroll state for no benefit.
     renderStreak();
     renderTodayInsights();
+    // v3.623 (UX-11): the week's recap sheet, once per week; Priorities re-renders without its Monday line.
+    maybeShowWeeklyRecap().then(shown => { if(shown) renderTodayInsights(); }).catch(() => {});
   },
   log: ()=>{
     // Re-reads the day's food log so macro bars reflect anything logged from
@@ -49488,6 +49536,151 @@ async function weekShareTrainingStats(weekStartKey){
   return {prs, sets};
 }
 
+// The week card (MKT-02), shared by "Save this week" and the recap sheet (UX-11).
+function weekShareCardData(workoutsCount, training, dayId){
+  const stats = [
+    {value: String(workoutsCount), label: 'WORKOUTS'},
+    {value: programs[activeProgram].label, label: 'PROGRAM'},
+  ];
+  if(training.prs > 0) stats.push({value: String(training.prs), label: 'PRs THIS WEEK'});
+  else if(training.sets > 0) stats.push({value: String(training.sets), label: 'SETS'});
+  return {icon:'flag', headline:'WEEK COMPLETE', stats, kind:'week', dayId};
+}
+
+// v3.623 (UX-11): the weekly recap as a sheet. On the first Today of a new week
+// (when last week had training), once per week ('weekly-recap-seen' holds the
+// Monday it was shown for; owner-approved 2026-11-22): the week strip, the
+// missed day named, sessions of planned, sets and time, new bests, and this
+// week's phase line. It replaces Priorities' Monday line for that week.
+const RECAP_SEEN_KEY = 'weekly-recap-seen';
+// One block per program day, in order: trained (its plate ink), missed (hatched,
+// outlined) or rest (the off ink). Trained reads the corpus fetchDayStatuses
+// reads: a workout key with work done, or logged sets under that day.
+async function weekStripStates(weekStartKey){
+  const end = dateKeyMinusDays(weekStartKey, -7);
+  const inWeek = d => d >= weekStartKey && d < end;
+  const worked = new Set();
+  try{ for(const {date, dayId, anyDone} of await readWorkoutCorpus()) if(anyDone && inWeek(date)) worked.add(dayId); }catch(e){}
+  try{
+    for(const c of await readExCorpus()){
+      if(!c.parsed || c.parsed.program !== activeProgram) continue;
+      if((c.log || []).some(e => e && inWeek(e.date) && (e.sets || []).some(st => st && (st.weight != null || st.reps != null || st.distance != null)))) worked.add(c.parsed.dayId);
+    }
+  }catch(e){}
+  const order = (typeof dayOrder !== 'undefined' && Array.isArray(dayOrder) && dayOrder.length ? dayOrder : Object.keys(dayDefs)).filter(id => dayDefs[id]);
+  return order.map(id => {
+    const d = dayDefs[id];
+    return {id, label: d.label || id, sub: d.sub || '', plateNum: d.plateNum != null ? String(d.plateNum) : '', plate: d.plate || '', ink: dayInk(id),
+      state: worked.has(id) ? 'trained' : d.rest ? 'rest' : 'missed'};
+  });
+}
+async function weeklyRecapModel(weekStartKey){
+  const program = activeProgram;
+  const [stats, training, strip, prs, mesoWeek, inDeload, cycleStart] = await Promise.all([
+    computeWeekStats(weekStartKey), weekShareTrainingStats(weekStartKey), weekStripStates(weekStartKey),
+    reconstructAllPRs().catch(() => []), getMesocycleWeek().catch(() => 1), isDeloadWeek().catch(() => false),
+    window.storage.get('program-cycle-start').then(r => (r && r.value) || '').catch(() => ''),
+  ]);
+  if(!stats.workoutsCount && !strip.some(d => d.state === 'trained')) return null; // nothing to recap
+  const end = dateKeyMinusDays(weekStartKey, -6);
+  let minutes = 0;
+  for(let i = 0; i < 7; i++){
+    try{
+      const w = await getWorkoutTimeWindow(dateKeyMinusDays(weekStartKey, -i));
+      const toMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+      if(w && w.first && w.last) minutes += Math.max(0, toMin(w.last) - toMin(w.first));
+    }catch(e){}
+  }
+  const bests = [];
+  // Newest first, one per lift: a lift with two records last week shows its latest.
+  for(const ev of (prs || []).filter(e => e.date >= weekStartKey && e.date <= end).sort((a, b) => b.date.localeCompare(a.date))){
+    if(bests.some(b => b.name === ev.name)) continue;
+    bests.push({name: ev.name, label: bestLabel(ev.type), weight: ev.weight, reps: ev.reps});
+  }
+  // The title names the week only when it is known: the program's first week
+  // (it began last week; never "0 weeks"), a week that counted toward the block
+  // (getMesocycleWeek counts weeks of 2+ sessions), else just "Last week".
+  const first = !!cycleStart && cycleStart >= weekStartKey;
+  const counted = stats.workoutsCount >= 2 && mesoWeek - 1 >= 1;
+  const pos = cycleWeekOf(mesoWeek);
+  const tag = mesocyclePhaseTag(pos, inDeload, program).text;
+  const adds = !inDeload && volumeModifiersApply(program) ? (ACCUMULATION_ADDS[pos] || 0) : 0;
+  const clinical = program === 'medical' || !!MEDICAL_STYLES[program];
+  return {weekStartKey, end, program: (programs[program] || {}).label || '', strip, missed: strip.filter(d => d.state === 'missed'),
+    sessions: stats.workoutsCount, planned: strip.filter(d => d.state !== 'rest').length, sets: training.sets, minutes,
+    bests: bests.slice(0, 3), title: first ? 'Your first week, done' : counted ? `Week ${cycleWeekOf(mesoWeek - 1)}, done` : 'Last week, done',
+    next: `${tag}.` + (adds ? ` One more set on your first ${adds === 1 ? 'compound lift' : adds + ' compound lifts'}.` : ''),
+    share: clinical ? null : weekShareCardData(stats.workoutsCount, training, (strip.filter(d => d.state === 'trained').pop() || {}).id || activeDay)};
+}
+function recapMissedLine(missed){
+  if(!missed.length) return 'Every planned day ran.';
+  if(missed.length === 1){ const d = missed[0]; return `${d.label}${d.sub ? `'s ${d.sub}` : ''} was skipped. Everything else ran as planned.`; }
+  const names = missed.map(d => d.label);
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} were skipped.`;
+}
+function openRecapSheet(m){
+  const sheet = document.getElementById('recapSheet');
+  if(!sheet || !m) return;
+  document.getElementById('recapRange').textContent = `${formatShortDate(m.weekStartKey)} – ${formatShortDate(m.end)}${m.program ? ' · ' + m.program : ''}`;
+  document.getElementById('recapTitle').textContent = m.title;
+  const strip = document.getElementById('recapStrip');
+  const STATE_WORDS = {trained: 'trained', missed: 'missed', rest: 'rest'};
+  strip.setAttribute('aria-label', 'Last week: ' + m.strip.map(d => `${d.label}, ${STATE_WORDS[d.state]}`).join('; '));
+  strip.innerHTML = m.strip.map(d => `<div class="recap-day"><div class="recap-block is-${d.state} ink-${escapeHtml(d.ink)} ${escapeHtml(d.plate)}" data-state="${d.state}"><span>${escapeHtml(d.state === 'rest' && !d.plateNum ? 'OFF' : d.plateNum || '')}</span></div><div class="recap-day-label">${escapeHtml(d.label.replace(/^Day\s+/, 'D'))}</div></div>`).join('');
+  document.getElementById('recapMissed').textContent = recapMissedLine(m.missed);
+  const totals = [[`${m.sessions}<small> / ${m.planned}</small>`, 'Sessions'], [String(m.sets), 'Sets']];
+  if(m.minutes > 0) totals.push([`${m.minutes}<small> min</small>`, 'Time']);
+  document.getElementById('recapTotals').innerHTML = totals.map(([v, l]) => `<div class="finish-total"><div class="finish-total-v">${v}</div><div class="finish-total-l">${l}</div></div>`).join('');
+  document.getElementById('recapBests').innerHTML = m.bests.length ? `<h3 class="finish-next-head">New records</h3>` + m.bests.map(b => `<div class="finish-next-row"><div class="finish-next-name">${escapeHtml(b.name)}<div class="finish-next-why">${escapeHtml(b.label)}</div></div><div class="finish-next-load">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))} ${escapeHtml(weightUnit)}${b.reps != null ? ` × ${escapeHtml(String(b.reps))}` : ''}</div></div>`).join('') : '';
+  document.getElementById('recapNext').innerHTML = `<b>Next:</b> ${escapeHtml(m.next)}`;
+  const shareBtn = document.getElementById('recapShare');
+  const fresh = shareBtn.cloneNode(true);
+  shareBtn.parentNode.replaceChild(fresh, shareBtn);
+  fresh.hidden = !m.share;
+  if(m.share){ preloadShareCardFont(); fresh.addEventListener('click', () => shareCelebrationCard(m.share, 'recapShare')); }
+  sheet.classList.add('active');
+  setTimeout(() => { const d = document.getElementById('recapDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll: true, focusVisible: false}); }, 0);
+}
+function closeRecapSheet(){
+  const sheet = document.getElementById('recapSheet');
+  if(!sheet || !sheet.classList.contains('active')) return;
+  sheet.classList.remove('active');
+  const back = document.getElementById('upNextDayBtn') || document.getElementById('todayView');
+  if(back){ try{ back.focus({preventScroll: true}); }catch(e){} }
+}
+async function weeklyRecapSeenThisWeek(){
+  try{ const r = await window.storage.get(RECAP_SEEN_KEY); return !!(r && r.value === mondayOf(getTodayKey())); }catch(e){ return false; }
+}
+// Called by VIEW_RENDERERS.today; true when it opened the sheet. Never over
+// another overlay, in gym mode, or once Today is no longer the view (checked
+// again after the model is built, since that takes a moment). A week with
+// nothing to recap is remembered for the session, so Today doesn't rebuild it.
+let recapCheckInflight = null, recapNothingFor = null;
+function recapMayOpen(){
+  if(typeof gymModeActive !== 'undefined' && gymModeActive) return false;
+  const nav = document.getElementById('navToday');
+  if(nav && !nav.classList.contains('active')) return false;
+  const ids = typeof SCROLL_LOCK_OVERLAYS !== 'undefined' ? SCROLL_LOCK_OVERLAYS : [];
+  if(ids.some(id => { const el = document.getElementById(id); return el && el.classList.contains('active'); })) return false;
+  return !document.querySelector('.sub-modal-overlay.active');
+}
+function maybeShowWeeklyRecap(){
+  if(recapCheckInflight) return recapCheckInflight;
+  recapCheckInflight = (async () => {
+    const monday = mondayOf(getTodayKey());
+    if(recapNothingFor === monday) return false;
+    if(await weeklyRecapSeenThisWeek()) return false;
+    if(!recapMayOpen()) return false;
+    const model = await weeklyRecapModel(dateKeyMinusDays(monday, 7));
+    if(!model){ recapNothingFor = monday; return false; }
+    if(!recapMayOpen()) return false; // something opened (or the view changed) while it was built: next Today
+    try{ await window.storage.set(RECAP_SEEN_KEY, monday); }catch(e){}
+    openRecapSheet(model);
+    return true;
+  })().finally(() => { recapCheckInflight = null; });
+  return recapCheckInflight;
+}
+
 async function archiveCurrentWeek(){
   const btn = document.getElementById('archiveWeekBtn');
   const status = document.getElementById('archiveWeekStatus');
@@ -49532,13 +49725,6 @@ async function archiveCurrentWeek(){
   // D15): the third row is training-only, PRs this week, else sets this week.
   // Body weight, intake and sleep never reach a public image by default (they
   // stay in the archived weekStats record above, unchanged).
-  const shareStats = [
-    {value: String(workoutsCount), label: 'WORKOUTS'},
-    {value: programs[activeProgram].label, label: 'PROGRAM'},
-  ];
-  if(training.prs > 0) shareStats.push({value: String(training.prs), label: 'PRs THIS WEEK'});
-  else if(training.sets > 0) shareStats.push({value: String(training.sets), label: 'SETS'});
-
   const shareWrap = document.getElementById('weekShareWrap');
   const shareBtn = document.getElementById('weekShareBtn');
   shareWrap.style.display = '';
@@ -49548,7 +49734,7 @@ async function archiveCurrentWeek(){
   // reset below moves activeDay back to Day 1 a few seconds later.
   const shareDay = activeDay;
   preloadShareCardFont();
-  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'flag', headline:'WEEK COMPLETE', stats: shareStats, kind:'week', dayId: shareDay}, 'weekShareBtn'));
+  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard(weekShareCardData(workoutsCount, training, shareDay), 'weekShareBtn'));
 
   setTimeout(async ()=>{
     activeDay = 'd1';
