@@ -1583,6 +1583,8 @@
     /* Wraps instead of widening the cell, so the exercise name keeps its room. */
     white-space:normal; max-width:68px; margin-left:auto;
   }
+  /* v3.620 (BL-31): why this row has a set more or fewer than the program. */
+  .ex-adjust-note{font-family:var(--font-sans); font-size:12px; line-height:1.3; color:var(--text-2); margin-top:2px;}
   .ex-chevron{
     flex:0 0 auto; font-size:13px; color:var(--plate-blue); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
   }
@@ -8375,7 +8377,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.619';
+const APP_VERSION = '3.620';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10068,6 +10070,9 @@ const WHATS_NEW = {
   '3.619': { headline: 'Your number', points: [
     'The end of a session now shows your number: "No. 47" means your 47th training day on the log. It counts days on the log, not how hard you went, so deleting a session takes its day back off.',
     'At 10, 25, 50, 100, 250, 500 and 1,000 the session summary marks it once, and the bib you share gets a stamp. Not after six days in a row without a rest day.',
+  ]},
+  '3.620': { headline: 'Sets that follow how you did', points: [
+    'Each week, a muscle whose sets all hit their target at the effort asked gets one more set the next week, and one whose reps dropped at the same weight gets one fewer. The row says why. It needs your RPE logged to add a set, and it starts fresh each block.',
   ]},
 };
 
@@ -28548,6 +28553,153 @@ function applyAccumulation(exercises, week, program){
   });
 }
 
+// v3.620 (BL-31): weekly ±1 set per muscle, from your own performance
+// [PEL][ROB24]. Per muscle (its EXERCISE_MUSCLES primaries only; synergist
+// credit never triggers a change), from the block's previous 7-day window:
+//   met:  every working set reached the bottom of the rep range you ran (your
+//         own override, else the program's), and every set with a logged RPE
+//         was at or under 10 − the bottom of BL-10's RIR band (strength tier:
+//         RPE 8, the last set of a session 9, as its "last set 1–2" cue says).
+//         No RPE logged at all: not met (no add on reps alone).
+//   fell: any primary's top set had fewer reps at the same weight than the
+//         window before (a session of only missed sets counts as 0 reps).
+// Fell wins over met; neither changes nothing. The running total is clamped to
+// −1…+4 and kept in 'muscle-volume-adj' (owner-approved 2026-11-22) with the
+// block it belongs to; a new block, and its week 1, start from {}. The deload
+// week doesn't apply it.
+const MUSCLE_ADJ_MIN = -1, MUSCLE_ADJ_MAX = 4;
+// The bottom of each RIR_TARGETS band, in reps in reserve.
+const RIR_BAND_BOTTOM = {speed: 3, deload: 3, clinical: 3, strength: 2, compound: 1, isolation: 0};
+function muscleRirTier(exDef, program){
+  const t = targetRirLabel(exDef, program, false);
+  return t ? Object.keys(RIR_TARGETS).find(k => RIR_TARGETS[k] === t) : null;
+}
+function muscleRpeCeiling(exDef, program){
+  const tier = muscleRirTier(exDef, program);
+  return tier ? 10 - (RIR_BAND_BOTTOM[tier] ?? 0) : null;
+}
+// {v: 1 met, −1 fell, 0 neither; rpe: the ceiling judged against, when one}.
+function muscleWeekVerdict(corpus, weekStartKey, muscle, program){
+  const end = dateKeyMinusDays(weekStartKey, -7), prevStart = dateKeyMinusDays(weekStartKey, 7);
+  const latest = arr => arr.reduce((a, e) => (!a || e.date > a.date ? e : a), null);
+  let sets = 0, rpeLogged = 0, met = true, fell = false;
+  const ceilings = new Set();
+  for(const {exDef, log} of corpus || []){
+    const m = exDef && EXERCISE_MUSCLES[exDef.name];
+    if(!m || !m.p.includes(muscle)) continue;
+    // Positional keys can hold another lift's entries (BL-51): only this one's.
+    const own = entriesForExercise(log, exDef.name);
+    const week = own.filter(e => e && e.date >= weekStartKey && e.date < end);
+    const before = own.filter(e => e && e.date >= prevStart && e.date < weekStartKey);
+    const was = latest(before), now = latest(week);
+    const a = was && sessionTopOf(was), b = now && sessionTopOf(now);
+    if(a && b && Number(a.weight) === Number(b.weight) && Number(b.reps) < Number(a.reps)) fell = true;
+    // Reps and effort are judged only against a plain rep range.
+    if(!getRepRangeTier(exDef.sets)) continue;
+    const bottom = Number((/×\s*(\d+)/.exec(exDef.sets) || [])[1]);
+    const tier = muscleRirTier(exDef, program), ceiling = muscleRpeCeiling(exDef, program);
+    for(const e of week){
+      const working = (e.sets || []).filter(st => st && st.weight != null && st.reps != null); // as setCountOf counts
+      working.forEach((st, i) => {
+        sets++;
+        if(Number(st.reps) < bottom) met = false;
+        if(ceiling != null && st.rpe != null && st.rpe !== ''){
+          rpeLogged++;
+          ceilings.add(ceiling);
+          const allowed = ceiling + (tier === 'strength' && i === working.length - 1 ? 1 : 0);
+          if(Number(st.rpe) > allowed) met = false;
+        }
+      });
+    }
+  }
+  const rpe = ceilings.size === 1 ? [...ceilings][0] : null;
+  if(fell) return {v: -1, rpe};
+  return {v: sets > 0 && met && rpeLogged > 0 ? 1 : 0, rpe};
+}
+// Pure: the window's verdicts applied to the running map, clamped. `why`, when
+// given, is filled with each changed muscle's verdict, for the row's reason.
+function computeMuscleSetAdjust(corpus, weekStartKey, prevAdj, program, why){
+  const out = Object.assign({}, prevAdj || {});
+  for(const mu of LEDGER_MUSCLES){
+    const {v, rpe} = muscleWeekVerdict(corpus, weekStartKey, mu, program);
+    if(!v) continue;
+    const n = Math.max(MUSCLE_ADJ_MIN, Math.min(MUSCLE_ADJ_MAX, (out[mu] || 0) + v));
+    if(n) out[mu] = n; else delete out[mu];
+    if(why) why[mu] = {v, rpe};
+  }
+  return out;
+}
+// Pure: n sets on each muscle's first primary exercise of the day, never below
+// 1, with the reason on the row. One row working two adjusted muscles (a row:
+// upper back and lats) changes once: fell wins, else the larger change.
+function applyMuscleSetAdjust(exercises, adj, program, why){
+  if(!volumeModifiersApply(program) || !adj) return exercises;
+  const byRow = new Map();
+  for(const mu of LEDGER_MUSCLES){
+    const n = adj[mu];
+    if(!n) continue;
+    const i = exercises.findIndex(ex => !/warm.?up|cool.?down/i.test(ex.name) && hasNumericSetPrefix(ex.sets)
+      && EXERCISE_MUSCLES[ex.name] && EXERCISE_MUSCLES[ex.name].p.includes(mu));
+    if(i < 0) continue;
+    const cur = byRow.get(i);
+    const pick = !cur ? n : (n < 0 || cur.n < 0) ? Math.min(n, cur.n) : Math.max(n, cur.n);
+    // The reason names only the muscles whose change won.
+    const muscles = n !== pick ? cur.muscles : (cur && cur.n === pick ? cur.muscles.concat(mu) : [mu]);
+    byRow.set(i, {n: pick, muscles});
+  }
+  if(!byRow.size) return exercises;
+  return exercises.map((ex, i) => {
+    const r = byRow.get(i);
+    if(!r) return ex;
+    const current = parseSetCount(ex.sets);
+    if(current == null) return ex;
+    const next = Math.max(1, current + r.n);
+    if(next === current) return ex;
+    const d = next - current, names = r.muscles.join(' and '), s = Math.abs(d) > 1 ? 's' : '';
+    const w = (why || {})[r.muscles[0]];
+    const reason = d < 0 ? `−${-d} set${s}: your ${names} reps fell at the same weight`
+      : !w || w.v > 0 ? `+${d} set${s}: every ${names} set hit its target${w && w.rpe != null ? ` at RPE ${w.rpe} or less` : ''}`
+      : `+${d} set${s}: kept from earlier this block (your ${names} reps fell last time, so one came off)`;
+    return {...ex, sets: replaceSetCount(ex.sets, next), muscleAdjusted: {n: d, reason}};
+  });
+}
+// The stored map, recomputed once per 7-day window of the block (counted from
+// 'program-cycle-start', as getMesocycleWeek counts). Returns {adj, why}.
+async function loadMuscleSetAdjust(mesoWeek, program){
+  if(!volumeModifiersApply(program)) return {adj: {}, why: {}};
+  const today = getTodayKey();
+  let startKey = today;
+  try{ const r = await window.storage.get('program-cycle-start'); if(r && r.value) startKey = r.value; }catch(e){}
+  const days = Math.max(0, Math.round((new Date(today + 'T00:00:00') - new Date(startKey + 'T00:00:00')) / 86400000));
+  const windowStart = dateKeyMinusDays(startKey, -7 * Math.floor(days / 7));
+  const block = Math.floor((mesoWeek - 1) / DELOAD_CYCLE_WEEKS);
+  let saved = null;
+  try{
+    const res = await window.storage.get('muscle-volume-adj');
+    if(res && res.value) saved = JSON.parse(res.value);
+  }catch(e){ saved = null; }
+  const sameBlock = !!saved && saved.block === block && !!saved.adj && typeof saved.adj === 'object';
+  if(sameBlock && saved.weekOf === windowStart) return {adj: saved.adj, why: saved.why || {}};
+  let adj = {}, why = {};
+  if(cycleWeekOf(mesoWeek) !== 1){
+    let corpus = [];
+    try{ corpus = await readExCorpus(); }catch(e){}
+    // Judge against the rep range you ran: your saved override for that slot, if any.
+    const ovs = {};
+    const resolved = [];
+    for(const c of corpus){
+      const pk = c.parsed ? c.parsed.program + ':' + c.parsed.dayId : null;
+      if(pk && !(pk in ovs)) ovs[pk] = await getExOverrides(c.parsed.program, c.parsed.dayId);
+      const ov = pk ? (ovs[pk] || {})[String(c.parsed.idx)] : null;
+      resolved.push(ov && ov.sets && !ov.removed && ov.name === c.exDef.name ? {...c, exDef: {...c.exDef, sets: ov.sets}} : c);
+    }
+    why = sameBlock ? Object.assign({}, saved.why || {}) : {};
+    adj = computeMuscleSetAdjust(resolved, dateKeyMinusDays(windowStart, 7), sameBlock ? saved.adj : {}, program, why);
+  }
+  try{ await window.storage.set('muscle-volume-adj', JSON.stringify({weekOf: windowStart, block, adj, why})); }catch(e){}
+  return {adj, why};
+}
+
 // Accumulation accessory: on the peak accumulation weeks (cycle position 3-4
 // — the same weeks ACCUMULATION_ADDS already maxes out at +2 sets), a small
 // per-program/day pool of bonus accessories gets appended to the day. This is
@@ -30930,6 +31082,9 @@ async function renderWorkout(){
     // stacking an accumulation bump on top of a deload reduction would produce
     // a "lighter" week with more sets than the one before it.
     fullExercises = applyAccumulation(fullExercises, mesoWeek, activeProgram);
+    // v3.620 (BL-31): then last week's per-muscle ±1 set, with its reason on the row.
+    const muscleAdj = await loadMuscleSetAdjust(mesoWeek, activeProgram);
+    fullExercises = applyMuscleSetAdjust(fullExercises, muscleAdj.adj, activeProgram, muscleAdj.why);
     fullExercises = applyAccumulationAccessory(fullExercises, mesoWeek, activeProgram, activeDay);
   }
 
@@ -31361,6 +31516,7 @@ async function renderWorkout(){
         ${thumbHtml}
         <div class="ex-name-wrap">
           <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">Custom</span>' : ''}</div>
+          ${ex.muscleAdjusted ? `<div class="ex-adjust-note">${escapeHtml(ex.muscleAdjusted.reason)}</div>` : ''}
         </div>
         <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span>${loadSuggestionMode === 'rpe' ? '' : rirLabelHtml(ex, activeProgram, inDeloadWeek)}</div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}

@@ -1536,3 +1536,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Deviation:** no banner (it would cover the open sheet's Share and Done); spec refresh 3 already put the moment on the sheet.
 - **Fixture fix:** test-bib-card's stub `measureText` regex had lost its `\d` inside a template string, so MKT-16's shrink checks measured nothing; now `\\d`. test-bib-photo already had it right.
 - **Next:** the roadmap after slot 53.
+
+## Addendum 140: BL-31, weekly ±1 set per muscle (v3.620, PR #199, 2026-11-22)
+- **What:** `muscleWeekVerdict` → `computeMuscleSetAdjust(corpus, windowStart, prev, program, why)` → `applyMuscleSetAdjust(exercises, adj, program, why)`, called once in `renderWorkout` right after `applyAccumulation` (non-deload branch), via `loadMuscleSetAdjust(mesoWeek, program)`, which keeps `muscle-volume-adj` = {weekOf, block, adj, why} (owner-allowed). Reason line: `.ex-adjust-note` under the row name.
+- **Beyond the spec (from code review):** block windows from `program-cycle-start`, not calendar weeks; block-tagged map; overrides' rep ranges; strength last set RPE 9; all-miss = fall; `entriesForExercise` filter; reason from the stored verdict.
+- **Flagged:** the day header's duration suffix counts only accumulation sets.
+- **Unverified:** a real week boundary in the live app; iPhone.

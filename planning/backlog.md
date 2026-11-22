@@ -1031,7 +1031,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** new `test-muscle-set-autoreg.js`. Sabotage: drop the RPE condition, and criterion 4 fails; drop the clamp, and criterion 3 fails.
 - **Files:** `index.html` (the two functions beside `applyAccumulation` 26820; the call in `renderWorkout`; `APP_VERSION` 7625; `WHATS_NEW` 7643), `sw.js`, `test-muscle-set-autoreg.js` (new). Guards: `test-accumulation-accessory-add.js` and `test-volume-modifier-gate.js` (both extract `applyAccumulation`), `test-muscle-ledger.js` (BL-20), `test-program-cycle-start-backfill.js` (BL-33's block clock), and the suites that pin `renderWorkout` source (BL-10's list).
 - **Risk:** this stacks with accumulation, deload and session-length trimming (`applySessionLengthLimit` may drop the adjusted row on a short day; that's acceptable and the test notes it). Adding a set changes no history key (sets are within one row).
-- **Status:** ready (after BL-20 and BL-33) (owner yes 2026-11-08, D3). Each added or removed set is shown with its reason, as the owner was asked. Slot 58, after the ledger (BL-20) and BL-33.
+- **Status:** done (v3.620, PR #199). Owner allowed `muscle-volume-adj` (2026-11-22). Windows follow the block clock (program-cycle-start), the map carries its block, overrides' rep ranges are judged, the strength tier's last set may be RPE 9, an all-miss session is a fall.
 
 ### BL-32: Readiness changes the session, not just the note
 - **Why:** research #3: "the suggestion lands in the set chips". This builds on BL-09 and BL-21.
