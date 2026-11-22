@@ -1558,3 +1558,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Harness:** every state seeds `weekly-recap-seen` = TODAY_KEY except `recap-*-402`. A future Today-ish state that wants the sheet needs `recap: true`.
 - **Flagged:** workout keys carry no program (strip may mark another program's days); Priorities render race.
 - **Next:** BIZ-02 (slot 63).
+
+## Addendum 144: BIZ-02, one name asked once (v3.624, PR #203, 2026-11-22)
+- **What:** `loadProfile` fills `userProfile.name` from the active user-list entry only when the read succeeded and found no saved profile (a brand-new profile), then `saveProfile` once. Saved profiles (cleared name, migrated "Me") and failed reads are untouched.
+- **Owner:** OK'd that a named profile's setup card lives in Settings (positionProfileCard reads the name).
+- **Next:** BIZ-01 (slot 64), the three-question quick start.
