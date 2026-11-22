@@ -4130,7 +4130,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (`.celebrate-*` 1742–1770, `.confetti-piece` 1772/4865, 4687/4723, `spawnConfetti` and `triggerCelebration` 31359–31420, the PR call 34572, the finish best label 31511, `checkStreakMilestone` 14986, `#celebrateBanner` 7593, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-moments.js` (new), `test-tap-counts.js`. **Re-pins, read first:** `test-glyphs.js` (`celebrateBanner`, `spawnConfetti`), `test-coach-header-button.js` (mentions confetti), `test-finish-sheet.js` (the label helper), `test-partial-set-reactions.js`, `test-auto-check-sets.js`, `test-noweight-consistency.js`, `test-cardio-distance-gate.js`, `test-fallback-entry-consolidation.js`, `test-emoji-check-icon-migration.js`, `test-backdating-rest-timer-suppression.js` (all stub `triggerCelebration`; the signature stays, so they should pass unchanged).
 - **Risk:** low to medium: confetti goes (decoration, not a feature; the vision and UX-15 already retire it), and "New PR!" becomes "Heaviest weight yet" (F6's wording, already on the finish sheet).
 - **Tools:** `Skill: animate`, `Skill: review-animations`, `Skill: animation-performance` (transform and opacity only), TOOL-01.
-- **Status:** ready
+- **Status:** done (v3.611, PR #190; the last PR of the Today batch). The moment's figure is its words in the display face (`triggerCelebration`'s signature has no separate figure). In gym mode the moment sits above the gym dock (`bottom: calc(108px + …)`), found by the harness. Criterion 6 was checked in Chromium (the harness has no `tday-milestone` state; the fixture's streak milestone shows in every state).
 
 ---
 

@@ -77,7 +77,13 @@ test('log the ready set: one tap on the cover\'s Log button commits exactly the 
     <div class="ex-sets"><span>4×4-6</span></div></div><div class="set-chips" role="group"></div>
     <div class="expand-wrap"><div><div class="sets-block">${row(0, true)}${row(1)}${row(2)}</div></div></div></div>`;
   const cover = new JSDOM(html).window.document.getElementById('upNext').outerHTML;
-  const { window } = runJsdom(cover + `<div id="exerciseList">${list}</div>`, `
+  // 2026-11-22 (v3.611, UX-30): run twice, the second time with a milestone
+  // moment showing (#celebrateBanner active): Log still takes one tap. That the
+  // moment's box can't cover Log in a real browser is the PR's Playwright check
+  // (elementFromPoint at Log's centre is Log); jsdom has no hit-testing.
+  for(const withMoment of [false, true]){
+  const banner = withMoment ? new JSDOM(html).window.document.getElementById('celebrateBanner').outerHTML.replace('class="celebrate-banner"', 'class="celebrate-banner active big"') : '';
+  const { window } = runJsdom(cover + banner + `<div id="exerciseList">${list}</div>`, `
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true, exerciseInfo = {};
     function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
     function isBarbellExercise(){ return true; } function isDumbbellExercise(){ return false; }
@@ -93,6 +99,8 @@ test('log the ready set: one tap on the cover\'s Log button commits exactly the 
   assert.strictEqual(window.__commits, 1, 'one tap, one set');
   assert.strictEqual(window.document.querySelector('.set-row[data-set-idx="1"] .ex-reps').value, String(ready._values.reps), 'the ready set');
   assert.ok(taps <= PARENT_TAPS.logReadySet, `taps ${taps} > parent ${PARENT_TAPS.logReadySet}`);
+  if(withMoment) assert.ok(window.document.querySelector('#celebrateBanner.active'), 'anchor: a moment was showing');
+  }
 });
 
 // v3.601 (UX-20): the date controls and the three header buttons move onto the

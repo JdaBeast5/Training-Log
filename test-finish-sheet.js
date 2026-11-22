@@ -30,7 +30,7 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot',
   'normalizeExEntry', 'parseExKey', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs',
   'sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs', 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
-  'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet',
+  'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet', 'bestLabel', /* 2026-11-22 (v3.611, UX-30): the shared best labeller */
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
   'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
@@ -246,7 +246,8 @@ test('09b: the best set carries its plate stack (UX-07\'s drawing): 185 is 45 ·
 test('09b criterion 4: the PR celebration still fires once per PR, at its one site; nothing in the finish sheet raises another', (assert)=>{
   const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
   const code = strip(src);
-  assert.strictEqual((code.match(/triggerCelebration\('trophy', 'New PR!'/g) || []).length, 1, 'one PR celebration site');
+  // 2026-11-22 (v3.611, UX-30): the PR moment's words come from bestLabel now ("Heaviest weight yet", not "New PR!").
+  assert.strictEqual((code.match(/triggerCelebration\('trophy', bestLabel\('weight'\)/g) || []).length, 1, 'one PR celebration site');
   for(const f of ['finishSheetModel', 'openFinishSheet', 'playFinishFlood', 'finishPlatesHtml', 'closeFinishSheet', 'nextTimeSuggestion']){
     assert.ok(!/\btriggerCelebration\(/.test(strip(extractFunction(src, f))), f + ' raises no celebration');
   }

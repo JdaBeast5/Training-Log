@@ -1503,3 +1503,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Markup:** `#todayInsightsCard` sits after `.today-session-pane` and keeps `.card` (gym's hide rule). It holds the `#prioritiesSummary` button, `#prioritiesSummaryText` and the `#prioritiesWrap` expand-wrap around the hint and `#todayInsightsList`.
 - **Logic:** `renderTodayInsights` writes the summary and opens the section from storage. Any row in `SAFETY_PRIORITIES` forces it open and leads the summary. `togglePriorities` is wired once at load.
 - **Next:** UX-30, the last of the Today batch; its PR must say so.
+
+## Addendum 135: UX-30, moments not confetti (v3.611, PR #190, 2026-11-22). The Today batch is complete.
+- **Moment:** `.celebrate-banner` is a strip above the tab bar in the day's ink (`--spot`, `--spot-ink`; the red, green and yellow days use the block-on inks). In gym mode it sits at `bottom: calc(108px + …)`.
+- **Removed:** `spawnConfetti`, `CONFETTI_COLORS` and `.confetti-piece`.
+- **`bestLabel(type)`:** shared by the PR branch (`bestLabel('weight')`) and `openFinishSheet`.
+- **Harness:** the fixture fires the 8-week streak milestone on load, so every state shows the moment. Expect every state to change when the moment's look changes.
+- **Next:** the Today batch (UX-19 to UX-30) is fully built; #189 and #190 await merge. The plan continues from MKT-16 (slot 51).
