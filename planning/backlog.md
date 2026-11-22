@@ -4148,7 +4148,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 ### UX-32: The program picker shows one arrow in Settings
 - **Why:** owner, 2026-11-22 (as UX-31). Inside Settings the Training Style select shows two indicators: Settings' own select styling and the card's chevron.
 - **Change:** one indicator; the Settings select treatment wins inside the card, or the card's chevron hides there (whichever leaves one, aligned).
-- **Status:** ready
+- **Status:** done (v3.613, PR #192). The Settings up/down mark stays; the card's chevron is hidden under `#settingsProgramSlot`.
 
 ### UX-33: The rest pill's +15s and × in the ink
 - **Why:** owner, 2026-11-22 (as UX-31). The flat pill (UX-29) still has a green "+15s" and a red "×".
