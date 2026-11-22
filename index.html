@@ -1910,6 +1910,23 @@
   .rest-timer.tier-endurance .rest-timer-ring-progress{stroke:url(#restRingGradEndurance); filter:drop-shadow(0 0 4px rgba(var(--plate-teal-rgb),0.7));}
   .rest-timer.tier-endurance{border-color:rgba(var(--plate-teal-rgb),0.5);}
   .rest-timer.urgent .rest-timer-ring-progress{stroke:var(--plate-red); filter:drop-shadow(0 0 5px rgba(var(--plate-red-rgb),0.75));}
+  /* v3.609 (UX-29): the pill steps aside for the cover. While the cover is
+     in view (body.cover-in-view, from an IntersectionObserver on #upNext; the
+     cover shows the time, +30 s, Skip and the next set itself), the pill
+     isn't shown; scrolled down the list or on another tab, it is. Its look
+     goes flat outside gym mode (gym keeps its own until UX-17): --surface-2,
+     a 1 px --rule-strong, no coloured border or glow, the ring in the day's
+     ink, the urgent state the ring in the yellow warning ink, no red pulse. */
+  body.cover-in-view:not(.gym-mode) .rest-timer.active{opacity:0; visibility:hidden; pointer-events:none; transition:opacity .16s var(--ease-smooth), visibility 0s linear .16s;}
+  body:not(.gym-mode) .rest-timer{background:var(--surface-2); border:1px solid var(--rule-strong); box-shadow:none;}
+  body:not(.gym-mode) .rest-timer::before{display:none;}
+  body:not(.gym-mode) .rest-timer.tier-strength,
+  body:not(.gym-mode) .rest-timer.tier-endurance,
+  body:not(.gym-mode) .rest-timer.urgent{border-color:var(--rule-strong); box-shadow:none; animation:none;}
+  body:not(.gym-mode) .rest-timer .rest-timer-ring-progress{stroke:var(--spot, var(--text)); filter:none;}
+  body:not(.gym-mode) .rest-timer.urgent .rest-timer-ring-progress{stroke:var(--spot-yellow); filter:none;}
+  body:not(.gym-mode) .rest-timer-time{font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
+  @media (prefers-reduced-motion: reduce){ body.cover-in-view:not(.gym-mode) .rest-timer.active{transition:none;} }
   .rest-timer-expand{
     max-height:0; opacity:0; overflow:hidden;
     transition:max-height 0.3s var(--ease-smooth), opacity 0.2s var(--ease-smooth);
@@ -8315,7 +8332,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.608';
+const APP_VERSION = '3.609';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9974,6 +9991,9 @@ const WHATS_NEW = {
   ]},
   '3.608': { headline: 'Training Style and tips have new homes', points: [
     'Training Style (your program picker and its overview) is now in Settings, under Program. Keep In Mind is at the end of Insights on Progress. Today ends with your session.',
+  ]},
+  '3.609': { headline: 'One clock while you rest', points: [
+    'While the cover is on screen it shows your rest, so the floating rest timer steps aside; scroll down the list or switch tabs and it comes back, now in the plain ink style.',
   ]},
 };
 
@@ -33937,6 +33957,18 @@ document.getElementById('coverRest').addEventListener('click', (e)=>{
   mo.observe(document.body, {attributes: true, attributeFilter: ['class']});
   const mq = window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY);
   if(mq && mq.addEventListener) mq.addEventListener('change', syncTodayChrome); // folding or unfolding
+})();
+// v3.609 (UX-29): the rest pill steps aside while the cover is in view. The
+// cover is display:none on other tabs and in gym mode, so it reports "not
+// intersecting" there and the pill shows. Without IntersectionObserver (old
+// WebKit) the class is never set, and the pill shows as before.
+(function watchCoverInView(){
+  const card = document.getElementById('upNext');
+  if(!card || typeof IntersectionObserver === 'undefined') return;
+  new IntersectionObserver((entries)=>{
+    const e = entries[entries.length - 1];
+    document.body.classList.toggle('cover-in-view', !!(e && e.isIntersecting && e.intersectionRatio >= 0.25));
+  }, {threshold: [0, 0.25]}).observe(card);
 })();
 (function watchRestForCover(){
   const time = document.getElementById('restTimerTime'), el = document.getElementById('restTimer');
