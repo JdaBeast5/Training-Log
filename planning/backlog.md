@@ -4158,7 +4158,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 ### UX-34: "Technique & focus" in the ink
 - **Why:** owner, 2026-11-22 (as UX-31). The open exercise's "Technique & focus" link is the last plate-blue text in the session (UX-24 flag).
 - **Change:** outside gym mode, `--text` with its chevron in `--text-2`; gym mode unchanged.
-- **Status:** ready
+- **Status:** done (v3.615, PR #194). The pictogram and the form-video link inside went to the ink too (the same control).
 
 ### UX-35: Keep In Mind follows the goal
 - **Why:** owner, 2026-11-22 (as UX-31). On a lean bulk the tips say "in the deficit" and call the phase "recomp" (UX-28 flag): the tips don't follow the body goal.
