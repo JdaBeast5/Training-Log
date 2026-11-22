@@ -4163,7 +4163,8 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 ### UX-35: Keep In Mind follows the goal
 - **Why:** owner, 2026-11-22 (as UX-31). On a lean bulk the tips say "in the deficit" and call the phase "recomp" (UX-28 flag): the tips don't follow the body goal.
 - **Change:** the tips' wording follows the user's goal (bulk, cut, recomp, maintain) with no change to the advice itself; no medical claim.
-- **Status:** ready
+- **Status:** done (v3.616, PR #195). Only Strength & Size's tips had goal-specific wording: three placeholders resolved through `TIP_GOAL_PHRASES` in `renderTips`.
+
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
 - **Change:** `tools/visual/`, a Playwright script with:

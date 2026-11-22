@@ -1517,3 +1517,4 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **UX-32 (v3.613, #192):** `#settingsProgramSlot .program-select-wrap::after{display:none}`; the select is full width in ink. Note: jsdom wipes a computed `background-image` when a lower-specificity `background:var()` shorthand also matches, so read the winning rule instead.
 - **UX-33 (v3.614, #193):** `body:not(.gym-mode) .rest-timer .rt-add, .rt-close` are in `--text`, 44 pt.
 - **UX-34 (v3.615, #194):** `.ex-details` summary, `.ex-icon` and `.ex-video-link` are in the ink outside gym mode.
+- **UX-35 (v3.616, #195):** `TIP_GOAL_PHRASES` + `applyTipGoal`; `__GOAL_PROTEIN__`, `__GOAL_SLEEP__`, `__GOAL_STEPS__` in Strength & Size's tips. All five follow-ups are built.
