@@ -193,7 +193,7 @@ test('the shared file is named <slug>-<kind>-<date>.png by the real shareCelebra
     window.navigator.canShare = () => true; window.navigator.share = async () => {};
     window.buildShareCardBlob = async () => ({});
     window.getTodayKey = () => '2026-11-30';`,
-    [extractConst(src, 'APP_NAME'), extractFunction(src, 'appSlug'), extractFunction(src, 'shareCelebrationCard')]);
+    [extractConst(src, 'APP_NAME'), extractFunction(src, 'appSlug'), extractFunction(src, 'waitForShareCardFont') /* v3.618 (MKT-18) */, extractFunction(src, 'shareCelebrationCard')]);
   await window.shareCelebrationCard({kind: 'pr', headline: 'NEW PR', detail: 'x'});
   await window.shareCelebrationCard({headline: 'X', detail: 'y'});
   assert.deepStrictEqual([...window.__files], ['platestep-pr-2026-11-30.png', 'platestep-card-2026-11-30.png']);

@@ -34,7 +34,9 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
   'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg',
   // 2026-11-22 (v3.617, MKT-16): finishSheetModel builds the bib card's data from the same session (test-bib-card.js).
-  'trainingDayNumber', 'bibLeadLift'];
+  'trainingDayNumber', 'bibLeadLift',
+  // 2026-11-22 (v3.618, MKT-18): openFinishSheet wires "Pin on a photo" (test-bib-photo.js).
+  'wireFinishPhoto'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
   'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed'];
 
@@ -211,6 +213,21 @@ test('Share sends MKT-04\'s session data; criterion 6: a clinical program gets n
     const m = await clinical.open();
     assert.strictEqual(m.share, undefined, program);
     assert.strictEqual(clinical.$('finishShare').hidden, true, program + ': no Share');
+  }
+});
+
+test('MKT-18: the real openFinishSheet offers "Pin on a photo" with the bib; a clinical program gets neither it nor Share', async (assert)=>{
+  const ui = mount();
+  const m = await ui.open();
+  assert.ok(m.share && m.share.bib, 'anchor: there is a bib');
+  assert.strictEqual(ui.$('finishPhoto').hidden, false);
+  assert.strictEqual(ui.$('finishPhoto').textContent, 'Pin on a photo');
+  await ui.open();
+  assert.strictEqual(ui.window.document.querySelectorAll('#finishPhoto').length, 1, 'reopened: one button');
+  for(const program of ['medical', 'rehabAcl']){
+    const clinical = mount({program});
+    await clinical.open();
+    assert.strictEqual(clinical.$('finishPhoto').hidden, true, program + ': no photo bib');
   }
 });
 

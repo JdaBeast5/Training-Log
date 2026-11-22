@@ -970,6 +970,7 @@
   .finish-actions{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:12px; margin-top:18px;}
   .finish-share{min-height:48px; border-radius:var(--radius-pill); border:1px solid var(--rule-strong); background:none; color:var(--text); font-family:var(--font-sans); font-size:16px; font-weight:600; cursor:pointer;}
   .finish-share[hidden]{display:none;}
+  .finish-photo{display:block; width:100%; margin-top:10px;}
   .finish-sheet .finish-done{margin:0; min-height:48px;}
   .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
@@ -8172,6 +8173,8 @@
       <button type="button" class="finish-share" id="finishShare" hidden>Share</button>
       <button type="button" class="save-btn finish-done" id="finishDone">Done</button>
     </div>
+    <button type="button" class="finish-share finish-photo" id="finishPhoto" hidden>Pin on a photo</button>
+    <input type="file" id="finishPhotoInput" accept="image/*" hidden>
   </div>
 </div>
 
@@ -8368,7 +8371,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.617';
+const APP_VERSION = '3.618';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10054,6 +10057,9 @@ const WHATS_NEW = {
   ]},
   '3.617': { headline: 'Your session, as a race bib', points: [
     'Sharing a finished session now makes a race-bib card in the day\'s colour: your training-day number on the log ("No. 47"), the loaded bar on a barbell day, your lead lift\'s sets and what comes next, and tear-off tabs for sets, lifts and minutes.',
+  ]},
+  '3.618': { headline: 'Pin your bib on a photo', points: [
+    'After a session, "Pin on a photo" puts your race bib over a gym photo you pick, ready to share. The photo stays on your phone: it isn\'t saved, sent or analysed.',
   ]},
 };
 
@@ -31896,9 +31902,54 @@ function openFinishSheet(model){
   shareBtn.parentNode.replaceChild(fresh, shareBtn);
   fresh.hidden = !model.share;
   if(model.share){ preloadShareCardFont(); fresh.addEventListener('click', ()=> shareCelebrationCard(model.share, 'finishShare')); }
+  wireFinishPhoto(model.share);
   sheet.classList.add('active');
   // v3.603 (UX-22): focusVisible:false, so a tap doesn't paint the keyboard ring (a keyboard still shows it).
   setTimeout(()=>{ const d = document.getElementById('finishDone'); if(d && sheet.classList.contains('active')) d.focus({preventScroll:true, focusVisible:false}); }, 0);
+}
+// v3.618 (MKT-18): "Pin on a photo", offered only with a bib. The picker's
+// change event isn't a tap, and iOS shares only from a tap, so picking draws
+// the card and the same button becomes "Share the photo"; that tap shares it.
+// Cancelling the picker changes nothing.
+function wireFinishPhoto(share){
+  const old = document.getElementById('finishPhoto'), input = document.getElementById('finishPhotoInput');
+  if(!old || !input) return;
+  const btn = old.cloneNode(true);
+  old.parentNode.replaceChild(btn, old);
+  btn.textContent = 'Pin on a photo';
+  btn.hidden = !(share && share.bib);
+  input.value = '';
+  input.onchange = null;
+  if(btn.hidden) return;
+  // One share per pick: after it, the button goes back to the picker.
+  let ready = null, resetTimer = null;
+  btn.addEventListener('click', async ()=>{
+    if(ready){
+      const blob = ready;
+      await shareCelebrationCard(Object.assign({}, share, {blob}), 'finishPhoto');
+      ready = null; btn.textContent = 'Pin on a photo';
+      return;
+    }
+    input.value = '';
+    input.click();
+  });
+  input.onchange = async ()=>{
+    const file = input.files && input.files[0];
+    input.value = '';
+    if(!file) return;
+    clearTimeout(resetTimer);
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    try{
+      ready = await pinBibOnPhoto(share, file);
+      if(!ready) throw new Error('card generation failed');
+      btn.textContent = 'Share the photo';
+    }catch(e){
+      ready = null;
+      btn.textContent = 'Couldn\u2019t use that photo';
+      resetTimer = setTimeout(()=>{ if(!ready) btn.textContent = 'Pin on a photo'; }, 2000);
+    }
+    btn.disabled = false;
+  };
 }
 // The best set's plate stack (UX-07's drawing) when it's a barbell lift.
 function finishPlatesHtml(b){
@@ -32004,6 +32055,14 @@ const SHARE_CARD_DISPLAY_FONT = '800 150px Archivo';
 function preloadShareCardFont(){
   try{ if(document.fonts && document.fonts.load) document.fonts.load(SHARE_CARD_DISPLAY_FONT).catch(()=>{}); }catch(e){}
 }
+// Gives the display face up to ms more to load; if it isn't ready the card falls back to Geist.
+async function waitForShareCardFont(ms){
+  try{
+    if(document.fonts && document.fonts.check && !document.fonts.check(SHARE_CARD_DISPLAY_FONT)){
+      await Promise.race([document.fonts.load(SHARE_CARD_DISPLAY_FONT), new Promise(r=> setTimeout(r, ms))]);
+    }
+  }catch(e){}
+}
 
 // Where the mark and the name sit: one row, the Sash tile then the name.
 // Story: bottom left, inside the safe zone (key content between y 250 and
@@ -32098,8 +32157,18 @@ function drawBibCard(ctx, card, W, H){
   const spot = SHARE_CARD_INKS.spot[ink], on = SHARE_CARD_INKS.on[ink];
   const paper = '#FAFAF7', inkText = '#0C0C0D', mute = '#5C5C58';
   const display = (px)=>{ ctx.font = `800 condensed ${px}px Archivo, Geist, sans-serif`; };
-  ctx.fillStyle = spot;
-  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  if(card.photo){
+    // v3.618 (MKT-18): pinned on the person's own photo. The photo fills the
+    // card (cover-fit) and the bib is drawn over it at 70%, a little low.
+    const iw = card.photo.naturalWidth || card.photo.width, ih = card.photo.naturalHeight || card.photo.height;
+    const k = Math.max(W / iw, H / ih), dw = iw * k, dh = ih * k;
+    ctx.drawImage(card.photo, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    ctx.translate(W/2, 1100); ctx.scale(0.7, 0.7); ctx.translate(-W/2, -1100);
+  } else {
+    ctx.fillStyle = spot;
+    ctx.fillRect(0, 0, W, H);
+  }
   const x0 = 120, y0 = 330, bw = 840, bh = 1220, cx = W/2, cy = y0 + bh/2;
   ctx.save();
   ctx.translate(cx, cy); ctx.rotate(2.5 * Math.PI / 180); ctx.translate(-cx, -cy);
@@ -32181,6 +32250,30 @@ function drawBibCard(ctx, card, W, H){
   });
   if(ctx.setLineDash) ctx.setLineDash([]);
   ctx.restore();
+  ctx.restore();
+}
+
+// v3.618 (MKT-18): pin the bib on a photo the person picks. The photo is read
+// through an object URL, drawn once into the card and never stored, sent or
+// analysed; the URL is revoked as soon as the card is drawn.
+function loadPickedImage(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> reject(new Error('image failed to load'));
+    img.src = url;
+  });
+}
+async function pinBibOnPhoto(card, file){
+  const url = URL.createObjectURL(file);
+  try{
+    const photo = await loadPickedImage(url);
+    if(!(photo.naturalWidth && photo.naturalHeight)) throw new Error('image has no size');
+    await waitForShareCardFont(1500);
+    return await buildShareCardBlob(Object.assign({}, card, {photo}));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 // Story format (1080x1920, the default since v3.547): printed, not lit
@@ -32369,12 +32462,9 @@ async function shareCelebrationCard(cardData, btnId){
     // card start loading it when the Share button appears; here it gets at
     // most 250 ms more, so navigator.share stays inside the tap's activation
     // window on iOS. If it isn't ready the card falls back to Geist.
-    try{
-      if(document.fonts && document.fonts.check && !document.fonts.check(SHARE_CARD_DISPLAY_FONT)){
-        await Promise.race([document.fonts.load(SHARE_CARD_DISPLAY_FONT), new Promise(r=> setTimeout(r, 250))]);
-      }
-    }catch(e){}
-    const blob = await buildShareCardBlob(cardData);
+    // A card already drawn (MKT-18's photo bib) arrives as cardData.blob.
+    if(!cardData.blob) await waitForShareCardFont(250);
+    const blob = cardData.blob || await buildShareCardBlob(cardData);
     if(!blob) throw new Error('card generation failed');
     const file = new File([blob], `${appSlug()}-${cardData.kind || 'card'}-${getTodayKey()}.png`, {type:'image/png'});
     // detail-style cards (PR, streak) vs stats-table cards (weekly summary)

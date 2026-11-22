@@ -54,7 +54,7 @@ async function shareName(name){
     window.navigator.canShare = () => true; window.navigator.share = async () => {};
     async function buildShareCardBlob(){ return {size: 1}; }
     function getTodayKey(){ return '2026-11-16'; } var SHARE_CARD_DISPLAY_FONT = '900 10px Archivo';`,
-    [named(name), extractFunction(src, 'appSlug'), extractFunction(src, 'shareCelebrationCard')]);
+    [named(name), extractFunction(src, 'appSlug'), extractFunction(src, 'waitForShareCardFont') /* v3.618 (MKT-18) */, extractFunction(src, 'shareCelebrationCard')]);
   await window.shareCelebrationCard({headline: 'New best', detail: 'Bench 160 x 5', kind: 'pr'}, 'shareBtn');
   return window.__fileName;
 }

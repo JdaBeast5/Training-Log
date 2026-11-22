@@ -3318,7 +3318,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** `readExCorpus` drops keys whose program day no longer exists (`parseExKey`, 40940), so a deleted custom program lowers the number. That's truthful ("days on the log"), but the What's New line should say the number counts what's on the log.
 - **Tools:** default; TOOL-01's harness for the banner and the stamp.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped; the counter is MKT-16's (one builder); the target surface is UX-09a's sheet, which precedes this slot. Criteria unchanged; each is a real invocation over stub storage with a fixed `getTodayKey`. Scope unchanged.
-- **Status:** ready (after MKT-16)
+- **Status:** needs-owner (2026-11-22, builder): it adds a new stored key, `number-last-celebrated` ("celebrated once per milestone"), which batch mode can't build without you. Recommendation: allow it as written (one namespaced `window.storage` key, no schema bump, holding the last milestone celebrated). Reply "allow it" and it builds next.
 
 ### MKT-18: Pin the bib on your own photo, made on the device
 - **Why:** in strength training, the dominant story format is stats over your own gym photo: Strava's transparent Stats Sticker and Hevy's transparent shareables (`design-directions.md` §6.1). A tilted bib pinned onto a gym photo is the format a stranger can learn to name with the logo covered, and it's how people wear a real bib.
@@ -3338,7 +3338,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** body images. The photo is the person's own choice, made and shared on the device, the same stance as MKT-08. A transparent-PNG option (clipboard or share) is untested on iOS Safari, so the flattened composite is the default; test the other on a real iPhone before offering it.
 - **Tools:** `security-review` (a file input), plus TOOL-01's harness for the composite.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Criteria 1–4 already use a stub `File`, `Image`, `URL` and a recording canvas, so they're real invocations of the handler. Criterion 2 also counts `localStorage.setItem` and IndexedDB `open` (0 each), since `window.storage` isn't the only way to persist. Scope unchanged.
-- **Status:** ready (after MKT-16)
+- **Status:** done (v3.618, PR #197). Sharing is two taps: picking draws the card, then "Share the photo" shares it (iOS shares only from a tap).
 
 ### MKT-19: The mark: a plate stripe in place of the ring
 - **Why:**
