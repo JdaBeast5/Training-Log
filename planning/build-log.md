@@ -119,3 +119,5 @@ Pre-D1 update, 2026-11-07 (no run, no branch, so no row):
 | 2026-11-22 15:20 | UX-32 one arrow on the program picker | shipped | 3.613 | #192 | 250/250 → 250/250 | test-today-relocations (+1) | hide rule removed → new case | 1 | Stacked on #191. |
 | 2026-11-22 15:35 | UX-33 rest pill buttons in the ink | shipped | 3.614 | #193 | 250/250 → 250/250 | test-rest-cover (+1) | colour dropped → new case | 1 | Stacked on #192. |
 | 2026-11-22 15:55 | UX-34 Technique & focus in the ink | shipped | 3.615 | #194 | 250/250 → 250/250 | test-today-then (+1) | summary rule dropped → new case | 1 | Stacked on #193. |
+| 2026-11-22 16:20 | UX-35 Keep In Mind follows the goal | shipped | 3.616 | #195 | 250/250 → 251/251 | `test-tips-goal.js` (new, 4) | goal step dropped → 3 cases | 1 | Last of the owner's five follow-ups. |
+| 2026-11-22 17:05 | MKT-16 session bib card | shipped | 3.617 | #196 | 251/251 → 252/252 | `test-bib-card.js` (new, 10), test-finish-sheet (+1) | activity-dates count / finish time / old offsets / no line cap → fails | 1 | A bet. Five-ink renders checked; first render had the note over the tabs, fixed. |

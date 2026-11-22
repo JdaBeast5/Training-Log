@@ -3291,7 +3291,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Tools:** `Skill: impeccable` (`polish`, Markdown fallback) on the rendered PNGs; TOOL-01's harness for the PNGs; `Skill: review-animations` isn't needed (static).
 - **Alignment note (2026-11-07):** placed at roadmap slot 51, directly after MKT-04 and UX-09a (market-researcher, marketing-manager B3). There's no market evidence yet that lifters read a bib as lifting (market-researcher), so it's labelled a bet; marketing.md §5's E7 tests it.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped. Found: the "tile alone until MKT-03b" branch is moot (the owner kept the name, MKT-03b folded into MKT-03); MKT-17 comes after this item, so the counter is written here once and MKT-17 reuses it. Checked against the corrected `c-card.html` (sets · lifts · minutes tabs, "No. 47", no finish time, no load). Scope unchanged.
-- **Status:** ready (after MKT-03, MKT-04 and UX-07)
+- **Status:** done, v3.617 (PR #196, 2026-11-22). Lead note capped at two lines so it clears the tabs; `wrapCanvasText` gained `maxLines`.
 
 ### MKT-17: "Your number": a lifetime training-day number, with milestone bibs
 - **Why:**
@@ -4163,7 +4163,8 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 ### UX-35: Keep In Mind follows the goal
 - **Why:** owner, 2026-11-22 (as UX-31). On a lean bulk the tips say "in the deficit" and call the phase "recomp" (UX-28 flag): the tips don't follow the body goal.
 - **Change:** the tips' wording follows the user's goal (bulk, cut, recomp, maintain) with no change to the advice itself; no medical claim.
-- **Status:** ready
+- **Status:** done (v3.616, PR #195). Only Strength & Size's tips had goal-specific wording: three placeholders resolved through `TIP_GOAL_PHRASES` in `renderTips`.
+
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
 - **Change:** `tools/visual/`, a Playwright script with:

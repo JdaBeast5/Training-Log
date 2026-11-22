@@ -32,7 +32,9 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   'sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs', 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
   'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet', 'bestLabel', /* 2026-11-22 (v3.611, UX-30): the shared best labeller */
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
-  'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg'];
+  'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg',
+  // 2026-11-22 (v3.617, MKT-16): finishSheetModel builds the bib card's data from the same session (test-bib-card.js).
+  'trainingDayNumber', 'bibLeadLift'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
   'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed'];
 
@@ -317,6 +319,21 @@ test('UX-22 criterion 4: no :focus-only ring on the finish sheet\'s Done; it is 
   await new Promise(r => setTimeout(r, 5));
   assert.deepStrictEqual(JSON.parse(JSON.stringify(opts)), {preventScroll: true, focusVisible: false});
   assert.strictEqual(require('child_process').spawnSync('node', ['test-dialog-focus-ring.js'], {cwd: __dirname}).status, 0, 'test-dialog-focus-ring.js still passes');
+});
+
+test('MKT-16: the shared session carries the bib card\'s data, from the same session (the real finishSheetModel)', async (assert)=>{
+  const ui = mount();
+  const m = await ui.open();
+  const b = m.share.bib;
+  assert.ok(b, 'the bib rides on the session share');
+  assert.strictEqual(b.number, 3, 'distinct set dates up to today in the corpus: Oct 19, Oct 26, Nov 2');
+  assert.strictEqual(b.sets, '5'); assert.strictEqual(b.lifts, m.share.stats.find(s => s.label === 'LIFTS').value);
+  assert.strictEqual(b.lead.name, 'Bench Press', 'the first exercise with a weighted set');
+  assert.strictEqual(b.lead.weightLabel, '185 lb', 'its top weight');
+  assert.strictEqual(JSON.stringify(b.lead.reps), '["5"]', 'the reps at that weight');
+  assert.strictEqual(JSON.stringify(b.lead.plates), '[45,25]', '185 on a 45 bar: 45 · 25 a side');
+  assert.strictEqual(b.lead.note, m.next.find(n => n.name === 'Bench Press').words, 'the finish sheet\'s own next-time line');
+  assert.ok(!('minutes' in b) || b.minutes === m.share.stats.filter(s => s.label === 'MIN').map(s => s.value)[0] || b.minutes === '', 'minutes only when known');
 });
 
 run();
