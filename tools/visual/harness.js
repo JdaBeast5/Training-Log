@@ -93,7 +93,9 @@ const STORE_STEPS = {
   },
   // The Training Style card: overview (open by default), the program
   // description and "What this is based on" opened, as two taps would.
+  // v3.608 (UX-28): the card lives in Settings now, so open Settings first.
   program: () => {
+    document.getElementById('settingsCog').click();
     const head = document.getElementById('programHeader');
     const wrap = document.getElementById('programExpandWrap');
     if(wrap && !wrap.classList.contains('open')) head.click();

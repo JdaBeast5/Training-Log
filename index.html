@@ -6576,8 +6576,10 @@
        rail and workout card answer what Today is opened for ("what's next in
        today's session?"); with this block above them a returning user's first
        set row started ~1500px down. Same reasoning positionProfileCard()
-       already applies to a finished profile. (tasteskill Today pilot, v3.271) -->
-  <div class="card">
+       already applies to a finished profile. (tasteskill Today pilot, v3.271)
+       v3.608 (UX-28): reparented into Settings' "Program" section at startup
+       by wireSettings; ids and handlers unchanged. -->
+  <div class="card" id="programCard">
     <div class="card-title nutrition-header" id="programHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</span>
       <span class="ex-chevron" aria-hidden="true" id="programChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
@@ -6679,15 +6681,6 @@
     <div class="smooth-toggle open" id="medicalOverviewPanel"><div>
       <div class="program-intro program-overview" id="medicalOverview"></div>
     </div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a5.3 5.3 0 0 0-2.8 9.8V14h5.6v-1.7A5.3 5.3 0 0 0 10 2.5Z"/><line x1="8" y1="16.5" x2="12" y2="16.5"/><line x1="8.6" y1="18.3" x2="11.4" y2="18.3"/></svg></span>Keep In Mind</div>
-    <div id="tipsAlways"></div>
-    <div class="expand-wrap" id="tipsExpandWrap">
-      <div id="tipsMore"></div>
-    </div>
-    <button class="show-more-btn" id="tipsToggle">Show 4 more</button>
   </div>
 
   <div class="card" id="profileCard">
@@ -7328,6 +7321,16 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Program Fit Check</div>
       <div class="history-hint">An ongoing read, from every tracked lift, on whether this program still fits you.</div>
       <div id="programFitCheck"></div>
+    </div>
+
+    <!-- v3.608 (UX-28): Keep In Mind left Today for the end of Insights. -->
+    <div class="card" id="tipsCard">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a5.3 5.3 0 0 0-2.8 9.8V14h5.6v-1.7A5.3 5.3 0 0 0 10 2.5Z"/><line x1="8" y1="16.5" x2="12" y2="16.5"/><line x1="8.6" y1="18.3" x2="11.4" y2="18.3"/></svg></span>Keep In Mind</div>
+      <div id="tipsAlways"></div>
+      <div class="expand-wrap" id="tipsExpandWrap">
+        <div id="tipsMore"></div>
+      </div>
+      <button class="show-more-btn" id="tipsToggle">Show 4 more</button>
     </div>
 
     <button type="button" class="analysis-group-header" data-group="body-health" aria-expanded="false">
@@ -7973,6 +7976,12 @@
       <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
     </div>
 
+    <!-- v3.608 (UX-28): the Training Style card, set once, moved off Today. -->
+    <div class="settings-section">
+      <label class="care-label">Program</label>
+      <div class="settings-group"><div id="settingsProgramSlot"></div></div>
+    </div>
+
     <div class="settings-section">
       <label class="care-label">During a workout</label>
       <div class="settings-group">
@@ -8306,7 +8315,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.607';
+const APP_VERSION = '3.608';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9962,6 +9971,9 @@ const WHATS_NEW = {
   ]},
   '3.607': { headline: 'Days as plate blocks', points: [
     'The day picker shows each day as a flat square in its own colour, the chosen day ringed in ink, with a plain Done and Reorder days.',
+  ]},
+  '3.608': { headline: 'Training Style and tips have new homes', points: [
+    'Training Style (your program picker and its overview) is now in Settings, under Program. Keep In Mind is at the end of Insights on Progress. Today ends with your session.',
   ]},
 };
 
@@ -51202,6 +51214,7 @@ wireCustomProgramUI();
     const slot = document.getElementById(slotId);
     if(node && slot) slot.appendChild(node);
   };
+  move('programCard', 'settingsProgramSlot'); // v3.608 (UX-28)
   move('prefCoverStyle', 'settingsWorkoutSlot');
   move('prefWarmupSets', 'settingsWorkoutSlot');
   move('prefWakeLock', 'settingsWorkoutSlot');

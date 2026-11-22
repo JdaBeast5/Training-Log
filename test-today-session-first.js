@@ -90,8 +90,10 @@ test('REAL markup: the moved pickers sit between the workout card and Keep In Mi
   for(let i = 1; i < order.length; i++){
     assert.strictEqual(order[i], order[i - 1] + 1, 'the Training Style card and its siblings must follow the workout card directly, in their old order');
   }
-  const keepInMind = children.find(c => /Keep In Mind/.test((c.querySelector('.card-title') || {}).textContent || ''));
-  assert.ok(keepInMind && idx(keepInMind) === order[order.length - 1] + 1, 'Keep In Mind must directly follow the last moved picker');
+  // 2026-11-22 (v3.608, UX-28): Keep In Mind left Today for the end of
+  // Progress's Insights group; it no longer follows the pickers.
+  assert.ok(!children.some(c => /Keep In Mind/.test((c.querySelector('.card-title') || {}).textContent || '')), 'Keep In Mind is no longer on Today');
+  // (its new place on Progress is test-today-relocations.js's criterion 2)
 });
 
 test('REAL invocation: positionProfileCard() still puts an UNFINISHED profile above the workout after the move', (assert)=>{

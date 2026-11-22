@@ -45,7 +45,8 @@ function declared(selector, prop){
 
 test('REAL markup: every section is header, one group, then (optionally) a footer note — no note above a group', (assert)=>{
   const sections = [...doc.querySelectorAll('.settings-panel-body > .settings-section')];
-  assert.strictEqual(sections.length, 5, 'anchor: the five sections');
+  // 2026-11-22 (v3.608, UX-28): + "Program" (the Training Style card's slot).
+  assert.strictEqual(sections.length, 6, 'anchor: the six sections');
   for(const s of sections){
     const kids = [...s.children];
     const title = kids[0].textContent;
