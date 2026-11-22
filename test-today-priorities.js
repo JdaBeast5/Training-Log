@@ -144,4 +144,89 @@ test('REAL invocation (v3.463): a single priority has no fold', async (assert)=>
   assert.deepStrictEqual(rowsOf(w), ['Back up.']);
 });
 
+// ── v3.610 (UX-27): under the session, as one line ─────────────────────────
+// The real #todayInsightsCard markup (summary row, expand-wrap, list), the
+// real renderTodayInsights with the getters stubbed, the real togglePriorities
+// and its wiring statement.
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+const { extractElementById } = require('./testHelpers.js');
+const PAGE = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const WIRE = (()=>{ const a = src.indexOf("document.getElementById('prioritiesSummary').addEventListener('click', togglePriorities);"); if(a < 0) throw new Error('wiring not found'); return src.slice(a, src.indexOf('\n', a)); })();
+function mountSection(rows, stored){
+  const stubs = SOURCES.map(n => `async function ${n}(){ return ${JSON.stringify(rows[n] || null)}; }`).join('\n');
+  const { window } = runJsdom(extractElementById(src, 'todayInsightsCard'), `
+    window.__store = ${JSON.stringify(stored || {})};
+    window.__writes = [];
+    window.storage = { get: async k => k in window.__store ? { value: window.__store[k] } : null, set: async (k, v) => { window.__writes.push([k, v]); window.__store[k] = v; } };
+    function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }`,
+    [stubs, extractFunction(src, 'getTodayKey'), extractConst(src, 'COLLAPSIBLE_LIST_BATCH_SIZE'), ...['getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable', 'renderCollapsibleList', 'togglePriorities'].map(n => extractFunction(src, n)), renderSrc, WIRE]);
+  const $ = id => window.document.getElementById(id);
+  return { window, $, open: () => $('prioritiesWrap').classList.contains('open') };
+}
+const RECAP = '<b>Last week:</b> 4 workouts · 2,130 cal and 170 g protein a day';
+
+test('UX-27 criterion 1: real markup: #todayInsightsCard follows .today-session-pane in document order (and is still a direct child of Today, so gym mode hides it)', (assert)=>{
+  const { document } = new JSDOM(PAGE.replace(/<script[\s\S]*?<\/script>/g, '')).window;
+  const card = document.getElementById('todayInsightsCard'), pane = document.querySelector('#todayView > .today-session-pane');
+  assert.ok(pane.compareDocumentPosition(card) & 4, 'after the session pane');
+  assert.ok(!pane.contains(card), 'not inside it');
+  assert.strictEqual(card.parentElement.id, 'todayView');
+  assert.ok(card.matches('#todayView > .card:not(#workoutCard)'), 'gym mode\'s hide rule still matches it');
+  assert.ok(document.getElementById('upNext').compareDocumentPosition(card) & 4, 'below the cover');
+});
+
+test('UX-27 criterion 2: with only the weekly recap the summary reads "1 note · Last week: …" and the section is closed; a readiness row opens it and leads the summary', async (assert)=>{
+  const a = mountSection({ getWeeklyRecapInsight: RECAP });
+  await a.window.renderTodayInsights();
+  assert.match(a.$('prioritiesSummaryText').textContent, /^1 note · Last week: 4 workouts/);
+  assert.ok(!a.open(), 'closed by default');
+  assert.strictEqual(a.$('prioritiesSummary').getAttribute('aria-expanded'), 'false');
+  const b = mountSection({ getWeeklyRecapInsight: RECAP, getReadinessInsight: '<b>Readiness:</b> shoulder resting, go lighter today.' }, {'today-priorities-open': '0'});
+  await b.window.renderTodayInsights();
+  assert.match(b.$('prioritiesSummaryText').textContent, /^2 notes · Readiness: shoulder resting/, 'readiness leads');
+  assert.ok(b.open(), 'a safety row opens it, whatever the preference');
+  assert.strictEqual(b.$('prioritiesSummary').getAttribute('aria-expanded'), 'true');
+  // Every safety source does it, and the summary names it even when it isn't first in the list.
+  for(const [getter, text] of [['getPregnancyHeatInsight', '<b>Heat.</b> Avoid hot rooms.'], ['getDeficitGuardrailInsight', '<b>Eating too little:</b> 900 cal'], ['getEarlyDeloadInsight', '<b>Deload early?</b>'], ['getStaleRestingRegionInsight', '<b>Shoulder still resting.</b>']]){
+    const c = mountSection({ getWeeklyRecapInsight: RECAP, getWaterPaceInsight: '<b>Water</b>', [getter]: text }, {'today-priorities-open': '0'});
+    await c.window.renderTodayInsights();
+    assert.ok(c.open(), getter + ' opens it');
+    assert.ok(c.$('prioritiesSummaryText').textContent.startsWith('3 notes · ' + text.replace(/<[^>]+>/g, '')), getter + ' leads the summary');
+  }
+});
+
+test('UX-27 criterion 3: tapping toggles and writes today-priorities-open through window.storage; a re-render honours it', async (assert)=>{
+  const ui = mountSection({ getWeeklyRecapInsight: RECAP, getWaterPaceInsight: '<b>Water</b>' });
+  await ui.window.renderTodayInsights();
+  assert.ok(!ui.open(), 'anchor: closed');
+  ui.$('prioritiesSummary').click();
+  assert.ok(ui.open(), 'one tap opens it');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ui.window.__writes.filter(w => w[0] === 'today-priorities-open'))), [['today-priorities-open', '1']]);
+  await ui.window.renderTodayInsights();
+  assert.ok(ui.open(), 'a re-render keeps it open');
+  ui.$('prioritiesSummary').click();
+  assert.ok(!ui.open());
+  assert.strictEqual(ui.window.__store['today-priorities-open'], '0');
+  await ui.window.renderTodayInsights();
+  assert.ok(!ui.open(), 'and keeps it closed');
+  const btn = ui.$('prioritiesSummary');
+  assert.strictEqual(btn.getAttribute('aria-controls'), 'prioritiesWrap');
+});
+
+test('UX-27: the section is ruled, not a card; the summary is a 56 pt row; the notes are ink rows with a 2 px rule (CSSOM)', (assert)=>{
+  const CSS = [...PAGE.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { window } = new JSDOM(`<style>${CSS}</style><body>${extractElementById(src, 'todayInsightsCard').replace(' style="display:none"', '')}</body>`);
+  const doc = window.document, cs = el => window.getComputedStyle(el);
+  const card = doc.getElementById('todayInsightsCard');
+  assert.ok(['transparent', 'rgba(0, 0, 0, 0)'].includes(cs(card).backgroundColor), 'no card fill');
+  assert.strictEqual(cs(card).borderRadius, '0px');
+  assert.ok(parseFloat(cs(doc.getElementById('prioritiesSummary')).minHeight) >= 56);
+  doc.getElementById('todayInsightsList').innerHTML = '<div class="today-insight-row">x</div>';
+  const row = cs(doc.querySelector('.today-insight-row'));
+  assert.strictEqual(row.color, 'var(--text)');
+  assert.ok(['transparent', 'rgba(0, 0, 0, 0)', 'none'].includes(row.backgroundColor), 'no tinted box');
+});
+
 run();

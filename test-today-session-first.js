@@ -25,7 +25,10 @@ const src = readIndexSource();
 const todayHtml = extractElementById(src, 'todayView');
 
 const MOVED_IDS = ['martialArtCard', 'cyclingCard', 'watersportsCard', 'yogaCard', 'medicalCard'];
-const ABOVE_IDS = ['onboardingCard', 'todayInsightsCard', 'profileCardTopSlot', 'programRecommendation'];
+// 2026-11-22 (v3.610, UX-27): Today's Priorities moved under the session as
+// one line (the vision §4), so it is no longer an interrupt above it; its
+// place is pinned below (and in test-today-priorities.js's criterion 1).
+const ABOVE_IDS = ['onboardingCard', 'profileCardTopSlot', 'programRecommendation'];
 // 2026-11-17 (v3.595, UX-06b): the day rail (#tabs) moved into the day sheet,
 // opened from the Today cover's day headline (#upNextDayBtn, test-day-sheet.js).
 // On Today the picker IS that headline now, so it stands in for #tabs below; the
@@ -86,7 +89,9 @@ test('REAL markup: the moved pickers sit between the workout card and Keep In Mi
   // 2026-11-03 (v3.490): the day rail and workout card share one session pane
   // (.today-session-pane), its own column on an open foldable
   // (test-duo-open-posture-layout.js); the pane is the direct child now.
-  const order = [document.getElementById('workoutCard').closest('.today-session-pane'), styleCard(document), ...MOVED_IDS.map(id => document.getElementById(id))].map(idx);
+  // 2026-11-22 (v3.610, UX-27): Today's Priorities sits directly under the
+  // session pane now, so the pickers follow it.
+  const order = [document.getElementById('workoutCard').closest('.today-session-pane'), document.getElementById('todayInsightsCard'), styleCard(document), ...MOVED_IDS.map(id => document.getElementById(id))].map(idx);
   for(let i = 1; i < order.length; i++){
     assert.strictEqual(order[i], order[i - 1] + 1, 'the Training Style card and its siblings must follow the workout card directly, in their old order');
   }

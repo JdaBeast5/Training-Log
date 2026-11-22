@@ -1326,6 +1326,19 @@
   #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
   #todayInsightsList .swipe-content{background:transparent; border-radius:var(--radius-md);}
   #todayInsightsList .today-insight-row{margin-bottom:0;}
+  /* v3.610 (UX-27): a ruled section under the session, collapsed to one
+     line; the notes as UX-24's note rows (ink, a 2 px left rule). The swipe
+     content stays opaque (the ground), so the red layer behind can't show. */
+  #todayInsightsCard.today-priorities{background:none; border:none; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); border-radius:0; box-shadow:none; padding:0;}
+  #todayInsightsCard.today-priorities::before{display:none;}
+  .priorities-summary{display:flex; align-items:center; gap:10px; width:100%; min-height:56px; padding:0; background:none; border:none; color:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-align:left; cursor:pointer;}
+  .priorities-summary-text{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .priorities-summary .ex-chevron{color:var(--text-3); margin-left:0;}
+  .priorities-summary[aria-expanded="true"] .ex-chevron{transform:rotate(90deg);}
+  #todayInsightsCard #prioritiesWrap > div{min-height:0; overflow:hidden;}
+  #todayInsightsCard #prioritiesWrap.open > div{padding-bottom:14px;}
+  #todayInsightsCard .today-insight-row{padding:2px 0 2px 12px; background:none; border:none; border-left:2px solid var(--rule-strong); border-radius:0; font-size:13.5px; color:var(--text);}
+  #todayInsightsCard #todayInsightsList .swipe-content{background:var(--ground);}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
   .pf-conditions legend{ padding:0 6px; }
   .pf-condition-row{ display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-top:1px solid var(--line-soft); }
@@ -6494,11 +6507,6 @@
     <div id="onboardingRows"></div>
     <button class="usda-key-upgrade-toggle" id="onboardingDismiss" style="margin-top:6px;">Hide this</button>
   </div>
-  <div class="card" id="todayInsightsCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
-    <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Progress.</div>
-    <div id="todayInsightsList"></div>
-  </div>
   <div id="profileCardTopSlot"></div>
 
   <div id="programRecommendation"></div>
@@ -6588,6 +6596,22 @@
     </div>
   </div>
   </div><!-- /.today-session-pane -->
+
+  <!-- v3.610 (UX-27): Today's Priorities, under the session as one line. A
+       56 pt summary row ("2 notes · Readiness: …") opens the notes; the open
+       state is a window.storage preference (today-priorities-open), and a
+       safety row opens it regardless (renderTodayInsights). Keeps .card so
+       gym mode's hide rule still covers it; the card look is gone. -->
+  <div class="card today-priorities" id="todayInsightsCard" style="display:none" role="region" aria-label="Today's Priorities">
+    <button type="button" class="priorities-summary" id="prioritiesSummary" aria-expanded="false" aria-controls="prioritiesWrap">
+      <span class="priorities-summary-text" id="prioritiesSummaryText"></span>
+      <span class="ex-chevron" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
+    </button>
+    <div class="expand-wrap" id="prioritiesWrap"><div>
+      <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Progress.</div>
+      <div id="todayInsightsList"></div>
+    </div></div>
+  </div>
 
   <!-- Set-once program choice sits BELOW the session, not above it. The day
        rail and workout card answer what Today is opened for ("what's next in
@@ -8332,7 +8356,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.609';
+const APP_VERSION = '3.610';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9994,6 +10018,9 @@ const WHATS_NEW = {
   ]},
   '3.609': { headline: 'One clock while you rest', points: [
     'While the cover is on screen it shows your rest, so the floating rest timer steps aside; scroll down the list or switch tabs and it comes back, now in the plain ink style.',
+  ]},
+  '3.610': { headline: 'Today\'s Priorities, in one line', points: [
+    'Your priorities now sit under the session as one line, like "2 notes · Readiness: …". Tap it to open them; it remembers. A safety note always opens it.',
   ]},
 };
 
@@ -16118,6 +16145,26 @@ async function renderTodayInsights(){
     return;
   }
   card.style.display = '';
+  // v3.610 (UX-27): one summary line ("n notes · <the lead row>") over the
+  // notes, collapsed by default (a window.storage preference). Safety never
+  // hides: a row from any of these opens the section regardless, and the
+  // summary names that row first.
+  const SAFETY_PRIORITIES = ['pregnancyHeat', 'deficit', 'readiness', 'earlyDeload', 'staleRegion'];
+  const safetyId = items.find(id => SAFETY_PRIORITIES.includes(id));
+  const summaryText = document.getElementById('prioritiesSummaryText');
+  if(summaryText){
+    const lead = document.createElement('div');
+    lead.innerHTML = rows[safetyId || items[0]];
+    summaryText.textContent = `${items.length} note${items.length === 1 ? '' : 's'} · ${lead.textContent.replace(/\s+/g, ' ').trim()}`;
+  }
+  const prioritiesWrap = document.getElementById('prioritiesWrap'), prioritiesBtn = document.getElementById('prioritiesSummary');
+  if(prioritiesWrap && prioritiesBtn){
+    let open = false;
+    try{ const res = await window.storage.get('today-priorities-open'); open = !!(res && res.value === '1'); }catch(e){}
+    if(safetyId) open = true;
+    prioritiesWrap.classList.toggle('open', open);
+    prioritiesBtn.setAttribute('aria-expanded', String(open));
+  }
   // v3.383: each row swipes away for the rest of today, with Undo — the shared
   // swipe-to-delete row (buildSwipeItem + makeSwipeable), like every other list.
   // v3.463: the top row shows, the rest fold behind "Show N more" (the shared
@@ -16172,6 +16219,16 @@ async function getHiddenPriorities(){
 async function setHiddenPriorities(ids){
   try{ await window.storage.set('priorities-hidden', JSON.stringify({date: getTodayKey(), ids: [...new Set(ids)]})); }catch(e){}
 }
+// v3.610 (UX-27): the summary row opens and closes the notes, and remembers it.
+function togglePriorities(){
+  const wrap = document.getElementById('prioritiesWrap'), btn = document.getElementById('prioritiesSummary');
+  if(!wrap || !btn) return;
+  const open = !wrap.classList.contains('open');
+  wrap.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', String(open));
+  try{ window.storage.set('today-priorities-open', open ? '1' : '0'); }catch(e){}
+}
+document.getElementById('prioritiesSummary').addEventListener('click', togglePriorities);
 
 // [PROGRAM SELECTION & MESOCYCLE] -----------------------------------------------
 // Active program persistence, deload/mesocycle week math, program
