@@ -1497,3 +1497,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **CSS:** the flat pill rules are scoped to `body:not(.gym-mode)`, after `.rest-timer.urgent .rest-timer-ring-progress`.
 - **Harness:** rest states wait with `state: 'attached'`.
 - **Run of 2026-11-22:** stopped after four PRs (#185–#188), per the relayed pacing. Next is UX-30, the last of the Today batch: its PR must say it is the last. Then MKT-16 (slot 51) onward. UX-27 waits on the owner (stored key).
+
+## Addendum 134: UX-27, Today's Priorities as one line (v3.610, PR #189, 2026-11-22)
+- **Owner:** allowed the `today-priorities-open` key ("Allow it").
+- **Markup:** `#todayInsightsCard` sits after `.today-session-pane` and keeps `.card` (gym's hide rule). It holds the `#prioritiesSummary` button, `#prioritiesSummaryText` and the `#prioritiesWrap` expand-wrap around the hint and `#todayInsightsList`.
+- **Logic:** `renderTodayInsights` writes the summary and opens the section from storage. Any row in `SAFETY_PRIORITIES` forces it open and leads the summary. `togglePriorities` is wired once at load.
+- **Next:** UX-30, the last of the Today batch; its PR must say so.

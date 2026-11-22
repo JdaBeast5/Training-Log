@@ -4071,7 +4071,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (6276–6280, `renderTodayInsights` 15803, Priorities CSS, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-today-priorities.js`. Read: `test-today-session-first.js`, `test-swipe-*.js`, `test-collapsible-list-batching.js`.
 - **Risk:** medium: notes are one tap further when collapsed. Safety rows can't be (criterion 2). Not a stored-data change (a new preference key only).
 - **Tools:** `Skill: impeccable` (`clarify`), TOOL-01.
-- **Status:** needs-owner (2026-11-22, batch mode §4a: "a new stored key"). UX-27 adds the `today-priorities-open` `window.storage` key. **Recommendation:** allow it and build as specced; it is a UI preference like the Analysis groups' collapsed state, with no user data in it. Until then the batch skips to UX-28.
+- **Status:** done (v3.610, PR #189). Owner answer, 2026-11-22, in the builder session: "Allow it" (the `today-priorities-open` key). The inner "Show N more" fold is kept inside the open section, so swipe and the existing tests are unchanged.
 
 ### UX-28: Training Style and Keep In Mind leave Today
 - **Why:** A17. Today ends with two set-once cards: Training Style (the program picker and its overview) and Keep In Mind (general tips). The vision: "The profile prompt, Training Style and Keep In Mind cards move to More (Training Style) and Progress (insights)" (§4). They lengthen Today by about 900 px, and are reached in a month of sessions perhaps twice.
