@@ -211,4 +211,101 @@ test('a timer restored on reopening takes the cover over as soon as the cover sh
   assert.strictEqual(ui.$('coverRestOf').textContent, 'of 4:00');
 });
 
+// ── v3.609 (UX-29): the rest pill steps aside for the cover ────────────────
+// The real watchCoverInView IIFE with a stub IntersectionObserver (its
+// callback called with entries), the real #restTimer and #upNext markup under
+// the real stylesheet; the real startRestTimer and tickRestTimer driven with a
+// fake clock for the end; the CSSOM for the flat look.
+const PAGE_CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+function pillPage({io = true, gym = false} = {}){
+  const { window } = runJsdom(`<style>${PAGE_CSS}</style>` + extractElementById(src, 'upNext').replace(' hidden>', '>') + extractElementById(src, 'restTimer'), `
+    document.body.className = 'day-red${gym ? ' gym-mode' : ''}';
+    window.__io = null;
+    ${io ? `window.IntersectionObserver = class { constructor(cb, opts){ this.cb = cb; this.opts = opts; window.__io = this; } observe(t){ this.t = t; } disconnect(){} };` : 'delete window.IntersectionObserver;'}`,
+    [iife('(function watchCoverInView(){')]);
+  const doc = window.document, pill = doc.getElementById('restTimer');
+  pill.classList.add('active');
+  const fire = (isIntersecting, ratio) => window.__io.cb([{target: doc.getElementById('upNext'), isIntersecting, intersectionRatio: ratio}]);
+  const shown = () => { const c = window.getComputedStyle(pill); return c.display !== 'none' && c.visibility !== 'hidden'; };
+  return { window, doc, pill, fire, shown };
+}
+
+test('UX-29 criterion 1: cover in view, the pill isn\'t shown; scrolled away, it is; in gym mode it is regardless', (assert)=>{
+  const ui = pillPage();
+  assert.ok(ui.window.__io && ui.window.__io.t && ui.window.__io.t.id === 'upNext', 'anchor: the observer watches the cover');
+  assert.ok([].concat(ui.window.__io.opts.threshold).includes(0.25), 'threshold 0.25');
+  assert.ok(ui.shown(), 'before any entry: shown (as now)');
+  ui.fire(true, 0.6);
+  assert.ok(ui.doc.body.classList.contains('cover-in-view'));
+  assert.ok(!ui.shown(), 'cover in view: not shown');
+  assert.strictEqual(ui.window.getComputedStyle(ui.pill).pointerEvents, 'none', 'and not tappable');
+  ui.fire(true, 0.1);
+  assert.ok(ui.shown(), 'only a sliver of the cover: shown');
+  ui.fire(false, 0);
+  assert.ok(ui.shown(), 'cover scrolled away (or another tab, where it is display:none): shown');
+  const gym = pillPage({gym: true});
+  gym.fire(true, 1);
+  assert.ok(gym.shown(), 'gym mode: shown regardless');
+});
+
+test('UX-29 criterion 2: the rest runs and ends identically: the real timer\'s end fires once whether the pill is shown or stepped aside (fake clock)', (assert)=>{
+  for(const inView of [false, true]){
+    const { window } = runJsdom(extractElementById(src, 'restTimer'), `
+      let restTimerSeconds = 90, restTimerTotal = 90, restTimerInterval = null, restTimerEndsAt = null;
+      var REST_TIER_TIPS = {};
+      let __now = 1000000; Date.now = () => __now; window.__advance = ms => { __now += ms; };
+      window.__tick = null; window.setInterval = fn => { window.__tick = fn; return 1; }; window.clearInterval = () => {};
+      window.__done = 0; function completeRestTimer(){ window.__done++; restTimerEndsAt = null; }
+      function applyRestTimerCollapsedWidth(){} function applyRestTimerExpandHeight(){} function refreshRestNotifyControls(){}
+      function updateRestTimerRing(){} function persistRestTimer(){} function scheduleRestNotification(){} function cancelRestNotification(){}
+      document.body.classList.toggle('cover-in-view', ${inView});`,
+      ['startRestTimer', 'tickRestTimer', 'restRemainingSeconds', 'formatTimer'].map(f => extractFunction(src, f)));
+    window.startRestTimer(60);
+    for(let t = 0; t < 59; t++){ window.__advance(1000); window.__tick(); }
+    assert.strictEqual(window.__done, 0, `${inView ? 'in view' : 'shown'}: not yet at 59 s`);
+    assert.ok(window.document.getElementById('restTimer').classList.contains('urgent'), 'the urgent state still comes in the last seconds');
+    window.__advance(1000); window.__tick();
+    assert.strictEqual(window.__done, 1, `${inView ? 'in view' : 'shown'}: the end fires once at 60 s`);
+  }
+});
+
+test('UX-29 criterion 3: CSSOM: outside gym mode, .rest-timer and .rest-timer.urgent take no plate-blue or plate-red border or shadow and no blurred coloured shadow; the ring is the day\'s ink', (assert)=>{
+  const { window } = new JSDOM(`<style>${PAGE_CSS}</style><body class="day-red">${extractElementById(src, 'restTimer')}</body>`);
+  const rules = [];
+  const walk = l => { for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  walk(window.document.styleSheets[0].cssRules);
+  const pill = window.document.getElementById('restTimer');
+  const spec = sel => { let a = 0, b = 0, c = 0; sel = sel.replace(/:not\(([^()]*)\)/g, (m, i) => { b += (i.match(/\.[\w-]+/g) || []).length; return ''; });
+    a += (sel.match(/#[\w-]+/g) || []).length; b += (sel.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) || []).length; c += (sel.match(/(^|[\s>+~])[a-z][\w-]*/gi) || []).length; return a * 1e6 + b * 1e3 + c; };
+  const winning = (el, props) => { let best = null; rules.forEach((r, order) => { if(r.parentRule && r.parentRule.media) return;
+    for(const sel of r.selectorText.split(/,(?![^(]*\))/).map(t => t.trim())){ if(/::/.test(sel)) continue; let hit = false; try{ hit = el.matches(sel); }catch(e){} if(!hit) continue;
+      for(const p of props){ const v = r.style.getPropertyValue(p); if(!v) continue; const sp = spec(sel); if(!best || sp > best.sp || (sp === best.sp && order >= best.order)) best = {sp, order, v, sel}; } } }); return best; };
+  for(const state of [[], ['urgent'], ['tier-strength'], ['tier-endurance'], ['urgent', 'tier-strength']]){
+    pill.className = ['rest-timer', 'active', ...state].join(' ');
+    const name = state.join('+') || 'default';
+    const border = winning(pill, ['border', 'border-color', 'border-top-color']).v, shadow = winning(pill, ['box-shadow']).v;
+    assert.ok(!/plate-(blue|red|purple|teal)/.test(border + shadow), `${name}: no coloured border or shadow (${border} / ${shadow})`);
+    assert.strictEqual(shadow, 'none', name + ': no shadow');
+    const anim = winning(pill, ['animation']);
+    if(state.includes('urgent')) assert.strictEqual(anim.v, 'none', 'no red pulse');
+    const ring = winning(pill.querySelector('.rest-timer-ring-progress'), ['stroke']).v, glow = winning(pill.querySelector('.rest-timer-ring-progress'), ['filter']).v;
+    assert.strictEqual(ring, state.includes('urgent') ? 'var(--spot-yellow)' : 'var(--spot, var(--text))', name + ': the ring');
+    assert.strictEqual(glow, 'none', name + ': no glow on the ring');
+  }
+  pill.className = 'rest-timer active';
+  assert.strictEqual(winning(pill, ['background', 'background-color']).v, 'var(--surface-2)');
+  assert.strictEqual(winning(pill, ['border']).v.replace(/\s+/g, ' '), '1px solid var(--rule-strong)');
+  assert.strictEqual(winning(pill.querySelector('.rest-timer-time'), ['font-family']).v, 'var(--font-sans)', 'the time in Geist');
+  // Gym mode keeps its own (UX-17): none of the flat rules reach it.
+  window.document.body.className = 'day-red gym-mode';
+  assert.ok(!/not\(\.gym-mode\)/.test(winning(pill, ['box-shadow']).sel), 'gym mode keeps its pill');
+});
+
+test('UX-29 criterion 4: with no IntersectionObserver (old WebKit), the pill shows as now', (assert)=>{
+  const ui = pillPage({io: false});
+  assert.strictEqual(ui.window.__io, null, 'anchor: no observer');
+  assert.ok(!ui.doc.body.classList.contains('cover-in-view'));
+  assert.ok(ui.shown(), 'shown');
+});
+
 run();

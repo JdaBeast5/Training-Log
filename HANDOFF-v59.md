@@ -1491,3 +1491,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Keep In Mind:** `#tipsCard` is a static child of `#analysisView`, last in the Insights group (before the body-health header).
 - **Harness:** `STORE_STEPS.program` clicks `#settingsCog` first.
 - **Stack now:** #185 ← #186 ← #187, merge in order. UX-27 is needs-owner.
+
+## Addendum 133: UX-29, the rest pill steps aside (v3.609, PR #188, 2026-11-22)
+- **Observer:** the `watchCoverInView` IIFE (just before `watchRestForCover`) toggles `body.cover-in-view` at an intersection ratio of 0.25 or more. A display:none cover (other tabs, gym mode) reports not intersecting.
+- **CSS:** the flat pill rules are scoped to `body:not(.gym-mode)`, after `.rest-timer.urgent .rest-timer-ring-progress`.
+- **Harness:** rest states wait with `state: 'attached'`.
+- **Run of 2026-11-22:** stopped after four PRs (#185–#188), per the relayed pacing. Next is UX-30, the last of the Today batch: its PR must say it is the last. Then MKT-16 (slot 51) onward. UX-27 waits on the owner (stored key).

@@ -4107,7 +4107,7 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 - **Files:** `index.html` (`.rest-timer` 1781–2060, 4727, 5333; `#restTimer` 7629; the observer beside `syncCoverRest` 32901; `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-rest-cover.js`. Read: `test-audit-fixes.js`, `test-glyphs.js`, `test-gym-offer-tab-leak.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-tab-bar.js`.
 - **Risk:** low; one listener, a fallback.
 - **Tools:** `Skill: review-animations` (the pill's enter/leave on scroll: opacity 160 ms, instant under Reduce Motion), TOOL-01.
-- **Status:** ready
+- **Status:** done (v3.609, PR #188). No `--warning` token exists, so the urgent ring uses `--spot-yellow`. The harness's rest states now wait for `#restTimer.active` attached, not visible. Gym's pill is unchanged (the flat look is scoped to not-gym). Flagged: the pill's "+15s" (green) and "×" (red) keep their colours.
 
 ### UX-30: Milestones and celebrations as Plate & Press moments
 - **Why:** A19. The streak milestone and the mid-session PR use the 2.0 celebration modal: a yellow-bordered card with a gold glow, a spring "pop" that rotates the icon, 42 confetti pieces, and a yellow Share, centred over the cover. The big variant takes pointer events for 5 s, so the Log button underneath can't be tapped. The vision: "Earned, not confetti… no streak guilt, no confetti, no badges" (§1); "the PR: the new best is set huge, with the arithmetic beside it".
