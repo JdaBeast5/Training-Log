@@ -71,8 +71,9 @@ function makeCtx(rec){
       if(k === 'fillText') return (txt, x, y) => { const [cx, cy] = apply(x, y); rec.text.push({txt: String(txt), x: cx, y: cy, font: st.font, fill: st.fillStyle}); };
       if(k === 'moveTo' || k === 'lineTo') return (x, y) => { const [cx, cy] = apply(x, y); rec.path.push({op: k, x: cx, y: cy}); };
       if(k === 'fillRect') return (x, y, w, h) => { const [cx, cy] = apply(x + w/2, y + h/2); rec.rects.push({cx, cy, w, h, fill: st.fillStyle}); };
-      // Font-aware (about 0.58 em a glyph), so shrink-to-fit is exercised honestly.
-      if(k === 'measureText') return (txt) => ({ width: String(txt).length * 0.58 * Number((/(\d+)px/.exec(st.font) || [0, 34])[1]) });
+      // Font-aware (about 0.58 em a glyph), so shrink-to-fit is exercised honestly. (\\d: this stub is a template
+      // string; a bare \d here became "d" and every measure fell back to 34 px until v3.619.)
+      if(k === 'measureText') return (txt) => ({ width: String(txt).length * 0.58 * Number((/(\\d+)px/.exec(st.font) || [0, 34])[1]) });
       if(typeof k === 'string' && /^create/.test(k)) return () => ({ addColorStop(){} });
       if(k in t) return t[k];
       return () => {};
@@ -193,6 +194,40 @@ test('criterion 7: no tab label matches LOAD or VOLUME; the first tab is SETS; o
   assert.strictEqual(sizes[0].txt, '47', 'the largest text is the number');
   const noBar = drawn(card({}, {plates: []}));
   assert.strictEqual(noBar.rects.filter(x => x.h >= 50 && x.h <= 140 && x.w >= 14 && x.w <= 50).length, 0, 'no bar off a barbell lift');
+});
+
+test('MKT-17: on a milestone date the bib carries a stamp ("No. 100", "ON THE LOG"), inside the safe zone; other days have none', (assert)=>{
+  const r = drawn(card({number: 100, milestone: 100}));
+  const stamp = r.text.filter(t => t.txt === 'No. 100');
+  assert.strictEqual(stamp.length, 1, 'one stamp');
+  assert.ok(r.text.some(t => t.txt === 'ON THE LOG'));
+  assert.ok(stamp[0].y > 250 && stamp[0].y < 1620, 'in the safe zone');
+  assert.strictEqual(stamp[0].fill, '#D42F25', 'stamp red');
+  assert.ok(!drawn(card({number: 101, milestone: 0})).text.some(t => t.txt === 'ON THE LOG'), 'no stamp off a milestone');
+  // It clears the next-time note, with the bar drawn and without (the lead block moves up), and "No. 1000" fits its box.
+  for(const c of [card({number: 100, milestone: 100}), card({number: 100, milestone: 100}, {plates: []}), card({number: 1000, milestone: 1000})]){
+    const d = drawn(c);
+    const foot = d.text.find(t => t.txt === 'ON THE LOG'), note = d.text.find(t => /^500 30px/.test(t.font));
+    assert.ok(foot.y + 12 < note.y - 15, `the stamp's foot (${Math.round(foot.y)}) is above the note (${Math.round(note.y)})`);
+    const label = d.text.find(t => /^No\. \d+$/.test(t.txt));
+    assert.ok(label.txt.length * 0.58 * Number(/(\d+)px/.exec(label.font)[1]) <= 210 - 36, label.txt + ' fits: ' + label.font);
+  }
+  assert.ok(!drawn(card()).text.some(t => /^No\. \d/.test(t.txt)), 'none by default');
+});
+
+test('MKT-17: beside the stamp, a long lift name and sets line shrink to stop short of it; off a milestone they keep their size', (assert)=>{
+  const long = {name: 'Close-Grip Bench Press', reps: ['8', '8', '8', '8', '8'], weightLabel: '102.5 kg'};
+  const r = drawn(card({number: 100, milestone: 100}, long));
+  const px = t => Number(/(\d+)px/.exec(t.font)[1]);
+  const name = r.text.find(t => t.txt === long.name), sets = r.text.find(t => t.txt.startsWith('102.5 kg ×'));
+  // Left-aligned from x0 + 60 = 180; the stamp's box starts near x0 + bw - 165 - 105 - 8 ≈ 682 (before its tilt).
+  for(const t of [name, sets]){
+    const right = 180 + t.txt.length * 0.58 * px(t);
+    assert.ok(right <= 682, `${t.txt} ends at ${Math.round(right)} (${px(t)}px)`);
+  }
+  assert.ok(px(name) < 44, 'anchor: the name did shrink');
+  const plain = drawn(card({number: 101, milestone: 0}, long));
+  assert.strictEqual(px(plain.text.find(t => t.txt === long.name)), 44, 'no stamp: the usual 44px');
 });
 
 test('the other cards keep their layouts: a PR or streak story is not a bib', (assert)=>{

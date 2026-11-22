@@ -1530,3 +1530,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Two taps:** the picker's change event isn't user activation on iOS, so the button becomes "Share the photo". Unverified on an iPhone.
 - **MKT-17:** `needs-owner` for its new key `number-last-celebrated`; recommendation: allow it.
 - **Next:** MKT-17 if allowed; otherwise the next ready slot after 53.
+
+## Addendum 139: MKT-17, "Your number" (v3.619, PR #198, 2026-11-22)
+- **What:** `finishSheetModel` returns `number`, `milestone` (`numberMilestoneOn`: reached on dateKey itself) and `dateKey` for every program; `#finishNumber` shows "No. N · your Nth training day on the log". The completion site runs `checkNumberMilestone(finishModel)`: once per milestone (`number-last-celebrated`, owner-allowed), today only, not clinical, not with readiness's no-rest flag (`noRestWarningActive`). It marks the line ("Milestone · …") and sets `share.bib.milestone`, which `drawBibCard` stamps (red, beside the lead lift; name and sets shrink to clear it).
+- **Deviation:** no banner (it would cover the open sheet's Share and Done); spec refresh 3 already put the moment on the sheet.
+- **Fixture fix:** test-bib-card's stub `measureText` regex had lost its `\d` inside a template string, so MKT-16's shrink checks measured nothing; now `\\d`. test-bib-photo already had it right.
+- **Next:** the roadmap after slot 53.
