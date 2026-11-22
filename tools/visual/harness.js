@@ -432,7 +432,9 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
       }else{
         await page.waitForFunction(() => typeof BOOT_MARKS !== 'undefined' && BOOT_MARKS.initEnd, null, { timeout: 30000 });
         if(state.gym) await page.waitForSelector('body.gym-mode', { timeout: 10000 });
-        if(state.rest) await page.waitForSelector('#restTimer.active', { timeout: 10000 });
+        // v3.609 (UX-29): the timer running, not the pill showing. With the
+        // cover in view the pill steps aside (the cover shows the rest).
+        if(state.rest) await page.waitForSelector('#restTimer.active', { state: 'attached', timeout: 10000 });
         if(state.finish){
           // A base from before v3.598 has no finish sheet: it shoots plain Today.
           const opened = await page.evaluate(async () => {
