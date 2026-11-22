@@ -308,4 +308,17 @@ test('UX-29 criterion 4: with no IntersectionObserver (old WebKit), the pill sho
   assert.ok(ui.shown(), 'shown');
 });
 
+test('UX-33: outside gym mode the pill\'s +15s and × are in the ink (no green or red), 44 pt, and named; gym mode keeps its own', (assert)=>{
+  const { window } = new JSDOM(`<style>${PAGE_CSS}</style><body class="day-red">${extractElementById(src, 'restTimer')}</body>`);
+  const doc = window.document, cs = el => window.getComputedStyle(el);
+  for(const id of ['restTimerAdd', 'restTimerClose']){
+    const b = doc.getElementById(id), c = cs(b);
+    assert.strictEqual(c.color, 'var(--text)', id + ': the ink');
+    assert.ok(parseFloat(c.minWidth) >= 44 && parseFloat(c.minHeight) >= 44, id + ': 44 pt');
+    assert.ok(b.getAttribute('aria-label'), id + ': named');
+  }
+  doc.body.className = 'day-red gym-mode';
+  assert.strictEqual(cs(doc.getElementById('restTimerAdd')).color, 'var(--plate-green)', 'gym mode keeps its green +15s');
+});
+
 run();
