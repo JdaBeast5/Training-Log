@@ -423,7 +423,12 @@ test('every <svg> in index.html is hidden from assistive tech, except the sparkl
   // means an as-yet-unwritten fifth icon is covered automatically too.
   const registryTags = iconsRegistrySrc.match(/<svg\b[^>]*>/g) || [];
 
-  const unhidden = tags.filter(t=> !/aria-hidden/.test(t) && !t.includes('class="sparkline"') && !registryTags.includes(t));
+  // 2026-11-22 (v3.621, UX-10): the estimated-max chart (e1rmChartSvg) is a real chart with a real,
+  // computed label (role="img", aria-label from its own numbers), not a guessed one; it replaced the
+  // exercise sheet's sparkline, so it is allowed here and the sparkline count below drops 5 → 4.
+  const labelledCharts = tags.filter(t=> t.includes('class="e1rm-chart') && /role="img"/.test(t) && /aria-label=/.test(t));
+  assert.strictEqual(labelledCharts.length, 1, 'anchor: the one e1rmChartSvg tag');
+  const unhidden = tags.filter(t=> !/aria-hidden/.test(t) && !t.includes('class="sparkline"') && !registryTags.includes(t) && !labelledCharts.includes(t));
   assert.strictEqual(unhidden.length, 0,
     `every non-sparkline SVG must carry aria-hidden; missing on: ${unhidden.slice(0,3).join(' | ')}`);
 
@@ -432,7 +437,7 @@ test('every <svg> in index.html is hidden from assistive tech, except the sparkl
   // reason. These 5 are the flagged, deliberately-untouched data-vizzes: each
   // one is a real chart, and inventing an aria-label for it would be worse
   // coverage than none.
-  assert.strictEqual(sparklines.length, 5);
+  assert.strictEqual(sparklines.length, 4);
   assert.strictEqual(sparklines.filter(t=> /aria-hidden|aria-label/.test(t)).length, 0,
     'the sparklines were left alone on purpose — neither hidden nor given a guessed label');
 });
