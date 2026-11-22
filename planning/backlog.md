@@ -3679,7 +3679,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Summit note (summit 2026-11-07):** The "AI insights moves below the evidence" clause is owned by BIZ-06; don't re-implement it. The ledger slot moves BL-20's renderer (summit R8). It ships after BL-20 and BIZ-06.
 - **Added criteria (spec refresh 3):** (5) the exercise sheet's e1RM chart and the lead chart come from the same real `e1rmChartSvg` (one definition; `buildExerciseHistoryHtml` calls it once), and its polyline has no `fill` and stroke-width 2.5; (6) the lead's sentence "Next session …" prints the real `computeSuggestedSet` result for the selected lift, so it says "held at 160 until all 4 sets reach 6" when BL-08 holds (as `progress.html` does), never a made-up increase.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped (`VIEW_RENDERERS` 40469, `renderAnalysis` 47712). Found an existing e1RM sparkline in the exercise sheet, so the chart is consolidated rather than drawn twice; the suites that pin Analysis are listed. Checked against `progress.html` (ledger fractional, "10+" floor, no state colour, "held there until all 4 sets reach 6"). Scope unchanged.
-- **Status:** ready (after BL-20 and BIZ-06)
+- **Status:** done (v3.621, PR #200). Chips are the top 4 compound lifts (fallback: any lift); window = last 12 sessions; no stored key; `--chart-yellow` token for a yellow line on light.
 
 ### UX-11: The weekly recap as a sheet, with the week strip
 - **Why:** the week is the unit of training. The recap is currently an Analysis card and a share card. It should be a Monday moment people keep (`renders/recap-dark.png`).

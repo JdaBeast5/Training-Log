@@ -1542,3 +1542,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Beyond the spec (from code review):** block windows from `program-cycle-start`, not calendar weeks; block-tagged map; overrides' rep ranges; strength last set RPE 9; all-miss = fall; `entriesForExercise` filter; reason from the stored verdict.
 - **Flagged:** the day header's duration suffix counts only accumulation sets.
 - **Unverified:** a real week boundary in the live app; iPhone.
+
+## Addendum 141: UX-10, Progress leads with the answer (v3.621, PR #200, 2026-11-22)
+- **What:** `#progressLead` (first in `#analysisView`, a section, not a card) filled by `renderProgressLead` (in `renderAnalysis`'s Promise.all): `progressLeadLifts` (top 4 compound lifts by sessions), `progressLeadSeries` (one positive e1RM per date), `progressLeadHome` (newest entry: ink and program), `progressLeadNextLine` (nextTimeSuggestion). BL-20's ledger renders here now, not in Weekly Volume.
+- **Shared chart:** `e1rmChartSvg(series, ink)` — the exercise sheet uses it too (UX-14 should). `.e1rm-chart.ink-*` sets `--e1rm-line`; `--chart-yellow` token (deep step in light).
+- **Unverified:** iPhone; kg rendering.
