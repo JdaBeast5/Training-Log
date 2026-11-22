@@ -1853,6 +1853,8 @@
   body.day-red .celebrate-banner{--spot-ink:var(--block-on-red);}
   body.day-green .celebrate-banner{--spot-ink:var(--block-on-green);}
   body.day-yellow .celebrate-banner{--spot-ink:var(--block-on-yellow);}
+  /* Gym mode has no tab bar: the moment sits above its dock (as the rest pill does there). */
+  body.gym-mode .celebrate-banner{bottom:calc(108px + env(safe-area-inset-bottom, 0px));}
   body.cover-quiet .celebrate-banner{background:var(--surface-2); color:var(--text); box-shadow:inset 6px 0 0 var(--spot, var(--rule));}
   .celebrate-icon{grid-row:1 / span 3; width:28px; height:28px; color:inherit;}
   .celebrate-icon svg{width:28px; height:28px;}
