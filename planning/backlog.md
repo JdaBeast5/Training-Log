@@ -3318,7 +3318,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** `readExCorpus` drops keys whose program day no longer exists (`parseExKey`, 40940), so a deleted custom program lowers the number. That's truthful ("days on the log"), but the What's New line should say the number counts what's on the log.
 - **Tools:** default; TOOL-01's harness for the banner and the stamp.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped; the counter is MKT-16's (one builder); the target surface is UX-09a's sheet, which precedes this slot. Criteria unchanged; each is a real invocation over stub storage with a fixed `getTodayKey`. Scope unchanged.
-- **Status:** needs-owner (2026-11-22, builder): it adds a new stored key, `number-last-celebrated` ("celebrated once per milestone"), which batch mode can't build without you. Recommendation: allow it as written (one namespaced `window.storage` key, no schema bump, holding the last milestone celebrated). Reply "allow it" and it builds next.
+- **Status:** done (v3.619, PR #198). Owner allowed `number-last-celebrated` (2026-11-22). The moment is on the finish sheet (spec refresh 3), not a banner over it; a milestone held back by the no-rest flag passes with its day.
 
 ### MKT-18: Pin the bib on your own photo, made on the device
 - **Why:** in strength training, the dominant story format is stats over your own gym photo: Strava's transparent Stats Sticker and Hevy's transparent shareables (`design-directions.md` §6.1). A tilted bib pinned onto a gym photo is the format a stranger can learn to name with the logo covered, and it's how people wear a real bib.
