@@ -920,7 +920,7 @@
   .cover #logDateBar, .cover #logDateBar.backdating{background:none; border:0; box-shadow:none; padding:0; margin:0; gap:0; max-width:none;}
   .cover #logDateBar::before{display:none;}
   .cover .log-date-nav{width:44px; height:44px; background:none; border:0; box-shadow:none; color:inherit; font-size:18px;}
-  .cover .log-date-label-wrap{flex:0 1 auto; min-height:44px; padding:0 2px;}
+  .cover .log-date-label-wrap{flex:0 1 auto; min-height:44px; padding:0 2px; color:inherit;} /* v3.612 (UX-31): the cover's ink, not the generic button's white (invisible on a white rest day) */
   .cover #logDateLabelText{color:inherit; font-size:var(--meta-on-spot); font-weight:600;}
   .cover .log-date-today-btn{background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:var(--meta-on-spot); min-height:32px; padding:6px 12px; margin-left:4px;}
   .cover-where-row{display:flex; align-items:center; gap:6px; font-size:var(--meta-on-spot); font-weight:500; margin-top:2px;}
@@ -8352,7 +8352,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.611';
+const APP_VERSION = '3.612';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10020,6 +10020,9 @@ const WHATS_NEW = {
   ]},
   '3.611': { headline: 'Moments, not confetti', points: [
     'A streak milestone or a new record now shows as a strip in the day\'s colour above the tab bar, never over the Log button. No confetti. A record says what it is, like "Heaviest weight yet".',
+  ]},
+  '3.612': { headline: 'The date reads on every cover', points: [
+    'On a white rest-day cover the date at the top was white on white; it now takes the cover\'s own ink, like everything else on it.',
   ]},
 };
 

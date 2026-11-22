@@ -4138,6 +4138,32 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 
 The loop never picks these: they aren't in the roadmap's numbered sequence, and they change neither `index.html` nor `sw.js`, so they bump no version and can't collide with the open auto-PR (consensus C3). Each is its own PR into `Branch-1`, merged by the owner.
 
+
+### UX-31: The cover's date label takes the cover's ink
+- **Why:** owner, 2026-11-22: "make these updates based on your recommendations" (the flags raised with UX-25). On a white rest-day cover the date label was white on white: `#logDateLabelBtn` kept the generic button colour.
+- **Change:** `.cover .log-date-label-wrap` inherits the cover's ink.
+- **Acceptance:** every date-row control takes the cover's ink (`test-today-chrome.js`); the white rest day's label computes to the white field's ink.
+- **Status:** done (v3.612, PR #191).
+
+### UX-32: The program picker shows one arrow in Settings
+- **Why:** owner, 2026-11-22 (as UX-31). Inside Settings the Training Style select shows two indicators: Settings' own select styling and the card's chevron.
+- **Change:** one indicator; the Settings select treatment wins inside the card, or the card's chevron hides there (whichever leaves one, aligned).
+- **Status:** ready
+
+### UX-33: The rest pill's +15s and × in the ink
+- **Why:** owner, 2026-11-22 (as UX-31). The flat pill (UX-29) still has a green "+15s" and a red "×".
+- **Change:** outside gym mode, both in `--text`, ≥ 44 pt, named; gym mode unchanged.
+- **Status:** ready
+
+### UX-34: "Technique & focus" in the ink
+- **Why:** owner, 2026-11-22 (as UX-31). The open exercise's "Technique & focus" link is the last plate-blue text in the session (UX-24 flag).
+- **Change:** outside gym mode, `--text` with its chevron in `--text-2`; gym mode unchanged.
+- **Status:** ready
+
+### UX-35: Keep In Mind follows the goal
+- **Why:** owner, 2026-11-22 (as UX-31). On a lean bulk the tips say "in the deficit" and call the phase "recomp" (UX-28 flag): the tips don't follow the body goal.
+- **Change:** the tips' wording follows the user's goal (bulk, cut, recomp, maintain) with no change to the advice itself; no medical claim.
+- **Status:** ready
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
 - **Change:** `tools/visual/`, a Playwright script with:

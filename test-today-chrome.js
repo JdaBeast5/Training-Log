@@ -217,4 +217,17 @@ test('UX-21 criteria 1–3: unfolded, the cover is the left pane\'s first child 
   assert.ok(ui.doc.body.classList.contains('today-cover'), 'and the phone chrome is back on it');
 });
 
+test('UX-31: every control in the cover\'s date row takes the cover\'s ink (the label button was the generic white: invisible on a white rest day)', (assert)=>{
+  const d = todayState();
+  const bar = d.getElementById('logDateBar');
+  assert.ok(bar.closest('#upNext'), 'anchor: the date bar is on the cover');
+  for(const id of ['logDatePrev', 'logDateNext', 'logDateLabelBtn', 'logDateLabelText']){
+    const el = d.getElementById(id);
+    assert.ok(el, id + ' exists');
+    assert.strictEqual(winning(el, 'color'), 'inherit', id + ' takes the cover\'s ink');
+  }
+  const today = d.getElementById('logDateToday');
+  assert.strictEqual(winning(today, 'color'), 'var(--on-cover-action)', 'the Today button is the cover\'s action');
+});
+
 run();
