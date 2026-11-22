@@ -61,7 +61,8 @@ test('REAL invocation: the set sheet and Up next show the same call the chip car
       <div class="set-row" data-ex-idx="1" data-set-idx="1"><span class="set-row-owner">Barbell Row</span><input class="ex-weight" placeholder="lb"><input class="ex-reps" placeholder="reps"><input class="ex-rpe" placeholder="RPE"></div></div></div></div>`,
     // 2026-11-17 (v3.593, UX-06a): renderUpNext draws the cover too (its numeral, chips and caution).
     // 2026-11-17 (v3.596, UX-07): the cover's loaded bar is stubbed (test-plate-stack.js drives it).
-    "var weightUnit = 'lb', activeProgram = 'p', exerciseDetailPinned = true; function icon(){ return ''; } function renderCoverBar(){}",
+    "var weightUnit = 'lb', activeProgram = 'p', exerciseDetailPinned = true; function icon(){ return ''; } function renderCoverBar(){}"
+      + " function renderExerciseDetailBar(){}", // 2026-11-22 (v3.622, UX-14): the open-screen pane's stack (test-open-screen-2-0.js)
     [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'numericPlaceholder'), extractFunction(src, 'renderUpNext'), extractFunction(src, 'syncStickyDayTitle'), /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ extractFunction(src, 'fillSetLogger'), // v3.376: shared with the exercise logger
      ...['readSetLogger', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'escapeHtml'].map(n => extractFunction(src, n)),
      `document.querySelector('.set-chip')._values = ${JSON.stringify(values)}; renderUpNext();`]).window;

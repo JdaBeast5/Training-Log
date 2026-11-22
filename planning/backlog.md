@@ -3760,7 +3760,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** TOOL-01's harness at 904×678 (WebKit when installed); `Skill: dataviz`.
 - **Spec refresh 3 (2026-11-09, against v3.528):** found that v3.499's open-screen pane already does the two-pane Today with the lift's history and e1RM trend, keyed to `OPEN_POSTURE_QUERY`. The item is narrowed to what's missing (the plate stack and the shared chart in that pane) and drops the new 720 px container query, which would have been a parallel layout system (CLAUDE.md, "Consolidate duplication"). The summit's "drive it from a `matchMedia` listener" is exactly what exists. The owner may want to know the Duo work is smaller than planned; no question needed.
 - **Today audit note (2026-11-17):** at v3.599 the cover is in the right pane on the Duo (UX-06a made `#upNext` a direct child of `.posture-split`). UX-21 moves it to the head of the left pane first, so this item's "the left column is the cover and session list" holds when it builds.
-- **Status:** ready (after UX-07 and UX-10)
+- **Status:** done (v3.622, PR #201). Pane leads with "Next set · N" and the loaded bar (plateStackInner, shared with the cover); refreshed on every renderUpNext exit and on cover steps. Flagged: a rest-day switch leaves the old pane visible (pre-existing).
 
 ### UX-15: Retire the legacy look's leftovers
 - **Why:** after UX-03 to UX-14, unused rules remain: halo and glass tokens, `--cta-gradient-*`, the Geist Mono UI labels and the old pill styles. Dead CSS hides real behaviour (CLAUDE.md precedent).
