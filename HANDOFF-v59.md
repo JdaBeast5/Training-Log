@@ -1510,3 +1510,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **`bestLabel(type)`:** shared by the PR branch (`bestLabel('weight')`) and `openFinishSheet`.
 - **Harness:** the fixture fires the 8-week streak milestone on load, so every state shows the moment. Expect every state to change when the moment's look changes.
 - **Next:** the Today batch (UX-19 to UX-30) is fully built; #189 and #190 await merge. The plan continues from MKT-16 (slot 51).
+
+## Addendum 136: follow-ups UX-31 to UX-35 (owner, 2026-11-22)
+- **Request:** the owner asked for the five flags to be made "based on your recommendations". They are in the backlog as UX-31 to UX-35, built as stacked PRs from #191.
+- **UX-31 (v3.612, #191):** `.cover .log-date-label-wrap` gets `color:inherit`.
