@@ -2251,6 +2251,14 @@
     mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6.5%204.5v11l9-5.5Z%27%2F%3E%3C%2Fsvg%3E");
   }
   .ex-video-link:active{opacity:0.7;}
+  /* v3.615 (UX-34): "Technique & focus" was the last plate-blue text in the
+     open exercise. Outside gym mode it reads in the ink, its chevron, the
+     pictogram and the play mark in --text-2, the summary a 44 pt row; the
+     form-video link in the ink too. Gym mode keeps its own. */
+  body:not(.gym-mode) #exerciseList .ex-details summary{color:var(--text); min-height:44px; font-size:14px;}
+  body:not(.gym-mode) #exerciseList .ex-details summary::before{border-color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .ex-icon{color:var(--text-2); opacity:1;}
+  body:not(.gym-mode) #exerciseList .ex-video-link{color:var(--text); font-size:14px;}
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
@@ -8360,7 +8368,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.614';
+const APP_VERSION = '3.615';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10037,6 +10045,9 @@ const WHATS_NEW = {
   ]},
   '3.614': { headline: 'Plain rest timer buttons', points: [
     'The floating rest timer\'s +15s and close buttons are now in the same ink as the time, and easier to hit.',
+  ]},
+  '3.615': { headline: 'Technique & focus in the ink', points: [
+    'In an open exercise, Technique & focus and its form-video link are now in the same ink as everything around them, not blue.',
   ]},
 };
 

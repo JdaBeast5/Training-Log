@@ -118,3 +118,4 @@ Pre-D1 update, 2026-11-07 (no run, no branch, so no row):
 | 2026-11-22 15:00 | UX-31 date label in the cover's ink | shipped | 3.612 | #191 | 250/250 → 250/250 | test-today-chrome (+1) | color:inherit dropped → new case | 1 | First of five owner-requested follow-ups (UX-31–35). |
 | 2026-11-22 15:20 | UX-32 one arrow on the program picker | shipped | 3.613 | #192 | 250/250 → 250/250 | test-today-relocations (+1) | hide rule removed → new case | 1 | Stacked on #191. |
 | 2026-11-22 15:35 | UX-33 rest pill buttons in the ink | shipped | 3.614 | #193 | 250/250 → 250/250 | test-rest-cover (+1) | colour dropped → new case | 1 | Stacked on #192. |
+| 2026-11-22 15:55 | UX-34 Technique & focus in the ink | shipped | 3.615 | #194 | 250/250 → 250/250 | test-today-then (+1) | summary rule dropped → new case | 1 | Stacked on #193. |
