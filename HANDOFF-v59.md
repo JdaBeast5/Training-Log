@@ -1480,3 +1480,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **CSS:** the `#todayView #workoutCard.is-rest-day …{display:none}` rules need the `#todayView` id to beat UX-23's `body:not(.gym-mode) #workoutCard …` rules.
 - **Watch out:** a test that runs the rest branch on its own must define `restSlot`, as `test-up-next.js` does.
 - **Flagged:** the date bar's "Today" label is near-invisible on a white rest-day cover.
+
+## Addendum 131: UX-26, the day sheet as plate blocks (v3.607, PR #186, 2026-11-22)
+- **CSS:** under `.day-sheet .tab` only, after `.day-sheet .tabs`. The ink/label pairs match the History calendar (`#historyHeatmapGrid .plate-block.p-*`). The selected ring is `0 0 0 2px var(--surface-1), 0 0 0 4.5px var(--text)`.
+- **Stack:** #186 sits on #185; merge oldest first.
+- **UX-27 is needs-owner:** its `today-priorities-open` key counts as "a new stored key" under §4a. Recommended: allow it.
