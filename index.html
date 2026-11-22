@@ -1833,44 +1833,40 @@
   }
   .sticky-day-header.visible{transform:translateY(0);}
 
+  /* v3.611 (UX-30): a milestone or a record is a moment in the day's ink,
+     not a gold-edged modal with confetti. It sits above the tab bar, the
+     width of the content, flat (radius 14, no glow), so it never covers the
+     cover's Log button and takes taps only on its own box. Enters 12 px up
+     with opacity (220 ms, ease-out), leaves with opacity (160 ms); no spring,
+     no icon spin. Quiet keeps the plain surface with the day's stripe. */
   .celebrate-banner{
-    position:fixed; top:50%; left:50%; z-index:150;
-    background:var(--surface-2); box-shadow:var(--rim);
-    border:1px solid var(--plate-yellow); border-radius:var(--radius-lg);
-    padding:24px 32px; text-align:center; box-shadow:0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
-    transform:translate(-50%,-50%) scale(0.7); opacity:0; pointer-events:none;
-    transition:transform 0.35s var(--ease-spring), opacity 0.25s var(--ease-smooth);
-    max-width:calc(100vw - 48px);
+    position:fixed; left:max(16px, env(safe-area-inset-left, 0px)); right:max(16px, env(safe-area-inset-right, 0px)); bottom:calc(var(--above-bar) + 12px); z-index:150;
+    --spot-ink:var(--on-spot);
+    background:var(--spot, var(--surface-2)); color:var(--spot-ink, var(--text));
+    border:none; border-radius:14px; box-shadow:none;
+    padding:16px 18px; text-align:left;
+    display:grid; grid-template-columns:auto 1fr; column-gap:14px; align-items:center;
+    transform:translateY(12px); opacity:0; pointer-events:none;
+    transition:opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
   }
-  .celebrate-banner.active{transform:translate(-50%,-50%) scale(1); opacity:1;}
-  .celebrate-banner.big{
-    padding:32px 42px;
-    box-shadow:0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6), 0 0 90px -8px rgba(var(--plate-yellow-rgb),0.4);
-  }
-  .celebrate-banner.big.active{pointer-events:auto;}
-  .celebrate-banner.big .celebrate-icon{font-size:56px;}
-  .celebrate-banner.big .celebrate-text{font-size:27px;}
+  .celebrate-banner.active{transform:none; opacity:1; pointer-events:auto; transition:opacity 220ms var(--ease-out), transform 220ms var(--ease-out);}
+  body.day-red .celebrate-banner{--spot-ink:var(--block-on-red);}
+  body.day-green .celebrate-banner{--spot-ink:var(--block-on-green);}
+  body.day-yellow .celebrate-banner{--spot-ink:var(--block-on-yellow);}
+  body.cover-quiet .celebrate-banner{background:var(--surface-2); color:var(--text); box-shadow:inset 6px 0 0 var(--spot, var(--rule));}
+  .celebrate-icon{grid-row:1 / span 3; width:28px; height:28px; color:inherit;}
+  .celebrate-icon svg{width:28px; height:28px;}
+  .celebrate-text{font-family:var(--font-display); font-stretch:68%; font-size:28px; font-weight:800; line-height:1.05; letter-spacing:-0.01em; color:inherit;}
+  .celebrate-banner.big .celebrate-text{font-size:34px;}
+  .celebrate-sub{font-size:15px; color:inherit; margin-top:2px;}
   .celebrate-share-btn{
-    margin-top:14px; padding:9px 20px; border-radius:var(--radius-md);
-    background:var(--plate-yellow); color:#1a1500; border:none;
-    font-family:var(--font-sans); font-size:13px; font-weight:700; cursor:pointer;
+    grid-column:2; justify-self:start; margin-top:10px; min-height:44px; padding:0 18px; border-radius:var(--r-control);
+    background:var(--spot-ink, var(--text)); color:var(--spot, var(--ground)); border:none;
+    font-family:var(--font-sans); font-size:15px; font-weight:600; cursor:pointer;
   }
+  body.cover-quiet .celebrate-share-btn{background:var(--text); color:var(--ground);}
   .celebrate-share-btn:active{transform:scale(0.96);}
-  .celebrate-icon{font-size:40px; line-height:1; margin-bottom:8px; animation:celebrate-icon-pop 0.5s var(--ease-spring);}
-  /* v3.425: the drawn mark takes the banner's gold edge (the emoji brought its own colours). */
-  .celebrate-icon{color:var(--plate-yellow);}
-  .celebrate-text{font-family:var(--font-sans); font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
-  .celebrate-sub{font-size:13px; color:var(--text-muted); margin-top:4px;}
-  @keyframes celebrate-icon-pop{ 0%{transform:scale(0.4) rotate(-15deg);} 60%{transform:scale(1.2) rotate(8deg);} 100%{transform:scale(1) rotate(0);} }
-
-  .confetti-piece{
-    position:fixed; top:-12px; width:8px; height:8px; z-index:149; pointer-events:none;
-    animation:confetti-fall 1.7s ease-in forwards;
-  }
-  @keyframes confetti-fall{
-    0%{ transform:translateY(0) rotate(0deg); opacity:1; }
-    100%{ transform:translateY(100vh) rotate(360deg); opacity:0; }
-  }
+  @media (prefers-reduced-motion: reduce){ .celebrate-banner, .celebrate-banner.active{transition:none; transform:none;} }
 
   .rest-timer{
     position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
@@ -4976,8 +4972,6 @@
       transition-duration:0.01ms !important;
       scroll-behavior:auto !important;
     }
-    /* Purely decorative and impossible to make calm — remove outright. */
-    .confetti-piece{ display:none !important; }
   }
 
   /* ── GYM MODE ─────────────────────────────────────────────────────────────
@@ -8356,7 +8350,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.610';
+const APP_VERSION = '3.611';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10021,6 +10015,9 @@ const WHATS_NEW = {
   ]},
   '3.610': { headline: 'Today\'s Priorities, in one line', points: [
     'Your priorities now sit under the session as one line, like "2 notes · Readiness: …". Tap it to open them; it remembers. A safety note always opens it.',
+  ]},
+  '3.611': { headline: 'Moments, not confetti', points: [
+    'A streak milestone or a new record now shows as a strip in the day\'s colour above the tab bar, never over the Log button. No confetti. A record says what it is, like "Heaviest weight yet".',
   ]},
 };
 
@@ -31692,25 +31689,12 @@ function showFoodAddedPop(){
 // (finishing today's session, a streak milestone). Never blocks
 // interaction (pointer-events stay off) and always auto-dismisses on its
 // own — this is a reward, not a dialog the person has to act on.
+// v3.611 (UX-30): a moment in the day's ink above the tab bar; the confetti
+// went ("earned, not confetti", the vision §1).
 let celebrateTimeout = null;
-const CONFETTI_COLORS = ['#FF453A', '#5B7CFF', '#F5C518', '#32D74B', '#E4E7EB'];
-function spawnConfetti(count){
-  const pieceCount = count || 18;
-  const pieces = [];
-  for(let i=0; i<pieceCount; i++){
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.left = `${Math.random()*100}%`;
-    el.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-    el.style.animationDelay = `${Math.random()*0.3}s`;
-    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    document.body.appendChild(el);
-    pieces.push(el);
-  }
-  // Clean up after the longest possible animation + delay, rather than
-  // relying on 'animationend' firing once per piece.
-  setTimeout(()=> pieces.forEach(p=> p.remove()), 2200);
-}
+// v3.611 (UX-30): one labeller for a best, so the mid-session record and the
+// finish sheet say it the same way.
+function bestLabel(type){ return type === 'weight' ? 'Heaviest weight yet' : 'Best estimated 1RM yet'; }
 
 function triggerCelebration(iconName, text, sub, big, shareData){
   const banner = document.getElementById('celebrateBanner');
@@ -31736,7 +31720,6 @@ function triggerCelebration(iconName, text, sub, big, shareData){
   if(celebrateTimeout) clearTimeout(celebrateTimeout);
   banner.classList.toggle('big', !!big);
   banner.classList.add('active');
-  spawnConfetti(big ? 42 : undefined);
   // Longer hold when there's something to tap — 2.8s was tuned for a glance,
   // not for finding and pressing a button. Dismissal is still automatic
   // either way; this only changes how long it waits.
@@ -31841,7 +31824,7 @@ function openFinishSheet(model){
   if(model.best){
     const b = model.best;
     const gain = b.prior && b.type === 'weight' ? ` · +${fmtWeight(b.weight - b.prior.weight)} on your best, ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : '';
-    best.innerHTML = `<div class="finish-best-label">${b.type === 'weight' ? 'Heaviest weight yet' : 'Best estimated 1RM yet'} · ${escapeHtml(b.name)}</div>
+    best.innerHTML = `<div class="finish-best-label">${bestLabel(b.type)} · ${escapeHtml(b.name)}</div>
       <div class="finish-best-fig"><span class="finish-best-w">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))}</span><span class="finish-best-u">${escapeHtml(weightUnit)}</span><span class="finish-best-x">×${escapeHtml(String(b.reps))}</span></div>
       <div class="finish-best-was">${escapeHtml(gain.replace(/^ · /, '') || (b.prior ? `Your best before: ${fmtWeight(b.prior.weight)} × ${b.prior.reps} on ${fmtDayLabel(b.prior.date)}` : 'Your first record on this lift.'))}</div>`
       + finishPlatesHtml(b);
@@ -34963,7 +34946,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       if(result.isPR && await isPastPrNotificationWindow()){
         statusEl.innerHTML = icon('trophy') + ' PR';
         statusEl.className = 'set-status set-status-pr';
-        triggerCelebration('trophy', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
+        triggerCelebration('trophy', bestLabel('weight'), `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true, // v3.611 (UX-30): saveExSet's isPR is a weight record
           {icon:'trophy', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, kind:'pr', dayId: activeDay});
       } else {
         // v3.422: the drawn check (was the ✓ glyph).

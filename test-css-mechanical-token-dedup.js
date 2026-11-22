@@ -311,7 +311,10 @@ test('REAL source (v3.580, UX-03): the formerly translucent panels are solid sur
   assert.match(extractRuleBlock(src, '.pull-refresh-indicator'), /background:var\(--surface-1\);/);
   const box = src.split('\n').find(line => line.includes('max-width:360px') && line.includes('background:'));
   assert.ok(box && box.includes('background:var(--surface-1);'), box);
-  for(const sel of ['.sticky-day-header', '.celebrate-banner', '.undo-toast', '.food-add-pop']) assert.match(extractRuleBlock(src, sel), /background:var\(--surface-2\);/, sel);
+  for(const sel of ['.sticky-day-header', '.undo-toast', '.food-add-pop']) assert.match(extractRuleBlock(src, sel), /background:var\(--surface-2\);/, sel);
+  // 2026-11-22 (v3.611, UX-30): the celebration is a moment in the day's ink,
+  // still a solid surface, falling back to --surface-2 (test-moments.js).
+  assert.match(extractRuleBlock(src, '.celebrate-banner'), /background:var\(--spot, var\(--surface-2\)\);/, '.celebrate-banner');
 });
 
 run();
