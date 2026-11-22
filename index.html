@@ -941,6 +941,9 @@
   .day-sheet .tabs-header{padding-top:10px;}
   /* v3.598 (UX-09a): the finish sheet. */
   .finish-day{font-family:var(--font-display); font-stretch:68%; font-size:30px; font-weight:800; line-height:1.05; margin-top:6px; color:var(--text);}
+  .finish-number{font-size:14px; font-weight:600; color:var(--text-2); margin-top:4px; font-variant-numeric:tabular-nums;}
+  .finish-number[hidden]{display:none;}
+  .finish-number.finish-milestone{color:var(--text); font-weight:700;}
   .finish-best[hidden]{display:none;}
   .finish-best{margin-top:16px; padding:16px; border-radius:var(--r-control); background:var(--surface-2); color:var(--text);}
   /* v3.599 (UX-09b): a record floods the best set in the day's ink (the
@@ -8166,6 +8169,7 @@
       <button type="button" class="sub-modal-close" id="finishClose" aria-label="Close the session summary">Done</button>
     </div>
     <div class="finish-day" id="finishDay"></div>
+    <div class="finish-number" id="finishNumber" hidden></div>
     <div class="finish-best" id="finishBest" hidden></div>
     <div class="finish-totals" id="finishTotals"></div>
     <div class="finish-next" id="finishNext"></div>
@@ -8371,7 +8375,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.618';
+const APP_VERSION = '3.619';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10060,6 +10064,10 @@ const WHATS_NEW = {
   ]},
   '3.618': { headline: 'Pin your bib on a photo', points: [
     'After a session, "Pin on a photo" puts your race bib over a gym photo you pick, ready to share. The photo stays on your phone: it isn\'t saved, sent or analysed.',
+  ]},
+  '3.619': { headline: 'Your number', points: [
+    'The end of a session now shows your number: "No. 47" means your 47th training day on the log. It counts days on the log, not how hard you went, so deleting a session takes its day back off.',
+    'At 10, 25, 50, 100, 250, 500 and 1,000 the session summary marks it once, and the bib you share gets a stamp. Not after six days in a row without a rest day.',
   ]},
 };
 
@@ -31576,7 +31584,9 @@ async function renderWorkout(){
         // has genuinely earned them is the last set of a session logged on a
         // screen stripped down to nothing but the work.
         // v3.598 (UX-09a): the finish sheet, in place of the "Session complete!" toast.
-        openFinishSheet(await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram));
+        const finishModel = await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram);
+        openFinishSheet(finishModel);
+        checkNumberMilestone(finishModel).catch(()=>{}); // v3.619 (MKT-17): once per milestone
         maybeShowTodayStandout();
         // The second way out of gym mode. This branch is already gated to the
         // actual completing click — a re-render never fires a checkbox 'change'
@@ -31829,10 +31839,12 @@ async function finishSheetModel(listEl, dateKey, program){
     const s = nextTimeSuggestion(inp, dateKey, program, inDeload, week);
     if(s) next.push(s);
   }
+  // v3.619 (MKT-17): the number, for every program (clinical ones see it, and share nothing).
+  let corpus = [];
+  try{ corpus = await readExCorpus(); }catch(e){}
+  const number = trainingDayNumber(corpus, dateKey), milestone = numberMilestoneOn(corpus, dateKey);
   // v3.617 (MKT-16): what the bib card draws, from the same session.
   if(share){
-    let corpus = [];
-    try{ corpus = await readExCorpus(); }catch(e){}
     const lead = bibLeadLift((listEl && listEl._finishInputs) || [], dateKey);
     const stat = label => { const st = share.stats.find(x => x.label === label); return st ? st.value : ''; };
     let leadOut = null;
@@ -31842,13 +31854,14 @@ async function finishSheetModel(listEl, dateKey, program){
       leadOut = {name: lead.name, reps: lead.reps, weightLabel: fmtWeight(lead.topLb), unit, note: nxt ? nxt.words : '',
         plates: isBarbellExercise(lead.name) ? platesPerSide(disp, getEquipment()).plates : []};
     }
-    share.bib = {number: trainingDayNumber(corpus, dateKey), program: (programs[program] || {}).label || '', week: typeof week === 'number' ? week : null,
+    // milestone: 0 until checkNumberMilestone stamps it (once, and only when it may).
+    share.bib = {number, milestone: 0, program: (programs[program] || {}).label || '', week: typeof week === 'number' ? week : null,
       dateLabel: fmtDayLabel(dateKey), sets: stat('SETS'), lifts: stat('LIFTS'), minutes: stat('MIN'), lead: leadOut};
   }
   const dayTitle = document.getElementById('dayTitle');
   return {key: dateKey + '|' + (typeof activeDay !== 'undefined' ? activeDay : ''), day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
     lifts: blocks.filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length, minutes: min ? Number(min.value) : null,
-    best, next, share, clinical};
+    best, next, share, clinical, number, milestone, dateKey};
 }
 
 // One exercise's next session, as its set fields will suggest it: today's
@@ -31878,6 +31891,12 @@ function openFinishSheet(model){
   const sheet = document.getElementById('finishSheet');
   if(!sheet || !model) return;
   document.getElementById('finishDay').textContent = model.day;
+  const numEl = document.getElementById('finishNumber');
+  if(numEl){
+    numEl.textContent = model.number ? `No. ${model.number} · your ${model.number}${ordinalSuffix(model.number)} training day on the log` : '';
+    numEl.hidden = !model.number;
+    numEl.classList.remove('finish-milestone');
+  }
   const best = document.getElementById('finishBest');
   if(model.best){
     const b = model.best;
@@ -32129,6 +32148,45 @@ function trainingDayNumber(corpus, dateKey){
   return days.size;
 }
 const ordinalSuffix = n => { const t = n % 100; return (t >= 11 && t <= 13) ? 'th' : ({1: 'st', 2: 'nd', 3: 'rd'}[n % 10] || 'th'); };
+// v3.619 (MKT-17): "Your number". The training-day numbers worth a moment, and
+// the one reached on dateKey itself (0 when dateKey isn't the day it was
+// reached). Derived from the log every time, never a stored counter.
+const NUMBER_MILESTONES = [10, 25, 50, 100, 250, 500, 1000];
+function numberMilestoneOn(corpus, dateKey){
+  const n = trainingDayNumber(corpus, dateKey);
+  if(!NUMBER_MILESTONES.includes(n)) return 0;
+  return trainingDayNumber(corpus, dateKeyMinusDays(dateKey, 1)) < n ? n : 0;
+}
+// Readiness's no-rest flag (computeReadiness), from the same inputs.
+async function noRestWarningActive(){
+  try{ return (await computeDaysSinceRest(await fetchWorkoutDates(), getTodayKey())) >= READINESS_DAYS_NO_REST; }
+  catch(e){ return false; }
+}
+// Celebrated once per milestone, on the day it's reached, never on a clinical
+// program (no share data) and never after six training days without rest
+// (readiness's no-rest flag). The moment is on the finish sheet itself (spec
+// refresh 3): its number line is marked and the bib it shares gets the stamp.
+// No banner: one over the open sheet would cover its Share and Done.
+// The mark is 'number-last-celebrated' (window.storage, owner-approved 2026-11-22).
+async function checkNumberMilestone(model){
+  if(!model || !model.milestone || model.clinical || !model.share || model.dateKey !== getTodayKey()) return false;
+  const n = model.milestone;
+  let last = 0;
+  try{
+    const res = await window.storage.get('number-last-celebrated');
+    last = res && res.value ? Number(res.value) : 0;
+  }catch(e){ last = 0; }
+  if(n <= last) return false;
+  if(await noRestWarningActive()) return false;
+  try{ await window.storage.set('number-last-celebrated', String(n)); }catch(e){}
+  if(model.share.bib) model.share.bib.milestone = n;
+  const el = document.getElementById('finishNumber');
+  if(el){
+    el.textContent = `Milestone · No. ${n} · your ${n}${ordinalSuffix(n)} training day on the log`;
+    el.classList.add('finish-milestone');
+  }
+  return true;
+}
 
 // The session's lead lift for the bib: the first exercise with a weighted
 // set today; its top weight and the reps of the sets at that weight.
@@ -32228,12 +32286,33 @@ function drawBibCard(ctx, card, W, H){
   // The lead lift: its sets and the honest next-time line.
   if(b.lead){
     ctx.textAlign = 'left'; ctx.fillStyle = inkText;
-    ctx.font = '700 44px Geist, sans-serif';
+    // v3.619 (MKT-17): with the stamp beside them, the name and sets stop short of it.
+    const lineW = bw - 120 - 270;
+    const fit = (txt, weight, px, min) => { ctx.font = `${weight} ${px}px Geist, sans-serif`; while(b.milestone && px > min && ctx.measureText(txt).width > lineW){ px -= 2; ctx.font = `${weight} ${px}px Geist, sans-serif`; } };
+    fit(b.lead.name, 700, 44, 28);
     ctx.fillText(b.lead.name, x0 + 60, y + 40);
-    ctx.font = '500 38px Geist, sans-serif';
-    ctx.fillText(`${b.lead.weightLabel} × ${b.lead.reps.join(', ')}`, x0 + 60, y + 95);
+    const setsLine = `${b.lead.weightLabel} × ${b.lead.reps.join(', ')}`;
+    fit(setsLine, 500, 38, 24);
+    ctx.fillText(setsLine, x0 + 60, y + 95);
     // The note: at most two lines, so it always clears the tear-off tabs (the second ends in … if it runs on).
     if(b.lead.note){ ctx.fillStyle = mute; ctx.font = '500 30px Geist, sans-serif'; wrapCanvasText(ctx, b.lead.note, x0 + 60, y + 145, bw - 120, 38, true, 2); }
+  }
+  // v3.619 (MKT-17): on the day a milestone is reached, a rubber stamp.
+  // It sits beside the lead lift's name and sets (y is where that block starts), clear of the note below.
+  if(b.milestone){
+    const sx = x0 + bw - 165, sy = y + 65, sw = 210, sh = 84, red = SHARE_CARD_INKS.spot.red;
+    const label = `No. ${b.milestone}`;
+    ctx.save();
+    ctx.translate(sx, sy); ctx.rotate(-8 * Math.PI / 180);
+    ctx.strokeStyle = red; ctx.lineWidth = 5; ctx.strokeRect(-sw/2, -sh/2, sw, sh);
+    ctx.lineWidth = 2; ctx.strokeRect(-sw/2 + 8, -sh/2 + 8, sw - 16, sh - 16);
+    ctx.textAlign = 'center'; ctx.fillStyle = red;
+    let fs = 48; display(fs);
+    while(fs > 28 && ctx.measureText(label).width > sw - 36){ fs -= 2; display(fs); }
+    ctx.fillText(label, 0, -6);
+    ctx.font = '700 15px Geist, sans-serif';
+    ctx.fillText('ON THE LOG', 0, 24);
+    ctx.restore();
   }
   // Tear-off tabs along the foot: SETS first, then LIFTS, then MIN when known.
   const tabs = [{v: b.sets, l: 'SETS'}, {v: b.lifts, l: 'LIFTS'}].concat(b.minutes ? [{v: b.minutes, l: 'MIN'}] : []);

@@ -36,9 +36,12 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   // 2026-11-22 (v3.617, MKT-16): finishSheetModel builds the bib card's data from the same session (test-bib-card.js).
   'trainingDayNumber', 'bibLeadLift',
   // 2026-11-22 (v3.618, MKT-18): openFinishSheet wires "Pin on a photo" (test-bib-photo.js).
-  'wireFinishPhoto'];
+  'wireFinishPhoto',
+  // 2026-11-22 (v3.619, MKT-17): the model carries the number and the milestone reached today.
+  'numberMilestoneOn', 'dateKeyMinusDays'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
-  'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed'];
+  'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed',
+  'NUMBER_MILESTONES', 'ordinalSuffix' /* 2026-11-22 (v3.619, MKT-17) */];
 
 const TODAY = '2026-11-02';
 const BENCH = {name: 'Bench Press', sets: '4×4-6'};
@@ -216,6 +219,38 @@ test('Share sends MKT-04\'s session data; criterion 6: a clinical program gets n
   }
 });
 
+test('MKT-17: the sheet shows the number ("No. N · your Nth training day on the log"), clinical programs included (criterion 5), with no share data there and no countdown', async (assert)=>{
+  const ui = mount();
+  const m = await ui.open();
+  assert.ok(m.number > 0, 'anchor: a number');
+  assert.strictEqual(m.share.bib.number, m.number, 'the bib carries the same number');
+  const el = ui.$('finishNumber');
+  assert.strictEqual(el.hidden, false);
+  assert.strictEqual(el.textContent, `No. ${m.number} · your ${m.number}${ui.window.eval('ordinalSuffix')(m.number)} training day on the log`);
+  assert.ok(!/\bto (your )?next\b|\d+ (days|sessions) to\b/i.test(ui.$('finishSheet').textContent), 'no countdown on the sheet');
+  for(const program of ['medical', 'rehabAcl']){
+    const clinical = mount({program});
+    const c = await clinical.open();
+    assert.strictEqual(c.number, m.number, program + ': the same number');
+    assert.strictEqual(c.share, undefined, program + ': no share data');
+    assert.strictEqual(clinical.$('finishNumber').hidden, false, program + ': shown');
+    assert.match(clinical.$('finishNumber').textContent, new RegExp('^No\\. ' + m.number + ' '));
+  }
+});
+
+test('MKT-17: on the day the number reaches 10, the real model knows it (milestone 10) but leaves the bib unstamped until checkNumberMilestone allows it', async (assert)=>{
+  // Seven earlier dates on a third key, plus the fixture's three: today is the tenth.
+  const extra = Array.from({length: 7}, (_, i) => ({date: `2026-09-0${i + 1}`, n: 'Squat', sets: [{weight: 225, reps: 5}]}));
+  const ui = mount({store: {'ex:strength:d1:0': BENCH_LOG, 'ex:strength:d1:1': ROW_LOG, 'ex:strength:d1:2': extra}});
+  ui.window.eval("programs.strength.days.d1.exercises.push({name: 'Squat'})");
+  const m = await ui.open();
+  assert.strictEqual(m.number, 10, 'anchor: today is No. 10');
+  assert.strictEqual(m.milestone, 10, 'reached today');
+  assert.strictEqual(m.dateKey, TODAY, 'the model carries its date (checkNumberMilestone celebrates only today)');
+  assert.strictEqual(m.share.bib.number, 10);
+  assert.strictEqual(m.share.bib.milestone, 0, 'no stamp from the model itself (the once-only and no-rest gates decide)');
+});
+
 test('MKT-18: the real openFinishSheet offers "Pin on a photo" with the bib; a clinical program gets neither it nor Share', async (assert)=>{
   const ui = mount();
   const m = await ui.open();
@@ -238,7 +273,8 @@ test('criterion 7: renderWorkout calls openFinishSheet( at exactly one site, the
   const at = body.indexOf('openFinishSheet(');
   const guard = body.lastIndexOf('if(cb.checked && dayNowComplete){', at);
   assert.ok(guard > -1 && body.slice(guard, at).split('{').length - body.slice(guard, at).split('}').length === 1, 'inside the completing-click branch');
-  assert.match(body.slice(at, at + 140), /^openFinishSheet\(await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\)\);/);
+  // 2026-11-22 (v3.619, MKT-17): the model is kept in a const so checkNumberMilestone gets the same one.
+  assert.match(body.slice(body.lastIndexOf('const finishModel', at), at + 120), /^const finishModel = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(finishModel\);\s*checkNumberMilestone\(finishModel\)\.catch\(\(\)=>\{\}\);/);
   assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'the toast is gone from renderWorkout');
 });
 

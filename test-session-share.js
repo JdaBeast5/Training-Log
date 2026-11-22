@@ -73,7 +73,8 @@ test('criterion 4: the session\'s share data reaches the finish sheet: one real 
   const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
   const body = strip(extractFunction(src, 'renderWorkout'));
   assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'no toast');
-  assert.strictEqual((body.match(/\bopenFinishSheet\(await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\)\);/g) || []).length, 1);
+  // 2026-11-22 (v3.619, MKT-17): the model is held in finishModel, then opened.
+  assert.strictEqual((body.match(/\bconst finishModel = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(finishModel\);/g) || []).length, 1);
   const model = strip(extractFunction(src, 'finishSheetModel'));
   assert.strictEqual((model.match(/\bsessionShareStats\(listEl, dateKey, program\)/g) || []).length, 1, 'one real call');
   assert.match(strip(extractFunction(src, 'openFinishSheet')), /shareCelebrationCard\(model\.share, 'finishShare'\)/);
