@@ -92,7 +92,10 @@ test('single-column order is unchanged: the session follows the recommendation b
   const kids = [...document.getElementById('todayView').children];
   const pane = kids.findIndex(k=> k.classList.contains('today-session-pane'));
   assert.equal(kids[pane - 1].id, 'programRecommendation', 'the interrupts stay above the session (test-today-session-first.js)');
-  assert.ok(kids[pane + 1].querySelector('#programHeader'), 'the Training Style card directly follows the session, as it did');
+  // 2026-11-22 (v3.610, UX-27): Today's Priorities now sits directly under the
+  // session as one line; the Training Style card follows it.
+  assert.equal(kids[pane + 1].id, 'todayInsightsCard', 'Today\'s Priorities directly follows the session');
+  assert.ok(kids[pane + 2].querySelector('#programHeader'), 'then the Training Style card');
   assert.equal(kids[kids.length - 1].id, 'profileCardPermanentSlot');
 });
 
