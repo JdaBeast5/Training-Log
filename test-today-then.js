@@ -438,4 +438,28 @@ test('UX-24: the sticky header follows the cover while it shows (#dayTitle isn\'
   assert.ok(sticky.classList.contains('visible'), 'no cover: the day title decides, as before');
 });
 
+test('UX-34: "Technique & focus" outside gym mode: the summary, the form-video link in the ink; the chevron and pictogram in --text-2; no plate blue; a 44 pt row (the real builder\'s markup)', (assert)=>{
+  const { window } = runJsdom('', `${STUBS}
+    exerciseInfo = {'Bench Press': {category: 'chest', cues: ['Shoulder blades back.', 'Feet planted.']}};
+    function getExerciseIcon(){ return '<svg viewBox="0 0 24 24"></svg>'; }`, [extractFunction(src, 'escapeHtml'),
+    extractFunction(src, 'buildDetailsHtml'), "window.__d = buildDetailsHtml({name: 'Bench Press'});"]);
+  const details = window.__d;
+  assert.match(details, /<summary>Technique &(amp;)? focus<\/summary>/, 'anchor: the real builder\'s markup');
+  const ui = page('day-red has-cover');
+  const block = ui.doc.querySelector('#exerciseList .exercise-block');
+  block.insertAdjacentHTML('beforeend', details);
+  const sum = block.querySelector('.ex-details summary');
+  assert.strictEqual(ui.cs(sum).color, 'var(--text)');
+  assert.ok(parseFloat(ui.cs(sum).minHeight) >= 44, '44 pt');
+  assert.strictEqual(pseudo('body:not(.gym-mode) #exerciseList .ex-details summary::before').getPropertyValue('border-color'), 'var(--text-2)', 'the chevron');
+  const link = block.querySelector('.ex-video-link');
+  if(link) assert.strictEqual(ui.cs(link).color, 'var(--text)', 'the form-video link');
+  const ico = block.querySelector('.ex-icon');
+  if(ico) assert.strictEqual(ui.cs(ico).color, 'var(--text-2)');
+  for(const el of [sum, link, ico].filter(Boolean)) assert.ok(!/plate-blue|#7A93FF/i.test(ui.cs(el).color), 'no blue');
+  const gym = page('day-red has-cover gym-mode');
+  const gb = gym.doc.querySelector('#exerciseList .exercise-block'); gb.insertAdjacentHTML('beforeend', details);
+  assert.notStrictEqual(gym.cs(gb.querySelector('.ex-details summary')).color, 'var(--text)', 'gym mode keeps its own');
+});
+
 run();
