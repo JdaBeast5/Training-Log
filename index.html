@@ -1937,6 +1937,8 @@
   body:not(.gym-mode) .rest-timer .rest-timer-ring-progress{stroke:var(--spot, var(--text)); filter:none;}
   body:not(.gym-mode) .rest-timer.urgent .rest-timer-ring-progress{stroke:var(--spot-yellow); filter:none;}
   body:not(.gym-mode) .rest-timer-time{font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
+  /* v3.614 (UX-33): its +15s and × in the ink (were green and red), 44 pt targets. Gym mode keeps its own. */
+  body:not(.gym-mode) .rest-timer .rt-add, body:not(.gym-mode) .rest-timer .rt-close{color:var(--text); min-width:44px; min-height:44px; display:inline-flex; align-items:center; justify-content:center;}
   @media (prefers-reduced-motion: reduce){ body.cover-in-view:not(.gym-mode) .rest-timer.active{transition:none;} }
   .rest-timer-expand{
     max-height:0; opacity:0; overflow:hidden;
@@ -8358,7 +8360,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.613';
+const APP_VERSION = '3.614';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10032,6 +10034,9 @@ const WHATS_NEW = {
   ]},
   '3.613': { headline: 'One arrow on the program picker', points: [
     'In Settings, the program picker showed two arrows; it now shows one, with the program\'s name in full.',
+  ]},
+  '3.614': { headline: 'Plain rest timer buttons', points: [
+    'The floating rest timer\'s +15s and close buttons are now in the same ink as the time, and easier to hit.',
   ]},
 };
 
