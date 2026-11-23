@@ -164,7 +164,10 @@ test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the ID
 });
 
 test('criterion 3: the head line holds the phase, the length and the calories as renderWorkout writes them, joined with " · " (no wording change)', (assert)=>{
-  const ui = page('day-red has-cover');
+  // 2026-11-23 (v3.643, UX-36): with the cover showing, the phase is hidden (the
+  // cover's program line says it; test-then-now-row.js criterion 5), so the
+  // full line is checked without the cover, where it is unchanged.
+  const ui = page('day-red');
   // The strings renderWorkout writes (no wording change: the same elements).
   const fn = extractFunction(src, 'renderWorkout');
   assert.match(fn, /document\.getElementById\('mesocyclePhaseTag'\)/);
