@@ -32,6 +32,44 @@ test('REAL invocation (v3.467): with profiles, the list and the divider show', (
   assert.deepStrictEqual([...doc.querySelectorAll('.user-pick-btn')].map(b => b.textContent), ['Jordan', 'Sam']);
 });
 
+// v3.630 (BIZ-17) — The first screen says what the app is. A stranger's first
+// screen was "Who's training? · Create a new profile" with nothing on what the
+// app does. One line now carries the business.md §1 promise (the page
+// metadata's words, BIZ-07), on a first launch only. Sabotage: show it
+// regardless of the list and criterion 2 fails.
+const PROMISE = 'Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone.';
+
+test('REAL invocation (v3.630, criteria 1 and 3): first launch shows the promise line; the divider stays hidden', (assert)=>{
+  const doc = picker([]);
+  const line = doc.getElementById('userPickerPromise');
+  assert.ok(line, 'anchor: the real markup has the line');
+  assert.strictEqual(line.hidden, false);
+  assert.strictEqual(line.textContent.trim(), PROMISE);
+  assert.match(line.textContent, /your logs stay on your phone/);
+  assert.strictEqual(doc.querySelector('.user-picker-divider').hidden, true, 'the divider as before');
+  assert.strictEqual(doc.getElementById('userPickerOverlay').getAttribute('aria-describedby'), 'userPickerPromise', 'screen readers hear it with the title');
+});
+
+test('REAL invocation (v3.630, criteria 2 and 3): with profiles, the line is hidden; the divider shows', (assert)=>{
+  for(const users of [[{id:'1', name:'Jordan'}], [{id:'1', name:'Jordan'}, {id:'2', name:'Sam'}]]){
+    const doc = picker(users);
+    assert.strictEqual(doc.getElementById('userPickerPromise').hidden, true, `${users.length} profile(s)`);
+    assert.strictEqual(doc.querySelector('.user-picker-divider').hidden, false);
+    assert.strictEqual(doc.getElementById('userPickerOverlay').hasAttribute('aria-describedby'), false, 'nothing hidden is described');
+  }
+});
+
+test('REAL source (v3.630): the line says what the page metadata says, and the quick start hides it', (assert)=>{
+  const m = src.match(/<meta name="description" content="([^"]+)">/);
+  assert.ok(m, 'anchor: the meta description');
+  assert.strictEqual(m[1], PROMISE);
+  // Quick-start mode hides every child of the picker box but the quick start.
+  assert.match(src, /\.user-picker-overlay\.quick-start-mode \.user-picker-box > :not\(\.quick-start\)\{display:none;\}/);
+  const doc = picker([]);
+  assert.ok(doc.querySelector('#userPickerOverlay > .user-picker-box > #userPickerPromise'), 'a direct child of the box');
+  assert.match(extractElementById(src, 'userPickerOverlay'), /id="userPickerPromise" hidden>/, 'hidden in the markup until shown');
+});
+
 // v3.624 (BIZ-02) — One name, asked once. The name typed at "Who's training?"
 // went only into the user list, so the header kept saying "Set up your profile"
 // and Getting Started stayed unticked. Now loadProfile fills an empty

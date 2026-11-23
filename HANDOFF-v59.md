@@ -1589,3 +1589,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - The head gains a meta description and og:* tags; the manifest description is the business.md §1 promise; the README has install steps and the privacy facts.
 - `test-metadata-truth.js` ties every static copy of the name to `APP_NAME`, and fails if index.html gains an outside host the README doesn't name. A new API therefore needs a README line.
 - **Next:** the next ready item in the roadmap sequence after slot 67.
+
+## Addendum 150: BIZ-17 (v3.630, PR #210, 2026-11-23)
+- `#userPickerPromise`: the promise line under "Who's training?", shown by `showUserPicker` only with an empty user list (aria-describedby while shown). The test pins it equal to the meta description.
+- **Next:** BL-22 (slot 69), export workouts as CSV.
