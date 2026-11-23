@@ -8442,6 +8442,7 @@ function bootMark(name){
      medical-style                       -> one of the 13 MEDICAL_STYLES keys (e.g. "obesity", "bariatricEarly", "rehabAcl")
      cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
      custom-foods                        -> [{name,cal,pro,fat,carb}, ...] (personal "My Foods" library)
+     easier-day                          -> "YYYY-MM-DD", the day "Make today easier" was tapped (v3.641, BL-32; caps that day's RPE target at 8)
      saved-meals                         -> [{name, items:[food-log entry minus time/source, ...]}, ...] (v3.636, BL-28)
      day-order:{program}                 -> [dayId, dayId, ...]
      active-program                      -> "strength" | "bodybuilding" | ... | "medical" (see medical-style above)
@@ -8515,7 +8516,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.640';
+const APP_VERSION = '3.641';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10272,6 +10273,9 @@ const WHATS_NEW = {
   ]},
   '3.640': { headline: 'RPE-mode loads count your reps in reserve', points: [
     'In RPE mode, a set you logged at RPE 7 now counts the reps you had left when the app works out your next load, so it no longer underestimates you. Records and strength charts are unchanged.',
+  ]},
+  '3.641': { headline: 'Make today easier', points: [
+    'When your readiness check advises caution, its note has a Make today easier button. One tap caps today\'s RPE target at 8, so RPE-mode loads come down and say why. Nothing changes unless you tap it, it ends on its own tomorrow, and Undo puts it back.',
   ]},
 };
 
@@ -16235,13 +16239,23 @@ async function getReadinessInsight(){
     hrvBaseline: hrvBaselineFrom(hrvEntries, todayKey),
   });
 
+  // v3.641 (BL-32): a caution day in RPE mode offers one tap to make the
+  // session easier (never automatic). Once chosen, the note says so and offers
+  // Undo for the rest of the day, whatever readiness says by then, so the cap
+  // is never on without the line that explains it.
+  const chosen = await easierDayToday();
+  const undo = `<span class="year-recap-actions easier-actions"><span>Today is easier: RPE capped at ${EASIER_DAY_RPE}.</span><button type="button" class="year-recap-btn" data-easier-undo>Undo</button></span>`;
   const f = formatReadiness(r);
-  if(!f) return null;
+  if(!f) return chosen ? `<b>Readiness:</b> ${undo}` : null;
   // The "all clear" case is deliberately not surfaced. Today's Priorities is a
   // list of things worth acting on, and a row saying "nothing to report" is
   // noise that makes the rows that DO matter harder to notice.
-  if(r.level === 'good') return null;
-  return `${f.icon ? f.icon + ' ' : ''}<b>Readiness:</b> ${f.text}`;
+  if(r.level === 'good') return chosen ? `<b>Readiness:</b> ${undo}` : null;
+  if(r.level === 'caution') easierDayWhy = r.flags.map(fl => fl.text).join(', ');
+  const actions = chosen ? undo
+    : (r.level === 'caution' && loadSuggestionMode === 'rpe')
+      ? `<span class="year-recap-actions easier-actions"><button type="button" class="year-recap-btn" data-easier-day>Make today easier</button></span>` : '';
+  return `${f.icon ? f.icon + ' ' : ''}<b>Readiness:</b> ${f.text}${actions}`;
 }
 
 // v3.476: on Mondays, last week in one line — the same numbers a saved week
@@ -16542,6 +16556,7 @@ async function renderTodayInsights(){
     const lead = document.createElement('div');
     lead.innerHTML = rows[safetyId || items[0]];
     lead.querySelectorAll('[data-install-hint-hide]').forEach(b => b.remove()); // its Hide button isn't part of the line
+    lead.querySelectorAll('.easier-actions').forEach(b => b.remove()); // v3.641 (BL-32): nor are Make today easier / Undo
     summaryText.textContent = `${items.length} note${items.length === 1 ? '' : 's'} · ${lead.textContent.replace(/\s+/g, ' ').trim()}`;
   }
   const prioritiesWrap = document.getElementById('prioritiesWrap'), prioritiesBtn = document.getElementById('prioritiesSummary');
@@ -16559,6 +16574,20 @@ async function renderTodayInsights(){
   // workout below the fold; the order above already puts the one that
   // matters most first, and a safety row (pregnancyHeat) always leads.
   renderCollapsibleList(el, items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)), 1, 'priorities');
+  // v3.641 (BL-32): Make today easier, and its Undo: the stored date, then the
+  // note and the workout drawn again (the RPE target follows).
+  const easierBtn = el.querySelector('[data-easier-day]'), easierUndo = el.querySelector('[data-easier-undo]');
+  // renderWorkout draws the notes again too, so one call redraws both.
+  if(easierBtn) easierBtn.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    try{ await window.storage.set(EASIER_DAY_KEY, getTodayKey()); }catch(err){}
+    renderWorkout();
+  });
+  if(easierUndo) easierUndo.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    try{ await window.storage.delete(EASIER_DAY_KEY); }catch(err){}
+    renderWorkout();
+  });
   const deloadBtn = el.querySelector('[data-early-deload]');
   if(deloadBtn) deloadBtn.addEventListener('click', async (e)=>{
     e.stopPropagation();
@@ -29851,6 +29880,23 @@ function capClinicalRpeLoad(display, exName, priorTop, inDeload){
   return {weight: cap, capped: true, noStep: !inDeload && step == null, deload: !!inDeload};
 }
 
+// v3.641 (BL-32): "Make today easier", one tap on a caution readiness note,
+// never automatic (owner, D3). Tapping stores today's date under easier-day;
+// while that is today, the day's RPE target is capped at 8 (RPE-mode loads
+// follow, and the badge says why). Lower targets (clinical caps, the deload
+// week) stay as they are. It lapses on its own the next day; Undo clears it.
+const EASIER_DAY_KEY = 'easier-day';
+const EASIER_DAY_RPE = 8;
+let easierDayWhy = ''; // the readiness flags behind the note, for the badge's reason
+async function easierDayToday(){
+  try{ const r = await window.storage.get(EASIER_DAY_KEY); return !!(r && r.value === getTodayKey()); }catch(e){ return false; }
+}
+// The day's target: rpeTargetFor, capped at 8 on an easier day (rpeCtx.easier).
+function rpeTargetForDay(rpeCtx, inDeload){
+  const t = rpeTargetFor(rpeCtx.week, inDeload, rpeCtx.program, rpeCtx.category);
+  return (t != null && rpeCtx.easier && t > EASIER_DAY_RPE) ? EASIER_DAY_RPE : t;
+}
+
 function rpeTargetFor(week, inDeload, program, category){
   if(category === 'oly' || category === 'jump' || category === 'throw') return null;
   if(inDeload) return RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS];
@@ -30459,7 +30505,8 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   // RPE mode owns the badge as well as the placeholder — see computeSuggestedSet.
   // v3.519 (BL-02): the target comes from rpeTargetFor, so clinical caps and
   // the technique-lift exclusion apply here exactly as in computeSuggestedSet.
-  const rpeTargetRpe = rpeCtx ? rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) : null;
+  const rpeTargetRpe = rpeCtx ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
+  const easierCapped = !!(rpeCtx && rpeCtx.easier && rpeTargetRpe === EASIER_DAY_RPE && rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) > EASIER_DAY_RPE);
   const rpeBadgeTarget = (loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null && rpeTargetRpe != null)
     ? loadForRpeTarget(rpeCtx.e1rm, parseBottomRep(ex.sets), rpeTargetRpe)
     : null;
@@ -30474,7 +30521,8 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   if(rpeBadgeTarget != null){
     const rir = rirFromRpe(rpeTargetRpe);
     const shown = snapToLoadable(toDisplayWeight(rpeBadgeTarget), ex.name, 'down');
-    const head = `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. `;
+    const head = `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. `
+      + (easierCapped ? `Capped at RPE ${EASIER_DAY_RPE}: you chose an easier day${typeof rpeCtx.easier === 'string' && rpeCtx.easier ? ` (${escapeHtml(rpeCtx.easier)})` : ''}. ` : '');
     // v3.521 (BL-69): same cap as computeSuggestedSet, so badge and field agree.
     if(rpeCtx.program === 'medical' || rpeCtx.program === 'senior'){
       const c = capClinicalRpeLoad(shown, ex.name, priorTop, inDeloadWeek);
@@ -30594,7 +30642,7 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // v3.519 (BL-02): rpeTargetFor caps clinical plans at RPE 7 and returns null
   // for technique lifts, which then take the double-progression chain below.
   const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null)
-    ? rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) : null;
+    ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
   if(targetRpe != null){
     const repTarget = parseBottomRep(ex.sets);
     const lb = loadForRpeTarget(rpeCtx.e1rm, repTarget, targetRpe);
@@ -31441,6 +31489,8 @@ async function renderWorkout(){
   const inDeloadWeek = await isDeloadWeek();
   document.getElementById('exerciseList').dataset.deload = inDeloadWeek ? '1' : ''; // read by the set chips (v3.303)
   const mesoWeek = await getMesocycleWeek();
+  // v3.641 (BL-32): today only, when the person chose an easier day.
+  const easierToday = !isBackdating() && await easierDayToday();
   if(inDeloadWeek){
     fullExercises = applyDeloadVolumeReduction(fullExercises, activeProgram);
   } else {
@@ -31592,7 +31642,8 @@ async function renderWorkout(){
       // Built once per exercise rather than per set row — recentBestE1RM walks
       // the session list, and doing that inside the row loop would repeat it
       // for every set of every exercise on the day.
-      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), stepE1rm: recentBestE1RM(pastSessions, {plain: true}), week: mesoWeek, program: activeProgram, category: exCategory}; // v3.640 (BL-34)
+      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), stepE1rm: recentBestE1RM(pastSessions, {plain: true}), week: mesoWeek, program: activeProgram, category: exCategory, // v3.640 (BL-34)
+        easier: easierToday ? (easierDayWhy || true) : null}; // v3.641 (BL-32)
       const signal = analyzeProgressionSignal(pastSessions, ex, exCategory, activeProgram);
       // v3.560 (BL-11): weightless rows progress by reps or seconds.
       const repSug = suggestRepProgression(ownLogs[i], ex, activeProgram);

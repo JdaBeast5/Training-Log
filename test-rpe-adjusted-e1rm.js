@@ -13,7 +13,7 @@ const { readIndexSource, extractFunction, extractConst, runSandbox, runSandboxAs
 const src = readIndexSource();
 const { test, run } = makeRunner('test-rpe-adjusted-e1rm.js');
 
-const FN = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep',
+const FN = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay' /* v3.641 (BL-32) */, 'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep',
   'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise', 'isDumbbellExercise', 'toDisplayWeight',
   'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'rpeAdjustedE1RM', 'recentBestE1RM',
   'isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'normalizeExEntry', 'canonicalExName', 'groupCorpusByExercise'];

@@ -56,6 +56,7 @@ async function insight(program, weeklyRpe){
     async function computeDaysSinceRest(){ return 1; }
     function rhrBaselineFrom(){ return null; }
     function hrvBaselineFrom(){ return null; } function hrvRecentFrom(){ return null; } // v3.638 (BL-21): no HRV here (test-readiness-hrv.js)
+    async function easierDayToday(){ return false; } var loadSuggestionMode = 'progression'; let easierDayWhy = ''; const EASIER_DAY_RPE = 8; // v3.641 (BL-32): no easier day here
     async function getMesocycleWeek(){ return 4; }
     async function isDeloadWeek(){ return false; }`], `__capture.push(await getReadinessInsight());`);
   return r;
