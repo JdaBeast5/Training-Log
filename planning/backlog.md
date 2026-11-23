@@ -1049,7 +1049,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   5. A clinical day already capped at 7 stays at 7 after the tap.
 - **Test plan:** extend `test-readiness-hrv.js` (BL-21's suite), with the real `computeReadiness`, `formatReadiness`, `rpeTargetFor` and a stub `window.storage`. Sabotage: apply the cap whenever readiness is `caution`, without the stored key, and criterion 1 must fail.
 - **Risk:** the readiness note's layout and Today's Priorities. Suggested loads change only on a day the owner taps the button. Guarded by `test-rpe-safety-caps.js` (clinical caps) and BL-21's suite.
-- **Status:** ready (after BL-21) (owner yes 2026-11-08, D3: one-tap "make today easier", not automatic).
+- **Status:** done (v3.641, PR #225, 2026-11-23) (owner yes 2026-11-08, D3: one-tap "make today easier", not automatic).
 
 ### BL-33: Deload clock counts only weeks you actually trained (M-6, part 1)
 - **Why:** `getMesocycleWeek` (14958) counts calendar weeks from `program-cycle-start` (14966: `Math.floor(daysSince/7) + 1`). A week off still advances the block toward the deload [BELL23].
