@@ -4282,6 +4282,293 @@ The owner, on live v3.599: Today "looks hodgepodge right now, stuck between old 
 
 ---
 
+## Design (UX): the tab audit (design-engineer, 2026-11-23)
+
+The owner sent five screenshots of the live app (v3.645) and asked whether the tabs still look like the old app. They do, below what the UX items rebuilt. UX-03's flat pass recoloured the old components but never touched the plate-blue accent, the plate-colour glows, the see-through row fill, the mono labels or the chart fills, and UX-15 can't help (every one of these rules still matches live elements). The full audit, with selectors and line numbers, was the design-engineer's `tab-audit.md` (2026-11-23).
+
+**Owner's answers (2026-11-23):** cards become ruled sections like Today (UX-50); Learn, masterclasses, Care and Coach stay neutral (no day ink); every trend line in ink; no link blue. Week Over Week deltas take no colour (the default). Gym mode is out of scope in every item. Order: TOOL-02 first (outside the loop), then UX-38 (a contrast bug), the cross-app patterns UX-39 to UX-45, the per-tab remainders UX-46 to UX-49, then UX-50. UX-15 stays last.
+
+**Flagged, not itemised:** with Priorities open, its summary line repeats the first note directly below it (copy and IA, not colour).
+
+### TOOL-02: The harness shoots every tab, top to bottom
+- **Why:** the default matrix shoots one viewport per view and never shoots Care, Coach, Learn, Settings or an open masterclass. That's why the 2.0 leftovers below the fold never showed up in a PR's contact sheet.
+- **Change:** a `--tabs` mode beside `--today`, which changes nothing in the default mode's states or bytes.
+  - It shoots full page at 402×874, dark and light, at DPR 1: `tabs-food`, `tabs-progress` (every Analysis group open, seeded through the `analysis-group-collapsed:<key>` storage keys), `tabs-history`, `tabs-care`, `tabs-coach`, `tabs-learn`, `tabs-masterclass` (the first non-program masterclass opened through its index button) and `tabs-settings` (the cog tapped).
+  - Plus `tabs-progress-904` and `tabs-learn-904` for the Duo.
+  - It seeds `week-streak-last-celebrated` so the milestone moment doesn't cover the page.
+- **Acceptance criteria:**
+  1. `node tools/visual/harness.js --tabs` produces the 18 named PNGs, with 0 outbound requests blocked and 0 page errors.
+  2. A default run's state list and PNG bytes are unchanged against the parent commit (`--base`).
+  3. `tabs-progress-*` is taller than the same view with the groups collapsed, which proves the groups opened.
+- **Test plan:** run it, plus the default-mode identity check. Sabotage: drop the group seeding, and criterion 3 must fail.
+- **Files:** `tools/visual/harness.js` and `tools/visual/README.md`. Tooling only: no version bump. (A working prototype of the state list and steps is in `scratchpad/audit/harness-audit.js`.)
+- **Risk:** none to the app.
+- **Status:** ready (outside the loop: tooling only, no version bump; build it before UX-38 so their contact sheets show these screens)
+
+### UX-38: Water buttons and bar readable in light
+- **Why:** `.water-btn` (≈2952) and `#barWater` (inline, ≈7238) use the 2.0 cyan `#4FC3F7`. On the light card the "+8oz / +16oz / +24oz" labels are **2.0:1**, against a 4.5:1 floor. This is an accessibility defect in a frequent control, so it goes first.
+- **Change:**
+  - The buttons become the standard secondary control: `--surface-2` fill, 1 px `--rule`, `--r-control` radius, the label in `--text`, at least 44 px tall.
+  - The water bar's fill becomes the ink (`--text`) on a `--surface-2` track, like the macro row's bars.
+  - `#barWater`'s inline `style="background:#4FC3F7"` moves into the stylesheet (markup otherwise unchanged).
+- **Acceptance criteria:**
+  1. WCAG, using UX-01's luminance function on the resolved values: the `.water-btn` label against its background is ≥ 4.5:1 in both themes.
+  2. CSSOM: no rule outside gym mode, and no inline style in the Food markup, contains `#4FC3F7` for `.water-btn` or `#barWater`.
+  3. The real `addWater` path (a click on `+8oz`) still adds 8 oz and moves the bar width by the same amount as at v3.645 (existing water tests unchanged).
+  4. Every `.water-btn` has a computed `min-height` ≥ 44 px.
+- **Harness:** must change `tabs-food-*` (the water rows) and default `food-*` only if the water card is in view. Everything else stays identical.
+- **Test plan:** new `test-water-contrast.js`. Sabotage: restore the cyan colour, and criterion 1 must fail in light.
+- **Files:** `index.html` (`.water-btn` ≈2952; `#barWater` ≈7238; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with a dated note any suite pinning `#4FC3F7` on the water bar (grep `test-*.js`).
+- **Risk:** low. The water card loses its blue identity; the 💧 is already an outline icon.
+- **Status:** ready
+
+### UX-39: "Show N more" folds as a quiet ruled row
+- **Why:** the most visible 2.0 component left: it appears in every one of the five screenshots. `.show-more-btn` (2496–2519) is a glass pill (`--glass-fill`, `--glass-hair`, `--radius-pill`) with a plate-blue label, on Today (Priorities), Food (weigh-ins, sleep, BP, glucose, quick picks), Progress (Keep In Mind, Exercise Progress) and History (PRs).
+- **Change:**
+  - Outside gym mode, the fold is a full-width text row: no fill, no border except a 1 px `--rule` on top, square ends, at least 44 px tall.
+  - The label is 13 px/600 in `--text-2`, and the drawn chevron (`::after`) is in `--text-3`, as Priorities' summary chevron (1390) already is.
+  - `:active` changes opacity only (0.6), with no scale.
+  - Labels, ids, `expanded` toggling and the counts are untouched. It's the same element at all six build sites (7538, ≈37790, ≈41677, ≈44976, ≈45767).
+- **Acceptance criteria:**
+  1. CSSOM: `body:not(.gym-mode) .show-more-btn` resolves `background` to none or transparent, `border-radius` to 0, and `color` to `--text-2`; no `.show-more-btn` rule outside gym mode reads `--plate-blue`, `--glass-fill` or `--radius-pill`.
+  2. Real folds: `renderTips`' toggle (`#tipsToggle`), the weigh-in fold and the Exercise Progress fold (≈45767, `data-collapsed-label`) still flip between "Show N more" and "Show less" and reveal the same rows (real clicks in jsdom; the existing fold suites pass unchanged).
+  3. Computed `min-height` ≥ 44 px; the accessible name equals the visible label.
+  4. Contrast: `--text-2` on `--surface-1` and on `--ground` is ≥ 4.5:1 in both themes.
+- **Harness:** must change `tday-*-402` (the Priorities fold), `tabs-food-*`, `tabs-progress-*` and `tabs-history-*`. Must stay identical: the Today cover, `gym-*`.
+- **Test plan:** new `test-show-more-row.js`. Sabotage: put `color:var(--plate-blue)` back, and criterion 1 must fail.
+- **Files:** `index.html` (2496–2519; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Read and keep green: `test-analysis-collapse.js`, `test-today-priorities*.js`, the weigh-in and PR fold suites (grep `show-more-btn`).
+- **Risk:** low. It's one rule family, and the text stays.
+- **Status:** ready
+
+### UX-40: In-card list rows are ruled, not tiles
+- **Why:**
+  - `--row-fill` (≈108) is 2.0's see-through row and was never retargeted in dark.
+  - `.swipe-content{background:var(--row-fill)}` (≈3038) with `.swipe-item{border-radius:var(--radius-sm)}` (≈2997) draws every swipeable row as a rounded tile: weigh-ins, sleep, BP, glucose, measurements, supplements, care log, coach history.
+  - It also turns UX-13's ruled `.food-log-item` rows back into tiles on the device.
+  - The Priorities note's 2 px rule gets curved ends from `#todayInsightsList .swipe-item{border-radius:var(--radius-md)}` (1379).
+- **Change:**
+  - Outside gym mode, `.swipe-item` has radius 0 and margin 0.
+  - `.swipe-content` is **opaque** in the surface it sits on, so the red delete layer can never show through (the v3.383 rule). In a `.card` that's `--surface-1`; on the ground (Priorities) it's `--ground`, as 1395 already does.
+  - The rows inside take a 1 px `--rule` bottom border. `.weight-item` (2485) gets `padding:12px 0`, a 15 px date in `--text-2` and the value in Geist with `tabular-nums` (not mono, 2489).
+  - The per-list radius overrides (1322, 1379, 1381, 4227) go to 0.
+- **Acceptance criteria:**
+  1. CSSOM: outside gym mode, `.swipe-item` `border-radius` is 0, and `.swipe-content` resolves to an opaque colour equal to its container's surface (assert alpha = 1 in both themes; this is the regression test for the red bleed).
+  2. Real `makeSwipeable` on a weigh-in row: a swipe still reveals delete and a tap deletes the entry (as the existing swipe suites drive it).
+  3. CSSOM: `.weight-item span:last-child` doesn't resolve to `--font-mono` and has `tabular-nums`.
+  4. `.food-log-item` rows: the computed background of their `.swipe-content` equals the card surface (so they read as ruled rows, as UX-13 specified).
+- **Harness:** must change `tabs-food-*`, `tabs-care-*`, `tday-*-402` (the Priorities note's ends). Must stay identical: `gym-*`.
+- **Test plan:** new `test-ruled-rows.js`, plus the swipe suites. Sabotage: set `.swipe-content` back to `--row-fill`, and criterion 1 must fail (alpha < 1).
+- **Files:** `index.html` (1322, 1379–1381, 2485–2489, 2997, ≈3038, 4227; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes any suite pinning `--row-fill` on `.swipe-content` (`test-fields-translucent.js`, `test-rgba-background-border-consolidation.js`: check).
+- **Risk:** medium-low. Swipe-to-delete is behaviour, so criterion 2 guards it.
+- **Status:** ready
+
+### UX-41: Chevrons, links and "Done" in the ink
+- **Why:** blue is the 2.0 accent. The vision keeps colour for the day's ink and for state. Today already went ink (UX-23, UX-34), so the same affordance is now grey on Today and blue everywhere else. In the screenshots: blue chevrons on Learn, "In your program", "Watch form video".
+- **Change (outside gym mode; the `--plate-blue` token itself is untouched, per UX-05's rule):**
+  - `.ex-chevron` default (1662) → `--text-3`, which retires the per-screen overrides at 1390, 2214 and 5628 (consolidation);
+  - `.xlink .xlink-chev` (3481) → `--text-3`;
+  - `.restaurant-btn .ex-chevron` (4402) → `--text-3`;
+  - `.ex-video-link` (2321) → `--text` at 14 px everywhere, generalising UX-34's `#exerciseList` override (2341), which then goes;
+  - `.masterclass-index-btn.current .mc-index-meta` (4649) → `--text-2` at weight 600 (it's a label, not a link);
+  - `#researchSourcesList .source-cites a` (≈4672) → `--text` with an underline (links in running text keep an underline, since colour alone isn't the affordance);
+  - `.settings-panel-close` (2117) and `.sub-modal-close` (1598) → `--text`, which retires the finish and day sheet overrides (1015, 1037);
+  - `.custom-toggle.coach-key-link` (3865) → `--text`, underlined.
+- **Acceptance criteria:**
+  1. CSSOM: none of the listed selectors resolves `color` to `--plate-blue` or `#7A93FF` outside gym mode, and the overrides at 1390, 2214, 2341, 1015 and 1037 no longer exist (one rule each, counted in the CSSOM).
+  2. Real `renderMasterclassIndex()`: the current program's row still says "In your program", has class `current`, and its meta is ≥ 4.5:1 on `--surface-1` in both themes.
+  3. Real builders (`buildExerciseSearchResultHtml` and the two other `ex-video-link` builders): one `a.ex-video-link` each with the same `href`, a computed `min-height` ≥ 44 and a name "Watch form video".
+  4. Contrast: `--text-3` chevrons on `--surface-1` and on `--ground` ≥ 3:1 (a non-text graphic) in both themes.
+- **Harness:** must change `tabs-learn-*`, `tabs-masterclass-*`, `tabs-progress-*`, `tabs-history-*`, `tabs-settings-*` and `tabs-coach-*`. Must stay identical: `tday-*` (already ink), `gym-*`.
+- **Test plan:** new `test-ink-affordances.js`. Sabotage: restore `.ex-chevron{color:var(--plate-blue)}`, and criterion 1 must fail.
+- **Files:** `index.html` (the lines above; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes: `test-cta-blue-unification.js` and `test-learn-rework.js` if they pin the blue meta or link (grep), and `test-dialog-focus-ring.js` (read and keep green).
+- **Risk:** low.
+- **Status:** ready (owner 2026-11-23: no link blue; links and affordances in ink)
+
+### UX-42: Selected chips select in the ink
+- **Why:** Food's category chips select in solid plate blue (`.food-cat-btn.active`, 4346), while Progress's lift chips (UX-10) select in ink (an ink fill with ground text). There are two selection grammars a tab apart.
+- **Change:** `.food-cat-btn.active` and any other "selected" chip outside gym mode (`.sub-option.selected` 1614, `.calendar-cell.selected` 3669 and its blue glow, `.program-select:focus` 3708) take UX-10's selected chip: `--text` fill, `--ground` label, no glow. Focus keeps a visible `:focus-visible` ring in `--text`.
+- **Acceptance criteria:**
+  1. CSSOM: the listed selected states don't resolve `background`/`border-color` to `--plate-blue` and have no coloured `box-shadow`.
+  2. Real `renderFoodCategories` (41535): exactly one `.food-cat-btn.active`, with `aria-pressed="true"` if present (add it if missing), and tapping another chip moves the class (the existing food-chip tests pass).
+  3. Contrast of the selected label on its fill is ≥ 4.5:1 in both themes.
+- **Harness:** `tabs-food-*`, `tabs-care-*` (selects), the calendar sheet if shot. Must stay identical: `gym-*`.
+- **Test plan:** extend `test-food-recents.js` or add `test-selected-chips.js`. Sabotage: restore the blue fill, and criterion 1 must fail.
+- **Files:** `index.html` (4346, 1614, 3669, 3708; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low.
+- **Status:** ready
+
+### UX-43: State notes are flat, with a state bar and no glow
+- **Why:** the glowing yellow box in the Progress screenshot. `.goal-feedback-good/-neutral/-warn` (1404–1418) are tinted fills with a matching coloured border, coloured text and a coloured glow. The same recipe is on:
+  - `.care-banner-urgent/-caution` (3953–3955);
+  - `.cycle-current-banner` (2958);
+  - `.program-rec-banner` (2574);
+  - `.progress-badge`/`-deload` (1781, 1791);
+  - `.supplement-streak` (668);
+  - `.ex-caution` (4275);
+  - `.log-date-bar.backdating` (3576).
+
+  UX-37 already set the replacement for banners.
+- **Change:**
+  - Outside gym mode, a state note is `--surface-2`, or none where it sits under a chart (as `#analysisView .goal-feedback-neutral` already does at 1423). It has no border except a **4 px left bar in the state ink**, the text in `--text`, the leading icon in the state ink, and **no `box-shadow`**.
+  - The state inks become named tokens per vision §3.2, aliased to today's values so no hue moves: `--positive:var(--plate-green)`, `--warning:var(--plate-yellow)` and `--negative:var(--plate-red)`, in both themes. UX-29 noted that no `--warning` exists.
+  - The backdating date bar keeps its yellow label (≈3590) but loses the tinted gradient.
+- **Acceptance criteria:**
+  1. CSSOM: outside gym mode, none of the listed selectors has a `box-shadow` whose colour comes from `rgba(var(--plate-*-rgb)…)`, nor a `rgba(var(--plate-*-rgb))` background (a real count over the CSSOM, comments excluded; print the offenders).
+  2. Each has a 4 px left bar (a `border-left` or `::before`) whose colour is `--warning`, `--positive` or `--negative` as its meaning says. The real `renderNutritionTrend` insight for an under-target week produces a `goal-feedback-warn` note (unchanged markup) whose bar is `--warning`.
+  3. WCAG: the note text (`--text`) on the note background is ≥ 4.5:1, and the bar against the note background is ≥ 3:1, in both themes.
+  4. The three state tokens exist in both theme rules and equal today's `--plate-green/yellow/red` values (snapshot), so nothing else moves.
+- **Harness:** `tabs-progress-*`, `tabs-care-*`, `tabs-food-*`, `tday-backdated-*`. Must stay identical: `gym-*`, `banner-*`.
+- **Test plan:** new `test-state-notes.js`. Sabotage: restore the yellow glow on `.goal-feedback-warn`, and criterion 1 must fail.
+- **Files:** `index.html` (the selectors above; the `:root` and light token blocks; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes: `test-rgba-blue-yellow-consolidation.js` and `test-neutral-rgba-consolidation.js` (they count these rgba sites; grep first).
+- **Risk:** low-medium. Many selectors in one version, but one recipe. A warning stays visibly a warning (the bar, the icon, the word).
+- **Status:** ready
+
+### UX-44: Lines are the data: the trend charts lose their fills
+- **Why:** vision §3.6: "2 px straight lines, no area fill … one hue per chart." `renderDayValueTrend` (≈45264) paints a `<linearGradient>` area under every Body & Health line (nutrition, water, sleep, BP, glucose, pain), and the weight, cardio and RPE trends (≈45643, ≈51351, ≈51415) do the same. The hues are 2.0's per-metric code: `--plate-orange`, `#4FC3F7` and `#B39DDB`, two of them off the palette. Their end labels are mono (`.trend-labels`, 2392).
+- **Change:**
+  - Each chart is a polyline only: `fill="none"`, stroke 2 px, `vector-effect:non-scaling-stroke`, a dot on the last point. The gradient `<defs>` and `<polygon>` go, and the dashed target line stays.
+  - Colour (owner 2026-11-23): **ink**. The line is `--text`, the target line `--text-3`, so the state colour appears only in the insight note under it (UX-43).
+  - `.trend-labels` end labels move to Geist `tabular-nums` in `--text-2`.
+  - One builder, so the four charts share `renderDayValueTrend`'s SVG fragment through one small `trendLineSvg(points, opts)` helper, consolidated rather than patched four times. `e1rmChartSvg` (UX-10) is not merged into it; it already follows §3.6.
+- **Acceptance criteria:**
+  1. Real `renderNutritionTrend`, `renderSleepTrend` and `renderWaterTrend` over a seeded store: each chart's SVG has no `<linearGradient>` and no `<polygon>`, exactly one `polyline` with `fill="none"`, and one point per logged day in range (the same count as v3.645's polyline).
+  2. CSSOM: `.trend-labels` and its children don't resolve to `--font-mono`.
+  3. The insight sentence and its status class for the seeded data are byte-identical to v3.645 (the text doesn't change; only the drawing does).
+  4. Real-call count: the trend builders call `trendLineSvg(` exactly once each (comments stripped), and no `<linearGradient` literal remains in them.
+- **Harness:** `tabs-progress-*` (every trend), default `progress-*` if a trend is in view. Must stay identical: the UX-10 lead block (crop check), `tday-*`.
+- **Test plan:** new `test-trend-lines.js`. Sabotage: put the polygon back in one builder, and criterion 1 must fail on that chart.
+- **Files:** `index.html` (≈45264–45330 and the four builders; `.trend-labels` 2392; `.sparkline` 3748; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Read and keep green: `test-analysis-2-0.js`, `test-analysis-export.js` (the print report reads these cards), `test-weight-trend*.js` (BL-16's smoothed line, which stays).
+- **Risk:** medium (data viz). Without colour, the six charts are told apart by their titles, which they all have.
+- **Tools:** `Skill: dataviz`.
+- **Status:** ready (owner 2026-11-23: every trend line in ink)
+
+### UX-45: Geist Mono leaves the rest of the UI
+- **Why:** vision §3.3: "Geist Mono is retired from the UI; it stays for the build stamp only." UX-22 did this for Today, but about 45 rules elsewhere still set `--font-mono`. Examples:
+  - the PR timeline (`.pr-stat` 2380, `.pr-date` 2361);
+  - Week Over Week (`.week-col .w-val` 3731, `.delta-*` 3800–3802);
+  - `.sleep-avg` (2956);
+  - `.cycle-current-day` (2964);
+  - `.vol-bar-labels` (2977);
+  - `.food-item-btn .fi-macro` (4370);
+  - `.care-log-*` (4230, 4245);
+  - `.pull-refresh-label` (544);
+  - the History day rows (3799–3813);
+  - `.sub-option-history` (1619).
+- **Change:**
+  - Outside gym mode, every one of those rules uses `--font-sans` with `tabular-nums`, at its current size. The sizes are already set for figures.
+  - `.app-footer` (3811) keeps mono, and its colour goes from the literal `#4A5057` (**2.4:1** on the dark ground) to `--text-3` (≥ 4.5:1 in both themes).
+  - Gym mode's mono stays (`body.gym-mode .set-chip`, 5522, and its other rules).
+- **Acceptance criteria:**
+  1. CSSOM: under `body:not(.gym-mode)`, the only rule that resolves `font-family` to `--font-mono` or "Geist Mono" is `.app-footer`. Print the offenders.
+  2. Every rule that lost mono declares `font-variant-numeric: tabular-nums`.
+  3. `.app-footer` text is ≥ 4.5:1 on `--ground` in both themes.
+  4. `test-*` suites that assert mono on these selectors are re-pinned with dated notes "UX-45, mono retired" (grep `font-mono` in `test-*.js` before building; name each one in the PR).
+- **Harness:** `tabs-*` (all), default `history-*`. Must stay identical: `gym-*`, the cover region of `tday-*`.
+- **Test plan:** new `test-mono-retired.js`. Sabotage: restore mono on `.pr-stat`, and criterion 1 must fail.
+- **Files:** `index.html` (the rules listed; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Column alignment holds through `tabular-nums`; check Week Over Week's columns in the harness.
+- **Status:** ready
+
+### UX-46: Food's lower half in the world's ink
+- **Why:** UX-13 rebuilt Food's summary and logged rows. Below them, the quick-pick list, the date bar, Grocery, Supplements, Body Measurements, Progress Photos and the Log/Add pill buttons are 2.0.
+- **Change (after UX-38 to UX-45, so only Food-specific things remain):**
+  - `.log-date-bar` (3567) outside the cover: `--surface-1`, a 1 px `--rule`, no `--rim` and no shadow (the light screenshot shows the shadow).
+  - `.food-item-btn` tiles (≈4358) become ruled rows: name; then calories and macros in `--text-2` on a second line; the add (+) button stays, at 44 pt.
+  - The weight, sleep and grocery "Log"/"Add" buttons take `--r-control` (14), not a pill.
+  - `.masterclass-close-btn`-style glass buttons inside Food (`--glass-fill` users in the Food markup) take the secondary control style from UX-38.
+- **Acceptance criteria:**
+  1. CSSOM: no rule matching an element inside `#logView` outside gym mode reads `--glass-fill`, `--row-fill`, `--rim` or a `--radius-pill` border radius (a jsdom sweep over the real markup after `renderFoodLog` and `loadFoodLog`).
+  2. Tap parity: `test-tap-counts.js` "log a recent food" ≤ the parent commit's (unchanged at 1).
+  3. The real quick-pick add (a `.food-item-btn` + click) still adds one entry with the same macros (the existing food suites unchanged).
+  4. Every Food control is ≥ 44 px tall.
+- **Harness:** `tabs-food-*`, default `food-*`. Must stay identical: `tday-*`, `progress-*`.
+- **Test plan:** new `test-food-lower.js`. Sabotage: restore `background:var(--glass-fill)` on the date bar, and criterion 1 must fail.
+- **Files:** `index.html` (#logView markup and its CSS; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Suites pinning this markup: UX-13's list.
+- **Risk:** low-medium (Food is the most-touched tab). Behaviour is unchanged, which criteria 2–3 guard.
+- **Status:** ready
+
+### UX-47: Progress below the lead in the world's ink
+- **Why:** UX-10 rebuilt the top. Everything under the jump rail is 2.0. After UX-39 to UX-45 have shipped, what's left is specific to Progress:
+  - Week Over Week's **up/down** colouring (`.delta-up/-down`, 3800–3801);
+  - Weekly Volume's bars and labels (`.vol-bar-fill` 2975 with a no-op gloss `::after`; `.vol-landmark-*` 2979–2994 including `#4FC3F7`);
+  - the jump rail's chips (`.analysis-index`, 3300), in a different grammar from UX-10's lift chips directly above;
+  - Keep In Mind's coloured bullet dots (`.tip-icon`, 2493).
+- **Change:**
+  - **Week Over Week:** deltas in `--text-2` with a sign. No colour (the default; colouring by the goal's direction would be a separate owner decision).
+  - **Weekly Volume:** the bars take the ledger's grammar from BL-20/UX-10: an ink fill on a `--surface-2` track, the floor as a hairline, under-floor in grey. The "−100%" figure goes to `--text-2`. The "below the typical range" line uses `--warning` (UX-43) with the word, never colour alone. `::after` gloss removed.
+  - **Jump rail:** UX-10's chip (an outlined `--rule` chip, selected in ink).
+  - **Tip bullets:** a 6 px `--text-3` dot.
+- **Acceptance criteria:**
+  1. CSSOM: none of these selectors resolves to `--plate-blue`, `--spot-blue`, `#4FC3F7`, or a plate colour for an up/down delta; `.vol-bar-fill::after` doesn't exist.
+  2. Real `renderVolumeTrend`: the same groups, the same order, the same "This week / Last week" numbers and the same landmark sentences as v3.645 (text identical; only the styling changes).
+  3. `test-analysis-collapse.js`, the jump-rail tests (`test-analysis-index-visual-weight.js`, `test-app-2-0.js:173`) and `test-muscle-ledger.js` pass, re-pinned only where they pin colour, with dated notes.
+- **Harness:** `tabs-progress-*`, default `progress-*`. Must stay identical: the UX-10 lead (crop), `tday-*`.
+- **Test plan:** new `test-progress-lower.js`. Sabotage: restore `.delta-down{color:var(--plate-red)}`, and criterion 1 must fail.
+- **Files:** `index.html` (the selectors above; `renderVolumeTrend` ≈45779-era; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** medium. Removing up/down colour changes how Week Over Week reads, which is why it's an owner option.
+- **Tools:** `Skill: dataviz`.
+- **Status:** ready (no colour on deltas, the default)
+
+### UX-48: History's PR timeline in the world's ink
+- **Why:**
+  - `.pr-stat` (2380) is mono in plate yellow; vision §5 has the PR's figure in the type, not a hue.
+  - `.pr-type-tag` (2375) is a **purple** tinted pill, and purple is not a plate ink (UX-05 retired it from the day discs).
+  - The calendar legend's "Rest day" dot is blue.
+- **Change:**
+  - `.pr-stat`: Geist 600 `tabular-nums`, in `--text` (UX-45 already removed the mono).
+  - `.pr-type-tag`: a plain 12 px `--text-2` label ("Strength PR"), with no pill and no fill.
+  - The legend's rest-day dot takes `--spot-off`/`--spot-white` as the month blocks do (UX-12's code), so the legend matches the blocks it explains.
+- **Acceptance criteria:**
+  1. Real `renderPrTimeline` over the fixture: the same events, order and text as v3.645 (one `.pr-type-tag` per strength PR).
+  2. CSSOM: `.pr-stat` and `.pr-type-tag` don't resolve to `--plate-yellow`, `--plate-purple` or `rgba(var(--plate-purple-rgb)…)`.
+  3. The legend's rest-day swatch's computed colour equals a rest-day block's computed fill in both themes.
+- **Harness:** `tabs-history-*`, default `history-*`. Must stay identical: the month blocks (crop).
+- **Test plan:** new `test-pr-timeline-ink.js`. Sabotage: restore purple on the tag, and criterion 2 must fail.
+- **Files:** `index.html` (2361–2381; the legend markup; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low.
+- **Status:** ready
+
+### UX-49: Care and Learn in the world's ink
+- **Why:**
+  - Care's pain slider is a **green→yellow→red gradient** (`.care-slider` 3920–3930), with a gradient thumb (3934).
+  - Care's and Learn's type tags are tinted pills (`.care-type-tag` 2414–2420, including `#4FC3F7`). Learn reuses `.care-type-tag.mobility`, so every movement pattern ("push", "hinge") is green for no reason.
+  - The cycle banner is blue-tinted with a glow (UX-43 covers the glow, but not the blue title, 2963).
+  - `.masterclass-close-btn` (4472) is glass.
+- **Change:**
+  - **Pain slider:** a flat `--surface-2` track. The filled part, up to the thumb, is in `--text`; the thumb is `--text` with no gradient; the number label ("3/10") stays. Pain severity is a value, not a heat map, and the label carries it. Scoped to `.care-slider` only.
+  - **Type tags:** plain 12 px `--text-2` labels with no fill. Mobility, Stretch and Strengthen are told apart by their words, which they already are.
+  - **Cycle banner title:** `--text`.
+  - **Close-masterclass:** UX-38's secondary control.
+  - **Learn and masterclasses stay neutral:** no day ink (owner 2026-11-23).
+- **Acceptance criteria:**
+  1. CSSOM: `.care-slider` track rules contain no `linear-gradient`, and `.care-type-tag*` and `.cycle-current-title` don't resolve to plate colours or `#4FC3F7`.
+  2. Real Care form: moving `#carePain` still updates its "Pain level right now: N/10" label and is saved by the real log path (the existing care suites unchanged). The slider keeps its accessible name, and its thumb is ≥ 44 px of hit area (existing polish rule).
+  3. Real `buildExerciseSearchResultHtml`: the tag text is unchanged ("push", "hinge"…).
+- **Harness:** `tabs-care-*`, `tabs-learn-*`, `tabs-masterclass-*`. Must stay identical: `tday-*`, `gym-*`.
+- **Test plan:** new `test-care-learn-ink.js`. Sabotage: restore the gradient track, and criterion 1 must fail.
+- **Files:** `index.html` (2414–2420, 2958–2964, 3920–3947, 4472; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. The slider loses its colour cue, and the number already says it.
+- **Status:** ready
+
+### UX-50: Cards become ruled sections, as on Today
+- **Why:** the largest remaining "old app" signal in the screenshots is the 28 px rounded card around every section on Food, Progress, History and More. UX-03 sanctioned cards as `--surface-1` with a 1 px rule. But the mock-ups and the rebuilt screens (Today, the top of Progress) put sections directly on the ground: a section head in 22/700 and ruled rows. And the vision's radius scale has no 28 px card (14 for controls, 28 for sheets). `--rim` (288) still paints a lit inset top edge on about 45 rules.
+- **Change (owner 2026-11-23: sections):**
+  - Outside gym mode, `.card` loses its fill, border, radius and padding. It becomes a section: a 1 px `--rule` top border, 24 px vertical rhythm, the `.card-title` at `--fs-title` (22) with the outline icon kept at 20 px.
+  - The Settings sheet's grouped cards stay as they are (the iOS settings grammar; `.settings-panel-body .card`, 2148/2203).
+  - `--rim` and `--elev-1` resolve to no shadow outside gym mode for non-floating elements; sheets and the toast keep `--float-shadow`.
+  - One version: a single selector family, already shown to be consistent on Today (`#todayInsightsCard.today-priorities`, 1386).
+- **Acceptance criteria:**
+  1. CSSOM: `body:not(.gym-mode) .card` (excluding `.settings-panel-body .card`) has `border-radius` 0, no background (it inherits the ground), no side borders, and a top rule.
+  2. `test-analysis-collapse.js`, `test-glass-cards.js` (re-pinned with a dated note: cards stop being panels), the jump-rail scroll-margin rule (`#analysisView .card{scroll-margin-top}`, 3375) and the print report pass.
+  3. No text or control loses contrast: the harness's contrast pass reports no new failure against the parent commit.
+- **Harness:** every `tabs-*`, default `food-*`, `progress-*` and `history-*`. Must stay identical: `tday-*` (already sectioned), `gym-*`, `tabs-settings-*`.
+- **Test plan:** new `test-sections.js`. Sabotage: restore `border-radius:var(--radius-card)`, and criterion 1 must fail.
+- **Files:** `index.html` (`.card` 1171, `--rim` 288 and the non-gym block, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** medium-high visually (every tab at once), but it's one rule and reverts cleanly. Ship it after UX-39 to UX-49, so only the frame changes in this version.
+- **Status:** ready (owner 2026-11-23: ruled sections, not cards). Ships after UX-38 to UX-49.
+
+---
+
 ## Tooling and docs outside the build loop (alignment round, 2026-11-07)
 
 The loop never picks these: they aren't in the roadmap's numbered sequence, and they change neither `index.html` nor `sw.js`, so they bump no version and can't collide with the open auto-PR (consensus C3). Each is its own PR into `Branch-1`, merged by the owner.
