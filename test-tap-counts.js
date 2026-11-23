@@ -125,7 +125,7 @@ function mountChrome(date){
     function refreshForLogDate(){}
     window.__calendar = 0; function openCalendarModal(){ window.__calendar++; }
     window.__daySheet = 0; function openDaySheet(){ window.__daySheet++; }
-    function refreshHealthImportSummary(){}
+    function refreshHealthImportSummary(){} function renderTrainingSince(){} /* v3.633 (BIZ-19) */
     var coachChatHistory = []; function renderCoachChatLog(){} async function getApiKey(){ return 'k'; }`,
     [...['setLogDate', 'renderLogDateBar', 'updateTodayFab', 'formatLogDateLabel', 'dateKeyMinusDays', 'fmtDayLabel', 'parseDateKey', 'formatDate', 'syncTodayChrome'].map(f => extractFunction(src, f)),
      extractConst(src, 'TODAY_CHROME_MOVES'),
@@ -206,7 +206,7 @@ test('UX-25: marking a rest day done takes one tap on the cover (the real render
 
 test('UX-28: changing program takes 2 taps: the Settings icon, then #programSelector (the real wireSettings reparents it)', (assert)=>{
   const page = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
-  const { window } = runJsdom(page, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){}`,
+  const { window } = runJsdom(page, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){} function renderTrainingSince(){} /* v3.633 (BIZ-19) */`,
     [extractIIFE(src, 'wireSettings') + '\nwireSettings();',
      "window.__switched = 0; document.getElementById('programSelector').onchange = () => { window.__switched++; }; // renderProgramSelector's handler: test-today-relocations.js"]);
   const doc = window.document;

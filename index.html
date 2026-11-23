@@ -7015,6 +7015,9 @@
            navigator.storage.estimate() rather than showing a misleading zero. -->
       <div id="storageUsageMeter"></div>
       <button class="switch-profile-btn" id="printProgramBtn">Print my program (full week, on paper)</button>
+      <!-- v3.633 (BIZ-19): "Training since <Month YYYY>", from the log itself;
+           renderTrainingSince fills it, and leaves it empty with no sets. -->
+      <div id="trainingSinceSlot"></div>
       <button class="switch-profile-btn" id="exportDataBtn">Export my data (backup as JSON)</button>
       <div class="history-hint field-note" id="exportKeysNote">API keys aren't included; enter them again after restoring.</div>
       <!-- v3.631 (BL-22): the workout log as a spreadsheet, for another app or
@@ -8484,7 +8487,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.632';
+const APP_VERSION = '3.633';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10216,6 +10219,9 @@ const WHATS_NEW = {
   ]},
   '3.632': { headline: 'A first-month line in the health check', points: [
     'Settings → App Health Check now shows your first month at a glance: when you started, sessions in your first week and month, and your last backup. It is worked out on this phone from what is already saved, and nothing is sent anywhere.',
+  ]},
+  '3.633': { headline: 'Training since', points: [
+    'Settings now shows the month you started training, by your log: the earliest day with a logged set. It travels with your backup, so it survives a new phone.',
   ]},
 };
 
@@ -32580,6 +32586,11 @@ function drawShareCardFoot(ctx, format, W, H, nameFont, nameColor){
   ctx.fillText(name, row.textX, row.textY);
 }
 
+// v3.633 (BIZ-19): the logged-set test, shared with earliestTrainingDate.
+function entryHasLoggedSet(e){
+  return !!e && (e.sets || []).some(st => st && ((st.reps != null && st.reps !== '') || (st.distance != null && st.distance !== '')));
+}
+
 // v3.617 (MKT-16): the lifetime training-day number. Distinct dates with a
 // logged set (reps or a distance) up to and including dateKey, read from the
 // whole set corpus (not activity-dates, which is pruned to two years), so it
@@ -32589,10 +32600,43 @@ function trainingDayNumber(corpus, dateKey){
   for(const c of corpus || []){
     for(const e of (c && c.log) || []){
       if(!e || !e.date || e.date > dateKey) continue;
-      if((e.sets || []).some(st => st && ((st.reps != null && st.reps !== '') || (st.distance != null && st.distance !== '')))) days.add(e.date);
+      if(entryHasLoggedSet(e)) days.add(e.date);
     }
   }
   return days.size;
+}
+
+// v3.633 (BIZ-19): "Training since <Month YYYY>". The founding-member promise
+// (BIZ-20) needs proof of when someone started, and there are no accounts; the
+// log holds it. The earliest date with a logged set, from the whole corpus
+// (activity-dates is pruned to two years, so it can't be used). Travels with a
+// backup because the log does. Nothing is stored and nothing is sent.
+// A YYYY-MM-DD that names a real day (not 2024-13-05 or 2024-02-31), so a
+// stray date in a restored log can't print "Invalid Date" or the wrong month.
+function isRealDateKey(k){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(k))) return false;
+  const [y, m, d] = k.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+function earliestTrainingDate(corpus){
+  let first = null;
+  for(const c of corpus || []){
+    for(const e of (c && c.log) || []){
+      if(!e || !isRealDateKey(e.date) || !entryHasLoggedSet(e)) continue;
+      if(first == null || e.date < first) first = e.date;
+    }
+  }
+  return first;
+}
+async function renderTrainingSince(){
+  const slot = document.getElementById('trainingSinceSlot');
+  if(!slot) return;
+  let first = null;
+  try{ first = earliestTrainingDate(await readExCorpus()); }catch(e){}
+  if(!first){ slot.innerHTML = ''; return; }
+  const month = new Date(first + 'T00:00:00').toLocaleDateString('en-US', {month: 'long', year: 'numeric'});
+  slot.innerHTML = `<div class="history-hint field-note" id="trainingSince" style="margin-top:16px">Training since ${escapeHtml(month)}. This date travels with your backup.</div>`;
 }
 const ordinalSuffix = n => { const t = n % 100; return (t >= 11 && t <= 13) ? 'th' : ({1: 'st', 2: 'nd', 3: 'rd'}[n % 10] || 'th'); };
 // v3.619 (MKT-17): "Your number". The training-day numbers worth a moment, and
@@ -52623,7 +52667,7 @@ wireCustomProgramUI();
 
   // .active, not .open — .open is the collapsible-card class. Using the wrong
   // one here fails silently as a cog that does nothing.
-  function open(){ refreshSettingsNotify(); refreshHealthImportSummary(); overlay.classList.add('active'); }
+  function open(){ refreshSettingsNotify(); refreshHealthImportSummary(); renderTrainingSince(); overlay.classList.add('active'); }
   function close(){ overlay.classList.remove('active'); }
   cog.addEventListener('click', open);
   document.getElementById('settingsClose').addEventListener('click', close);

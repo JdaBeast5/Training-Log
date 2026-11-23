@@ -35,7 +35,7 @@ test('criterion 1: three years of sets on 4 dates a week: the number is the coun
     window.__activity = days.filter(d => d >= cutoff).length;
     const store = {'ex:strength:d1:0': JSON.stringify(bench), 'ex:strength:d1:1': JSON.stringify(row), 'activity-dates': JSON.stringify(days.filter(d => d >= cutoff))};
     window.storage = { list: async p => ({keys: Object.keys(store).filter(k => k.startsWith(p))}), get: async k => k in store ? {value: store[k]} : null };`,
-    [...['parseExKey', 'normalizeExEntry', 'trainingDayNumber'].map(f => extractFunction(src, f)),
+    [...['parseExKey', 'normalizeExEntry', 'entryHasLoggedSet' /* v3.633 (BIZ-19): shared logged-set test */, 'trainingDayNumber'].map(f => extractFunction(src, f)),
      extractConst(src, 'ordinalSuffix'), 'let exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null;', extractFunction(src, 'readExCorpus'),
      "window.__run = async (dk) => trainingDayNumber(await readExCorpus(), dk);"]);
   const n = await window.__run('2099-01-01');

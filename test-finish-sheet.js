@@ -34,7 +34,7 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
   'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg',
   // 2026-11-22 (v3.617, MKT-16): finishSheetModel builds the bib card's data from the same session (test-bib-card.js).
-  'trainingDayNumber', 'bibLeadLift',
+  'entryHasLoggedSet' /* v3.633 (BIZ-19): shared logged-set test */, 'trainingDayNumber', 'bibLeadLift',
   // 2026-11-22 (v3.618, MKT-18): openFinishSheet wires "Pin on a photo" (test-bib-photo.js).
   'wireFinishPhoto',
   // 2026-11-22 (v3.619, MKT-17): the model carries the number and the milestone reached today.

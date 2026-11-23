@@ -37,6 +37,7 @@ const scriptChunks = [
   extractFunction(src, 'getTodayKey'),
   extractFunction(src, 'describeHealthImportAge'),
   extractFunction(src, 'refreshHealthImportSummary'),
+  'async function renderTrainingSince(){}', // v3.633 (BIZ-19): wireSettings' open() renders it (test-training-since.js)
   extractIIFE(src, 'wireSettings'),
   'wireSettings();',
   // Exposes the two extracted registries for direct assertion — top-level
