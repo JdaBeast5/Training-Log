@@ -33,7 +33,8 @@ function mount(){
     window.__shares = 0; window.__timers = [];
     function shareCelebrationCard(){ window.__shares++; } function preloadShareCardFont(){}
     window.setTimeout = (fn, ms) => { window.__timers.push(ms); return 1; }; window.clearTimeout = () => {};`,
-    [extractConst(src, 'ICONS'), extractFunction(src, 'icon'), 'let celebrateTimeout = null;', extractFunction(src, 'bestLabel'), extractFunction(src, 'triggerCelebration')]);
+    [extractConst(src, 'ICONS'), extractFunction(src, 'icon'), 'let celebrateTimeout = null;', extractFunction(src, 'bestLabel'), extractFunction(src, 'triggerCelebration'),
+     'function fmtWeight(lb){ return lb + " lb"; }', extractFunction(src, 'prGainDetail') /* 2026-11-23 (v3.639, MKT-07) */]);
   return { window, doc: window.document, $: id => window.document.getElementById(id) };
 }
 
@@ -110,9 +111,10 @@ test('criterion 4: CSSOM under prefers-reduced-motion: reduce: the moment has tr
 });
 
 test('criterion 5: the PR moment says what the finish sheet says: "Heaviest weight yet" from the one labeller, called from both (the real PR call, evaluated)', (assert)=>{
-  const call = (() => { const a = src.indexOf("triggerCelebration('trophy', bestLabel('weight')"); if(a < 0) throw new Error('PR call not found'); return src.slice(a, src.indexOf('});', a) + 3); })();
+  // 2026-11-23 (v3.639, MKT-07): the call takes its detail from prGainDetail, built on the line before.
+  const call = (() => { const a = src.indexOf("const prDetail = prGainDetail(ex.name"); if(a < 0) throw new Error('PR call not found'); return src.slice(a, src.indexOf('});', a) + 3); })();
   const ui = mount();
-  ui.window.eval(`(function(){ const ex = {name: 'Bench Press'}, weightValRaw = '185', activeDay = 'd1';
+  ui.window.eval(`(function(){ const ex = {name: 'Bench Press'}, weightValRaw = '185', activeDay = 'd1', result = {priorMax: null};
     function fmtWeight(lb){ return lb + ' lb'; } function toCanonicalLb(v){ return Number(v); }
     ${call} })();`);
   assert.strictEqual(ui.$('celebrateText').textContent, 'Heaviest weight yet');

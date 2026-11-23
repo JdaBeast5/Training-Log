@@ -101,7 +101,7 @@ function detailWindow(open){
   const sessions = Array.from({length:8}, (_, i) => ({ date:`2026-10-${String(27 - i * 3).padStart(2, '0')}`, sets:[{weight:150 - i * 5, reps:8}, {weight:150 - i * 5, reps:7}] }));
   const html = extractElementById(src, 'exerciseDetailCard');
   const { window } = runJsdom(html, `
-    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000; var activeProgram, MEDICAL_STYLES = {}; function progressCardData(){ return null; } const progressShareCards = new Map(); // v3.639 (MKT-07): no progress card here (test-pr-gain-card.js)
     window.__open = ${open};
     function isOpenPosture(){ return window.__open; }
     async function getExLog(){ return ${JSON.stringify(sessions)}; }
@@ -505,7 +505,7 @@ function paneWindow(open){
       <div class="set-chips"><button class="set-chip" data-ex-idx="0" data-set-idx="1"></button></div></div>
     <div class="exercise-block"><div class="set-row" data-ex-idx="2" data-set-idx="0"><input class="ex-weight" placeholder="30"><input class="ex-reps" value=""></div></div></div>`;
   const { window } = runJsdom(html, `
-    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', equipmentProfile = null, LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000; var activeProgram, MEDICAL_STYLES = {}; function progressCardData(){ return null; } const progressShareCards = new Map(); // v3.639 (MKT-07): no progress card here (test-pr-gain-card.js)
     window.__open = ${open};
     function isOpenPosture(){ return window.__open; }
     async function getExLog(day, slot){ const n = ${JSON.stringify(logs)}[String(slot)] || 0;
