@@ -71,6 +71,16 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ## 3. Business model: free at launch, a subscription later
 
+> **Revised recommendation (pending owner), 2026-11-23.** The owner now wants income as the primary goal, with the community mission kept (his words are in `planning/monetization-2026-11.md`). The business-manager recommends changing one line of this section, and nothing else. **"Free forever on the phone, Pro only for server costs"** would become **"everything in the app at public launch stays free forever, safety is never paid, and an optional membership holds *new* extras, on the phone or on our servers."**
+>
+> - **Membership v1:** coaching notes for each program week, new programs 60 days early, new reports and Year in Lifting extras.
+> - **Membership v2:** hosted AI and sync.
+> - **Prices:** $5.99 a month or $39.99 a year at list; $19.99 a year founding (half, as BIZ-20 already approved); a free membership for anyone who asks.
+> - **Timing:** a Founding Supporter link at web launch (December 2026); recurring web membership around March 2027.
+> - **Unchanged:** no ads (the trade-off is weighed in monetization §1.4), no data selling, no quotas, no clawbacks, BYO-key AI free, and the coach layer.
+>
+> It's proposed in **BIZ-27 to BIZ-32** (all needs-owner). Until BIZ-27 is answered, **BIZ-18 is on hold**, so the older "What's free" paragraph can't be published by accident. If the owner declines, this section stands as written.
+
 **Owner's decision (2026-11-07, `pitch.md` → "Owner's answers"):** "income will eventually be the goal, but we can start with free and then go to subscription down the line." The owner asked "what do you guys think?" This section is the answer, and the rules that make the plan work. It replaces the earlier "free core, decide later" table. Revised 2026-11-07 against v3.515.
 
 ### 3.1 Verdict: sound, if the line is drawn now

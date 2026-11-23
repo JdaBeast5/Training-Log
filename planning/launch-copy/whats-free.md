@@ -4,6 +4,8 @@
 >
 > **Not legal advice.** This is a public consumer promise, so counsel should read it together with privacy.md before launch.
 
+> **On hold (2026-11-23):** the owner reopened the money model. BIZ-27 proposes a replacement paragraph (`planning/monetization-2026-11.md` §3.6). Don't publish or build the text below until BIZ-27 is answered. If BIZ-27 is approved, its paragraph replaces this one, and every rule below still applies.
+
 ## The paragraph (use exactly this text)
 
 Everything Platestep does on your phone is free, forever, with no ads, including every program that comes with the app. We may fix or retire a feature for safety, but we will never put it behind a payment. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with Platestep before then gets a founding price for as long as they stay subscribed. Coaches may one day pay to manage clients or sell programs they wrote; their clients and everyone else keep everything above for free.
