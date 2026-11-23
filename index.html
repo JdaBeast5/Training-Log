@@ -8447,7 +8447,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.624';
+const APP_VERSION = '3.625';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10156,6 +10156,9 @@ const WHATS_NEW = {
   '3.624': { headline: 'Your name, asked once', points: [
     'The name you type at "Who\'s training?" now becomes your profile name, so the header greets you and Getting Started ticks it off without asking again.',
   ]},
+  '3.625': { headline: 'Your name, really asked once', points: [
+    'Fixes 3.624: the name you type for a new profile now actually becomes your profile name. Profiles you already had are left as they are.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -10970,7 +10973,15 @@ function createNewUser(name){
   const newId = String(Date.now());
   users.push({id:newId, name: name || 'New User'});
   setUserList(users);
+  // v3.625: marks the profile as created in this session, across the reload
+  // below (sessionStorage, not stored data), so its first boot can take the
+  // name typed here (BIZ-02).
+  try{ sessionStorage.setItem(NEW_PROFILE_SESSION_KEY, newId); }catch(e){}
   switchToUser(newId);
+}
+const NEW_PROFILE_SESSION_KEY = RAW_PREFIX + 'new-profile';
+function profileJustCreated(){
+  try{ return !!activeUserId && sessionStorage.getItem(NEW_PROFILE_SESSION_KEY) === activeUserId; }catch(e){ return false; }
 }
 
 function showUserPicker(){
@@ -36044,14 +36055,18 @@ async function loadProfile(){
   // so it isn't asked for twice. Never when a profile is saved (a name cleared on
   // purpose, or a migrated one, stays as it is) and never after a failed read
   // (saving then would write the defaults over the real profile).
+  // v3.625: window.storage.get throws 'not found' for a key never written, so the
+  // v3.624 check (a null result) never saw a new profile: the fill never ran. And
+  // only a profile created in this session (profileJustCreated) is filled, so an
+  // older profile that never saved the form (a migrated "Me") isn't renamed.
   let freshProfile = false;
   try{
     const res = await window.storage.get('user-profile');
     if(res && res.value) userProfile = {...userProfile, ...JSON.parse(res.value)};
     else freshProfile = true;
     invalidateFoodPrefCache();
-  }catch(e){ freshProfile = false; }
-  if(freshProfile && !userProfile.name){
+  }catch(e){ freshProfile = !!(e && e.message === 'not found'); }
+  if(freshProfile && !userProfile.name && profileJustCreated()){
     const me = getUserList().find(u => u.id === activeUserId);
     const typed = me && typeof me.name === 'string' ? me.name.trim() : '';
     if(typed){ userProfile.name = typed; await saveProfile(); }
