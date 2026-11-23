@@ -8546,7 +8546,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.644';
+const APP_VERSION = '3.645';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10317,6 +10317,9 @@ const WHATS_NEW = {
   ]},
   '3.644': { headline: 'Banners that match the app', points: [
     'Update ready, Updated to a new version and the storage warning are now flat blocks in the app\'s own look, with a solid Reload now button you can\'t miss. Warnings keep a red bar down the side.',
+  ]},
+  '3.645': { headline: 'Block complete', points: [
+    'When you finish a 5-week block, the Monday recap becomes Block complete: the block\'s sessions, your three biggest estimated-1RM gains, and a Block complete card to share.',
   ]},
 };
 
@@ -50736,6 +50739,77 @@ function weekShareCardData(workoutsCount, training, dayId){
   return {icon:'flag', headline:'WEEK COMPLETE', stats, kind:'week', dayId};
 }
 
+// v3.645 (MKT-05, owner 2026-11-23: the recap-sheet surface): the story card
+// for a finished block. No body data (MKT-02), as the week card.
+function blockShareCardData(block, programLabel, dayId){
+  const stats = [
+    {value: String(block.weeks), label: 'WEEKS'},
+    {value: `${block.sessions}/${block.planned}`, label: 'SESSIONS'},
+  ];
+  const top = block.gains[0];
+  if(top) stats.push({value: `+${blockGainShown(top)} ${weightUnit}`, label: 'TOP E1RM GAIN'});
+  return {icon: 'flag', headline: 'BLOCK COMPLETE', stats, kind: 'block', dayId,
+    detail: `${programLabel ? programLabel + ': ' : ''}${block.weeks} weeks, ${block.sessions} of ${block.planned} sessions`};
+}
+// v3.645 (MKT-05): the block that ends in the week the recap covers, or null.
+// Blocks are the 7-day blocks from program-cycle-start that getMesocycleWeek
+// counts (2+ session dates in activity-dates). A block is complete when the
+// 5th, 10th, ... counted block ends inside this Mon-Sun week, so the sheet
+// shows once, on the right Monday. Its sessions and gains come from those
+// five counted blocks only (an uncounted week inside the span is left out);
+// planned is the program's training days a week x 5. Sessions are the days
+// this program had work (workout keys or logged sets), as the week strip
+// reads them. The gains are each lift's best estimated 1RM in the block
+// against its first session in it, biggest first, at most 3.
+async function blockRecap(cycleStart, weekStartKey, end, plannedPerWeek){
+  let dates = [];
+  try{ const r = await window.storage.get('activity-dates'); if(r && r.value) dates = JSON.parse(r.value); }catch(e){}
+  if(!Array.isArray(dates)) dates = [];
+  const start = parseDateKey(cycleStart);
+  const dayOf = d => Math.round((parseDateKey(d) - start) / 86400000);
+  const done = Math.max(0, Math.floor((dayOf(end) + 1) / 7)); // blocks that have ended by Sunday
+  const per = new Array(done).fill(0);
+  for(const d of new Set(dates)){ const day = dayOf(d), i = Math.floor(day / 7); if(day >= 0 && i < done) per[i]++; }
+  const counted = per.map((n, i) => n >= 2 ? i : -1).filter(i => i >= 0);
+  if(!counted.length || counted.length % DELOAD_CYCLE_WEEKS) return null;
+  const lastIdx = counted[counted.length - 1];
+  const lastEnd = dateKeyMinusDays(cycleStart, -(7 * lastIdx + 6));
+  if(lastEnd < weekStartKey || lastEnd > end) return null; // ended in an earlier week: already recapped
+  const blockIdx = new Set(counted.slice(-DELOAD_CYCLE_WEEKS));
+  const startKey = dateKeyMinusDays(cycleStart, -7 * counted[counted.length - DELOAD_CYCLE_WEEKS]);
+  const inBlock = d => !!d && d >= startKey && d <= lastEnd && blockIdx.has(Math.floor(dayOf(d) / 7));
+  const days = new Set();
+  try{ for(const {date, anyDone} of await readWorkoutCorpus()) if(anyDone && inBlock(date)) days.add(date); }catch(e){}
+  const byName = new Map();
+  try{
+    for(const c of await readExCorpus()){
+      if(!c.parsed || c.parsed.program !== activeProgram || !c.exDef || !c.exDef.name) continue;
+      for(const e of c.log || []){
+        if(!e || !inBlock(e.date)) continue;
+        if((e.sets || []).some(st => st && (st.weight != null || st.reps != null || st.distance != null))) days.add(e.date);
+        let best = null;
+        for(const st of e.sets || []){ if(!st || st.weight == null || isMissedSet(st)) continue; const v = estimated1RM(st.weight, st.reps); if(v != null && (best == null || v > best)) best = v; }
+        if(best == null) continue;
+        if(!byName.has(c.exDef.name)) byName.set(c.exDef.name, []);
+        byName.get(c.exDef.name).push({date: e.date, v: best});
+      }
+    }
+  }catch(e){}
+  const gains = [];
+  for(const [name, list] of byName){
+    list.sort((x, y) => x.date.localeCompare(y.date));
+    const from = list[0].v, to = Math.max(...list.map(x => x.v));
+    if(to > from) gains.push({name, from, to, gain: to - from});
+  }
+  gains.sort((x, y) => y.gain - x.gain || x.name.localeCompare(y.name));
+  return {weeks: DELOAD_CYCLE_WEEKS, startKey, endKey: lastEnd, sessions: days.size, planned: plannedPerWeek * DELOAD_CYCLE_WEEKS, gains: gains.slice(0, 3)};
+}
+// A gain as shown: the difference of the two shown ends, so kg rows add up.
+function blockGainShown(g){
+  const d = v => Number(trimUnitNum(toDisplayWeight(v)));
+  return trimUnitNum(Math.round((d(g.to) - d(g.from)) * 10) / 10);
+}
+
 // v3.623 (UX-11): the weekly recap as a sheet. On the first Today of a new week
 // (when last week had training), once per week ('weekly-recap-seen' holds the
 // Monday it was shown for; owner-approved 2026-11-22): the week strip, the
@@ -50795,11 +50869,24 @@ async function weeklyRecapModel(weekStartKey){
   const tag = mesocyclePhaseTag(pos, inDeload, program).text;
   const adds = !inDeload && volumeModifiersApply(program) ? (ACCUMULATION_ADDS[pos] || 0) : 0;
   const clinical = program === 'medical' || !!MEDICAL_STYLES[program];
-  return {weekStartKey, end, program: (programs[program] || {}).label || '', strip, missed: strip.filter(d => d.state === 'missed'),
-    sessions: stats.workoutsCount, planned: strip.filter(d => d.state !== 'rest').length, sets: training.sets, minutes,
+  const planned = strip.filter(d => d.state !== 'rest').length;
+  const programLabel = (programs[program] || {}).label || '';
+  const lastDay = (strip.filter(d => d.state === 'trained').pop() || {}).id || activeDay;
+  // v3.645 (MKT-05): the week a block ends in gets the block variant. Never on a
+  // clinical plan, or with no cycle started. Custom programs run the same cycle.
+  const block = !clinical && cycleStart ? await blockRecap(cycleStart, weekStartKey, end,
+    Object.keys(dayDefs).filter(id => dayDefs[id] && !dayDefs[id].rest).length) : null;
+  if(block){
+    return {weekStartKey, end, program: programLabel, strip, missed: strip.filter(d => d.state === 'missed'),
+      sessions: stats.workoutsCount, planned, sets: training.sets, minutes, bests: bests.slice(0, 3), title: 'Block complete',
+      next: `${tag}.` + (adds ? ` One more set on your first ${adds === 1 ? 'compound lift' : adds + ' compound lifts'}.` : ''),
+      block, share: blockShareCardData(block, programLabel, lastDay)};
+  }
+  return {weekStartKey, end, program: programLabel, strip, missed: strip.filter(d => d.state === 'missed'),
+    sessions: stats.workoutsCount, planned, sets: training.sets, minutes,
     bests: bests.slice(0, 3), title: first ? 'Your first week, done' : counted ? `Week ${cycleWeekOf(mesoWeek - 1)}, done` : 'Last week, done',
     next: `${tag}.` + (adds ? ` One more set on your first ${adds === 1 ? 'compound lift' : adds + ' compound lifts'}.` : ''),
-    share: clinical ? null : weekShareCardData(stats.workoutsCount, training, (strip.filter(d => d.state === 'trained').pop() || {}).id || activeDay)};
+    share: clinical ? null : weekShareCardData(stats.workoutsCount, training, lastDay)};
 }
 function recapMissedLine(missed){
   if(!missed.length) return 'Every planned day ran.';
@@ -50810,17 +50897,20 @@ function recapMissedLine(missed){
 function openRecapSheet(m){
   const sheet = document.getElementById('recapSheet');
   if(!sheet || !m) return;
-  document.getElementById('recapRange').textContent = `${formatShortDate(m.weekStartKey)} – ${formatShortDate(m.end)}${m.program ? ' · ' + m.program : ''}`;
+  // v3.645 (MKT-05): a block variant names the block's dates, its totals and its gains.
+  document.getElementById('recapRange').textContent = `${formatShortDate(m.block ? m.block.startKey : m.weekStartKey)} – ${formatShortDate(m.end)}${m.program ? ' · ' + m.program : ''}`;
   document.getElementById('recapTitle').textContent = m.title;
   const strip = document.getElementById('recapStrip');
   const STATE_WORDS = {trained: 'trained', missed: 'missed', rest: 'rest'};
   strip.setAttribute('aria-label', 'Last week: ' + m.strip.map(d => `${d.label}, ${STATE_WORDS[d.state]}`).join('; '));
   strip.innerHTML = m.strip.map(d => `<div class="recap-day"><div class="recap-block is-${d.state} ink-${escapeHtml(d.ink)} ${escapeHtml(d.plate)}" data-state="${d.state}"><span>${escapeHtml(d.state === 'rest' && !d.plateNum ? 'OFF' : d.plateNum || '')}</span></div><div class="recap-day-label">${escapeHtml(d.label.replace(/^Day\s+/, 'D'))}</div></div>`).join('');
-  document.getElementById('recapMissed').textContent = recapMissedLine(m.missed);
-  const totals = [[`${m.sessions}<small> / ${m.planned}</small>`, 'Sessions'], [String(m.sets), 'Sets']];
-  if(m.minutes > 0) totals.push([`${m.minutes}<small> min</small>`, 'Time']);
+  document.getElementById('recapMissed').textContent = (m.block ? 'Last week: ' : '') + recapMissedLine(m.missed); // v3.645 (MKT-05): the strip is last week's
+  const totals = m.block ? [[`${m.block.weeks}<small> weeks</small>`, 'Block'], [`${m.block.sessions}<small> / ${m.block.planned}</small>`, 'Sessions']]
+    : [[`${m.sessions}<small> / ${m.planned}</small>`, 'Sessions'], [String(m.sets), 'Sets']];
+  if(!m.block && m.minutes > 0) totals.push([`${m.minutes}<small> min</small>`, 'Time']);
   document.getElementById('recapTotals').innerHTML = totals.map(([v, l]) => `<div class="finish-total"><div class="finish-total-v">${v}</div><div class="finish-total-l">${l}</div></div>`).join('');
-  document.getElementById('recapBests').innerHTML = m.bests.length ? `<h3 class="finish-next-head">New records</h3>` + m.bests.map(b => `<div class="finish-next-row"><div class="finish-next-name">${escapeHtml(b.name)}<div class="finish-next-why">${escapeHtml(b.label)}</div></div><div class="finish-next-load">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))} ${escapeHtml(weightUnit)}${b.reps != null ? ` × ${escapeHtml(String(b.reps))}` : ''}</div></div>`).join('') : '';
+  const gainRow = g => `<div class="finish-next-row"><div class="finish-next-name">${escapeHtml(g.name)}<div class="finish-next-why">Estimated 1RM ${escapeHtml(trimUnitNum(toDisplayWeight(g.from)))} → ${escapeHtml(trimUnitNum(toDisplayWeight(g.to)))} ${escapeHtml(weightUnit)}</div></div><div class="finish-next-load">+${escapeHtml(blockGainShown(g))} ${escapeHtml(weightUnit)}</div></div>`;
+  document.getElementById('recapBests').innerHTML = m.block ? (m.block.gains.length ? `<h3 class="finish-next-head">Biggest gains</h3>` + m.block.gains.map(gainRow).join('') : '') : m.bests.length ? `<h3 class="finish-next-head">New records</h3>` + m.bests.map(b => `<div class="finish-next-row"><div class="finish-next-name">${escapeHtml(b.name)}<div class="finish-next-why">${escapeHtml(b.label)}</div></div><div class="finish-next-load">${escapeHtml(trimUnitNum(toDisplayWeight(b.weight)))} ${escapeHtml(weightUnit)}${b.reps != null ? ` × ${escapeHtml(String(b.reps))}` : ''}</div></div>`).join('') : '';
   document.getElementById('recapNext').innerHTML = `<b>Next:</b> ${escapeHtml(m.next)}`;
   const shareBtn = document.getElementById('recapShare');
   const fresh = shareBtn.cloneNode(true);
