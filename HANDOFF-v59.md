@@ -1577,3 +1577,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 147: BIZ-04 (v3.627, PR #206, 2026-11-23)
 - `BACKUP_NUDGE_FIRST` 10 → 3; repeat and copy unchanged. Test on the real `buildNamespacedStorage`.
 - **Next:** BIZ-10 (slot 66), the Add to Home Screen hint.
+
+## Addendum 148: BIZ-10 (v3.628, PR #207, 2026-11-23)
+- `getInstallHintInsight`, `runningInstalled` and `isAppleTouchDevice`: the row shows in Safari on iPhone/iPad after the first set. Hide → `install-hint-dismissed`, with Undo.
+- Owner: iOS only, and the copy says to export, add, then import (Home Screen storage is separate). Revisit with the native apps.
+- The harness runs desktop Chromium, so the row doesn't show there; to see it, shoot with an iPhone user agent.
+- **Flagged:** the year recap and early deload rows still leak their button text into the Priorities summary line.
+- **Next:** BIZ-07 (slot 67).
