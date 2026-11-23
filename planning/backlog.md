@@ -4166,6 +4166,24 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Change:** the tips' wording follows the user's goal (bulk, cut, recomp, maintain) with no change to the advice itself; no medical claim.
 - **Status:** done (v3.616, PR #195). Only Strength & Size's tips had goal-specific wording: three placeholders resolved through `TIP_GOAL_PHRASES` in `renderTips`.
 
+### UX-36: "Then" shows the cover's exercise as one compact "now" row
+- **Why:** owner, 2026-11-23, looking at Powerbuilding Squat + Legs and Deadlift + Back/Biceps on v3.628. The exercise on the cover appears again as the first full row under "Then", with the same chips. That contradicts the heading and design-vision §Today ("the session's **remaining** work"), and reads like a mistake. UX-23 had kept the full row with the `.is-now` bar so swap, details and check-off stay reachable. The owner chose option (c): keep the row, but compact it.
+- **Change:** outside gym mode, the `.is-now` row in `#exerciseList` keeps its checkbox, pictogram, name, swap glyph, chevron and the spot `.is-now` bar. It hides its set chips and its prescription line, and shows one short meta line, "On the cover", in `--text-2`. Tapping the row still opens the exercise's details or set sheet exactly as today, and the swap glyph still swaps. When the cover moves on to the next exercise, the `.is-now` marker moves with it, so the finished exercise's row shows its chips again with their ticks.
+  - The same pass removes two leftovers:
+    - **the green ↑ "go up" arrows** on list chips outside gym mode. The ↑ stays, but in `--text-2` instead of green (gym mode unchanged). The cover keeps its own wording.
+    - **the repeated "Week N of 5 · Accumulation"** under "Then". The program line on the cover already says it, so the "Then" meta keeps only the time ("~64 min").
+- **Acceptance criteria:**
+  1. Real `renderWorkout` and `renderUpNext` on the harness fixture: exactly one `#exerciseList` row has `.is-now`. That row has no visible `.set-chip`, and its meta text is "On the cover". Every other row's chips render as before (count unchanged).
+  2. After logging the last set of the cover's exercise (real save path), `.is-now` moves to the next row; the previous row shows its chips, all ticked.
+  3. Tap parity: `test-tap-counts.js` cases for log-from-cover, swap-the-current-exercise and open-details stay equal or fewer.
+  4. CSSOM: outside gym mode, no list chip's arrow computes to the green ink; in gym mode it's unchanged.
+  5. The "Then" meta contains no "Week" or "Accumulation" when the cover's program line is shown, and still shows the time.
+  6. Sabotage: removing the compact rule fails 1; colouring the arrow green again fails 4.
+- **Test plan:** extend `test-today-then-list.js` (UX-23's suite) or add `test-then-now-row.js`; re-pin harness states `tday-*-402` (lower half) and `tday-left-*-904`.
+- **Files:** `index.html` (`#exerciseList .is-now` CSS around 5587, the row builder in `renderWorkout`, the chip arrow markup and style, the "Then" meta, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test, `test-tap-counts.js`, and any suite that counts chips in the list (re-grep).
+- **Risk:** low. Display only, with no stored data.
+- **Status:** ready (owner 2026-11-23: option (c), "let's go with what you recommend"). Roadmap: next in sequence.
+
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
 - **Change:** `tools/visual/`, a Playwright script with:
