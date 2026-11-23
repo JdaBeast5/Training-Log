@@ -434,3 +434,10 @@ Added by the business-manager, 2026-11-07, against v3.514. Reasoning and evidenc
 - **Phase 5 gains BIZ-18 once approved:** the "What's free" note ships with BIZ-16 and MKT-14, so the promise is public before any paid plan exists.
 - **Guard the free list in every later item:** no quotas, locks or "Pro" labels on logging, programs, progression, history, charts, food, backups or BYO-key AI. BIZ-18 criterion 4 tests for it.
 - **The Capacitor dependency:** store billing (BIZ-22, path A) needs the native build to support it. That effort is owned elsewhere; this is recorded only so nothing here waits on it by mistake.
+
+**Money model reopened (business-manager, 2026-11-23; proposal in `planning/monetization-2026-11.md`).** Re-rank requests for the project-manager:
+- **Hold BIZ-18 (slot 92)** until the owner answers BIZ-27. It would publish a free/paid paragraph that BIZ-27 proposes to replace.
+- **If BIZ-27, BIZ-28 and BIZ-32 are approved, BIZ-28 (the web-only "Support Platestep" link) joins Phase 5** beside BIZ-16, MKT-14 and BIZ-18. It's small (a constant, one Settings link and the README), and it's the first income, targeted for the December web launch.
+- **If BIZ-27, BIZ-29 and BIZ-30 are approved, BIZ-29 (membership v1) becomes the first item after Phase 5,** ahead of the program extensions (slots 88a–88d). Its coaching-note content needs the exercise-auditor's review time in January.
+- **Nothing in Phases 0–4 moves.** Safety, activation and data trust still decide whether anyone stays long enough to pay. No shipped feature becomes paid.
+- **BIZ-21's six triggers still gate hosted AI and sync (BIZ-13, BIZ-14).** If BIZ-27 is approved, T1 and T3 stop gating the on-device membership.

@@ -11,6 +11,7 @@ The owner's mission (2026-11-07): "the best tracking app and the best workout pl
 | `toolchain.md` | skills-orchestrator | Which skills and tools each agent uses; vetted additions |
 | `automation.md`, `build-log.md` | build-automator | The scheduled build loop and what each run shipped |
 | `business.md` | business-manager | Strategy, model, funnel, what blocks success; BIZ-nn backlog items |
+| `monetization-2026-11.md` | business-manager | The money plan (proposal, pending the owner): revenue options compared, the membership with a frozen free floor, the first-dollar path, LLC and tax basics, year-1 scenarios; BIZ-27 to BIZ-32 |
 | `marketing.md` | marketing-manager | Brand, built-in virality and share moments, store and launch, experiments; MKT-nn items |
 | `design-vision.md` (+ `tools/design/`) | design-engineer | The high-end redesign vision, mock-ups, staged UX-nn items |
 | `summit.md` | project-manager (chair) | The 2026-11-07 cross-review of all eight agents and its resolutions (R1–R11) |
