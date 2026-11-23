@@ -1674,3 +1674,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - Six cycling orphans are removed from `exerciseInfo` and `EXERCISE_MOVE`, along with `EXERCISE_MOVE`'s duplicates. 85 move keys are added.
 - **Flagged:** `exerciseInfo` itself lists three cycling names twice.
 - **Note:** slot 22a was skipped by earlier runs while it was ready. Check sequence parsing for letter-suffixed slots.
+
+## Addendum 163: UX-36 (v3.643, PR #228)
+- `.ex-now-meta` ("On the cover") is in renderWorkout's row header and is hidden by default. Outside gym mode, `.is-now` hides its direct `.set-chips`, `.ex-sets` and `.ex-adjust-note`, and shows the meta.
+- The list's `.set-chip-trend.is-up` is `--text-2`. With `body.has-cover`, `#mesocyclePhaseTag` is hidden by CSS only, because `renderUpNext` reads its text.
+- **Flagged (pre-existing):** the list's is-next chip draws a down arrow in #fff, invisible in light theme.
+- **Next:** UX-37 (slot 50n).

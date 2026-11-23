@@ -4329,7 +4329,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Test plan:** extend `test-today-then-list.js` (UX-23's suite) or add `test-then-now-row.js`; re-pin harness states `tday-*-402` (lower half) and `tday-left-*-904`.
 - **Files:** `index.html` (`#exerciseList .is-now` CSS around 5587, the row builder in `renderWorkout`, the chip arrow markup and style, the "Then" meta, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test, `test-tap-counts.js`, and any suite that counts chips in the list (re-grep).
 - **Risk:** low. Display only, with no stored data.
-- **Status:** ready (owner 2026-11-23: option (c), "let's go with what you recommend"). Roadmap: next in sequence.
+- **Status:** done (v3.643, PR #228, 2026-11-23) (owner 2026-11-23: option (c)). Also hides the row's adjustment note; a superset member's caution stays visible.
 
 ### UX-37: App banners in Plate & Press: "Update ready", "Updated to vX" and the storage warnings
 - **Why:** owner, 2026-11-23: "make the update button match the app". The banner rail (`#appBannerRail`) is still 2.0 glass:
