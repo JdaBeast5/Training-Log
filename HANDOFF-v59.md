@@ -1630,3 +1630,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - after a failed load, `zxingLoadPromise` stays rejected until a restart;
   - a hash mismatch shows the "check your connection" message.
 - **Next:** check `planning/roadmap.md` after slot 73.
+
+## Addendum 156: BL-28 (v3.636, PR #220, 2026-11-23)
+- Added: `saved-meals`; `saveLogAsMeal`, `addSavedMealToLog` (it re-adds through `relogFoodEntry`, with a double-tap guard and Undo), `deleteSavedMeal` and `buildSavedMealBtn`. The Meals group leads My Foods, and `#saveMealBtn` sits under the log.
+- **BL-52 is held by the owner until about 2026-12-01.** BL-37 and BL-38 wait with it.
+- **Next:** the first ready item after slot 77 that doesn't depend on BL-52. BL-29 (Strong/Hevy import) is slot 77.

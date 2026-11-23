@@ -1358,6 +1358,12 @@
   .today-insight-row:last-child{margin-bottom:0;}
   /* v3.548 (MKT-06a): the year recap row's two buttons. */
   .year-recap-actions{display:flex; gap:8px; margin-top:8px;}
+  /* v3.636 (BL-28): Save as meal, only once something is logged. */
+  .food-log-list:has(> .empty-note) ~ #saveMealBtn,
+  .food-log-list:has(> .empty-note) ~ #saveMealWrap{display:none;}
+  .save-meal-btn{margin-top:10px;}
+  .save-meal-form{display:flex; flex-direction:column; gap:8px; padding-top:8px;}
+  .saved-meals-label{margin-top:2px;}
   .year-recap-btn{
     min-height:40px; padding:0 14px; border-radius:var(--radius-md); border:1px solid var(--line-bright);
     background:var(--surface2); color:var(--text); font:inherit; font-weight:600; font-size:13px;
@@ -7083,6 +7089,14 @@
       <!-- v3.575 (BL-19): on a day that has started, the button opens the prior day's items, each with its own Add. -->
       <div class="expand-wrap" id="repeatYesterdayWrap"><div><div id="repeatYesterdayList" class="repeat-yesterday-list"></div></div></div>
       <div class="food-log-list" id="foodLogList"></div>
+      <!-- v3.636 (BL-28): save the day's log as a meal, listed in My Foods. Hidden
+           while the log is empty (CSS :has, so renderFoodLog is unchanged). -->
+      <button type="button" class="reorder-btn save-meal-btn" id="saveMealBtn" aria-expanded="false" aria-controls="saveMealWrap">Save as meal</button>
+      <div class="expand-wrap" id="saveMealWrap"><div><div class="save-meal-form">
+        <input type="text" id="saveMealName" class="care-input" placeholder="Name it, e.g. Usual breakfast" aria-label="Meal name" maxlength="60">
+        <button type="button" class="save-btn" id="saveMealConfirm">Save meal</button>
+        <div class="status-msg" id="saveMealStatus" role="status"></div>
+      </div></div></div>
 
       <div class="section-divider"></div>
       <div class="section-label">Add a food</div>
@@ -8415,6 +8429,7 @@ function bootMark(name){
      medical-style                       -> one of the 13 MEDICAL_STYLES keys (e.g. "obesity", "bariatricEarly", "rehabAcl")
      cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
      custom-foods                        -> [{name,cal,pro,fat,carb}, ...] (personal "My Foods" library)
+     saved-meals                         -> [{name, items:[food-log entry minus time/source, ...]}, ...] (v3.636, BL-28)
      day-order:{program}                 -> [dayId, dayId, ...]
      active-program                      -> "strength" | "bodybuilding" | ... | "medical" (see medical-style above)
      injury-log                          -> [{date,exercise,sensation,region,pain,note}, ...]
@@ -8487,7 +8502,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.635';
+const APP_VERSION = '3.636';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10228,6 +10243,9 @@ const WHATS_NEW = {
   ]},
   '3.635': { headline: 'A safer barcode scanner download', points: [
     'The barcode scanner\'s library now downloads only if it matches a fixed fingerprint, so a changed copy on the download server can\'t run inside the app. Scanning works as before.',
+  ]},
+  '3.636': { headline: 'Saved meals', points: [
+    'Eat the same breakfast most days? Under what you\'ve eaten, Save as meal keeps the whole list under a name. It shows at the top of My Foods, and one tap adds every item back with the same portions. Deleting a meal never changes a day you already logged.',
   ]},
 };
 
@@ -39108,6 +39126,98 @@ async function removeFromCustomFoods(name){
   await saveCustomFoods();
 }
 
+// v3.636 (BL-28): saved meals. "Save as meal" stores the day's log, as
+// logged (portions and all, minus the time and source), under saved-meals
+// (owner yes 2026-11-08): [{name, items: [...]}]. They list at the top of My
+// Foods; adding one re-logs every item through relogFoodEntry (the BL-18/19
+// path), so the macros come out the same and usage counts stay under each
+// base food. A meal is a copy: deleting it never touches a logged day, and a
+// JSON backup carries it like any other key.
+const SAVED_MEALS_KEY = 'saved-meals';
+let savedMeals = [];
+async function loadSavedMeals(){
+  try{
+    const res = await window.storage.get(SAVED_MEALS_KEY);
+    const v = res && res.value ? JSON.parse(res.value) : [];
+    savedMeals = Array.isArray(v) ? v.filter(m => m && typeof m.name === 'string' && Array.isArray(m.items) && m.items.length) : [];
+  }catch(e){ savedMeals = []; }
+}
+async function persistSavedMeals(){
+  try{ await window.storage.set(SAVED_MEALS_KEY, JSON.stringify(savedMeals)); }catch(e){}
+}
+// A new name adds a meal; an existing one is replaced (saving "Breakfast" again updates it).
+async function saveLogAsMeal(name, log){
+  const n = String(name || '').trim().slice(0, 60);
+  const items = (log || []).filter(e => e && e.name).map(({time, source, ...rest}) => ({...rest}));
+  if(!n || !items.length) return false;
+  savedMeals = [...savedMeals.filter(m => m.name !== n), {name: n, items}];
+  await persistSavedMeals();
+  return true;
+}
+// One add at a time: a double tap must not log the meal twice. One Undo
+// removes exactly the entries this add put in the log.
+let savedMealAddPending = false;
+async function addSavedMealToLog(meal){
+  if(savedMealAddPending || !meal) return;
+  savedMealAddPending = true;
+  const added = [];
+  try{
+    for(const item of meal.items || []){
+      const before = todaysFoodLog.length;
+      await relogFoodEntry(item);
+      added.push(...todaysFoodLog.slice(before));
+    }
+  }finally{ savedMealAddPending = false; }
+  if(added.length) showUndoToast(`Added "${meal.name}"`, async ()=>{
+    todaysFoodLog = todaysFoodLog.filter(e => !added.includes(e));
+    await saveFoodLog();
+    renderFoodLog();
+  });
+}
+async function deleteSavedMeal(name){
+  const at = savedMeals.findIndex(m => m.name === name);
+  if(at < 0) return;
+  const removed = savedMeals[at];
+  savedMeals = savedMeals.filter(m => m.name !== name);
+  await persistSavedMeals();
+  renderFoodItems();
+  // Undo puts back this one meal where it was, keeping anything saved since.
+  showUndoToast(`Deleted "${name}"`, async ()=>{
+    if(savedMeals.some(m => m.name === name)) return;
+    savedMeals = [...savedMeals.slice(0, at), removed, ...savedMeals.slice(at)];
+    await persistSavedMeals();
+    renderFoodItems();
+  });
+}
+// "Hide foods that don't fit" hides a meal holding any food that doesn't.
+function savedMealHidden(meal){
+  return (meal.items || []).some(it => shouldHideItem(it.baseName || it.name));
+}
+function mealTotals(meal){
+  const sum = k => (meal.items || []).reduce((t, it) => t + (Number(it[k]) || 0), 0);
+  return {cal: Math.round(sum('cal')), pro: Math.round(sum('pro')), fat: Math.round(sum('fat')), carb: Math.round(sum('carb'))};
+}
+function buildSavedMealBtn(meal){
+  const t = mealTotals(meal);
+  const n = meal.items.length;
+  const row = document.createElement('div');
+  row.className = 'food-item-btn saved-meal-btn';
+  row.innerHTML = `
+    <div>
+      <div class="fi-name">${escapeHtml(meal.name)}</div>
+      <div class="fi-cat">${n} item${n === 1 ? '' : 's'}</div>
+      <div class="fi-macro">${t.cal} cal · ${t.pro}p / ${t.fat}f / ${t.carb}c</div>
+    </div>
+    <div class="fi-actions">
+      <button class="fi-star fi-delete" type="button" aria-label="Delete the meal ${escapeHtml(meal.name)}">🗑️</button>
+      <button class="fi-plus" type="button" aria-label="Add ${escapeHtml(meal.name)} to the log">+</button>
+    </div>`;
+  row.querySelector('.fi-plus').addEventListener('click', ()=> addSavedMealToLog(meal));
+  row.querySelector('.fi-name').addEventListener('click', ()=> addSavedMealToLog(meal));
+  row.querySelector('.fi-delete').addEventListener('click', (e)=>{ e.stopPropagation(); deleteSavedMeal(meal.name); });
+  return row;
+}
+
 // --- USDA FoodData Central: free, public-domain nutrition database (600K+
 // foods), used as the automatic fallback whenever a search doesn't match
 // anything in the local food library. Works with zero setup via USDA's
@@ -41393,6 +41503,19 @@ function renderFoodItems(){
     return;
   }
 
+  // v3.636 (BL-28): saved meals lead My Foods, under their own label.
+  const shownMeals = activeCat === '📁 My Foods' ? savedMeals.filter(m => !savedMealHidden(m)) : [];
+  if(shownMeals.length){
+    const label = document.createElement('div');
+    label.className = 'section-label saved-meals-label';
+    label.textContent = 'Meals';
+    itemsEl.appendChild(label);
+    shownMeals.forEach(meal => itemsEl.appendChild(buildSavedMealBtn(meal)));
+    const foodsLabel = document.createElement('div');
+    foodsLabel.className = 'section-label saved-meals-label';
+    foodsLabel.textContent = 'Foods';
+    itemsEl.appendChild(foodsLabel);
+  }
   const items = activeCat === '★ Favorites' ? favoriteFoods
     : activeCat === '📁 My Foods' ? customFoods
     : sortByUsage(foodLibrary[activeCat] || []);
@@ -41403,7 +41526,7 @@ function renderFoodItems(){
       : items && items.length > 0
         ? 'Everything here is on your avoid list — turn off "Hide avoided foods" above to see it.'
         : 'No favorites yet. Tap the star on any food to save it here.';
-    itemsEl.innerHTML = `<div class="empty-note">${emptyMsg}</div>`;
+    itemsEl.insertAdjacentHTML('beforeend', `<div class="empty-note">${emptyMsg}</div>`); // v3.636 (BL-28): after any saved meals
     return;
   }
   appendItemsCollapsible(itemsEl, visibleItems.map(item=>buildFoodItemBtn(item, false)), 5);
@@ -41860,6 +41983,33 @@ function renderRepeatYesterdayList(){
   list.innerHTML = repeatPriorItems.map((item, i)=> `<div class="repeat-yesterday-row"><span>${escapeHtml(item.name)} · ${Math.round(Number(item.cal) || 0)} cal</span>`
     + `<button type="button" class="food-cat-btn" data-repeat-item="${i}" aria-label="Add ${escapeHtml(item.name)}">Add</button></div>`).join('');
 }
+
+// v3.636 (BL-28): Save as meal opens a name field; Save stores the day's log.
+document.getElementById('saveMealBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('saveMealBtn');
+  const wrap = document.getElementById('saveMealWrap');
+  const open = !wrap.classList.contains('open');
+  wrap.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', String(open));
+  document.getElementById('saveMealStatus').textContent = '';
+  if(open) document.getElementById('saveMealName').focus();
+});
+document.getElementById('saveMealConfirm').addEventListener('click', async ()=>{
+  const input = document.getElementById('saveMealName');
+  const status = document.getElementById('saveMealStatus');
+  if(!input.value.trim()){ status.textContent = 'Give the meal a name first.'; input.focus(); return; }
+  const name = input.value.trim().slice(0, 60);
+  if(savedMeals.some(m => m.name === name) && !confirm(`Replace your saved meal "${name}" with what you've logged now?`)) return;
+  const ok = await saveLogAsMeal(name, todaysFoodLog);
+  if(!ok){ status.textContent = 'Log something first, then save it as a meal.'; return; }
+  status.textContent = `Saved "${name}" to My Foods.`;
+  input.value = '';
+  if(activeCat === '📁 My Foods') renderFoodItems();
+});
+
+document.getElementById('saveMealName').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('saveMealConfirm').click(); }
+});
 
 document.getElementById('repeatYesterdayBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('repeatYesterdayBtn');
@@ -52572,6 +52722,7 @@ if(activeUserId){
     setupStickyDayHeaderObserver();
     await loadFavorites();
     await loadCustomFoods();
+    await loadSavedMeals(); // v3.636 (BL-28)
     await loadUsageCounts();
     await loadHideAvoidedPref();
     const savedKey = await getApiKey();
