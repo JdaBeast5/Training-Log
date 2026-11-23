@@ -3963,26 +3963,31 @@
      stronger border, and they must not inherit any future .care-* change made
      for the Care tab's own reasons. */
   .app-banner-rail{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+  /* v3.644 (UX-37, owner 2026-11-23: "make the update button match the app"):
+     the banners are flat blocks in the world's ink, not 2.0 glass. A surface
+     block on the ground with a 1 px hairline, no tint, glow or blue; the title
+     15/600 in --text, the body 13 in --text-2. The main action is the app's
+     solid ink button (as the quiet cover's Log set), the other a quiet text
+     button, each at least 44 px. Urgent banners keep one colour: a 4 px bar
+     in the warning ink down the left edge. The rail is hidden in gym mode. */
   .app-banner{
-    padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:1.5; color:var(--text);
-    box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--overlay-black-rgb),0.45);
-    /* cardRise has no `from` — it reads the element's own computed style as the
-       start state, which is why .card-stagger sets these two properties itself.
-       Without them here the banner would "animate" from its final state to its
-       final state and simply appear. Same entrance as every card in the app. */
+    padding:14px 16px; border-radius:var(--r-control); font-size:13px; line-height:1.5; color:var(--text);
+    background-color:var(--surface); border:1px solid var(--rule); box-shadow:none;
+    /* cardRise has no `from`: it reads these two as the start state. Opacity
+       and transform only; instant under Reduce Motion (below). */
     opacity:0; transform:translateY(14px);
     animation:cardRise 0.4s var(--ease-smooth) forwards;
   }
   .app-banner-title{
-    font-family:var(--font-sans); font-size:11px;
+    font-family:var(--font-sans); font-size:15px; color:var(--text);
     font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px;
   }
-  .app-banner-body{color:var(--text-muted); font-size:12.5px; line-height:1.55;}
-  .app-banner-urgent{background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-red-rgb),0.45);}
-  .app-banner-urgent .app-banner-title{color:var(--plate-red);}
-  .app-banner-info{background:rgba(var(--plate-blue-rgb),0.12); border:1px solid rgba(var(--plate-blue-rgb),0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-blue-rgb),0.45);}
-  .app-banner-info .app-banner-title{color:var(--plate-blue);}
-  .app-banner-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+  .app-banner-body{color:var(--text-2); font-size:13px; line-height:1.5;}
+  .app-banner-urgent{position:relative; overflow:hidden; padding-left:20px;}
+  .app-banner-urgent::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--plate-red); pointer-events:none;}
+  .app-banner-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:center;}
+  /* The shared button (the exercise editor, diagnostics and the AI-key
+     prompt use it too) keeps its look; the rail's buttons are flat. */
   .app-banner-btn{
     background:var(--surface2); color:var(--text); border:1px solid var(--line-bright); padding:7px 13px;
     border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
@@ -3991,6 +3996,13 @@
   .app-banner-btn:active{transform:scale(0.96);}
   .app-banner-btn-primary{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
   .app-banner-btn-danger{background:var(--plate-red); border-color:var(--plate-red); color:#fff;}
+  .app-banner-rail .app-banner-btn{min-height:44px; background:none; border:none; padding:0 12px; border-radius:var(--r-control); font-size:15px;}
+  .app-banner-rail .app-banner-btn-primary{background-color:var(--text); color:var(--ground); padding:0 18px;}
+  .app-banner-rail .app-banner-btn:focus-visible{outline:2px solid var(--focus-ring-color); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){
+    .app-banner{animation:none; opacity:1; transform:none;}
+    .app-banner-btn:active{transform:none;}
+  }
   /* Usage meter — same construction as the macro bars so a number about
      storage reads like every other number in this app. */
   .storage-meter{height:5px; border-radius:3px; background:var(--surface2); overflow:hidden; margin:9px 0 5px;}
@@ -8534,7 +8546,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.643';
+const APP_VERSION = '3.644';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10302,6 +10314,9 @@ const WHATS_NEW = {
   '3.643': { headline: 'Then, without the repeat', points: [
     'The exercise on the cover is one short row under Then, marked On the cover, instead of repeating its sets. Tap it for details or to swap, as before.',
     'The list\'s up arrows are quiet grey, and Then no longer repeats the week line the cover already shows.',
+  ]},
+  '3.644': { headline: 'Banners that match the app', points: [
+    'Update ready, Updated to a new version and the storage warning are now flat blocks in the app\'s own look, with a solid Reload now button you can\'t miss. Warnings keep a red bar down the side.',
   ]},
 };
 

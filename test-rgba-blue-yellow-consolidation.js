@@ -249,11 +249,10 @@ test('REAL CASCADE: .equip-plate.on background (blue) resolves to the exact pre-
   assert.match(resolveVars(block), /background:rgba\(91,124,255,0\.16\);/, 'resolved background must byte-match the original literal');
 });
 
-test('REAL CASCADE: .app-banner-info background+border (blue) resolves to the exact pre-conversion literal', (assert)=>{
-  assert.strictEqual(countRuleOpenings(src, '.app-banner-info'), 1, '.app-banner-info must be declared exactly once');
-  const block = extractRuleBlock(src, '.app-banner-info');
-  const resolved = resolveVars(block);
-  assert.match(resolved, /background:rgba\(91,124,255,0\.12\); border:1px solid rgba\(91,124,255,0\.42\);/, 'resolved background+border must byte-match the original literals');
+// 2026-11-23 (v3.644, UX-37): the info banner went flat, so its blue tint rule is gone (test-app-banners.js).
+test('UX-37: .app-banner-info has no rule of its own any more (no blue tint); the base flat banner styles it', (assert)=>{
+  assert.strictEqual(countRuleOpenings(src, '.app-banner-info'), 0);
+  assert.match(src, /class="app-banner app-banner-info"/, 'anchor: the markup still names it');
 });
 
 // ── Gym Mode must stay untouched ────────────────────────────────────────
