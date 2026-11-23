@@ -1645,3 +1645,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - the Settings controls: `renderImportReview` and `refreshImportedControls`.
 - **Only** `reconstructAllPRs`, `collectLiftE1RMs` and `renderExerciseProgress` read the archive. Imported PR events carry `imported: true`.
 - **Unverified:** the real Strong and Hevy file formats.
+
+## Addendum 158: BL-21 (v3.638, PR #222, on #221, morning run item 2)
+- `hrvBaselineFrom`, `hrvRecentFrom` and the `HRV_*` constants. computeReadiness flags `hrv`.
+- **Flagged:** the importer aliases rmssd and sdnn to one series.
+- BL-32 (make today easier) is now unblocked, since it comes after BL-21.
