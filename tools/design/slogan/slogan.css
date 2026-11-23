@@ -1,0 +1,13 @@
+/* Slogan mock-ups (planning/slogan.md §5). Static HTML/CSS prototypes, not app code; nothing here is loaded by
+   index.html. Tokens copied from ../world.css (Plate & Press). Each page reads ?s=1|2|3 to pick the slogan. */
+@font-face{font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:block;
+  src:url(../fonts/archivo-latin-wdth-wght.woff2) format('woff2');}
+@font-face{font-family:'Geist'; font-style:normal; font-weight:100 900; font-display:block;
+  src:url(../../../fonts/geist-latin-wght-normal.woff2) format('woff2');}
+:root{--ground:#0C0C0D; --surface-1:#151516; --surface-2:#1E1E20; --rule:#29292C; --text:#F2F2F0; --text-2:#A6A6A2; --text-3:#82827E;
+  --red:#D42F25; --blue:#2C5BD8; --yellow:#F2C200; --green:#1E9E4A; --white:#E6E6E2;}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--ground); color:var(--text); font-family:'Geist',sans-serif; -webkit-font-smoothing:antialiased; overflow:hidden;}
+.disp{font-family:'Archivo',sans-serif; font-stretch:68%; font-weight:900; letter-spacing:-.01em; line-height:.92;}
+.caps{text-transform:uppercase; letter-spacing:.09em; font-weight:700;}
+.sash{display:block; flex:none; border-radius:22%;}

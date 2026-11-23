@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slogan mock-up: Year in Lifting end card (1080×1920)</title>
+<link rel="stylesheet" href="slogan.css">
+<script src="slogans.js"></script>
+<!-- planning/slogan.md §5 mock-up 2. A proposed last card for the Year in Lifting set (MKT-06b ships five stat cards;
+     there is no end card today). Ink-grey ground, as marketing.md §2.4 asks for cards that span many days; the week
+     strip is the only colour and it is data (sample: trained weeks in plate inks by the day's program). No address
+     (D16), no body data (MKT-02), no load totals (D15). The slogan is the only sentence on the card. -->
+<style>
+  body{width:1080px; height:1920px; background:#151516;}
+  .head{position:absolute; left:96px; right:96px; top:250px; display:flex; justify-content:space-between; font-size:34px; color:var(--text-2);}
+  .strip{position:absolute; left:96px; right:96px; top:340px; display:grid; grid-template-columns:repeat(52,1fr); gap:5px; height:120px;}
+  .strip i{display:block; border-radius:3px; background:#2A2A2D;}
+  .lead{position:absolute; left:96px; top:640px; font-size:44px; color:var(--text-2);}
+  .slogan{position:absolute; left:90px; right:90px; top:720px; font-size:230px;}
+  .foot{position:absolute; left:96px; right:96px; bottom:300px; display:flex; align-items:center; gap:26px; padding-top:44px; border-top:3px solid #2A2A2D;}
+  .foot .sash{width:84px; height:84px; box-shadow:0 0 0 2px #3A3A3E;}
+  .foot b{font-size:40px; letter-spacing:.09em;}
+  .sample{position:absolute; right:96px; bottom:200px; font-size:24px; color:var(--text-3);}
+</style>
+</head>
+<body>
+<p class="head caps"><span>2026 in lifting</span><span>6 of 6</span></p>
+<div class="strip" id="strip" aria-label="Weeks trained in 2026 (sample)"></div>
+<p class="lead">That’s your year.</p>
+<p class="slogan disp" data-slogan></p>
+<div class="foot"><span data-sash></span><b>PLATESTEP</b></div>
+<p class="sample">Sample data</p>
+<script>
+  // Sample year: 41 of 52 weeks trained, coloured by a repeating plate-ink rotation (the data hue, not decoration).
+  const inks = ['#D42F25', '#2C5BD8', '#F2C200', '#1E9E4A'], off = new Set([0, 1, 7, 15, 16, 22, 30, 31, 38, 44, 51]);
+  document.getElementById('strip').innerHTML = Array.from({length: 52}, (_, w) =>
+    `<i style="${off.has(w) ? '' : 'background:' + inks[Math.floor(w / 13)]}"></i>`).join('');
+</script>
+</body>
+</html>

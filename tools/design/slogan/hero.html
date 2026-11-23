@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slogan mock-up: landing hero (1280×800)</title>
+<link rel="stylesheet" href="slogan.css">
+<script src="slogans.js"></script>
+<!-- planning/slogan.md §5 mock-up 1. The landing page hero (store/landing-page.md §2.1) with the slogan as the H1 and
+     the promise as the sub, so the page still says "what to lift next" in words a search engine reads (the <title>
+     and meta description keep it too). Day 1 plate ink behind the phone, near-black page. Sample data only. -->
+<style>
+  body{width:1280px; height:800px;}
+  .wrap{display:grid; grid-template-columns:1fr 520px; height:100%;}
+  .copy{padding:120px 0 0 112px; max-width:740px;}
+  .eyebrow{display:flex; align-items:center; gap:14px; font-size:22px; font-weight:600;}
+  .eyebrow .sash{width:40px; height:40px; box-shadow:0 0 0 1.5px #3A3A3E;}
+  h1{font-size:132px; margin-top:44px; max-width:640px;}
+  .sub{font-size:22px; line-height:1.45; color:var(--text-2); margin-top:30px; max-width:560px;}
+  .sub b{color:var(--text); font-weight:600;}
+  .facts{font-size:16px; color:var(--text-3); margin-top:20px; letter-spacing:.01em;}
+  .cta{display:flex; align-items:center; gap:26px; margin-top:38px;}
+  .btn{background:var(--text); color:var(--ground); font-weight:700; font-size:18px; padding:18px 28px; border-radius:14px;}
+  .link{font-size:17px; color:var(--text-2); text-decoration:underline; text-underline-offset:4px;}
+  .art{background:var(--red); position:relative; overflow:hidden;}
+  .phone{position:absolute; left:92px; top:96px; width:336px; height:700px; border-radius:48px; background:var(--ground); box-shadow:0 0 0 10px #111112, 0 40px 60px -20px rgba(60,0,0,.6); padding:70px 26px 0;}
+  .phone .k{font-size:14px; color:var(--text-3);} .phone .t{font-size:28px; margin-top:6px;}
+  .cover{background:var(--red); border-radius:22px; margin-top:22px; padding:22px; color:#fff;}
+  .cover .n{font-size:92px; white-space:nowrap;} .cover .u{font-size:16px; font-weight:600; opacity:.9; margin-top:6px;}
+  .row{display:flex; justify-content:space-between; font-size:16px; padding:16px 2px; border-bottom:1px solid var(--rule);}
+  .row span:last-child{color:var(--text-2); font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="copy">
+    <div class="eyebrow"><span data-sash></span>Platestep</div>
+    <h1 class="disp" data-slogan></h1>
+    <p class="sub">Platestep <b>tells you what to lift next</b>: the weight and reps for every set, logged in one tap, with weight added when you’ve earned it.</p>
+    <p class="facts">No ads · No account · Your log stays on your phone</p>
+    <div class="cta"><span class="btn">Open Platestep</span><span class="link">Put it on your home screen</span></div>
+  </div>
+  <div class="art" aria-hidden="true">
+    <div class="phone">
+      <p class="k">Day 1 · Upper Strength</p>
+      <p class="t disp">Bench Press</p>
+      <div class="cover"><p class="n disp">160 × 6</p><p class="u">lb · set 2 of 4 · next up</p></div>
+      <div class="row"><span>Set 1</span><span>160 × 5 ✓</span></div>
+      <div class="row"><span>Set 2</span><span>160 × 6</span></div>
+      <div class="row"><span>Set 3</span><span>160 × 6</span></div>
+      <div class="row"><span>Set 4</span><span>160 × 6</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
