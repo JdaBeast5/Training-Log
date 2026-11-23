@@ -2984,7 +2984,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (~35227), `sw.js`, the test.
 - **Risk:** a wrong hash silently disables barcode scanning. Guarded by the Playwright load check and the existing barcode tests.
 - **Tools:** `security-review`.
-- **Status:** ready
+- **Status:** done (v3.635, PR #219)
 
 ### BIZ-27: The money rule, revised: a frozen free floor plus Platestep Plus for new extras
 - **Why:**

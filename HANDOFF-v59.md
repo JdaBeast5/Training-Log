@@ -1622,3 +1622,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - the supplement prompt has no style;
   - the low-data hint's `/cal/` matches "Medically".
 - **Next:** roadmap slot 73, BIZ-26 (the barcode library loads with an integrity hash).
+
+## Addendum 155: BIZ-26 (v3.635, PR #219, 2026-11-23)
+- `ZXING_SRI` (sha384) plus `crossorigin`, on both pinned ZXing URLs (`umd/zxing-browser.min.js`).
+- **A version bump needs a new hash.** The command is in the comment above `ZXING_SRI`.
+- **Flagged:**
+  - after a failed load, `zxingLoadPromise` stays rejected until a restart;
+  - a hash mismatch shows the "check your connection" message.
+- **Next:** check `planning/roadmap.md` after slot 73.

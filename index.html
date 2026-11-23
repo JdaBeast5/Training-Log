@@ -8487,7 +8487,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.634';
+const APP_VERSION = '3.635';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10225,6 +10225,9 @@ const WHATS_NEW = {
   ]},
   '3.634': { headline: 'AI advice knows your clinical program', points: [
     'On a medically modified program, the coach chat and Cross-Metric Insights now know which one (prenatal, ACL rehab, hypertension and the rest). Insights only suggests maintaining or deloading there, never pushing, and both point you to your care team before changing your training.',
+  ]},
+  '3.635': { headline: 'A safer barcode scanner download', points: [
+    'The barcode scanner\'s library now downloads only if it matches a fixed fingerprint, so a changed copy on the download server can\'t run inside the app. Scanning works as before.',
   ]},
 };
 
@@ -39293,13 +39296,24 @@ async function lookupBarcode(barcode){
 // actually loads — a successful HTTP response doesn't guarantee the
 // expected object showed up, so that gets verified explicitly rather than
 // assumed.
+//
+// v3.635 (BIZ-26): the page holds health data, so a changed CDN file must not
+// run. Both URLs name the exact file (the version and the umd build, not the
+// package's default), and each script carries a Subresource Integrity hash
+// and crossorigin="anonymous" (both CDNs send Access-Control-Allow-Origin: *).
+// Both CDNs served byte-identical files on 2026-11-23, so one hash covers
+// both:
+//   curl -sSL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+// A file that doesn't match fails like a network error, and the loader tries
+// the next CDN. Changing the version means changing the hash with it.
+const ZXING_SRI = 'sha384-ylLhng89kD62+PVK1cjm4rAYg69zDlGrbbSfAE2Eb8Xqf8RoAQCMcRoUXZh7pAPC';
 let zxingLoadPromise = null;
 function loadZXing(){
   if(window.ZXingBrowser) return Promise.resolve();
   if(zxingLoadPromise) return zxingLoadPromise;
   const urls = [
-    'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5',
-    'https://unpkg.com/@zxing/browser@0.1.5',
+    'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/zxing-browser.min.js',
+    'https://unpkg.com/@zxing/browser@0.1.5/umd/zxing-browser.min.js',
   ];
   zxingLoadPromise = new Promise((resolve, reject)=>{
     let attempt = 0;
@@ -39309,6 +39323,8 @@ function loadZXing(){
         return;
       }
       const script = document.createElement('script');
+      script.setAttribute('integrity', ZXING_SRI);
+      script.setAttribute('crossorigin', 'anonymous');
       script.src = urls[attempt];
       script.onload = ()=>{
         if(window.ZXingBrowser){ resolve(); }
