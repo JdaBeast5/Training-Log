@@ -1613,3 +1613,12 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - Seven suites were re-pinned, each by one line: they extract the helper or stub the render.
 - **For BIZ-20:** the date comes through `readExCorpus`, so keys from a deleted program day are skipped.
 - **Next:** check `planning/roadmap.md` after slot 71.
+
+## Addendum 154: BL-50 (v3.634, PR #218, 2026-11-23)
+- `clinicalAiStyle()` (next to `callClaudeChat`). The style rides the Cross-Metric Insights context header, and `generateCrossMetricInsights` reads it from there.
+- On a clinical style, Insights may only say MAINTAIN or DELOAD, and a PUSH reply is shown as Maintain. The coach chat gets the style plus a care-team rule on its program line.
+- `test-ai-clinical-context.snapshot.json` holds v3.633's strength prompt. **Regenerate it only for a deliberate change to the strength prompt.**
+- **Flagged:**
+  - the supplement prompt has no style;
+  - the low-data hint's `/cal/` matches "Medically".
+- **Next:** roadmap slot 73, BIZ-26 (the barcode library loads with an integrity hash).

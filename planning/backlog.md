@@ -1496,7 +1496,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (~42536–42680), `sw.js`, the test.
 - **Risk:** the AI path is a CLAUDE.md fragile area ("fixed, unverified against the live API"). Only the prompt strings change. Must land before any public step and before hosted AI (BIZ-14).
 - **Tools:** `Skill: claude-api` (prompt wording only); `security-review` (it touches `fetch`).
-- **Status:** ready
+- **Status:** done (v3.634, PR #218)
 
 ## Added in the spec refresh (2026-11-08): the builder's PR #63 flags
 
