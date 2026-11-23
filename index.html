@@ -8484,7 +8484,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.631';
+const APP_VERSION = '3.632';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10213,6 +10213,9 @@ const WHATS_NEW = {
   ]},
   '3.631': { headline: 'Export your workouts as CSV', points: [
     'Settings has a new Export workouts as CSV button: the sets in your workout history as spreadsheet rows, in your units, for another app or a coach. Warm-ups are left out and drop sets get their own rows. Your JSON backup is unchanged.',
+  ]},
+  '3.632': { headline: 'A first-month line in the health check', points: [
+    'Settings → App Health Check now shows your first month at a glance: when you started, sessions in your first week and month, and your last backup. It is worked out on this phone from what is already saved, and nothing is sent anywhere.',
   ]},
 };
 
@@ -51030,6 +51033,39 @@ function describeBackupAge(lastBackupKey, todayKey){
   return {ok:true, detail:'Last backup ' + label + '.'};
 }
 
+// v3.632 (BIZ-09): does the app activate and keep anyone? There are no
+// analytics (business.md §4), so a tester or the owner reads this row off the
+// screen and reports it by hand. Nothing is sent anywhere and nothing is
+// written.
+// Counted from the workout-time:<date> records (owner, 2026-11-23), which are
+// written only when a set is logged live: never for a backdated set or a rest
+// day marked done, and never pruned (activity-dates has all three problems).
+// Someone who started on a build from before those records existed shows a
+// later start. A window that hasn't closed yet says "so far".
+function describeFirstMonth(days, lastBackupKey, todayKey){
+  days = [...new Set((Array.isArray(days) ? days : []).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+  if(!days.length) return {ok:true, detail:'No sessions yet.'};
+  const first = days[0];
+  const within = n => {
+    const end = dateKeyMinusDays(first, -n);
+    return days.filter(d => d < end).length + (todayKey && todayKey < end ? ' so far' : '');
+  };
+  return {ok:true, detail:`First set: ${first} · sessions in first 7 days: ${within(7)} · first 30 days: ${within(30)} · last backup: ${lastBackupKey || 'never'}`};
+}
+
+async function checkFirstMonth(){
+  let days = [], last = null;
+  try{
+    const res = await window.storage.list('workout-time:');
+    if(res && res.keys) days = res.keys.map(k => k.slice('workout-time:'.length));
+  }catch(e){}
+  try{
+    const res = await window.storage.get('last-backup');
+    if(res && res.value) last = res.value;
+  }catch(e){}
+  return describeFirstMonth(days, last, getTodayKey());
+}
+
 async function checkBackupAge(){
   let last = null;
   try{
@@ -51225,8 +51261,8 @@ async function runDiagnostics(){
   if(!el) return;
   el.innerHTML = '<div class="history-hint">Checking…</div>';
 
-  const [build, manifest, sw, storage, backup] = await Promise.all([
-    checkBuildFreshness(), checkManifest(), checkServiceWorker(), checkStorageHealth(), checkBackupAge(),
+  const [build, manifest, sw, storage, backup, firstMonth] = await Promise.all([
+    checkBuildFreshness(), checkManifest(), checkServiceWorker(), checkStorageHealth(), checkBackupAge(), checkFirstMonth(),
   ]);
 
   let buildRow;
@@ -51255,6 +51291,7 @@ async function runDiagnostics(){
     + diagRow('Manifest', manifest)
     + diagRow('Storage', storage)
     + diagRow('Backup', backup)
+    + diagRow('First month', firstMonth)
     + diagRow('Cold start', checkBootPerformance())
     + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" reloads the app from the server; your data is untouched.</div>`
     + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button><button type="button" class="app-banner-btn" id="diagWhatsNew">What's New</button></div>`;
