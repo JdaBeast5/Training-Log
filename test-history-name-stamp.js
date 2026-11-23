@@ -170,7 +170,7 @@ test('History (real buildExerciseHistoryHtml) lists every entry and labels one s
   const log = [{date: '2026-11-02', n: 'Squat', sets: [{weight: 225, reps: 8}]}, {date: '2026-11-05', n: 'Incline DB Press', sets: [{weight: 50, reps: 8}]}, {date: '2026-11-07', sets: [{weight: 55, reps: 8}]}];
   const HIST = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'metresPerDisplayUnit', 'slugifyExerciseName', 'slotIdOf' /* v3.561 (BL-72) */, 'dayInk', 'e1rmChartSvg' /* 2026-11-22 (v3.621, UX-10): the sheet's chart is the shared one */, 'buildExerciseHistoryHtml'];
   const { window } = runJsdom('<div id="h"></div>', `
-    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd5', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd5', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000; var activeProgram, MEDICAL_STYLES = {}; function progressCardData(){ return null; } const progressShareCards = new Map(); // v3.639 (MKT-07): no progress card here (test-pr-gain-card.js)
     async function getExLog(){ return ${JSON.stringify(log)}; }`, HIST.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }));
   window.document.getElementById('h').innerHTML = await window.buildExerciseHistoryHtml(0, {name: 'Incline DB Press'}, {});
   const dates = [...window.document.querySelectorAll('.exh-date')].map(d => d.textContent);

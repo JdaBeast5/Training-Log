@@ -3305,7 +3305,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Files:** `index.html` (31980–31990, the lift-history view, 29510), `sw.js`, the test.
 - **Risk:** the PR path is hot. Guarded by the existing PR tests; run them all.
 - **Summit note (summit 2026-11-07):** Name the kind of record (summit R6): "Heaviest weight yet: +10 lb over 215" for a weight record; "best" or "strongest" only for an e1RM record. No share for `MEDICAL_STYLES` programs.
-- **Status:** ready
+- **Status:** done (v3.639, PR #223, stacked on #222/#221).
 
 ### MKT-08: Side-by-side progress photos, made on the device
 - **Why:** Progress Photos (6543) can only be compared by sending both photos to an AI with your own key ("Compare with AI", 6561). People mostly want the simple thing: two dated photos side by side, saved or sent by them. That needs no network at all.

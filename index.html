@@ -4115,6 +4115,7 @@
   .exh-stats span{
     display:block; font-size:11px; color:var(--text-muted); margin-top:3px;
   }
+  .exh-share-btn{margin-top:10px;} /* v3.639 (MKT-07) */
   .exh-section-label{
     font-family:var(--font-sans); font-size:11px; color:var(--text-muted); margin:16px 0 7px;
   }
@@ -8514,7 +8515,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.638';
+const APP_VERSION = '3.639';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10264,6 +10265,10 @@ const WHATS_NEW = {
   ]},
   '3.638': { headline: 'Readiness reads your HRV', points: [
     'If you import HRV, Today\'s readiness check now compares this week with your own usual: it notes when HRV has run below it. It needs a few weeks of readings first, and it never decides on its own: one note is just a note.',
+  ]},
+  '3.639': { headline: 'Records show the gain', points: [
+    'A new heaviest weight now says what it beat: "+10 lb over 215 lb".',
+    'A lift\'s history has a Share progress button: a story card from your first estimated 1RM to your best, with the line in between.',
   ]},
 };
 
@@ -32245,6 +32250,55 @@ let celebrateTimeout = null;
 // finish sheet say it the same way.
 function bestLabel(type){ return type === 'weight' ? 'Heaviest weight yet' : 'Best estimated 1RM yet'; }
 
+// v3.639 (MKT-07): a weight record says what it beat: "Bench Press — 225 lb ·
+// +10 lb over 215 lb". It sits under "Heaviest weight yet", which names the
+// kind of record (summit R6). With no previous best it is today's text.
+function prGainDetail(name, weightLb, priorMaxLb){
+  const base = `${name} — ${fmtWeight(weightLb)}`;
+  if(priorMaxLb == null) return base;
+  // Compared as shown (one decimal in the display unit), so a gain too small
+  // to show never reads "+0 lb over" the same number.
+  const now = toDisplayWeight(weightLb), was = toDisplayWeight(priorMaxLb);
+  const gain = Math.round((now - was) * 10) / 10;
+  if(!(gain > 0)) return base;
+  return `${base} · +${trimUnitNum(gain)} ${weightUnit} over ${fmtWeight(priorMaxLb)}`;
+}
+
+// v3.639 (MKT-07): a lift's long-term progress as a story card: "Squat e1RM
+// 225 → 275 lb in 12 weeks", first logged estimated 1RM to the best, with the
+// series drawn as a sparkline. series: [{date, v}] oldest first, v in lb from
+// estimated1RM. null unless the best beats the first. An e1RM is called
+// "best", never "heaviest" (summit R6).
+function progressCardData(name, series){
+  const pts = (series || []).filter(p => p && p.v != null && p.date);
+  if(pts.length < 2) return null;
+  const first = pts[0];
+  const best = pts.reduce((b, p) => p.v > b.v ? p : b, first);
+  if(!(best.v > first.v)) return null;
+  const days = Math.round((new Date(best.date + 'T00:00:00') - new Date(first.date + 'T00:00:00')) / 86400000);
+  const weeks = Math.max(1, Math.round(days / 7));
+  // As the chart above the button shows them (one decimal); no card when they look the same.
+  const a = trimUnitNum(toDisplayWeight(first.v)), b = trimUnitNum(toDisplayWeight(best.v));
+  if(a === b) return null;
+  const span = `${weeks} week${weeks === 1 ? '' : 's'}`;
+  return {
+    icon: 'trend', headline: `${name.toUpperCase()} E1RM`, kind: 'progress', dayId: activeDay,
+    stats: [{value: `${a} → ${b} ${weightUnit}`, label: 'EST. 1RM'}, {value: span, label: 'TIME'}],
+    spark: pts.map(p => p.v),
+    detail: `${name} e1RM ${a} → ${b} ${weightUnit} in ${span}`,
+  };
+}
+// The lift's name and e1RM series, kept with the history; the card itself is
+// built at the tap, so it's in the unit the app shows then.
+const progressShareCards = new Map();
+document.addEventListener('click', (e)=>{
+  const btn = e.target && e.target.closest && e.target.closest('[data-progress-share]');
+  if(!btn) return;
+  const src = progressShareCards.get(btn.dataset.progressShare);
+  const card = src && progressCardData(src.name, src.series);
+  if(card) shareCelebrationCard(card, btn.id);
+});
+
 function triggerCelebration(iconName, text, sub, big, shareData){
   const banner = document.getElementById('celebrateBanner');
   // v3.425: an ICONS name (it was an emoji typed as text).
@@ -32927,6 +32981,22 @@ function drawStoryCard(ctx, cardData, W, H){
   display(size);
   while(size > 64 && ctx.measureText(cardData.headline).width > maxW){ size -= 4; display(size); }
   ctx.fillText(cardData.headline, X, 620);
+
+  // v3.639 (MKT-07): a progress card's series, as a line in the spot block.
+  if(hasStats && Array.isArray(cardData.spark) && cardData.spark.length >= 2){
+    const vals = cardData.spark.map(Number).filter(v => isFinite(v));
+    const lo = Math.min(...vals), hi = Math.max(...vals), top = 720, h = 190;
+    ctx.save();
+    ctx.strokeStyle = on; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    vals.forEach((v, i) => {
+      const x = X + (maxW * i) / (vals.length - 1);
+      const y = top + h - (hi > lo ? ((v - lo) / (hi - lo)) * h : h / 2);
+      if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
 
   if(hasStats){
     const top = 1060, bottom = 1500, n = cardData.stats.length, rowH = (bottom - top)/n;
@@ -35305,6 +35375,14 @@ async function buildExerciseHistoryHtml(exIdx, ex, opts){
       </div>
       <div class="history-hint">From your heaviest set each session, so weight or reps move it. A comparison with your past, not a number to test.</div>
     `;
+    // v3.639 (MKT-07): Share progress, first e1RM to the best; never on a clinical program.
+    const progressCard = (activeProgram === 'medical' || MEDICAL_STYLES[activeProgram]) ? null : progressCardData(ex.name, e1rmSeries);
+    if(progressCard){
+      const shareId = `exhProgressShare${exIdx}${opts && opts.maxRows ? 'p' : 's'}`;
+      progressShareCards.set(shareId, {name: ex.name, series: e1rmSeries});
+      preloadShareCardFont(); // as every share button does: the card's face is ready by the tap
+      chartHtml += `<button type="button" class="reorder-btn exh-share-btn" id="${shareId}" data-progress-share="${shareId}">Share progress</button>`;
+    }
   }
 
   // Best-ever line. Uses the same topSetOf/estimated1RM the PR system does, so
@@ -35907,8 +35985,10 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       if(result.isPR && await isPastPrNotificationWindow()){
         statusEl.innerHTML = icon('trophy') + ' PR';
         statusEl.className = 'set-status set-status-pr';
-        triggerCelebration('trophy', bestLabel('weight'), `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true, // v3.611 (UX-30): saveExSet's isPR is a weight record
-          {icon:'trophy', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, kind:'pr', dayId: activeDay});
+        // v3.639 (MKT-07): the detail says the gain over the previous best (saveExSet's priorMax).
+        const prDetail = prGainDetail(ex.name, toCanonicalLb(weightValRaw), result.priorMax);
+        triggerCelebration('trophy', bestLabel('weight'), prDetail, true, // v3.611 (UX-30): saveExSet's isPR is a weight record
+          {icon:'trophy', headline:'NEW PR', detail: prDetail, kind:'pr', dayId: activeDay});
       } else {
         // v3.422: the drawn check (was the ✓ glyph).
         statusEl.innerHTML = icon('check');
