@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Platestep</title>
+<!-- v3.629 (BIZ-07): what a shared link previews. The promise is business.md
+     §1 (marketing.md §2.2's full cut), the same words as manifest.json's
+     description. Static text, because link previewers don't run scripts, so the
+     name here can't come from APP_NAME: test-metadata-truth.js ties og:title,
+     <title>, the iOS title and the manifest name to APP_NAME instead. og:url
+     and og:image are absolute, as previewers require. -->
+<meta name="description" content="Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Platestep">
+<meta property="og:description" content="Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone.">
+<meta property="og:url" content="https://jdabeast5.github.io/Training-Log/">
+<meta property="og:image" content="https://jdabeast5.github.io/Training-Log/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
 <!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
      apple-touch-icon. Without these, Safari falls back to a screenshot or the
      first letter of the title — which is why the saved app showed a bare "T". -->
@@ -8460,7 +8474,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.628';
+const APP_VERSION = '3.629';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10180,6 +10194,9 @@ const WHATS_NEW = {
   ]},
   '3.628': { headline: 'Install it for a safer log', points: [
     'Using the app in Safari on iPhone or iPad? After your first set, Today\'s Priorities shows how to move your log to the Home Screen: export a backup, add the app, and import the backup there. Already installed? Nothing changes for you.',
+  ]},
+  '3.629': { headline: 'Links to the app preview properly', points: [
+    'A shared link to the app now previews with its name and a one-line description, instead of a blank card.',
   ]},
 };
 

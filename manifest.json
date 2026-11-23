@@ -1,7 +1,7 @@
 {
   "name": "Platestep",
   "short_name": "Platestep",
-  "description": "Personal fitness tracking — 22 training programs, nutrition tracking, and AI coaching, all in one place.",
+  "description": "Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
