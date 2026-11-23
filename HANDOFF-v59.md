@@ -1593,3 +1593,12 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 150: BIZ-17 (v3.630, PR #210, 2026-11-23)
 - `#userPickerPromise`: the promise line under "Who's training?", shown by `showUserPicker` only with an empty user list (aria-describedby while shown). The test pins it equal to the meta description.
 - **Next:** BL-22 (slot 69), export workouts as CSV.
+
+## Addendum 151: BL-22 (v3.631, PR #212, 2026-11-23)
+- `buildWorkoutCsv(corpus, unit, distUnit)` and `csvField`, plus the `#exportCsvBtn` handler. `parseExKey` also returns `programLabel` and `dayName`.
+- The CSV starts with a byte-order mark, text cells are guarded against formulas, and counts are written only as numbers.
+- **Flagged:**
+  - a key whose program day is gone is left out of the CSV (the same as History);
+  - the JSON export button's label can stick after a double tap;
+  - in the store-backup frame, the streak card covers Settings.
+- **Next:** BIZ-09 (slot 70), the first-month summary in Diagnostics.
