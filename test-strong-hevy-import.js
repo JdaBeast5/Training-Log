@@ -140,7 +140,7 @@ test('numbers: the value decides its decimal mark, whatever the delimiter', (ass
   const w = page();
   const weights = (delim, vals) => JSON.parse(JSON.stringify(w.api.parseWorkoutExport(['Date', 'Exercise Name', 'Set Order', 'Weight', 'Reps'].join(delim) + vals.map(v => '\n' + ['2025-01-02', 'Leg Press', '1', v, '8'].join(delim)).join('')).sets.map(s => s.weight)));
   assert.deepStrictEqual(weights(',', ['"1,005"', '"102,5"', '102.5', '"1,005.5"']), [1005, 102.5, 102.5, 1005.5], 'comma file');
-  assert.deepStrictEqual(weights(';', ['102,5', '102.5', '1.005', '1.005,5']), [102.5, 102.5, 1005, 1005.5], 'semicolon file');
+  assert.deepStrictEqual(weights(';', ['102,5', '102.5', '1.005', '1.005,5', '1,500']), [102.5, 102.5, 1005, 1005.5, 1.5], 'semicolon file: "1,500" is 1.5');
 });
 
 test('the review says why rows were left out: an unreadable date format is named, not called a warm-up', (assert)=>{
@@ -174,6 +174,16 @@ test('criterion 2: after an import, the ex: keys and their values are byte-ident
   await w.api.applyWorkoutImport(w.api.planWorkoutImport(w.api.parseWorkoutExport(STRONG), 'lb'));
   await w.api.applyWorkoutImport(w.api.planWorkoutImport(w.api.parseWorkoutExport(HEVY), 'kg'));
   assert.strictEqual(snapshot(w, 'ex:'), before);
+});
+
+test('two exercise names that share a key come back as their own exercises', async (assert)=>{
+  const w = page({'custom-ex:strength:d1': [{name: 'Row (Cable)', sets: '3×10'}, {name: 'Row-Cable', sets: '3×10'}]});
+  await w.api.refreshImportNameIndex();
+  const csv = 'Date,Exercise Name,Set Order,Weight,Reps\n2025-01-02,Row (Cable),1,100,10\n2025-01-02,Row-Cable,1,120,8';
+  await w.api.applyWorkoutImport(w.api.planWorkoutImport(w.api.parseWorkoutExport(csv), 'lb'));
+  assert.strictEqual(keysWith(w, 'imported:').length, 1, 'anchor: one shared key');
+  const names = JSON.parse(JSON.stringify((await w.api.readImportedCorpus()).map(c => c.exDef.name))).sort();
+  assert.deepStrictEqual(names, ['Row (Cable)', 'Row-Cable']);
 });
 
 test('re-importing the same file replaces that source\'s days, so nothing doubles', async (assert)=>{
