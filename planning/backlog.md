@@ -3244,21 +3244,27 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Status:** done (v3.581, PR #157). Built ahead of slot 49 while UX-04+ waits on the owner's on-device look at UX-03. Flagged: the day label isn't on the card (stats cards draw no detail line, and criterion 2 fixes the labels); recommend UX-09a adds it. `test-superset-field-chaining.js` gained one boundary stub.
 
 ### MKT-05: Share a finished training block
-- **Why:** finishing a 4–6 week block is the moment lifters actually post ("finished my first block of…"). The app knows when a block ends (`cycleWeekOf`, 26723, and `isDeloadWeek`, 14915) but marks it with nothing. Graduation celebrations exist only for rehab and postpartum programs (15590, 15921), which must not get a share button.
+- **Why:** finishing a 4–6 week block is the moment lifters actually post ("finished my first block of…"). The app knows when a block ends (`cycleWeekOf` and `isDeloadWeek`) but marks it with nothing. Graduation celebrations exist only for rehab and postpartum programs, which must not get a share button.
+- **Surface (owner, 2026-11-23):** the **last-week variant of UX-11's weekly recap sheet** (`weeklyRecapModel` / `openRecapSheet`), as the summit note asked. Not a separate celebration from `archiveCurrentWeek`: one interruption on that Monday, in the calm-moment style of UX-30.
 - **Change:**
-  - When `archiveCurrentWeek` (45414) archives the last week of a cycle, show a celebration ("Block complete") with share data: program name, "5 weeks", sessions done out of planned, and the top 3 e1RM gains across the block (from `reconstructAllPRs`, 41641, or the existing e1RM helpers).
-  - Never for `MEDICAL_STYLES` keys or custom programs with no cycle.
+  - When the week the recap covers is the last week of a cycle, `weeklyRecapModel` returns a block variant. The sheet's title is "Block complete" and it shows:
+    - the program name;
+    - the block length ("5 weeks");
+    - sessions done out of planned across the block;
+    - the top 3 estimated-1RM gains across the block, from `reconstructAllPRs` or the existing e1RM helpers. Record wording follows summit R6 (`bestLabel`).
+  - The sheet's one Share button shares a `BLOCK COMPLETE` story card in place of the week card. Only one share button is ever visible.
+  - Never for `MEDICAL_STYLES` keys or custom programs with no cycle: those get the normal weekly recap.
   - The existing graduation celebrations stay as they are, without share data.
 - **Acceptance criteria:**
-  1. Archiving week 5 of a 5-week Strength cycle triggers one celebration with `shareData.headline === 'BLOCK COMPLETE'`.
-  2. Archiving week 3 of 5 triggers none.
+  1. The recap model for week 5 of a 5-week Strength cycle is the block variant, and its share data has `headline === 'BLOCK COMPLETE'`.
+  2. The recap for week 3 of 5 is the normal weekly recap, with no block fields.
   3. The top-gain rows are sorted by gain, at most 3, and computed from the fixture's sets.
-  4. A `MEDICAL_STYLES` program's last week triggers no share data.
-- **Test plan:** new `test-block-complete-share.js` with the real `archiveCurrentWeek` path, `cycleWeekOf` and stub storage. Sabotage: fire on every week, and criterion 2 must fail.
-- **Files:** `index.html` (26723, 41641, 45414–45480), `sw.js`, the test.
-- **Risk:** the end-of-week flow already shows a status line and a week share button. Keep one share button visible at a time; check in Playwright.
-- **Summit note (summit 2026-11-07):** Render it as the **last-week variant of UX-11's recap sheet**, not a separate celebration, so there aren't two interruptions on one Monday (summit §1.4). Record wording follows summit R6.
-- **Status:** needs-owner (2026-11-23 morning run): the criteria fire a "Block complete" celebration from archiveCurrentWeek, while the summit note says it must be the last-week variant of UX-11's Monday recap sheet. Which surface?
+  4. A `MEDICAL_STYLES` program's last week gives the normal recap, with no block share data.
+  5. The opened sheet (real `openRecapSheet`) shows exactly one Share button.
+- **Test plan:** extend `test-weekly-recap.js`, using the real `weeklyRecapModel`, `openRecapSheet`, `cycleWeekOf` and real namespaced storage. Sabotage: treat every week as the last, and criterion 2 must fail.
+- **Files:** `index.html` (`weeklyRecapModel`, `openRecapSheet`, the share-card builder), `sw.js`, the test.
+- **Risk:** the recap sheet's layout and its existing week share. No new stored key. Guarded by `test-weekly-recap.js`. Visual change, so a contact sheet goes in the PR.
+- **Status:** ready (owner 2026-11-23: the recap-sheet surface, per the summit note).
 
 ### MKT-06: Year in Lifting (an annual recap, on device)
 - **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
