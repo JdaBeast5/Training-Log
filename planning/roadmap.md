@@ -152,6 +152,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 50j. **UX-28:** Training Style and Keep In Mind leave Today (Settings and Progress)
 50k. **UX-29:** the rest pill steps aside for the cover
 50l. **UX-30:** milestones and celebrations as Plate & Press moments (no confetti; never over Log)
+50m. **UX-36:** "Then" shows the cover's exercise as one compact "now" row; drop the green list arrows and the repeated week line *(owner 2026-11-23: option c)*
 51. **MKT-16:** the session bib card *(moved in; the owner's chosen edge)*
 52. **MKT-17:** "Your number"
 53. **MKT-18:** pin the bib on your own photo
