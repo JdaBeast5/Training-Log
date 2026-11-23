@@ -1602,3 +1602,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - the JSON export button's label can stick after a double tap;
   - in the store-backup frame, the streak card covers Settings.
 - **Next:** BIZ-09 (slot 70), the first-month summary in Diagnostics.
+
+## Addendum 152: BIZ-09 (v3.632, PR #214, 2026-11-23)
+- `describeFirstMonth(days, lastBackup, today)` and `checkFirstMonth()`, which add a "First month" row in App Health Check, under Backup. A window still open says "so far".
+- Counted from the `workout-time:<date>` keys (live sets only), by the owner's choice.
+- **Next:** BIZ-19 (slot 71), "Training since".
