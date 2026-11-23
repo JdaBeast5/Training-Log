@@ -2512,7 +2512,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - First-launch flow. Guarded by `test-first-launch.js`, `test-program-recommendation.js` and `test-configurable-training-days.js`.
   - `location.reload()` in `switchToUser` (9626): the quick start must run after the reload. Use the empty profile name as the trigger, not in-memory state.
 - **Summit note (summit 2026-11-07):** Routing guard (summit R9). The "gym" answer filters to lifting programs. A "gain" answer with 3 days or fewer must not land on Bodybuilding 3-day until BL-37 ships. The PR attaches the real `recommendProgram` table (goal × days × location). With today's scores, gain → bodybuilding 95 and lose → jumprope 95 (33544–33545). If this can't be done with existing keys, stop and mark needs-owner. Units (lb/kg) aren't asked here; that's flagged, not in scope.
-- **Status:** ready
+- **Status:** done (v3.626, PR #205, stacked on #204). Trigger: createNewUser's session marker + nothing saved + one profile + no training. Home = an equipment-free allow-list; <=3 days never Bodybuilding (all goals). Flagged: the profile's recommendation card still suggests Bodybuilding for 3-day gain (recommendProgram ignores days).
 
 ### BIZ-02: The name typed at "Who's training?" fills the profile name
 - **Why:** after creating "Alex", the header still says "Set up your profile below to personalize this" (`renderHeader`, 33790), and Getting Started's "Set up your profile" stays unticked (33895). The picker name goes into the user list (`createNewUser` 9629), never into `userProfile.name`. So the app asks for the name twice.

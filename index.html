@@ -993,6 +993,11 @@
   .recap-day-label{text-align:center; font-size:13px; color:var(--text-2); margin-top:6px;}
   .recap-missed{font-size:15px; line-height:1.4; color:var(--text); margin:14px 0 6px;}
   .recap-next{font-size:15px; line-height:1.4; color:var(--text); margin:16px 0 4px;}
+  /* v3.626 (BIZ-01): the quick start reuses the picker overlay; its own parts step aside. */
+  .user-picker-overlay.quick-start-mode .user-picker-box > :not(.quick-start){display:none;}
+  .quick-start[hidden]{display:none;}
+  .quick-start-step{font-size:13px; color:var(--text-2); margin-bottom:4px;}
+  .quick-start-options{display:flex; flex-direction:column; gap:8px; margin:14px 0 6px;}
   .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
   /* v3.607 (UX-26): the day sheet as plate blocks. Each day is a flat
@@ -6384,6 +6389,14 @@
     <input type="text" id="newUserNameInput" class="care-input" placeholder="Your name">
     <button class="save-btn" id="newUserCreateBtn">+ Create my profile</button>
     <button class="user-picker-cancel" id="userPickerCancelBtn">Cancel</button>
+    <!-- v3.626 (BIZ-01): the three-question quick start, shown in this overlay on
+         the first boot of a device's first profile (maybeStartQuickStart). -->
+    <div class="quick-start" id="quickStart" hidden>
+      <div class="quick-start-step" id="quickStartStep">Step 1 of 3</div>
+      <h2 class="user-picker-title" id="quickStartTitle"></h2>
+      <div class="quick-start-options" id="quickStartOptions" role="group" aria-labelledby="quickStartTitle"></div>
+      <button type="button" class="user-picker-cancel" id="quickStartSkip">Skip</button>
+    </div>
   </div>
 </div>
 
@@ -8447,7 +8460,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.625';
+const APP_VERSION = '3.626';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10159,6 +10172,9 @@ const WHATS_NEW = {
   '3.625': { headline: 'Your name, really asked once', points: [
     'Fixes 3.624: the name you type for a new profile now actually becomes your profile name. Profiles you already had are left as they are.',
   ]},
+  '3.626': { headline: 'Three questions to start', points: [
+    'A new profile now starts with three quick taps: your goal, how many days a week you can train, and whether you train at a gym or at home. Your first program follows from the answers. Skip keeps the usual start.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -11006,6 +11022,91 @@ function showUserPicker(){
 function hideUserPicker(){
   document.getElementById('userPickerOverlay').classList.remove('active');
 }
+
+// v3.626 (BIZ-01): a three-question quick start before the first workout. On
+// the first boot of a device's first profile (no saved profile, one profile in
+// the list, no training logged), the picker overlay asks goal, days a week and
+// where you train, one tap each. Finishing saves the goal (saveProfile), the
+// days (saveDaysPerWeekPref) and the routed program (saveActiveProgram), then
+// reloads into it. Skip writes nothing: today's defaults stand.
+// Routing (summit R9): recommendProgram's pick, unless the answer rules it out:
+// "gym" keeps to the lifting programs, "home" to the equipment-free ones,
+// and 3 days or fewer never lands on Bodybuilding (its low day-count variant is
+// the audit's F until BL-37 rebuilds it); then the best-scoring allowed program.
+// A function, not a const: GOAL_LABELS is declared further down the script.
+function quickStartSteps(){ return [
+  {key: 'goal', title: 'What\'s your goal?', options: Object.entries(GOAL_LABELS).map(([value, label]) => ({value, label}))},
+  {key: 'days', title: 'How many days a week can you train?', options: [2, 3, 4, 5, 6].map(n => ({value: n, label: `${n} days`}))},
+  {key: 'where', title: 'Where do you train?', options: [{value: 'gym', label: 'At a gym'}, {value: 'home', label: 'At home, bodyweight'}]},
+]; }
+// "Home, bodyweight": only programs that need no barbell, pool, bike, wall or stations.
+const QUICK_START_HOME_PROGRAMS = new Set(['bodyweight', 'calisthenics', 'jumprope', 'core', 'mobility', 'yoga', 'pilates', 'athletic', 'running', 'desk', 'senior']);
+function quickStartAllows(key, days, where){
+  if(!programs[key] || key === 'medical' || isCustomProgramKey(key)) return false;
+  if(where === 'gym' ? !VOLUME_MODIFIER_PROGRAMS.has(key) : !QUICK_START_HOME_PROGRAMS.has(key)) return false;
+  return !(key === 'bodybuilding' && days <= 3);
+}
+async function quickStartProgram(p, days, where){
+  const rec = await recommendProgram(p);
+  if(quickStartAllows(rec.key, days, where)) return rec.key;
+  const scores = await scoreAllPrograms(p);
+  return Object.keys(scores).filter(k => quickStartAllows(k, days, where)).sort((a, b) => scores[b] - scores[a])[0] || 'strength';
+}
+let quickStartAnswers = null;
+function renderQuickStartStep(i){
+  const steps = quickStartSteps(), step = steps[i];
+  document.getElementById('quickStartStep').textContent = `Step ${i + 1} of ${steps.length}`;
+  document.getElementById('quickStartTitle').textContent = step.title;
+  const box = document.getElementById('quickStartOptions');
+  box.innerHTML = step.options.map(o => `<button type="button" class="user-pick-btn quick-start-option" data-value="${escapeHtml(String(o.value))}">${escapeHtml(o.label)}</button>`).join('');
+  box.querySelectorAll('.quick-start-option').forEach((b, k) => b.addEventListener('click', () => {
+    quickStartAnswers[step.key] = step.options[k].value;
+    if(i + 1 < steps.length) renderQuickStartStep(i + 1);
+    else finishQuickStart();
+  }));
+  const first = box.querySelector('button');
+  if(first) try{ first.focus({preventScroll: true}); }catch(e){}
+}
+function showQuickStart(){
+  const overlay = document.getElementById('userPickerOverlay');
+  overlay.classList.add('quick-start-mode');
+  overlay.setAttribute('aria-labelledby', 'quickStartTitle'); // the visible question names the dialog
+  document.getElementById('quickStart').hidden = false;
+  quickStartAnswers = {};
+  renderQuickStartStep(0);
+  overlay.classList.add('active');
+}
+function closeQuickStart(){
+  const overlay = document.getElementById('userPickerOverlay');
+  overlay.classList.remove('active', 'quick-start-mode');
+  overlay.setAttribute('aria-labelledby', 'userPickerTitle');
+  document.getElementById('quickStart').hidden = true;
+  // Asked once: Skip or finish ends the session's "just created" marker.
+  try{ sessionStorage.removeItem(NEW_PROFILE_SESSION_KEY); }catch(e){}
+}
+async function finishQuickStart(){
+  const a = quickStartAnswers;
+  userProfile.goal = a.goal;
+  await saveProfile();
+  await saveDaysPerWeekPref(a.days);
+  activeProgram = await quickStartProgram(userProfile, a.days, a.where);
+  await saveActiveProgram();
+  closeQuickStart();
+  location.reload(); // boots into the new program, as creating the profile did
+}
+async function maybeStartQuickStart(){
+  // A profile created in this session (createNewUser's marker, v3.625) with
+  // nothing saved yet, the only one on the device, and no training logged.
+  if(!profileJustCreated() || !profileWasFresh || getUserList().length !== 1) return false;
+  try{
+    const res = await window.storage.get('activity-dates');
+    const dates = res && res.value ? JSON.parse(res.value) : [];
+    if(Array.isArray(dates) && dates.length) return false; // training already logged: never ask
+  }catch(e){}
+  showQuickStart();
+  return true;
+}
+document.getElementById('quickStartSkip').addEventListener('click', closeQuickStart);
 
 document.getElementById('newUserCreateBtn').addEventListener('click', ()=>{
   const input = document.getElementById('newUserNameInput');
@@ -36049,6 +36150,9 @@ let userProfile = {
 // v3.573 (BIZ-03): true once the profile form has been saved (window.storage
 // 'profile-body-saved'). Only #pfSave sets it; renderCalHero reads it.
 let profileBodySaved = false;
+// v3.626 (BIZ-01): this boot found no saved profile (a brand-new one, after the
+// picker's reload). Set by loadProfile; the quick start reads it.
+let profileWasFresh = false;
 async function loadProfile(){
   // v3.624 (BIZ-02): a brand-new profile (the read worked and found nothing saved)
   // takes the name typed at "Who's training?", written once through saveProfile,
@@ -36060,12 +36164,14 @@ async function loadProfile(){
   // only a profile created in this session (profileJustCreated) is filled, so an
   // older profile that never saved the form (a migrated "Me") isn't renamed.
   let freshProfile = false;
+  profileWasFresh = false;
   try{
     const res = await window.storage.get('user-profile');
     if(res && res.value) userProfile = {...userProfile, ...JSON.parse(res.value)};
     else freshProfile = true;
     invalidateFoodPrefCache();
   }catch(e){ freshProfile = !!(e && e.message === 'not found'); }
+  profileWasFresh = freshProfile; // v3.626 (BIZ-01): read by the quick start
   if(freshProfile && !userProfile.name && profileJustCreated()){
     const me = getUserList().find(u => u.id === activeUserId);
     const typed = me && typeof me.name === 'string' ? me.name.trim() : '';
@@ -52178,6 +52284,7 @@ if(activeUserId){
     // by an older version is removed once (no schema bump).
     try{ await window.storage.delete('coach-fab-position'); }catch(e){}
     await checkWhatsNew();
+    await maybeStartQuickStart(); // v3.626 (BIZ-01)
     bootMark('initEnd');
   })();
 

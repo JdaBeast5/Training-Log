@@ -1568,3 +1568,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Bug:** `window.storage.get` throws `'not found'` for a missing key (buildNamespacedStorage); v3.624 treated any throw as "not fresh", so the name fill never ran in the app. Its test stub returned null and hid it.
 - **Fix:** `loadProfile` reads `'not found'` as a fresh profile; the fill also needs `profileJustCreated()` (createNewUser sets `sessionStorage[trainingLog_new-profile] = newId` before its reload), so upgraded/migrated profiles that never saved the form aren't renamed.
 - **Lesson:** tests that touch storage should use the real `buildNamespacedStorage` (stub only its gen/quota hooks), not a `get` that returns null.
+
+## Addendum 146: BIZ-01, the quick start (v3.626, PR #205, 2026-11-23)
+- **What:** `maybeStartQuickStart` (end of boot) → `showQuickStart` in `#userPickerOverlay` (`quick-start-mode`) → three steps (`quickStartSteps`) → `finishQuickStart` (saveProfile, saveDaysPerWeekPref, `quickStartProgram` → saveActiveProgram, reload). Skip/finish clear the session marker. Routing table in PR #205.
+- **Flagged:** renderProgramRec still recommends Bodybuilding to a 3-day gain profile (recommendProgram ignores days).
+- **Next:** BIZ-04 (slot 65).
