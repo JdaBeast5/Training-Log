@@ -5581,6 +5581,12 @@
   body:not(.gym-mode) #workoutCard .duration-row > *{display:inline;}
   body:not(.gym-mode) #workoutCard .duration-row > :empty{display:none;}
   body:not(.gym-mode) #workoutCard .duration-row > :not(:empty) ~ :not(:empty)::before{content:' · ';}
+  /* v3.643 (UX-36): while the cover shows, its program line already says the
+     week and phase (renderUpNext reads it from this tag, so the tag keeps its
+     text and is only hidden here); "Then" keeps the time and calories. */
+  body.has-cover:not(.gym-mode) #workoutCard #mesocyclePhaseTag{display:none;}
+  body.has-cover:not(.gym-mode) #workoutCard #mesocyclePhaseTag + :not(:empty)::before,
+  body.has-cover:not(.gym-mode) #workoutCard #mesocyclePhaseTag + :empty + :not(:empty)::before{content:none;}
   body:not(.gym-mode) #workoutCard .mesocycle-phase-tag,
   body:not(.gym-mode) #workoutCard .mesocycle-phase-tag.deload{padding:0; border:none; border-radius:0; background:none; font-size:13px; color:var(--text-2);}
   body:not(.gym-mode) #workoutCard .duration-tag{font-size:13px; color:var(--text-2);}
@@ -5615,6 +5621,16 @@
      edge, in the gutter (the cover logs into this row; it stays in the list). */
   body:not(.gym-mode) #exerciseList .is-now{position:relative;}
   body:not(.gym-mode) #exerciseList .is-now::after{content:''; position:absolute; left:-12px; top:10px; bottom:10px; width:4px; background:var(--spot); pointer-events:none;}
+  /* v3.643 (UX-36, owner option c): the cover already shows this exercise's
+     sets, so its row here is one compact "now" row: the same checkbox,
+     pictogram, name, swap glyph and chevron (still the way to its details and
+     set sheet), with "On the cover" in place of its chips and prescription.
+     In a superset the chips are the pair's, so they stay. */
+  .ex-now-meta{display:none;}
+  body:not(.gym-mode) #exerciseList .is-now > .set-chips,
+  body:not(.gym-mode) #exerciseList .is-now .exercise > .ex-sets,
+  body:not(.gym-mode) #exerciseList .is-now .exercise .ex-adjust-note{display:none;}
+  body:not(.gym-mode) #exerciseList .is-now .exercise > .ex-now-meta{display:block; grid-column:3; grid-row:2; margin:2px 0 0; font-family:var(--font-sans); font-size:13px; color:var(--text-2);}
   /* The superset label: a text line with the link glyph, not a pill. */
   body:not(.gym-mode) #exerciseList .superset-tag{padding:0; border:none; border-radius:0; background:none; color:var(--text-2);}
   /* Chips in the cover's grammar: done is the ink fill with a check; ready a
@@ -5624,6 +5640,8 @@
   body:not(.gym-mode) #exerciseList .set-chip.is-ready,
   body:not(.gym-mode) #exerciseList .set-chip.is-next{background:none; border:2.5px solid var(--text); color:var(--text); font-weight:600;}
   body:not(.gym-mode) #exerciseList .set-chip-trend.is-same{display:none;}
+  /* v3.643 (UX-36): the list's "go up" arrow is a quiet mark, not green ink (gym mode keeps its colours). */
+  body:not(.gym-mode) #exerciseList .set-chip-trend.is-up{color:var(--text-2);}
   .set-chip-check{display:none;}
   body:not(.gym-mode) #exerciseList .set-chip.is-done .set-chip-check{display:inline-flex;}
   .set-chip-check svg{width:14px; height:14px;}
@@ -8516,7 +8534,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.642';
+const APP_VERSION = '3.643';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10280,6 +10298,10 @@ const WHATS_NEW = {
   '3.642': { headline: 'Speed and technique days', points: [
     'Speed squats, speed bench, light deadlifts, light snatches and cleans, sub-max sprints and the light handstand hold now have their own form cues, and they count toward the right muscles.',
     'They also stop suggesting you add weight: these sets are meant to stay light and fast.',
+  ]},
+  '3.643': { headline: 'Then, without the repeat', points: [
+    'The exercise on the cover is one short row under Then, marked On the cover, instead of repeating its sets. Tap it for details or to swap, as before.',
+    'The list\'s up arrows are quiet grey, and Then no longer repeats the week line the cover already shows.',
   ]},
 };
 
@@ -31989,6 +32011,7 @@ async function renderWorkout(){
           ${ex.muscleAdjusted ? `<div class="ex-adjust-note">${escapeHtml(ex.muscleAdjusted.reason)}</div>` : ''}
         </div>
         <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span>${loadSuggestionMode === 'rpe' ? '' : rirLabelHtml(ex, activeProgram, inDeloadWeek)}</div>
+        <div class="ex-now-meta">On the cover</div><!-- v3.643 (UX-36): shown in place of the chips and prescription while this row is on the cover -->
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span>
     `;
