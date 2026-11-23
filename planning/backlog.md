@@ -2791,7 +2791,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (5701–5712, 9637–9652), `sw.js`, the test.
 - **Risk:** low. Picker layout at 402×874; check it in Playwright. Ship after BIZ-07 so the page metadata and the first screen say the same thing.
 - **Alignment note (2026-11-07, business-manager B1):** the clause "your logs stay on your phone" is only true because BIZ-06 discloses what each AI feature sends. BIZ-06 is sequenced first (roadmap slot 55 vs 68). If BIZ-06's disclosure criterion hasn't merged, the line ends "…and your logs stay on your phone unless you use AI with your own key."
-- **Status:** ready
+- **Status:** done (v3.630, PR #210)
 
 
 ### BIZ-19: "Training since" date from the log, on the device
