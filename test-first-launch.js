@@ -56,19 +56,30 @@ function boot({typed = 'Alex', stored = null, existing = [], readThrows = false}
     return { window: dom.window };
   };
   const { window } = runWithStorage(html, `
-    window.__saves = []; window.__store = ${JSON.stringify(stored ? {'user-profile': JSON.stringify(stored)} : {})};
-    window.storage = { get: async k => { if(${readThrows} && k === 'user-profile') throw new Error('storage'); return k in window.__store ? {value: window.__store[k]} : null; },
-      set: async (k, v) => { window.__saves.push(k); window.__store[k] = v; } };
+    window.__saves = [];
     localStorage.setItem('trainingLog_user-list', ${JSON.stringify(JSON.stringify(existing))});
+    // The real namespaced storage (it throws 'not found' for a key never written), wrapped only to record writes.
+    function bumpExCorpusGen(){} function bumpFoodLogGen(){} function bumpWaterGen(){} function bumpWorkoutGen(){}
+    function clearStorageSpill(){} function isQuotaError(){ return false; } function noteStorageDegraded(){}
+
     function icon(){ return '<svg></svg>'; } function invalidateFoodPrefCache(){}
     var profileBodySaved = false;`,
-    [extractConst(src, 'RAW_PREFIX'), extractConst(src, 'APP_NAME'), extractConst(src, 'GOAL_LABELS'),
-     ...['rawGet', 'rawSet', 'getUserList', 'setUserList', 'escapeHtml', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'getMilestone', 'saveProfile', 'loadProfile', 'renderHeader', 'renderOnboardingCard'].map(f => extractFunction(src, f)),
+    [extractConst(src, 'RAW_PREFIX'), extractConst(src, 'APP_NAME'), extractConst(src, 'GOAL_LABELS'), extractFunction(src, 'buildNamespacedStorage'),
+     ...['rawGet', 'rawSet', 'getUserList', 'setUserList', 'escapeHtml', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'getMilestone', 'saveProfile', 'loadProfile', 'renderHeader', 'renderOnboardingCard', 'profileJustCreated'].map(f => extractFunction(src, f)),
+     extractConst(src, 'NEW_PROFILE_SESSION_KEY'),
      CREATE_PATCHED,
      `var weightUnit = 'lb', LB_PER_KG = 0.453592;
       var userProfile = {name: '', goal: 'maintain', heightFt: 5, heightIn: 10, weight: 180};
       ${typed ? `createNewUser(${JSON.stringify(typed)});` : ''}
       var activeUserId = rawGet('active-user') || (getUserList()[0] || {}).id;
+      // 2026-11-23 (v3.625): the real storage, not a stub that returned null for a missing key; the stub hid that
+      // the real one throws 'not found', so BIZ-02's fill never ran in the app (fixed in loadProfile, v3.625).
+      // The real createNewUser also leaves its session marker (sessionStorage) across the reload.
+      const __real = buildNamespacedStorage(activeUserId);
+      ${stored ? `localStorage.setItem('trainingLog_usr' + activeUserId + ':user-profile', ${JSON.stringify(JSON.stringify(stored))});` : ''}
+      window.__store = new Proxy({}, { get: (t, k) => localStorage.getItem('trainingLog_usr' + activeUserId + ':' + String(k)) });
+      window.storage = { get: async k => { if(${readThrows} && k === 'user-profile') throw new Error('storage'); return __real.get(k); },
+        set: async (k, v) => { window.__saves.push(k); return __real.set(k, v); }, delete: k => __real.delete(k), list: p => __real.list(p) };
       window.__boot = (async () => { await loadProfile(); renderHeader(); await renderOnboardingCard(); })();`]);
   return window;
 }
@@ -103,6 +114,16 @@ test('BIZ-02 criterion 3: Getting Started\'s "Set up your profile" row renders .
 test('BIZ-02 anchor: the fixture really replaced createNewUser\'s reload (one site)', (assert)=>{
   assert.strictEqual(CREATE.split('switchToUser(newId);').length - 1, 1);
   assert.notStrictEqual(CREATE_PATCHED, CREATE);
+});
+
+test('v3.625: an older profile that never saved the form (no marker from createNewUser this session) is not renamed, e.g. a migrated "Me"; the marker is the real one createNewUser leaves', async (assert)=>{
+  const w = boot();
+  await w.__boot;
+  assert.strictEqual(w.sessionStorage.getItem('trainingLog_new-profile'), w.eval('activeUserId'), 'anchor: the real createNewUser marked it');
+  const legacy = boot({typed: '', existing: [{id: '1', name: 'Me'}]});
+  await legacy.__boot;
+  assert.strictEqual(legacy.eval('userProfile.name'), '', 'no form ever saved, but not created this session: not "Me"');
+  assert.strictEqual(legacy.__saves.length, 0);
 });
 
 test('BIZ-02 review: a saved profile with no name (cleared on purpose, or migrated as "Me") is left alone; so is a failed read (no defaults written over it)', async (assert)=>{

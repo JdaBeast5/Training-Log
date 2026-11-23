@@ -1563,3 +1563,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `loadProfile` fills `userProfile.name` from the active user-list entry only when the read succeeded and found no saved profile (a brand-new profile), then `saveProfile` once. Saved profiles (cleared name, migrated "Me") and failed reads are untouched.
 - **Owner:** OK'd that a named profile's setup card lives in Settings (positionProfileCard reads the name).
 - **Next:** BIZ-01 (slot 64), the three-question quick start.
+
+## Addendum 145: BIZ-02 fix (v3.625, PR #204, 2026-11-23)
+- **Bug:** `window.storage.get` throws `'not found'` for a missing key (buildNamespacedStorage); v3.624 treated any throw as "not fresh", so the name fill never ran in the app. Its test stub returned null and hid it.
+- **Fix:** `loadProfile` reads `'not found'` as a fresh profile; the fill also needs `profileJustCreated()` (createNewUser sets `sessionStorage[trainingLog_new-profile] = newId` before its reload), so upgraded/migrated profiles that never saved the form aren't renamed.
+- **Lesson:** tests that touch storage should use the real `buildNamespacedStorage` (stub only its gen/quota hooks), not a `get` that returns null.
