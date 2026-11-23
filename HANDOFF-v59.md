@@ -1685,3 +1685,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `.app-banner` is flat (`--surface`, `--rule`), and `.app-banner-urgent::before` is a 4 px red bar. The rail's buttons are under `.app-banner-rail .app-banner-btn*`, with an ink primary and a focus ring. The base `.app-banner-btn` is unchanged, because other sheets use it.
 - New harness states: `banner-update-*-402` and `banner-urgent-*-402`.
 - **Next:** MKT-05, the block-complete recap variant (slot 80).
+
+## Addendum 165: MKT-05 (v3.645, PR #230)
+- `blockRecap(cycleStart, weekStartKey, end, plannedPerWeek)` returns null unless the 5th, 10th, ... counted block (`activity-dates`, 2+ dates) ends in that Mon–Sun week. Added `blockShareCardData` (kind `block`) and `blockGainShown`. `weeklyRecapModel` returns `block` and the title "Block complete", and `openRecapSheet` renders the block totals and gains.
+- **Flagged (pre-existing):** `getMesocycleWeek` floors the days since the cycle start (DST).

@@ -3264,7 +3264,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** extend `test-weekly-recap.js`, using the real `weeklyRecapModel`, `openRecapSheet`, `cycleWeekOf` and real namespaced storage. Sabotage: treat every week as the last, and criterion 2 must fail.
 - **Files:** `index.html` (`weeklyRecapModel`, `openRecapSheet`, the share-card builder), `sw.js`, the test.
 - **Risk:** the recap sheet's layout and its existing week share. No new stored key. Guarded by `test-weekly-recap.js`. Visual change, so a contact sheet goes in the PR.
-- **Status:** ready (owner 2026-11-23: the recap-sheet surface, per the summit note).
+- **Status:** done (v3.645, PR #230, 2026-11-23) (owner 2026-11-23: the recap-sheet surface). Block end = the week the 5th counted 7-day block ends in; custom programs get it (same cycle).
 
 ### MKT-06: Year in Lifting (an annual recap, on device)
 - **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
