@@ -1806,7 +1806,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** content only, apart from the technique flag. BL-02 (v3.519) has landed, but it has no `technique` flag: its rule is by category (`rpeTargetFor`, 27524, returns `null` for `oly`, `jump` and `throw`). So add the flag check here: at the top of signal 3 in `analyzeProgressionSignal` (27628), `exerciseInfo[ex.name]?.technique` returns `null` instead of an increase. Speed Squat and Speed Bench keep their `squat`/`push` categories, so the category rule alone wouldn't cover them.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; the `test-concise-cues.js` re-pin was found. Placed after BL-24 (slot 22a), because both touch the load increment.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the cue-count pin is now 970; BL-02's landed rule read, so the flag check's place is named. Scope unchanged.
-- **Status:** ready (BL-02 done, v3.519)
+- **Status:** done (v3.642, PR #227, 2026-11-23)
 
 ### BL-59: Category corrections that feed the muscle ledger (D-8, with M-8)
 - **Why:**

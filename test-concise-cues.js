@@ -45,10 +45,11 @@ function cues(){
 // v3.563 (BL-36): +1 exercise, Drop Landing (stick it), with 4 cues (321 -> 322, 971 -> 975).
 // v3.564 (BL-35): +1 exercise, 4-Way Neck Isometric (hand or band), with 4 cues (322 -> 323, 975 -> 979).
 // v3.570 (BL-60): +12 exercises (3 swap targets, 9 SUBSTITUTION_MAP alternatives), 3 cues each (323 -> 335, 979 -> 1015).
-test('REAL data: no cue was dropped — 335 exercises, 1015 cues', (assert)=>{
+// v3.642 (BL-58): +7 Light/Speed variants with 3 cues each, -6 unreferenced cycling entries with 3 each (335 -> 336, 1015 -> 1018).
+test('REAL data: no cue was dropped — 336 exercises, 1018 cues', (assert)=>{
   const c = cues();
-  assert.strictEqual(Object.keys(c).length, 335);
-  assert.strictEqual(Object.values(c).flat().length, 1015);
+  assert.strictEqual(Object.keys(c).length, 336);
+  assert.strictEqual(Object.values(c).flat().length, 1018);
 });
 
 test('REAL data: cues over 24 words are down to ' + OVER_24_LEFT, (assert)=>{

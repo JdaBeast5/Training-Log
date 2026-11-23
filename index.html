@@ -8516,7 +8516,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.641';
+const APP_VERSION = '3.642';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10276,6 +10276,10 @@ const WHATS_NEW = {
   ]},
   '3.641': { headline: 'Make today easier', points: [
     'When your readiness check advises caution, its note has a Make today easier button. One tap caps today\'s RPE target at 8, so RPE-mode loads come down and say why. Nothing changes unless you tap it, it ends on its own tomorrow, and Undo puts it back.',
+  ]},
+  '3.642': { headline: 'Speed and technique days', points: [
+    'Speed squats, speed bench, light deadlifts, light snatches and cleans, sub-max sprints and the light handstand hold now have their own form cues, and they count toward the right muscles.',
+    'They also stop suggesting you add weight: these sets are meant to stay light and fast.',
   ]},
 };
 
@@ -15179,9 +15183,8 @@ const EXERCISE_MOVE = {
   'Warm-up Ride (easy spin)':'cardio', 'Endurance Ride (Zone 2)':'cardio', 'Cool-down Spin':'cardio',
   'FTP Intervals':'cardio', 'Hill Repeats (seated climbing)':'cardio', 'Sprint Intervals (Bike)':'cardio',
   'Cadence Drills':'cardio', 'Long Ride (Zone 2)':'cardio', 'Technical Trail Ride':'cardio', 'Standing Climb Repeats':'cardio',
-  'Warm-up Spin':'cardio', 'Easy Ride (Zone 2)':'cardio', 'Cool-down Spin':'cardio', 'Cadence Drills':'cardio',
-  'Threshold Intervals':'cardio', 'Hill Repeats':'cardio', 'Long Ride':'cardio',
-  'Technical Descent Drills':'cardio', 'Sprint Intervals (Bike)':'cardio',
+  // v3.642 (BL-58): six cycling names no slot used went with their library entries;
+  // Cool-down Spin, Cadence Drills and Sprint Intervals (Bike) were listed twice.
   '90/90 Hip Switch':'mobility', 'Hip CARs':'mobility', 'Ankle Dorsiflexion Stretch':'mobility', 'Pigeon Pose':'mobility',
   'Shoulder CARs':'mobility', 'Thoracic Spine Rotation (Open Book)':'mobility', 'Wall Slides':'mobility', 'Band Dislocates':'mobility',
   'PNF Hamstring Stretch':'mobility', 'World\'s Greatest Stretch':'mobility', 'Nordic Curl':'hinge',
@@ -15228,6 +15231,39 @@ const EXERCISE_MOVE = {
   'Med Ball Rotational Throw':'throw',
   'Sprint Intervals':'cardio', 'Agility Ladder':'cardio', 'Incline Walk':'cardio', 'Jump Rope (warm-up)':'cardio',
   'Cat-Cow Mobility':'mobility',
+  // v3.642 (BL-58): every slot name has a move, from the MOVEMENT_ICONS keys only.
+  'Snatch (Light)':'hinge', 'Clean & Jerk (Light)':'hinge', 'Squat (Speed)':'squat', 'Bench Press (Speed)':'horizontalPress',
+  'Deadlift (Light/Technique)':'hinge', 'Handstand Hold (wall) (Light)':'overheadPress', 'Sprint Intervals (Sub-Max)':'cardio',
+  'Eccentric Heel Drop':'squat', 'Legs-Up-The-Wall (Side-by-Side)':'mobility', 'Straight-Arm Lat Pulldown':'pulldownPullup',
+  'Sandbag Lunges':'lunge', 'Farmers Carry (Heavy)':'carry', 'Zhan Zhuang (Standing Post)':'mobility',
+  'Silk Reeling Qigong (Chan Si Gong)':'mobility', 'Tai Chi Form — Opening & Ward Off (Peng)':'mobility',
+  'Tai Chi Form — Grasp the Sparrow\'s Tail':'mobility', 'Tai Chi Form — Single Whip':'mobility',
+  'Tai Chi Form — Cloud Hands (Yun Shou)':'mobility', 'Push Hands — Fixed Step (Tui Shou)':'mobility',
+  'Push Hands — Rollback & Press (Lu & Ji)':'mobility', 'Horse Stance Hold (Mabu)':'squat',
+  'Bow Stance Transitions (Gong Bu)':'lunge', 'Golden Rooster Stands on One Leg':'mobility',
+  'Tai Chi Form — Repulse Monkey (Retreating)':'mobility', 'Tai Chi Form — Brush Knee & Twist Step':'mobility',
+  'Short Form Flow (Full Run-Through)':'mobility', 'Post-Meal Walk':'cardio', 'Brisk Walk / Easy Cardio':'cardio',
+  'Battle Ropes':'cardio', 'Rowing Machine Intervals':'cardio', 'Sled Pull':'cardio', 'Wall Balls':'throw',
+  'Burpee Broad Jumps':'jump', 'SkiErg Intervals':'cardio', 'Seated Back-to-Back Breathing':'mobility',
+  'Partner Seated Forward Fold (Row)':'mobility', 'Double Tree Pose (Hands Joined)':'mobility',
+  'Partner Twist (Seated, Facing)':'mobility', 'Partner Boat Pose (Feet-to-Feet)':'coreCrunch',
+  'Partner Plank (Facing, Hand-to-Wrist)':'corePlank', 'Partner Chair Pose (Back-to-Back)':'squat',
+  'Standing Counterbalance Lean':'mobility', 'Assisted Seated Forward Fold':'mobility',
+  'Assisted Pigeon Pose (Gentle Press)':'mobility', 'Partner Spinal Twist (Assisted)':'mobility',
+  'Assisted Shoulder Opener':'mobility', 'Double Downward Dog (Stacked)':'mobility',
+  'Partner Warrior II Flow (Mirrored)':'lunge', 'Partner Tree Pose (Hand-Assisted)':'mobility',
+  'Synchronized Sun Salutation':'mobility', 'Synchronized Breathing (Seated)':'mobility',
+  'Partner Supported Child\'s Pose':'mobility', 'Partner Savasana (Hand Connection)':'mobility', 'Surfboard Pop-Up Drill':'jump',
+  'Skimboard Run-and-Drop Drill':'jump', 'Wakeboard Edge Transition Drill':'jump', 'Kite Crossing Isometric Hold':'corePlank',
+  'SUP Paddle Stroke Simulation':'row', 'Kayak Stroke Simulation':'row', 'Hip Escape (Shrimping)':'mobility',
+  'Bridge & Roll (Upa Escape)':'hinge', 'Technical Stand-up':'squat', 'Guard Retention Drill':'mobility',
+  'Knee Slice Pass':'lunge', 'Torreando Pass':'lunge', 'Combat Base Drill':'lunge', 'Double Leg Takedown':'lunge',
+  'Single Leg Takedown':'lunge', 'Rear Naked Choke Drill':'mobility', 'Armbar from Guard Drill':'mobility',
+  'Mount Control & Maintenance':'corePlank', 'Positional Sparring (Guard Retention)':'mobility',
+  '4-Way Neck Isometric (hand or band)':'mobility', 'Swan':'mobility', 'The Hundred':'coreCrunch', 'Roll-Up':'coreCrunch',
+  'Single Leg Stretch':'coreCrunch', 'Double Leg Stretch':'coreCrunch', 'Criss-Cross':'coreCrunch',
+  'Spine Stretch Forward':'mobility', 'Rolling Like a Ball':'coreCrunch', 'Single Leg Circles':'mobility', 'Saw':'mobility',
+  'Side Kick Series':'mobility', 'Teaser (Prep)':'coreCrunch'
 };
 
 
@@ -30068,6 +30104,12 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // Signal 3: increase — double progression achieved. Top of the range hit
   // for 2 sessions straight at the same weight, without needing near-max
   // effort to get there.
+  // v3.642 (BL-58): technique and speed work (exerciseInfo technique:true:
+  // the Speed and Light variants) never gets a load push. It sits above the
+  // BL-26 stall message too, on purpose: that message offers micro-loading,
+  // and a flat weight is the plan here. Inline, so suites extracting this one
+  // function keep their sandboxes.
+  if(typeof exerciseInfo !== 'undefined' && exerciseInfo[ex.name] && exerciseInfo[ex.name].technique) return null;
   const sameWeight = twoSessions && s0.weight!=null && s1.weight!=null && s0.weight === s1.weight;
   // v3.538 (BL-08): every working set, not just the top one, in both sessions.
   const metTopBoth = allAtTop(s0) && allAtTop(s1);
@@ -30505,7 +30547,9 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   // RPE mode owns the badge as well as the placeholder — see computeSuggestedSet.
   // v3.519 (BL-02): the target comes from rpeTargetFor, so clinical caps and
   // the technique-lift exclusion apply here exactly as in computeSuggestedSet.
-  const rpeTargetRpe = rpeCtx ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
+  // v3.642 (BL-58): no RPE load target on technique work, as computeSuggestedSet.
+  const techniqueWork = typeof exerciseInfo !== 'undefined' && !!exerciseInfo[ex.name] && !!exerciseInfo[ex.name].technique;
+  const rpeTargetRpe = (rpeCtx && !techniqueWork) ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
   const easierCapped = !!(rpeCtx && rpeCtx.easier && rpeTargetRpe === EASIER_DAY_RPE && rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) > EASIER_DAY_RPE);
   const rpeBadgeTarget = (loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null && rpeTargetRpe != null)
     ? loadForRpeTarget(rpeCtx.e1rm, parseBottomRep(ex.sets), rpeTargetRpe)
@@ -30566,7 +30610,8 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   // of the range isn't enough; only the clinical load gate (two sessions at
   // RPE 7 or easier, analyzeProgressionSignal) may suggest more weight.
   const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
-  if(!clinicalPlan && priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep
+  // v3.642 (BL-58): nor on technique work (exerciseInfo technique:true), as computeSuggestedSet.
+  if(!clinicalPlan && !techniqueWork && priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep
       // v3.538 (BL-08): every set at that weight reached the top, not just the best
       // one; inline so suites extracting this one function keep their sandboxes.
       // With no prior entry (an older caller) the top set alone decides.
@@ -30611,6 +30656,8 @@ function priorSetForSlot(prior, setIdx, ex, crossProgram){
 // words} | null.
 function suggestRepProgression(log, ex, program){
   if(!ex || program === 'medical' || program === 'senior') return null;
+  // v3.642 (BL-58): technique work (the light handstand hold) holds its dose.
+  if(typeof exerciseInfo !== 'undefined' && exerciseInfo[ex.name] && exerciseInfo[ex.name].technique) return null;
   const sets = ex.sets || '';
   const hold = /×\s*\d+(?:\s*-\s*(\d+))?\s*(?:s|secs?|seconds?)\b/i.exec(sets);
   const target = hold ? Number((/×\s*(\d+)(?:\s*-\s*(\d+))?/.exec(sets) || []).slice(1).filter(Boolean).pop()) : parseTopRep(sets);
@@ -30641,7 +30688,11 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // the mode on can never leave an exercise with no suggestion at all.
   // v3.519 (BL-02): rpeTargetFor caps clinical plans at RPE 7 and returns null
   // for technique lifts, which then take the double-progression chain below.
-  const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null)
+  // v3.642 (BL-58): technique and speed work (exerciseInfo technique:true) take
+  // no RPE load target either (a speed squat at RPE 8 is no longer speed work).
+  // Inline, so suites extracting this one function keep their sandboxes.
+  const techniqueWork = typeof exerciseInfo !== 'undefined' && !!exerciseInfo[ex.name] && !!exerciseInfo[ex.name].technique;
+  const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null && !techniqueWork)
     ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
   if(targetRpe != null){
     const repTarget = parseBottomRep(ex.sets);
@@ -30736,7 +30787,8 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // field agrees with it. v3.519 (BL-02): not on the clinical plans or Senior,
   // where only the clinical load gate may raise the weight (badge agrees).
   const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
-  if(!clinicalPlan && priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep
+  // v3.642 (BL-58): nor on technique work (exerciseInfo technique:true); the badge agrees.
+  if(!clinicalPlan && !techniqueWork && priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep
       // v3.538 (BL-08): every set at that weight reached the top, not just the best
       // one; inline so suites extracting this one function keep their sandboxes.
       // With no prior entry (an older caller) the top set alone decides.
@@ -46639,7 +46691,8 @@ async function renderExerciseProgress(){
     const topRep = parseTopRep(exDef.sets);
     // v3.538 (BL-08): every set at the latest top weight, as the workout view.
     const readyToProgress = appLog.length > 0 && latest && latest.reps!=null && topRep!=null && latest.reps >= topRep
-      && (latestEntry.sets||[]).filter(s=> s.weight === latest.weight && s.reps != null).every(s=> s.reps >= topRep);
+      && (latestEntry.sets||[]).filter(s=> s.weight === latest.weight && s.reps != null).every(s=> s.reps >= topRep)
+      && !(typeof exerciseInfo !== 'undefined' && (exerciseInfo[group.name] || {}).technique); // v3.642 (BL-58): technique work never reads as ready to go up
     const bestEver = maxWeightEver(log, null);
     const latestVolume = volumeOf(latestEntry);
     const latest1RM = latest ? estimated1RM(latest.weight, latest.reps) : null;
