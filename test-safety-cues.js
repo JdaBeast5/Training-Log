@@ -106,10 +106,15 @@ test('BL-06 criterion 2: no other exercise\'s cue count changed (snapshot from v
   // Exercises added since the snapshot are outside it: v3.563 (BL-36) Drop Landing; v3.564 (BL-35) the neck isometric.
   const added = ['Drop Landing (stick it)', '4-Way Neck Isometric (hand or band)',
     // v3.570 (BL-60): 12 entries, 3 cues each.
-    'Single-Leg Calf Raise', 'Heel Walk', 'Banded Dorsiflexion', 'Push-up (partial range)', 'Machine Chest Press', 'Landmine Press', 'Chest-Supported Row', 'Wall Sit', 'Leg Press (light, partial depth)', 'Step-Up (low box)', 'Grip Strengthening (light)', 'Shadowboxing (no resistance)'];
+    'Single-Leg Calf Raise', 'Heel Walk', 'Banded Dorsiflexion', 'Push-up (partial range)', 'Machine Chest Press', 'Landmine Press', 'Chest-Supported Row', 'Wall Sit', 'Leg Press (light, partial depth)', 'Step-Up (low box)', 'Grip Strengthening (light)', 'Shadowboxing (no resistance)',
+    // v3.642 (BL-58): the 7 Light/Speed variants, 3 cues each.
+    'Squat (Speed)', 'Bench Press (Speed)', 'Deadlift (Light/Technique)', 'Snatch (Light)', 'Clean & Jerk (Light)', 'Sprint Intervals (Sub-Max)', 'Handstand Hold (wall) (Light)'];
+  // v3.642 (BL-58): 6 cycling entries no slot or swap table reached were removed.
+  const removed = ['Warm-up Spin', 'Easy Ride (Zone 2)', 'Threshold Intervals', 'Hill Repeats', 'Long Ride', 'Technical Descent Drills'];
   const changed = Object.keys(now).filter(k => !added.includes(k) && now[k] !== before(k) + (edited[k] || 0));
   assert.deepStrictEqual(changed, []);
-  assert.strictEqual(Object.keys(now).length, 321 + added.length, 'no other exercise added or removed');
+  assert.strictEqual(Object.keys(now).length, 321 + added.length - removed.length, 'no other exercise added or removed');
+  assert.ok(removed.every(k => !(k in now)), 'the removed entries are gone');
   assert.ok(added.every(k => k in now), 'anchor: the added exercise is in the library');
 });
 
