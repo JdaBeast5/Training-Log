@@ -3830,6 +3830,9 @@
     transition:transform 0.15s var(--ease-smooth), border-color 0.15s var(--ease-smooth);
   }
   .user-pick-btn:active{transform:scale(0.98); border-color:var(--plate-blue);}
+  .user-picker-promise{
+    margin:-8px 0 20px; color:var(--text-muted); font-size:14px; line-height:1.45;
+  }
   .user-picker-divider{
     text-align:center; color:var(--text-muted); font-size:11.5px; margin-bottom:14px;
   }
@@ -6397,6 +6400,10 @@
   <div class="user-picker-box">
     <div class="eyebrow">Platestep</div>
     <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
+    <!-- v3.630 (BIZ-17): on a first launch, one line on what the app is (the
+         business.md §1 promise, the same words as the page metadata, BIZ-07).
+         showUserPicker shows it only when there are no profiles yet. -->
+    <p class="user-picker-promise" id="userPickerPromise" hidden>Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone.</p>
     <div id="userPickerList" class="user-picker-list"></div>
     <div class="user-picker-divider">— or —</div>
     <label class="care-label" for="newUserNameInput">Create a new profile</label>
@@ -8474,7 +8481,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.629';
+const APP_VERSION = '3.630';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10198,6 +10205,9 @@ const WHATS_NEW = {
   '3.629': { headline: 'Links to the app preview properly', points: [
     'A shared link to the app now previews with its name and a one-line description, instead of a blank card.',
   ]},
+  '3.630': { headline: 'The first screen says what the app is', points: [
+    'For people opening the app for the first time: under "Who\'s training?", one line now says what it does. You won\'t see it if you already have a profile.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -11032,6 +11042,12 @@ function showUserPicker(){
   // nor the "— or —" between it and the create form shows; it read as a
   // choice with one side missing.
   document.querySelector('#userPickerOverlay .user-picker-divider').hidden = users.length === 0;
+  // v3.630 (BIZ-17): the promise line is for a stranger's first screen only;
+  // switching between profiles stays as it was.
+  document.getElementById('userPickerPromise').hidden = users.length !== 0;
+  const pickerOverlay = document.getElementById('userPickerOverlay');
+  if(users.length === 0) pickerOverlay.setAttribute('aria-describedby', 'userPickerPromise'); // read out with the title
+  else pickerOverlay.removeAttribute('aria-describedby');
   if(users.length === 0){
     listEl.innerHTML = '';
   }else{
