@@ -4184,6 +4184,32 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Risk:** low. Display only, with no stored data.
 - **Status:** ready (owner 2026-11-23: option (c), "let's go with what you recommend"). Roadmap: next in sequence.
 
+### UX-37: App banners in Plate & Press: "Update ready", "Updated to vX" and the storage warnings
+- **Why:** owner, 2026-11-23: "make the update button match the app". The banner rail (`#appBannerRail`) is still 2.0 glass:
+  - `.app-banner-info` is a plate-blue tint with a blue border, a blue glow (`box-shadow` with `--plate-blue-rgb`) and a blue title;
+  - `.app-banner-btn-primary` ("Reload now", "More info") is a solid plate-blue button;
+  - `.app-banner-urgent` and `-danger` are the same in plate red;
+  - the banners rise in with `cardRise`;
+  - the title is 11 px and the buttons 12 px.
+
+  It's used by `showUpdateBanner` (the "Update ready · Reload now / Later" prompt), `showWhatsNewConfirm` ("Updated to vX · More info / Dismiss") and the storage banner.
+- **Change:** outside gym mode, the banners follow the flat world.
+  - **Info and update:** a flat `--surface` block on the ground with a 1 px `--rule` hairline. No tint, no glow, no blue. The title is 15/600 in `--text`, the body 13 in `--text-2`.
+  - **Primary button** ("Reload now", "More info"): the solid ink button the app uses for its main action, at least 44 pt. The secondary is a quiet text-style button.
+  - **Urgent and storage:** a flat block whose only colour is a 4 px left bar in the warning ink, with the title in `--text`. It's still clearly a warning, with no glow.
+  - The entrance stays transform/opacity only, and is instant under Reduce Motion.
+  - The rail sits where the redesigned Today chrome expects it. It never covers the cover's Log button, and it sits above the cover's first row.
+- **Acceptance criteria:**
+  1. Real `showUpdateBanner(worker)` and `showWhatsNewConfirm(entries)` in jsdom: the markup is unchanged in behaviour, with the same buttons, ids and click handlers. "Reload now" still sets the `whats-new-pending-confirm` flag before messaging the worker (re-run `test-whats-new.js` unchanged).
+  2. CSSOM: outside gym mode, no `.app-banner*` rule has a `box-shadow` colour from the plate inks or a `rgba(var(--plate-*-rgb)…)` background. The primary button's background is the app's main-action ink, not `--plate-blue`. Every banner button is at least 44 px tall.
+  3. `.app-banner-urgent` keeps a visible warning mark (the 4 px bar) and a contrast of at least 4.5:1 for its title.
+  4. Harness: new states `banner-update-402` and `banner-urgent-402`, in dark and light, are shown in the PR. The rest of `tday-*` stays identical with no banner showing.
+  5. Sabotage: restoring the blue primary fails 2.
+- **Test plan:** extend `test-whats-new.js` or add `test-app-banners.js`, and add the harness states.
+- **Files:** `index.html` (`.app-banner*` CSS around 3937–3966, `showUpdateBanner` ~53111, `showWhatsNewConfirm` ~35369, the storage banner ~15736, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js` (two states).
+- **Risk:** low. Style only; the update flow's logic is untouched, and that's guarded by `test-whats-new.js`.
+- **Status:** ready (owner 2026-11-23). Roadmap: right after UX-36.
+
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
 - **Change:** `tools/visual/`, a Playwright script with:
