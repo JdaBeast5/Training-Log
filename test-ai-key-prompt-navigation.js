@@ -108,6 +108,7 @@ const wireSettingsChunks = [
   extractFunction(src, 'getTodayKey'),
   extractFunction(src, 'describeHealthImportAge'),
   extractFunction(src, 'refreshHealthImportSummary'),
+  'async function renderTrainingSince(){}', // v3.633 (BIZ-19): wireSettings' open() renders it (test-training-since.js)
   extractFunction(src, 'escapeHtml'),
   extractFunction(src, 'aiKeySetupPrompt'),
   'async function setCardOpenState(){}',

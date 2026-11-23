@@ -2818,7 +2818,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - `readExCorpus` drops keys whose program day no longer exists (`parseExKey`), so a deleted custom program can make the date later than the truth. Say "on your log" in the What's New line, as MKT-17 does.
   - Settings layout at 402×874; check it in Playwright.
-- **Status:** ready
+- **Status:** done (v3.633, PR #215)
 
 ### BIZ-18: "What's free" in writing: README, landing page and one in-app note
 - **Why:**

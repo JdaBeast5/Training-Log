@@ -1607,3 +1607,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `describeFirstMonth(days, lastBackup, today)` and `checkFirstMonth()`, which add a "First month" row in App Health Check, under Backup. A window still open says "so far".
 - Counted from the `workout-time:<date>` keys (live sets only), by the owner's choice.
 - **Next:** BIZ-19 (slot 71), "Training since".
+
+## Addendum 153: BIZ-19 (v3.633, PR #215, 2026-11-23)
+- `entryHasLoggedSet` (shared with `trainingDayNumber`), `isRealDateKey`, `earliestTrainingDate`, and `renderTrainingSince`, which fills `#trainingSinceSlot` when Settings opens.
+- Seven suites were re-pinned, each by one line: they extract the helper or stub the render.
+- **For BIZ-20:** the date comes through `readExCorpus`, so keys from a deleted program day are skipped.
+- **Next:** check `planning/roadmap.md` after slot 71.

@@ -43,7 +43,7 @@ function mount(){
       set: async (k, v) => { window.__sets++; window.__store[k] = String(v); },
     };
     window.__celebrations = [];`,
-    [...['parseExKey', 'normalizeExEntry', 'trainingDayNumber', 'dateKeyMinusDays', 'numberMilestoneOn', 'noRestWarningActive', 'checkNumberMilestone',
+    [...['parseExKey', 'normalizeExEntry', 'entryHasLoggedSet' /* v3.633 (BIZ-19): shared logged-set test */, 'trainingDayNumber', 'dateKeyMinusDays', 'numberMilestoneOn', 'noRestWarningActive', 'checkNumberMilestone',
       'fetchWorkoutDates', 'readWorkoutCorpus', 'computeDaysSinceRest'].map(f => extractFunction(src, f)),
      extractConst(src, 'ordinalSuffix'), extractConst(src, 'NUMBER_MILESTONES'), extractConst(src, 'READINESS_DAYS_NO_REST'),
      'let exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null;', extractFunction(src, 'readExCorpus'),

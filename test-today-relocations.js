@@ -38,7 +38,7 @@ function mount({wire = true} = {}){
     var programs = { strength: {label: 'Strength & Size', short: 'Strength.', overview: 'Four days.', days: {d1: {label: 'Day 1'}}},
                      ppl: {label: 'Push Pull Legs', short: 'PPL.', overview: 'Six days.', days: {d1: {label: 'Day 1'}}} };
     var dayDefs = programs.strength.days;
-    function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){}`,
+    function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){} function renderTrainingSince(){} /* v3.633 (BIZ-19) */`,
     [extractFunction(src, 'renderProgramSelector'), wire ? extractIIFE(src, 'wireSettings') + '\nwireSettings();' : '',
      extractConst(src, 'SEARCH_TAB_LABELS'), extractFunction(src, 'collectSearchSections'),
      'window.__ready = renderProgramSelector();']);
@@ -122,7 +122,7 @@ test('criterion 5: the store frame for the program (STORE_STEPS.program) opens S
 
 test('UX-32: in Settings the program picker shows one arrow (the Settings mark), full width, the name in the ink (the real wireSettings, the real stylesheet)', (assert)=>{
   const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-  const { window } = runJsdom(`<style>${CSS}</style>` + BODY, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){}`,
+  const { window } = runJsdom(`<style>${CSS}</style>` + BODY, `function restNotificationsSupported(){ return false; } function refreshHealthImportSummary(){} function renderTrainingSince(){} /* v3.633 (BIZ-19) */`,
     [extractIIFE(src, 'wireSettings') + '\nwireSettings();']);
   const doc = window.document, sel = doc.getElementById('programSelector');
   assert.ok(sel.closest('#settingsProgramSlot'), 'anchor: the picker is in Settings');
