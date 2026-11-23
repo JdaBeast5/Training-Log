@@ -102,7 +102,7 @@ test('REAL source (v3.476): the recap is asked for, and sits under the session h
 // the corpus readers stubbed at the boundary; today fixed at Monday 2026-11-16.
 // Sabotage: mark rest days as missed and criterion 1 fails.
 const LAST_MON = '2026-11-09';
-function sheetWindow({program = 'strength', mesoWeek = 4, workoutKeys, exCorpus, prs = [], cycleStart = '2026-09-07', extra = ''} = {}){
+function sheetWindow({program = 'strength', mesoWeek = 4, workoutKeys, exCorpus, prs = [], cycleStart = '2026-09-07', activityDates = null, extra = ''} = {}){
   const wk = workoutKeys || [['2026-11-09', 'd1'], ['2026-11-10', 'd2'], ['2026-11-11', 'd3'], ['2026-11-12', 'd4']];
   // Day 5 is logged only as sets (no checkbox ticked): still trained.
   const ex = exCorpus || [{parsed: {program: 'strength', dayId: 'd5', idx: 0}, exDef: {name: 'Squat'}, log: [{date: '2026-11-13', sets: [{weight: 225, reps: 5}, {weight: 225, reps: 5}]}]},
@@ -111,7 +111,7 @@ function sheetWindow({program = 'strength', mesoWeek = 4, workoutKeys, exCorpus,
   const { window } = runJsdom(html, `
     var weightUnit = 'lb', LB_PER_KG = 0.453592, activeProgram = ${JSON.stringify(program)}, activeDay = 'd1';
     window.getTodayKey = () => '2026-11-16';
-    var __store = ${JSON.stringify(cycleStart ? {'program-cycle-start': cycleStart} : {})};
+    var __store = ${JSON.stringify(Object.assign(cycleStart ? {'program-cycle-start': cycleStart} : {}, activityDates ? {'activity-dates': JSON.stringify(activityDates)} : {}))};
     window.__recapSets = 0;
     window.storage = { get: async k => k in __store ? {value: __store[k]} : null, set: async (k, v) => { if(k === 'weekly-recap-seen') window.__recapSets++; __store[k] = v; } };
     window.fetchAllWeightEntries = async () => [];
@@ -130,7 +130,7 @@ function sheetWindow({program = 'strength', mesoWeek = 4, workoutKeys, exCorpus,
      `var dayDefs = programs.strength.days; var dayOrder = Object.keys(dayDefs);`,
      ...['parseDateKey', 'formatDate', 'formatShortDate', 'dateKeyMinusDays', 'mondayOf', 'escapeHtml', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'dayInk',
        'cycleWeekOf', 'mesocyclePhaseTag', 'isCustomProgramKey', 'volumeModifiersApply', 'bestLabel', 'isLoggedSet', 'computeWeekStats', 'weekShareTrainingStats',
-       'weekShareCardData', 'weekStripStates', 'weeklyRecapModel', 'recapMissedLine', 'openRecapSheet', 'closeRecapSheet', 'weeklyRecapSeenThisWeek',
+       'weekShareCardData', 'blockShareCardData', 'blockRecap', 'blockGainShown', 'isMissedSet', 'estimated1RM' /* v3.645 (MKT-05) */, 'weekStripStates', 'weeklyRecapModel', 'recapMissedLine', 'openRecapSheet', 'closeRecapSheet', 'weeklyRecapSeenThisWeek',
        'recapMayOpen', 'maybeShowWeeklyRecap', 'getWeeklyRecapInsight'].map(n => extractFunction(src, n)),
      'let recapCheckInflight = null, recapNothingFor = null;', extractConst(src, 'VIEW_RENDERERS'), 'window.VIEW_RENDERERS = VIEW_RENDERERS;']);
   return window;
@@ -263,6 +263,118 @@ test('UX-11 review fixes: never over gym mode, another overlay, or another view;
   const quiet = sheetWindow({workoutKeys: [], exCorpus: [], extra: `window.__models = 0; const __m = weeklyRecapModel; window.weeklyRecapModel = async (k) => { window.__models++; return __m(k); };`});
   quiet.VIEW_RENDERERS.today(); await tick(); quiet.VIEW_RENDERERS.today(); await tick();
   assert.strictEqual(quiet.__models, 1, 'built once this session');
+});
+
+// ---- v3.645 (MKT-05, owner 2026-11-23): the block-complete variant -----------
+// The week that ends a 5-week block (its last counted week) recaps the block:
+// "Block complete", the block's weeks and sessions of planned, the three
+// biggest estimated-1RM gains in the block, and a BLOCK COMPLETE card in place
+// of the week card. Never on a clinical plan or without a cycle.
+// Real invocation: the real weeklyRecapModel, blockRecap, blockShareCardData,
+// cycleWeekOf, estimated1RM and openRecapSheet; storage at the boundary.
+// Sabotage: treat every week as the last and criterion 2 fails.
+const BLOCK_START = '2026-10-12'; // five 7-day blocks to Sunday 2026-11-15
+const BLOCK_DATES = ['2026-10-05', '2026-10-06', // before the block: not counted
+  '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-19', '2026-10-21', '2026-10-23', '2026-10-26', '2026-10-28', '2026-11-02', '2026-11-04', '2026-11-06',
+  '2026-11-09', '2026-11-10', '2026-11-11', '2026-11-13'];
+const ex = (dayId, name, log) => ({parsed: {program: 'strength', dayId, idx: 0}, exDef: {name}, log});
+const BLOCK_CORPUS = [
+  ex('d1', 'Bench Press', [{date: '2026-09-28', sets: [{weight: 150, reps: 5}]}, {date: '2026-10-12', sets: [{weight: 200, reps: 5}, {weight: 190, reps: 5}]}, {date: '2026-11-09', sets: [{weight: 215, reps: 5}, {weight: 260, reps: 0}]}]),
+  ex('d5', 'Squat', [{date: '2026-10-13', sets: [{weight: 250, reps: 5}]}, {date: '2026-11-13', sets: [{weight: 265, reps: 5}]}]),
+  ex('d4', 'Deadlift', [{date: '2026-10-14', sets: [{weight: 300, reps: 5}]}, {date: '2026-11-11', sets: [{weight: 320, reps: 5}]}]),
+  ex('d2', 'Overhead Press', [{date: '2026-10-15', sets: [{weight: 100, reps: 5}]}, {date: '2026-11-10', sets: [{weight: 105, reps: 5}]}]),
+];
+const blockWindow = (opts = {}) => sheetWindow(Object.assign({mesoWeek: 6, cycleStart: BLOCK_START, activityDates: BLOCK_DATES, exCorpus: BLOCK_CORPUS}, opts));
+
+test('MKT-05 criterion 1: the recap of week 5 of a 5-week strength block is the block variant; its share data is BLOCK COMPLETE', async (assert)=>{
+  const w = blockWindow();
+  const m = await w.weeklyRecapModel(LAST_MON);
+  assert.strictEqual(w.cycleWeekOf(6 - 1), 5, 'anchor: last week was week 5 of 5 (getMesocycleWeek says 6 today)');
+  assert.ok(m.block, 'the block variant');
+  assert.strictEqual(m.title, 'Block complete');
+  assert.strictEqual(m.share.headline, 'BLOCK COMPLETE');
+  assert.strictEqual(m.share.kind, 'block');
+  assert.strictEqual(m.block.weeks, 5);
+  assert.strictEqual(m.block.startKey, BLOCK_START);
+  // Days this program had work in the block: the four workout keys of last week and the corpus's in-block log dates (not 2026-09-28's).
+  assert.strictEqual(m.block.sessions, 9);
+  assert.strictEqual(m.block.endKey, '2026-11-15');
+  // The program's schedule: 5 training days a week (Days 3 and 7 are rest days; a logged Day 3 is not planned) × 5.
+  const sched = w.eval("Object.keys(dayDefs).filter(id => !dayDefs[id].rest).length");
+  assert.strictEqual(sched, 5, 'anchor: the schedule');
+  assert.strictEqual(m.block.planned, 25);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(m.share.stats)).slice(0, 2), [{value: '5', label: 'WEEKS'}, {value: '9/25', label: 'SESSIONS'}]);
+});
+
+test('MKT-05 criterion 2: the recap of week 3 of 5 is the normal weekly recap, with no block fields', async (assert)=>{
+  // The cycle began 2026-10-26: last week was its 3rd counted block.
+  const w = blockWindow({mesoWeek: 4, cycleStart: '2026-10-26'});
+  const m = await w.weeklyRecapModel(LAST_MON);
+  assert.strictEqual(w.cycleWeekOf(4 - 1), 3, 'anchor: week 3 of 5');
+  assert.strictEqual(m.block, undefined);
+  assert.match(m.title, /^Week 3, done$/);
+  assert.strictEqual(m.share.headline, 'WEEK COMPLETE');
+  // And week 4 of 5 (the week before the last) is normal too.
+  assert.strictEqual((await blockWindow({mesoWeek: 5, cycleStart: '2026-10-19'}).weeklyRecapModel(LAST_MON)).block, undefined);
+});
+
+test('MKT-05 review fix: once a block\'s week has been recapped, the next week (a week that didn\'t count) is a normal recap, not a second Block complete', async (assert)=>{
+  const w = blockWindow({activityDates: [...BLOCK_DATES, '2026-11-17'], workoutKeys: [['2026-11-17', 'd1'], ['2026-11-18', 'd2']]});
+  const m = await w.weeklyRecapModel('2026-11-16');
+  assert.ok(m, 'anchor: a recap for that week');
+  assert.strictEqual(m.block, undefined);
+  assert.ok((await w.weeklyRecapModel(LAST_MON)).block, 'anchor: the week the block ended in is the block variant');
+  // A block counts only its counted weeks: a 1-session week inside the span adds nothing.
+  const gap = blockWindow({cycleStart: '2026-10-05', activityDates: ['2026-10-05', '2026-10-06', '2026-10-08', ...BLOCK_DATES.slice(2).filter(d => !/^2026-10-1[2-8]$/.test(d)), '2026-10-13']});
+  const g = await gap.weeklyRecapModel(LAST_MON);
+  assert.ok(g.block, 'anchor: five counted blocks, with an uncounted one inside');
+  assert.strictEqual(g.block.startKey, '2026-10-05');
+  assert.ok(!g.block.gains.some(x => x.name === 'Squat'), 'the 2026-10-13 squat, in the uncounted week, is not the baseline');
+});
+
+test('MKT-05 criterion 3: the gains are sorted biggest first, at most 3, from the fixture\'s sets (the real estimated1RM; missed sets and earlier sessions left out)', async (assert)=>{
+  const w = blockWindow();
+  const m = await w.weeklyRecapModel(LAST_MON);
+  const e = (wt, r) => w.estimated1RM(wt, r);
+  const expect = [['Deadlift', e(300, 5), e(320, 5)], ['Bench Press', e(200, 5), e(215, 5)], ['Squat', e(250, 5), e(265, 5)], ['Overhead Press', e(100, 5), e(105, 5)]]
+    .map(([name, from, to]) => ({name, from, to, gain: to - from})).sort((a, b) => b.gain - a.gain).slice(0, 3);
+  assert.ok(expect[0].gain > expect[2].gain, 'anchor: the fixture has distinct gains');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(m.block.gains)), expect);
+  assert.ok(!m.block.gains.some(g => g.name === 'Overhead Press'), 'the fourth is left out');
+  assert.strictEqual(m.share.stats[2].label, 'TOP E1RM GAIN');
+  assert.strictEqual(m.share.stats[2].value, `+${expect[0].gain} lb`);
+});
+
+test('MKT-05 criterion 4: a MEDICAL_STYLES program\'s last week, and a program with no cycle started, give the normal recap, with no block share data', async (assert)=>{
+  const med = Object.keys(require('vm').runInNewContext('(' + extractConst(src, 'MEDICAL_STYLES').replace(/^const MEDICAL_STYLES\s*=\s*/, '').replace(/;\s*$/, '') + ')'))[0];
+  const m = await blockWindow({program: med}).weeklyRecapModel(LAST_MON);
+  assert.ok(m, 'anchor: a recap');
+  assert.strictEqual(m.block, undefined);
+  assert.strictEqual(m.share, null);
+  const none = await blockWindow({cycleStart: ''}).weeklyRecapModel(LAST_MON);
+  assert.strictEqual(none.block, undefined, 'no cycle: no block');
+});
+
+test('MKT-05 criterion 5: the opened sheet (real openRecapSheet) shows exactly one Share button, which shares the block card; the gains and totals are on it', async (assert)=>{
+  const w = blockWindow();
+  w.VIEW_RENDERERS.today(); await tick();
+  const sheet = w.document.getElementById('recapSheet');
+  assert.ok(sheet.classList.contains('active'), 'anchor: opened');
+  const shares = [...sheet.querySelectorAll('button')].filter(b => /share/i.test(b.textContent) && !b.hidden);
+  assert.strictEqual(shares.length, 1, 'one Share');
+  shares[0].click();
+  assert.strictEqual(w.__shared.length, 1);
+  assert.strictEqual(w.__shared[0].headline, 'BLOCK COMPLETE');
+  assert.strictEqual(w.document.getElementById('recapTitle').textContent, 'Block complete');
+  assert.match(w.document.getElementById('recapRange').textContent, /^Oct 12 – Nov 15 · /);
+  const totals = [...sheet.querySelectorAll('#recapTotals .finish-total-l')].map(x => x.textContent);
+  assert.deepStrictEqual(totals, ['Block', 'Sessions']);
+  const rows = [...sheet.querySelectorAll('#recapBests .finish-next-row')];
+  assert.strictEqual(rows.length, 3);
+  assert.match(rows[0].textContent, /^Deadlift/);
+  assert.match(sheet.querySelector('#recapBests .finish-next-head').textContent, /^Biggest gains$/);
+  assert.ok(!/\bPR\b|New PR/.test(sheet.textContent), 'no "PR" wording (summit R6)');
+  assert.match(w.document.getElementById('recapMissed').textContent, /^Last week: /, 'the strip and its line are last week\'s');
 });
 
 run();

@@ -148,6 +148,12 @@ function buildStates(){
     // (the streak milestone already celebrated, so its banner doesn't cover the sheet).
     states.push({ id: `recap-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', recap: true,
       storage: { 'week-streak-last-celebrated': '8' } });
+    // v3.645 (MKT-05): the block-complete variant of the recap sheet. The
+    // fixture's last week is not a block's end, so this opens the real sheet
+    // with the real block variant (blockRecap, blockShareCardData) built from
+    // the fixture's own data: a look preview, not the week arithmetic.
+    states.push({ id: `recap-block-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', recapBlock: true,
+      storage: { 'week-streak-last-celebrated': '8' } });
     // v3.644 (UX-37): the app banner rail, as the real writers draw it: the
     // update prompt (a waiting worker) and the storage-full warning.
     states.push({ id: `banner-update-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', banner: 'update',
@@ -456,6 +462,27 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             return true;
           });
           if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
+        }
+        if(state.recapBlock){
+          const opened = await page.evaluate(async () => {
+            if(typeof blockRecap !== 'function') return false; // a base from before v3.645
+            const m = await weeklyRecapModel(dateKeyMinusDays(mondayOf(getTodayKey()), 7));
+            if(!m) return 'no recap model';
+            const cs = ((await window.storage.get('program-cycle-start')) || {}).value || dateKeyMinusDays(m.weekStartKey, 28);
+            // Every block of the fixture counted, so the variant shows on this week.
+            const days = []; for(let d = cs; d <= m.end; d = dateKeyMinusDays(d, -1)) days.push(d);
+            await window.storage.set('activity-dates', JSON.stringify(days));
+            const start = dateKeyMinusDays(m.end, 7 * DELOAD_CYCLE_WEEKS - 1);
+            await window.storage.set('program-cycle-start', start);
+            m.block = await blockRecap(start, m.weekStartKey, m.end, m.planned);
+            if(!m.block) return 'no block';
+            m.title = 'Block complete';
+            m.share = blockShareCardData(m.block, m.program, (m.strip.filter(d => d.state === 'trained').pop() || {}).id || activeDay);
+            openRecapSheet(m);
+            return true;
+          });
+          if(opened !== true && opened !== false) throw new Error(`${state.id}: the block sheet did not open (${opened})`);
+          if(opened) await page.waitForSelector('#recapSheet.active', { timeout: 10000 });
         }
         if(state.banner){
           await page.evaluate(async (kind) => {
