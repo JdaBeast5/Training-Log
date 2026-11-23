@@ -978,7 +978,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   2. Deleting a meal leaves the logged days untouched.
   3. *(Owner yes, 2026-11-08)* A JSON backup made with one saved meal, restored into an empty store, gives back the same `saved-meals` value.
 - **Test plan:** new `test-saved-meals.js`. **Risk:** a new stored shape, and the backup/restore round-trip. **Files:** `index.html`, `sw.js`, the test.
-- **Status:** ready (owner yes 2026-11-08, D5). The new `saved-meals` key is approved; criterion 3 checks it survives backup and restore.
+- **Status:** done (v3.636, PR #220)
 
 ### BL-29: Import history from Strong or Hevy CSV
 - **Why:** this is what lets someone with years of history switch (research #5).
@@ -1620,6 +1620,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (7632, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
 - **Risk:** a stored-data migration on the history store. A backup export is prompted first. Needs BL-51 shipped and some weeks of `n`-stamped data to be worth it.
 - **Fold-in (2026-11-08):** placed before BL-37 (slot 73a), so the variant rebuild's own migration can attribute entries by name.
+- **Hold (owner, 2026-11-23):** wait until about 2026-12-01 (three weeks of BL-51 stamps) before building; BL-37 and BL-38 wait with it.
 - **Status:** ready (after BL-51) (owner yes 2026-11-08: "52 a"; build only once BL-51 has stamped names for a few weeks, and before BL-37). Slot 73a.
 
 ### BL-53: Medical history reaches History, PRs and volume; the watersports fallback key (D-1, D-12)
