@@ -8487,7 +8487,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.633';
+const APP_VERSION = '3.634';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10222,6 +10222,9 @@ const WHATS_NEW = {
   ]},
   '3.633': { headline: 'Training since', points: [
     'Settings now shows the month you started training, by your log: the earliest day with a logged set. It travels with your backup, so it survives a new phone.',
+  ]},
+  '3.634': { headline: 'AI advice knows your clinical program', points: [
+    'On a medically modified program, the coach chat and Cross-Metric Insights now know which one (prenatal, ACL rehab, hypertension and the rest). Insights only suggests maintaining or deloading there, never pushing, and both point you to your care team before changing your training.',
   ]},
 };
 
@@ -46739,6 +46742,19 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
   taiChi: 'an internal martial arts (tai chi) coach focused on waist-led movement, rooted weight transfer, relaxed shoulders, continuous unbroken motion, and structural alignment in stances — you evaluate softness and connectedness of movement, not power or speed',
 };
 
+// v3.634 (BL-50, SAF-9): the clinical style, for the AI prompts. Both prompts
+// used to get only "Active program: Medically Modified", never the style, so
+// Cross-Metric Insights could tell a prenatal or ACL user to PUSH. Named with
+// its group ("Injury Rehab: ACL …"), since some labels ("Early Recovery")
+// mean little alone. null off the medical program. The prompt text and the
+// verdict shown change; the payload (effort, max_tokens) is untouched
+// (CLAUDE.md fragile area).
+function clinicalAiStyle(){
+  if(activeProgram !== 'medical') return null;
+  const st = MEDICAL_STYLES[activeMedicalStyle];
+  return st ? `${st.group}: ${st.label}` : 'unspecified clinical style';
+}
+
 // HANDOFF v30: raising max_tokens alone was tried twice on Cross-Metric
 // Insights (650, then 1100) and failed both times — a bigger ceiling helps
 // but doesn't bound WHAT adaptive thinking spends, so it was a guess each
@@ -46909,7 +46925,11 @@ async function buildCrossMetricInsightsContext(){
     }
   }catch(e){}
 
-  return `Goal: ${goalLabel}. Active program: ${programLabel}.\n\n${lines.join('\n')}`;
+  // v3.634 (BL-50): on the header line, so generateCrossMetricInsights reads it
+  // from here (and the cache fingerprint covers it), and it never counts as a
+  // data line.
+  const clinical = clinicalAiStyle();
+  return `Goal: ${goalLabel}. Active program: ${programLabel}.${clinical ? ` Clinical style: ${clinical}.` : ''}\n\n${lines.join('\n')}`;
 }
 
 async function generateCrossMetricInsights(opts){
@@ -46959,6 +46979,14 @@ async function generateCrossMetricInsights(opts){
       return;
     }
 
+    // v3.634 (BL-50, SAF-9): on a clinical style the verdict is MAINTAIN or
+    // DELOAD only, with the care team named. Read from the context's header
+    // line (buildCrossMetricInsightsContext). Every other program's prompt
+    // is byte-identical to before.
+    const clinicalStyle = (dataContext.split('\n')[0].match(/ Clinical style: (.+)\.$/) || [])[1] || null;
+    const verdictRule = clinicalStyle
+      ? `First line only the word MAINTAIN or DELOAD. This person is on a clinical program (${clinicalStyle}), so never recommend PUSH, whatever the data shows: pick DELOAD if RPE is climbing with falling sleep, stalling PRs or new pain, and MAINTAIN otherwise. Say plainly that any change to their training load should be checked with their care team first.`
+      : `First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme).`;
     const systemPrompt = `You are ${persona}, looking at someone's full training-log data across multiple tracked metrics at once — bodyweight, nutrition, sleep, water, RPE, pain check-ins, and recent PRs.
 
 Your specific job here is different from a normal check-in: find the ACTUAL INTERACTIONS between these metrics, not a list of separate observations. For example: does a low-sleep stretch line up with rising RPE the same week? Does protein intake dropping coincide with volume or intensity increasing (a real recovery-risk combination)? Does water intake lag specifically on days that led into harder sessions? Does a pain check-in cluster around a period of rising RPE or falling sleep? Do pain check-ins tend to show up on or right after specific kinds of training days (e.g. a pattern of knee pain following squat-heavy sessions specifically, not just pain in general)? Only point out a connection if the data genuinely supports it — don't force a correlation that isn't there, and say so plainly if the data doesn't show a clear interaction yet (that's a valid, honest answer, not a failure to find something).
@@ -46966,7 +46994,7 @@ Your specific job here is different from a normal check-in: find the ACTUAL INTE
 Data:
 ${dataContext}
 
-Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
+Respond in exactly this format. ${verdictRule} Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
     // Cross-Metric Insights is the most expensive call in the app (largest
     // input context) over the slowest-moving data, and the one that's
@@ -47002,7 +47030,7 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
     const {result: reply, cached} = await aiCachedCall(
       'cross-metric',
       aiFingerprint([dataContext, persona]),
-      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 5000, undefined, 'medium'),
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content: clinicalStyle ? 'Analyze how my tracked metrics are affecting each other, give me a clear maintain/deload call, and tell me what to adjust.' : 'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 5000, undefined, 'medium'),
       undefined,
       {force}
     );
@@ -47011,7 +47039,9 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
     let recHtml = '';
     let narrative = trimmed;
     if(recMatch){
-      const rec = recMatch[1].toUpperCase();
+      // v3.634 (BL-50, SAF-9): on a clinical style the prompt allows only
+      // MAINTAIN or DELOAD; a PUSH that slips through is shown as MAINTAIN.
+      const rec = (clinicalStyle && recMatch[1].toUpperCase() === 'PUSH') ? 'MAINTAIN' : recMatch[1].toUpperCase();
       narrative = recMatch[2].trim();
       const recStyle = rec === 'PUSH' ? {cls:'goal-feedback-good', icon:icon('check'), label:'Push — recovery signals support training harder'}
         : rec === 'DELOAD' ? {cls:'goal-feedback-warn', icon:icon('warning'), label:'Deload — the data supports backing off, not pushing through'}
@@ -47206,6 +47236,11 @@ async function buildCoachChatContext(){
   let volumeLine = '';
   try{ volumeLine = goalVolumeContextLine(userProfile?.goal, activeProgram); }catch(e){} // v3.542 (BL-65)
 
+  // v3.634 (BL-50, SAF-9): the clinical style and its rule, on the program
+  // line, so every other program's text is unchanged.
+  const clinical = clinicalAiStyle();
+  const clinicalNote = clinical ? ` (clinical style: ${clinical}). Keep advice within what this style and its program prescribe: never push them to add load or intensity beyond that, and tell them to check any change to their training with their care team first.` : '';
+
   let deficitLine = '';
   try{
     const warn = await pDeficit;
@@ -47222,7 +47257,7 @@ You're chatting inside someone's personal training log app, in a short back-and-
 
 Current context:
 - Goal: ${goalLabel}
-- Active program: ${programLabel}
+- Active program: ${programLabel}${clinicalNote}
 - Current streak: ${streak} day${streak===1?'':'s'}
 ${weightLine ? '- '+weightLine : ''}
 ${measureLine ? '- '+measureLine : ''}
