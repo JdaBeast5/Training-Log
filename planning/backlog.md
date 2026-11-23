@@ -2636,7 +2636,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (head 4–27), `manifest.json`, `README.md`, `sw.js` (version), the test.
 - **Risk:** `test-icon-manifest-paths.js` reads the manifest; keep the icons untouched.
 - **Business note (2026-11-07, revised model):** the owner chose "free at launch, subscription later". "Free, no ads" stays true and stays in the copy. The README must not say "free forever" about everything, and must not mention a future subscription, until BIZ-18 is approved. BIZ-18 then adds the exact line from business.md §3.3.
-- **Status:** ready
+- **Status:** done (v3.629, PR #208)
 
 ### BIZ-09: First-month summary in Diagnostics, on device only
 - **Why:** there's no way to know whether the app activates and retains anyone, and adding analytics would break the privacy promise (business.md §4). The data needed is already stored: the `has-logged-first-set` milestone, `activity-dates` and `last-backup`. A tester or the owner can read the result off the screen and report it by hand.
