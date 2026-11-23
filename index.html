@@ -8447,7 +8447,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.623';
+const APP_VERSION = '3.624';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10152,6 +10152,9 @@ const WHATS_NEW = {
   ]},
   '3.623': { headline: 'Your week, on Monday', points: [
     'The first time you open Today in a new week, last week shows up as a sheet: a strip of your days (done, skipped or rest), sessions against plan, sets and time, any new records, and what this week brings. It shows once a week and replaces the one-line recap in Priorities.',
+  ]},
+  '3.624': { headline: 'Your name, asked once', points: [
+    'The name you type at "Who\'s training?" now becomes your profile name, so the header greets you and Getting Started ticks it off without asking again.',
   ]},
 };
 
@@ -36036,11 +36039,23 @@ let userProfile = {
 // 'profile-body-saved'). Only #pfSave sets it; renderCalHero reads it.
 let profileBodySaved = false;
 async function loadProfile(){
+  // v3.624 (BIZ-02): a brand-new profile (the read worked and found nothing saved)
+  // takes the name typed at "Who's training?", written once through saveProfile,
+  // so it isn't asked for twice. Never when a profile is saved (a name cleared on
+  // purpose, or a migrated one, stays as it is) and never after a failed read
+  // (saving then would write the defaults over the real profile).
+  let freshProfile = false;
   try{
     const res = await window.storage.get('user-profile');
     if(res && res.value) userProfile = {...userProfile, ...JSON.parse(res.value)};
+    else freshProfile = true;
     invalidateFoodPrefCache();
-  }catch(e){}
+  }catch(e){ freshProfile = false; }
+  if(freshProfile && !userProfile.name){
+    const me = getUserList().find(u => u.id === activeUserId);
+    const typed = me && typeof me.name === 'string' ? me.name.trim() : '';
+    if(typed){ userProfile.name = typed; await saveProfile(); }
+  }
   try{
     const flag = await window.storage.get('profile-body-saved');
     profileBodySaved = !!(flag && flag.value);

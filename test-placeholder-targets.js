@@ -37,6 +37,7 @@ async function mount({store = {}, eaten = 0} = {}){
     window.__store = ${JSON.stringify(store)};
     window.storage = { get: async k => k in window.__store ? {value: window.__store[k]} : null, set: async (k, v) => { window.__store[k] = v; } };
     var weightUnit = 'lb', activeUserId = null, targets = null;
+    function getUserList(){ return []; } // 2026-11-22 (v3.624, BIZ-02): loadProfile reads the picker's name (test-first-launch.js); no profiles here
     function invalidateFoodPrefCache(){} function readConditionSelections(){ return []; }
     function renderHeader(){} function renderProfileSummary(){} function renderOnboardingCard(){} async function getCurrentTrendStatus(){ return null; }
     async function renderProgramRec(){} async function renderProgramSelector(){} function renderWorkout(){} function renderWater(){} function renderCycleTracking(){}
