@@ -853,7 +853,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (6248, near 34159, 41014), `sw.js`, the test.
 - **Risk:** the settings layout. Guarded by `test-settings-grouped.js` and `test-import-backup-full-replace.js`.
 - **Tools:** `security-review` (export path).
-- **Status:** ready
+- **Status:** done (v3.631, PR #212)
 
 ### BL-23: One-tap early deload when the fit check says overreaching (M-6, part 2)
 - **Why:** consensus supports deloading early on fatigue signals [BELL23]. `buildProgramFitInsight` (27733) already detects `overreaching` (27741), `getCurrentTrendStatus` (27776) already returns that status, and `manualDeloadEnabled` (30375) already exists in Settings, two taps deep.
