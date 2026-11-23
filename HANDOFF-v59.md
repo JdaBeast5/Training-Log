@@ -1668,3 +1668,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - The button shows only on `caution` in RPE mode. Undo shows whenever the day is chosen. The handlers re-render with `renderWorkout()`.
 - **Flagged:** on a cold reload, the badge's reason text can lack the readiness flags until the readiness card has rendered once.
 - **Stack order:** #221 → #222 → #223 → #224 → #225.
+
+## Addendum 162: BL-58 (v3.642, PR #227)
+- 7 `exerciseInfo` entries with `technique:true`. The flag is read in `analyzeProgressionSignal` (above the increase and stall rules), in `buildProgressBadge` and `computeSuggestedSet` (the one-session path and the RPE target, via `techniqueWork`), in `suggestRepProgression`, and in `renderExerciseProgress`'s `readyToProgress`.
+- Six cycling orphans are removed from `exerciseInfo` and `EXERCISE_MOVE`, along with `EXERCISE_MOVE`'s duplicates. 85 move keys are added.
+- **Flagged:** `exerciseInfo` itself lists three cycling names twice.
+- **Note:** slot 22a was skipped by earlier runs while it was ready. Check sequence parsing for letter-suffixed slots.
