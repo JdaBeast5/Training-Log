@@ -2650,7 +2650,8 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** extend the diagnostics coverage in a new `test-diagnostics-first-month.js`, with the real `runDiagnostics` and a stub storage. Sabotage: count from the wrong start date, and criterion 1 must fail.
 - **Files:** `index.html` (46529 and its helpers), `sw.js`, the test.
 - **Risk:** low; read-only.
-- **Status:** ready
+- **Owner, 2026-11-23:** count from the live-logged `workout-time:<date>` records, not `activity-dates` (which holds rest days marked done and backdated days, and is pruned).
+- **Status:** done (v3.632, PR #214)
 
 ### BIZ-10: A one-time "Add to Home Screen" hint for browser-tab users
 - **Why:**

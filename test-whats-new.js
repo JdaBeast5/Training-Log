@@ -320,6 +320,7 @@ test('REAL invocation: the Settings "What\'s New" button opens the most recent e
     window.checkServiceWorker = async ()=> ({ok:true});
     window.checkStorageHealth = async ()=> ({ok:true});
     window.checkBackupAge = async ()=> ({ok:true});
+    window.checkFirstMonth = async ()=> ({ok:true}); // v3.632 (BIZ-09): the first-month row (test-diagnostics-first-month.js)
     window.checkBootPerformance = ()=> ({ok:true});
     window.diagRow = ()=> '';
   `;
