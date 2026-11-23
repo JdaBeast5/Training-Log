@@ -148,6 +148,12 @@ function buildStates(){
     // (the streak milestone already celebrated, so its banner doesn't cover the sheet).
     states.push({ id: `recap-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', recap: true,
       storage: { 'week-streak-last-celebrated': '8' } });
+    // v3.644 (UX-37): the app banner rail, as the real writers draw it: the
+    // update prompt (a waiting worker) and the storage-full warning.
+    states.push({ id: `banner-update-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', banner: 'update',
+      storage: { 'week-streak-last-celebrated': '8' } });
+    states.push({ id: `banner-urgent-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', banner: 'urgent',
+      storage: { 'week-streak-last-celebrated': '8' } });
   }
   // The Reduce Motion pass: the states where motion matters most, with
   // prefers-reduced-motion: reduce emulated.
@@ -450,6 +456,25 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             return true;
           });
           if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
+        }
+        if(state.banner){
+          await page.evaluate(async (kind) => {
+            if(kind === 'urgent'){
+              storageHealth.degraded = true; storageHealth.spilled.add('harness-a'); storageHealth.spilled.add('harness-b');
+              renderStorageBanner();
+              return;
+            }
+            // showUpdateBanner lives inside the service-worker registration
+            // closure; the harness has no waiting worker, so it runs the
+            // page's own function source with a stand-in worker.
+            const html = await (await fetch('/index.html')).text();
+            const start = html.indexOf('function showUpdateBanner(worker){');
+            let i = html.indexOf('{', start), depth = 0;
+            for(; i < html.length; i++){ if(html[i] === '{') depth++; else if(html[i] === '}' && --depth === 0) break; }
+            (0, eval)('(' + html.slice(start, i + 1) + ')')({ postMessage(){} });
+          }, state.banner);
+          await page.waitForSelector(state.banner === 'urgent' ? '#storageBannerExport' : '#updateReloadBtn', { timeout: 10000 });
+          await page.evaluate(() => window.scrollTo(0, 0));
         }
       }
       if(state.group === 'today') await runTodayStep(page, state);

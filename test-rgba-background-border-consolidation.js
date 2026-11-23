@@ -225,11 +225,13 @@ test('REAL CASCADE: .warmup-set-row-content gradient background and .warmup-rest
   assert.match(resolveVars(restoreBlock), /border:1px dashed rgba\(255,122,51,0\.35\);/, 'resolved dashed border must byte-match the original literal');
 });
 
-test('REAL CASCADE: .care-banner-urgent and .app-banner-urgent (red) resolve to the exact pre-conversion literals', (assert)=>{
+test('REAL CASCADE: .care-banner-urgent (red) resolves to the exact pre-conversion literals', (assert)=>{
   const careBlock = extractRuleBlock(src, '.care-banner-urgent');
-  const appBlock = extractRuleBlock(src, '.app-banner-urgent');
   assert.match(resolveVars(careBlock), /background:rgba\(255,69,58,0\.12\); border:1px solid rgba\(255,69,58,0\.42\);/, 'resolved care banner must byte-match the original literal');
-  assert.match(resolveVars(appBlock), /background:rgba\(255,69,58,0\.12\); border:1px solid rgba\(255,69,58,0\.42\);/, 'resolved app banner must byte-match the original literal');
+  // 2026-11-23 (v3.644, UX-37): the app banner went flat: no red tint, a 4 px bar instead (test-app-banners.js).
+  const appBlock = extractRuleBlock(src, '.app-banner-urgent');
+  assert.doesNotMatch(appBlock, /rgba\(/, 'the app banner carries no tint any more');
+  assert.match(src, /\.app-banner-urgent::before\{[^}]*width:4px; background:var\(--plate-red\)/);
 });
 
 // ── Gym Mode must stay untouched ────────────────────────────────────────
