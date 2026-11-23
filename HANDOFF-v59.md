@@ -1650,3 +1650,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `hrvBaselineFrom`, `hrvRecentFrom` and the `HRV_*` constants. computeReadiness flags `hrv`.
 - **Flagged:** the importer aliases rmssd and sdnn to one series.
 - BL-32 (make today easier) is now unblocked, since it comes after BL-21.
+
+## Addendum 159: MKT-07 (v3.639, PR #223, on #222, morning run item 3)
+- Added:
+  - `prGainDetail`, used by the PR banner and its share card;
+  - `progressCardData` and `progressShareCards`, plus a delegated click handler for `[data-progress-share]`;
+  - `drawStoryCard` now draws `card.spark`.
+- **Flagged:** the slot-scoped `saveExSet` PR check versus the pooled PR timeline.
