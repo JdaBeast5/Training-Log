@@ -1601,4 +1601,4 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - a key whose program day is gone is left out of the CSV (the same as History);
   - the JSON export button's label can stick after a double tap;
   - in the store-backup frame, the streak card covers Settings.
-- **Next:** BL-23 if it's still ready (slot 70 or later). Check the roadmap.
+- **Next:** BIZ-09 (slot 70), the first-month summary in Diagnostics.
