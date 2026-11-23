@@ -63,8 +63,9 @@ function page(stored = {}){
         'buildImportNameIndex', 'refreshImportNameIndex', 'importEquipmentFits', 'matchImportName',
         'planWorkoutImport', 'applyWorkoutImport', 'importedKeys', 'removeImportedHistory', 'readImportedCorpus', 'readExCorpusWithImported',
         'estimated1RM', 'isMissedSet', 'topSetOf', 'groupCorpusByExercise', 'reconstructAllPRs'].map(f => extractFunction(src, f)),
+    extractConst(src, 'importSkipText'),
     `window.storage = buildNamespacedStorage('1');
-     window.api = {parseWorkoutExport, matchImportName, refreshImportNameIndex, planWorkoutImport, applyWorkoutImport, removeImportedHistory, readImportedCorpus, reconstructAllPRs, programs};`].join('\n\n');
+     window.api = {parseWorkoutExport, matchImportName, refreshImportNameIndex, readExCorpus, groupCorpusByExercise, importSkipText, planWorkoutImport, applyWorkoutImport, removeImportedHistory, readImportedCorpus, reconstructAllPRs, programs};`].join('\n\n');
   w.document.body.appendChild(el);
   return w;
 }
@@ -114,7 +115,7 @@ test('a Hevy file: its date format, the kg column converted to lb, set_type warm
   assert.strictEqual(bench[0].date, '2025-05-10');
   assert.strictEqual(bench[0].sets.length, 1, 'the 40 kg warm-up is gone');
   assert.strictEqual(bench[0].sets[0].weight, 100 / 0.453592, '100 kg, unrounded, as a kg weight typed in the app is stored');
-  assert.strictEqual(parsed.skipped, 1, 'the warm-up counted as left out');
+  assert.strictEqual(JSON.stringify(parsed.skipped), JSON.stringify({warmup: 1, noReps: 0, unreadable: 0}), 'the warm-up counted as left out, as a warm-up');
 });
 
 test('equipment has to fit: Smith, trap-bar and barbell-into-DB lifts stay unmatched; Strong\'s dumbbell suffix finds the DB exercise', (assert)=>{
@@ -135,12 +136,34 @@ test('a custom exercise is matched once the index is refreshed', async (assert)=
   assert.strictEqual(w.api.matchImportName('Hip Thrust Machine Special'), 'Hip Thrust Machine Special');
 });
 
-test('numbers: a quoted thousands comma in a comma file, a decimal comma in a semicolon file', (assert)=>{
+test('numbers: the value decides its decimal mark, whatever the delimiter', (assert)=>{
   const w = page();
-  const comma = w.api.parseWorkoutExport('Date,Exercise Name,Set Order,Weight,Reps\n2025-01-02,Leg Press,1,"1,005",8');
-  assert.strictEqual(comma.sets[0].weight, 1005);
-  const semi = w.api.parseWorkoutExport('Date;Exercise Name;Set Order;Weight;Reps\n2025-01-02;Squat (Barbell);1;102,5;5');
-  assert.strictEqual(semi.sets[0].weight, 102.5);
+  const weights = (delim, vals) => JSON.parse(JSON.stringify(w.api.parseWorkoutExport(['Date', 'Exercise Name', 'Set Order', 'Weight', 'Reps'].join(delim) + vals.map(v => '\n' + ['2025-01-02', 'Leg Press', '1', v, '8'].join(delim)).join('')).sets.map(s => s.weight)));
+  assert.deepStrictEqual(weights(',', ['"1,005"', '"102,5"', '102.5', '"1,005.5"']), [1005, 102.5, 102.5, 1005.5], 'comma file');
+  assert.deepStrictEqual(weights(';', ['102,5', '102.5', '1.005', '1.005,5']), [102.5, 102.5, 1005, 1005.5], 'semicolon file');
+});
+
+test('the review says why rows were left out: an unreadable date format is named, not called a warm-up', (assert)=>{
+  const w = page();
+  const p = w.api.parseWorkoutExport('Date,Exercise Name,Set Order,Weight,Reps\n10/05/2023,Squat (Barbell),1,225,5\n2025-01-02,Squat (Barbell),W,95,5\n2025-01-02,Squat (Barbell),1,225,');
+  assert.strictEqual(JSON.stringify(p.skipped), JSON.stringify({warmup: 1, noReps: 1, unreadable: 1}));
+  assert.strictEqual(w.api.importSkipText(p.skipped), "<div>Left out: 1 warm-up, 1 with no reps, 1 with a date or name this couldn't read.</div>");
+});
+
+test('Exercise Progress keeps this app\'s own place and prescription when imported history is newer', async (assert)=>{
+  const slot = benchSlot(page());
+  const w = page({[slot]: [{date: '2025-01-02', sets: [{weight: 185, reps: 5}], n: 'Bench Press'}]});
+  await w.api.applyWorkoutImport(w.api.planWorkoutImport(w.api.parseWorkoutExport(STRONG), 'lb')); // Strong is newer (2025-03)
+  const corpus = [...await w.api.readExCorpus(), ...await w.api.readImportedCorpus()];
+  const g = w.api.groupCorpusByExercise(corpus).find(x => x.name === 'Bench Press');
+  assert.ok(g.log.some(e => e.src === 'Strong'), 'anchor: the import is in the group');
+  assert.notStrictEqual(g.dayLabel, 'Imported (Strong)', 'the place is the app slot');
+  assert.ok(g.exDef.sets, 'the slot\'s own prescription');
+  // With no app sessions at all, the imported entry is all there is.
+  const only = page();
+  await only.api.applyWorkoutImport(only.api.planWorkoutImport(only.api.parseWorkoutExport(STRONG), 'lb'));
+  const g2 = only.api.groupCorpusByExercise(await only.api.readImportedCorpus()).find(x => x.name === 'Bench Press');
+  assert.strictEqual(g2.dayLabel, 'Imported (Strong)');
 });
 
 test('criterion 2: after an import, the ex: keys and their values are byte-identical to before', async (assert)=>{
@@ -212,6 +235,10 @@ test('REAL source: only the PR and e1RM readers take the archive; the calendar, 
   assert.match(extractFunction(src, 'finishSheetModel'), /e\.date === dateKey && !e\.imported/);
   assert.match(extractFunction(src, 'weekShareTrainingStats'), /inWeek\(ev\.date\) && !ev\.imported/);
   assert.match(extractFunction(src, 'renderExerciseProgress'), /const appLog = log\.filter\(e => !e\.src\);[\s\S]*readyToProgress = appLog\.length > 0/);
+  // The AI prompts list records set here; Import runs once per tap.
+  assert.match(extractFunction(src, 'buildCrossMetricInsightsContext'), /\(await pcPRs\)\.filter\(p => !p\.imported\)/);
+  assert.match(extractFunction(src, 'buildCoachChatContext'), /\(await pPRs\)\.filter\(p => !p\.imported\)/);
+  assert.match(extractFunction(src, 'renderImportReview'), /importRunning\) return;\n\s*importRunning = true;/);
 });
 
 run();
