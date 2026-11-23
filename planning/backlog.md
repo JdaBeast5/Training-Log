@@ -836,7 +836,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:**
   - Today priorities. Guarded by `test-today-priorities.js`.
   - **Flag, don't fix:** the importer aliases both `rmssd` and `sdnn` to one series (46962). Mixing sources would distort the baseline. Note it in the build log for a separate item.
-- **Status:** ready
+- **Status:** done (v3.638, PR #222, stacked on #221). Plews 2013 verified (Springer resolves the doi). SD floor 0.05 ln added for flat baselines.
 
 ### BL-22: Export workout history as CSV
 - **Why:** history can leave only as JSON (`exportDataBtn` 6248, handler 34159). People switching apps care about CSV fidelity (research §4, second-hand). An easy exit builds trust.

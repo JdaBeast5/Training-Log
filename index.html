@@ -8514,7 +8514,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.637';
+const APP_VERSION = '3.638';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10261,6 +10261,9 @@ const WHATS_NEW = {
   ]},
   '3.637': { headline: 'Bring your history from Strong or Hevy', points: [
     'Settings can now import a CSV export from Strong or Hevy. You see what matches before anything is saved. Imported sets count toward your records and strength charts, labelled as imported, and never change your program, suggestions or streak. One button removes them all again.',
+  ]},
+  '3.638': { headline: 'Readiness reads your HRV', points: [
+    'If you import HRV, Today\'s readiness check now compares this week with your own usual: it notes when HRV has run below it. It needs a few weeks of readings first, and it never decides on its own: one note is just a note.',
   ]},
 };
 
@@ -16200,9 +16203,9 @@ async function getSessionHeadsUpInsight(){
 // the judgement itself stays a pure function and can be tested without storage.
 async function getReadinessInsight(){
   const todayKey = getTodayKey();
-  const [sleepEntries, workoutDates, painRegions, rhrEntries, rpeWeeks] = await Promise.all([
+  const [sleepEntries, workoutDates, painRegions, rhrEntries, rpeWeeks, hrvEntries] = await Promise.all([
     fetchSleepEntries(), fetchWorkoutDates(), getRestingRegions(),
-    fetchHealthLog('rhr'), computeWeeklyRpeAvg(1),
+    fetchHealthLog('rhr'), computeWeeklyRpeAvg(1), fetchHealthLog('hrv'), // v3.638 (BL-21)
   ]);
 
   // Last night's sleep is the entry logged for today (you record it on waking),
@@ -16220,6 +16223,8 @@ async function getReadinessInsight(){
     rhrBaseline: rhrBaselineFrom(rhrEntries, todayKey),
     // v3.553 (BL-09): this week's own target, the one place it's decided.
     rpeTarget: rpeTargetFor(await getMesocycleWeek(), await isDeloadWeek(), activeProgram),
+    hrv7: hrvRecentFrom(hrvEntries, todayKey),
+    hrvBaseline: hrvBaselineFrom(hrvEntries, todayKey),
   });
 
   const f = formatReadiness(r);
@@ -52195,7 +52200,32 @@ const READINESS_RHR_RISE = 5;
 // Without it, the old 8.5 rule stands.
 const READINESS_RPE_OVER_TARGET = 1.0;
 const READINESS_RPE_CEILING = 9.5;
-function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rhrToday, rhrBaseline, rpeTarget}){
+
+// v3.638 (BL-21): HRV against the person's own baseline, on ln(rMSSD), as
+// Plews et al. 2013 (Sports Med 43:773-81, doi 10.1007/s40279-013-0071-8)
+// monitor it: this week's ln mean against the mean and SD of the weeks before.
+// A drop of more than half an SD is flagged. The SD has a floor of 0.05 ln
+// (about a 5% swing, within normal day-to-day variation), so a baseline that
+// happens to be flat doesn't flag a 1 ms dip.
+const HRV_BASELINE_MIN = 14;   // readings needed in days 8–60 before today
+const HRV_RECENT_MIN = 3;      // readings needed in the last 7 days
+const HRV_DROP_SD = 0.5;
+const HRV_SD_FLOOR = 0.05;
+function hrvBaselineFrom(entries, todayKey){
+  const from = dateKeyMinusDays(todayKey, 60), to = dateKeyMinusDays(todayKey, 8);
+  const lns = (entries || []).filter(e => e && e.date >= from && e.date <= to && Number(e.value) > 0).map(e => Math.log(Number(e.value)));
+  if(lns.length < HRV_BASELINE_MIN) return null;
+  const mean = lns.reduce((a, b) => a + b, 0) / lns.length;
+  const sd = Math.sqrt(lns.reduce((a, b) => a + (b - mean) ** 2, 0) / (lns.length - 1));
+  return {mean, sd};
+}
+function hrvRecentFrom(entries, todayKey){
+  const from = dateKeyMinusDays(todayKey, 6);
+  const lns = (entries || []).filter(e => e && e.date >= from && e.date <= todayKey && Number(e.value) > 0).map(e => Math.log(Number(e.value)));
+  return lns.length >= HRV_RECENT_MIN ? lns.reduce((a, b) => a + b, 0) / lns.length : null;
+}
+
+function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rhrToday, rhrBaseline, rpeTarget, hrv7, hrvBaseline}){
   const flags = [];
   const rpeFlag = weeklyRpe != null && (rpeTarget != null
     ? (weeklyRpe >= rpeTarget + READINESS_RPE_OVER_TARGET || weeklyRpe >= READINESS_RPE_CEILING)
@@ -52216,6 +52246,9 @@ function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rh
   if(rhrToday != null && rhrBaseline != null && (rhrToday - rhrBaseline) >= READINESS_RHR_RISE){
     flags.push({kind:'rhr', text:`resting HR is ${Math.round(rhrToday - rhrBaseline)}bpm above your usual`});
   }
+  if(hrv7 != null && hrvBaseline && hrv7 < hrvBaseline.mean - HRV_DROP_SD * Math.max(hrvBaseline.sd, HRV_SD_FLOOR)){
+    flags.push({kind:'hrv', text:'HRV has run below your usual this week'});
+  }
 
   // Nothing known at all is different from everything being fine — saying
   // "you're good to go" on the basis of no data would be a claim the app
@@ -52228,7 +52261,7 @@ function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rh
   // go on the strength of having rested yesterday.
   const known = [sleepHours, weeklyRpe, rhrToday].some(v=> v != null)
     || (painRegions||[]).length > 0
-    || flags.some(f=> f.kind === 'rest');
+    || flags.some(f=> f.kind === 'rest' || f.kind === 'hrv'); // v3.638 (BL-21): HRV only once it says something
   if(!known) return null;
 
   // Two or more flags, or an active pain region on its own, is the bar for
