@@ -4383,4 +4383,4 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Change:** one line, once the owner settles the public name (consensus decision 10): the name, plus "display name since v3.515; storage keys unchanged". Also correct "no assets" if the owner rewords CLAUDE.md's asset note (`fonts/` ships).
 - **Acceptance criteria:** `PRODUCT.md` names the same string as `APP_NAME` in `index.html`.
 - **Files:** `PRODUCT.md`.
-- **Status:** needs-owner (waits for the name). Done by the design-engineer in a docs PR, not by the loop.
+- **Status:** done (commit c68acb3: `PRODUCT.md` names "Platestep", matching `APP_NAME`; owner confirmed 2026-11-23). This status line had not been updated.
