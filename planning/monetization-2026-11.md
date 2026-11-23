@@ -4,7 +4,7 @@ Owner: business-manager. Written 2026-11-23 against **v3.632** (`APP_VERSION`, `
 
 > "I'm building this app for the fitness community to use, especially those who may need some guidance for tracking and training/learning. I am also trying to use it for supplemental income, how can we achieve that? Monthly/annual membership? Ads? … see how we could do something smart like that. Also find out, if the app is free, how I can still get paid by downloads or anything like that too, just trying to see what would be best, but it is supposed to bring in income primarily while helping the community."
 
-**Status: a proposal, pending the owner.** Nothing here changes the app. It proposes revising `business.md` §3, which says "free forever on the phone, Pro only for server costs". The new items are BIZ-27 to BIZ-32 in `backlog.md`, all `needs-owner`.
+**Status: adopted (owner, 2026-11-23: "1-6 yes"; the paid tier is "Platestep Plus", "Call it Plus").** Nothing here changes the app by itself. `business.md` §3 now follows this plan. In `backlog.md`, BIZ-28 and BIZ-29 are `ready` behind their roadmap gates (slots 92a and 99), and BIZ-27, BIZ-30, BIZ-31 and BIZ-32 are `answered`. The answers are in §6 and in `pitch.md`'s "Owner's answers". The analysis below is kept as written; where it says "the membership", the product is **Platestep Plus**.
 
 **How to read the numbers:**
 - Every market figure links its source.
@@ -17,7 +17,7 @@ Owner: business-manager. Written 2026-11-23 against **v3.632** (`APP_VERSION`, `
 ## 0. The answer in one page
 
 1. **Nobody pays per free download.** Neither Apple nor Google pays developers when someone installs a free app. A free app earns only from what happens after the install: purchases or subscriptions inside it, ads, sponsorships, or selling to businesses (§2).
-2. **Recommendation: a membership, with a free floor that never shrinks, and no ads.**
+2. **Recommendation (adopted 2026-11-23): a membership, Platestep Plus, with a free floor that never shrinks, and no ads.**
    - **Free forever:** everything in the app on the day it goes public. That covers logging, every built-in program with its progression and safety rules, full history and every chart that exists today, food logging, health tracking, backup and export, and AI with your own key.
    - **The membership pays for new things on top:**
      - coaching notes for each program week;
@@ -284,15 +284,16 @@ They were promised to the owner as free in the pitch, and they're the acquisitio
 
 **Proposal (not evidence):**
 - **List price: $5.99 a month or $39.99 a year.** The annual plan is about 44% off twelve months. That's the category's median annual price and well under MacroFactor and Fitbod. It's above Hevy and Strong, because their Pro tiers sell limits lifted on a logbook we give away, while ours sells coaching depth and, from v2, hosted AI and sync.
-- **Founding price: $19.99 a year, or $2.99 a month, locked while subscribed.** That's half of list, as BIZ-20 already approved, for anyone whose first logged set predates the membership launch (BIZ-19's "Training since").
-- **Membership v1 opens at the founding price only.** The $39.99 list price starts for new members when v2 (hosted AI and sync) ships, so nobody pays full price for on-device extras alone.
+- **Founding price: $19.99 a year, or $2.99 a month, locked while subscribed.** That's half of list, as BIZ-20 already approved, for anyone whose first logged set predates Platestep Plus's launch (BIZ-19's "Training since").
+- **Platestep Plus v1 opens at the founding price only.** The $39.99 list price starts for new members when v2 (hosted AI and sync) ships, so nobody pays full price for on-device extras alone.
 - **Free trial:** none on v1, because the free app already is the trial. A **7-day trial on the annual plan when v2 ships.** The screen states the price and the date it converts, in the same size as the offer. On the web, the app shows its own in-app reminder 2 days before the trial ends.
 - **No lifetime plan at launch** (§1.2, BIZ-30).
 - **Never price below measured running cost;** BIZ-21's T4 measures it before v2.
 
-### 3.4 Membership name
-- **"Platestep Membership"** or **"Platestep Plus"** (the owner's call, BIZ-30).
-- Avoid "Pro". BIZ-18a's guard (`test-free-list-guard.js`) already bans "pro", "premium", "upgrade", "unlock" and "locked" from the free areas. The membership UI lives only in its own Settings → Membership section, and BIZ-29 extends the guard to the words "membership", "member", "subscribe" and "plus" outside that section.
+### 3.4 The name: Platestep Plus
+- **"Platestep Plus"** (owner, 2026-11-23: "Call it Plus"). The business-manager had suggested "Membership" as the plainest word; the owner's choice stands, and every spec and copy file uses "Plus".
+- Not "Pro". BIZ-18a's guard (`test-free-list-guard.js`) already bans "pro", "premium", "upgrade", "unlock" and "locked" from the free areas.
+- The Plus UI lives only in its own section, Settings → Platestep Plus (`#plusSection`). BIZ-29 extends the guard outside that section to the case-sensitive `\bPlus\b` plus "Platestep Plus", "membership" and "subscribe"/"subscription". A bare lowercase "plus" can't be banned, because it appears 207 times in ordinary copy at v3.632. The What's-free note and BIZ-28's support line are the only allowlisted elements.
 
 ### 3.5 The community side: free for need, and gifts
 
@@ -307,12 +308,12 @@ They were promised to the owner as free in the pitch, and they're the acquisitio
 
 ### 3.6 Do we change the earlier line? Yes, in one place
 
-- **What changes:** we would replace "free forever on the phone, Pro only for server costs" with the §3.1 rule.
+- **What changes (adopted 2026-11-23):** "free forever on the phone, Pro only for server costs" is replaced by the §3.1 rule.
 - **Why:** to make income possible in 2027 rather than 2028, without taking anything from anyone.
 - **What stays:** no ads, no data selling, no quotas, no clawbacks, the founding price, the coach layer, BYO-key AI free, and safety never paid.
-- **Proposed "What's free" paragraph** (BIZ-27 replaces BIZ-18's text if approved; no price, no currency symbol and no date, per BIZ-18 criterion 3):
+- **The "What's free" paragraph** (adopted with BIZ-27 and now BIZ-18's text; no price, no currency symbol, no digit and no date, per BIZ-18 criterion 3). `planning/launch-copy/whats-free.md` holds the published form:
 
-> Platestep is free to use, with no ads, ever. Everything in the app when it launched stays free forever with no limits: logging, every built-in program with its progression, your full history and charts, food logging, health tracking, safety guidance, and backing up or exporting your data. We may fix or retire a feature for safety, but we will never put a free feature behind a payment. An optional membership pays for Platestep's development and adds new extras on top, like coaching notes for your program, new programs before everyone else (they then join the free library), and later AI coaching without your own key and cloud sync. Anyone who trained with Platestep before the membership launched gets a founding price for as long as they stay a member, and anyone who can't afford it can ask for a free membership. Coaches may one day pay to manage clients or sell programs they wrote; their clients keep everything above for free.
+> Platestep is free to use, with no ads, ever. Everything in the app when it launched stays free forever with no limits: logging, every built-in program with its progression, your full history and charts, food logging, health tracking, safety guidance, and backing up or exporting your data. We may fix or retire a feature for safety, but we will never put a free feature behind a payment. An optional membership, Platestep Plus, pays for Platestep's development and adds new extras on top, like coaching notes for your program, new programs before everyone else (they then join the free library), and later AI coaching without your own key and cloud sync. Anyone who trained with Platestep before Platestep Plus launched gets a founding price for as long as they stay a member, and anyone who can't afford it can ask for a free membership. Coaches may one day pay to manage clients or sell programs they wrote; their clients keep everything above for free.
 
 ---
 
@@ -340,10 +341,10 @@ They were promised to the owner as free in the pitch, and they're the acquisitio
 | **By 12 Dec** | **Form the Florida LLC first.** It's cheap, done online, and means Stripe and the bank are in the LLC's name from day one, so nothing needs migrating later (§4.2 checklist). Get the EIN the same day, then open a business bank account | Owner | Stripe |
 | **By 15 Dec** | Open a Stripe account in the LLC's name. Create two Payment Links: "Founding Supporter, $19.99 (a year of founding membership, paid in advance)" and an optional one-off amount. Write the refund policy and terms of sale. Update the privacy page draft to name Stripe as the payment processor (BIZ-16) | Owner (marketing for the copy) | BIZ-28 |
 | **Mid-to-late Dec** | **Web launch** with BIZ-18 (the revised What's-free text) and BIZ-28 (a "Support Platestep" link in Settings → About, on the web build only, plus the README and landing page) | Build-automator, then owner review | **First dollars: December 2026** |
-| **Jan–Feb 2027** | Build BIZ-29 (membership v1: the licence check, the Membership section, coaching notes for the 3–4 most-used programs, the early-access flag). The owner and the exercise auditor write and cite the notes. Founding Supporters get their licence codes when v1 ships | Build-automator, auditor, owner | Recurring income |
-| **About March 2027** | **Membership v1 on the web:** Stripe Checkout subscriptions at the founding price; codes sent by hand | Owner | **Earliest recurring revenue: March 2027** |
+| **Jan–Feb 2027** | Build BIZ-29 (Platestep Plus v1: the licence check, the Plus section, coaching notes for the 3–4 most-used programs, the early-access flag). The owner and the exercise auditor write and cite the notes. Founding Supporters get their licence codes when v1 ships | Build-automator, auditor, owner | Recurring income |
+| **About March 2027** | **Platestep Plus v1 on the web:** Stripe Checkout subscriptions at the founding price; codes sent by hand | Owner | **Earliest recurring revenue: March 2027** |
 | **When the Capacitor track supports it** | The Play closed test (12 testers for 14 days, business.md §6), then production, then Play Billing for the same membership (Play's own offer mechanism for the founding price). The supporter link stays hidden in the native build | Capacitor track (outside this team), owner | Android members; an estimated Q2 2027, **unverified**, because it depends on a track we don't own |
-| **About Q3 2027** | Hosted AI and sync (BIZ-14, BIZ-13), after counsel, the privacy-page update and cost measurement (BIZ-21's T2 and T4, kept for server features). The list price of $39.99 starts for new members | Owner, counsel, build | Membership v2 |
+| **About Q3 2027** | Hosted AI and sync (BIZ-14, BIZ-13), after counsel, the privacy-page update and cost measurement (BIZ-21's T2 and T4, kept for server features). The list price of $39.99 starts for new members | Owner, counsel, build | Platestep Plus v2 |
 | **2028** | The coach plan, coach programs, and an iOS build if it exists ($99 a year Apple account, business.md §3.1) | Owner | Year-2 lines |
 
 **What could make it faster:** nothing honest. Selling before there's anything to sell (for example a "Pro" badge) would trade trust for pocket money. The supporter pass is the honest early version: it says plainly what it buys.
@@ -375,7 +376,7 @@ They were promised to the owner as free in the pitch, and they're the acquisitio
 | MAU at month 12 (web plus Play) | 300 | 2,000 | 10,000 |
 | How we'd get there | Word of mouth only | Steady community posts (MKT-13), import from Strong and Hevy, Play live by Q2 | One launch post that travels, plus Play featured in search |
 | Founding Supporters before v1 ($19.99, about $19.11 net after Stripe) | 3 | 15 | 60 |
-| Membership v1 live | from April | from March | from March |
+| Platestep Plus v1 live | from April | from March | from March |
 | Paying members at month 12 (share of MAU) | 2% → 6 | 3.5% → 70 | 5% → 500 |
 | Average net per payer in year 1 (mostly annual, paid upfront, mostly founding price) | $20 | $22 | $25 |
 | Hosted AI and sync shipped in year 1? | No | No | Yes, Q3 |
@@ -403,6 +404,8 @@ They were promised to the owner as free in the pitch, and they're the acquisitio
 ---
 
 ## 6. Decisions for the owner
+
+**Owner's answer (2026-11-23): "1-6 yes"** to BIZ-27 to BIZ-32, as recommended. **The name: "Plus"** ("Call it Plus"), so the paid tier is **Platestep Plus**. All nine rows below are therefore answered as recommended: row 9 (Play Pass) was part of BIZ-32, and row 8 was part of BIZ-27.
 
 | # | Question | Recommendation | Item |
 |---|---|---|---|

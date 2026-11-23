@@ -208,24 +208,31 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 88d. **BL-45:** Broad Jump distance, optional hand-timed sprint times, quality stop cues, and a ground-contact count on Athletic days. *(owner (a) 2026-11-09: both fields; ready after Phase 3, after BL-55, BL-61)*
 
 ### Phase 5: Public launch (owner yes 2026-11-08, D8: after Phase 3 and its gates; web first, then Play, then the App Store)
-**Every slot below waits for the Phase 3 hard gate** (all of Phase 3 merged, including BL-37 and BL-38, and UX-17 shipped or dropped). Until it holds, a run skips slots 89–98 as if they weren't ready. Slots 89–98 are new numbers (2026-11-08); nothing above was renumbered.
+**Every slot below waits for the Phase 3 hard gate** (all of Phase 3 merged, including BL-37 and BL-38, and UX-17 shipped or dropped). Until it holds, a run skips slots 89–99 (including 92a) as if they weren't ready. Slots 89–98 are new numbers (2026-11-08); 92a and 99 were added 2026-11-23. Nothing above was renumbered.
 - **Decisions (no code), answered 2026-11-08:**
   - BIZ-12: go public, web first, then Play, then the App Store (D8);
   - BIZ-11 (the model);
   - the public name: Platestep (`naming.md`; MKT-09 done);
   - MKT-13: launch posts and creator outreach, no paid placements (D8);
   - BIZ-20, BIZ-21, BIZ-22: the founding price, the six switch-on triggers, Play billing first (D9 (b)–(d)).
+  - **Answered 2026-11-23 (owner: "1-6 yes"; "Call it Plus"):**
+    - BIZ-27: the money rule is revised to a frozen free floor plus **Platestep Plus** for new extras, and no ads. It updates BIZ-21 (T1 and T3 no longer gate Plus v1) and BIZ-22 (web payments now, too);
+    - BIZ-30: Plus prices;
+    - BIZ-31: a free membership for anyone who needs it;
+    - BIZ-32: the LLC, tax and accounts before the first sale (owner action O7 in `pitch.md`).
 - **Builds:**
 
 89. BIZ-15: the clinical acknowledgement and no form-video links on clinical items. A paid clinician reviews all clinical, tip and nutrient copy (D9(e)), outside the loop and before any listing.
 90. BIZ-16: `privacy.html`, listing every host
 91. MKT-14: `about.html` *(after BIZ-16)*
-92. BIZ-18: "What's free" (`business.md` §3.4 wording) *(after BIZ-16 and MKT-14)*
+92. BIZ-18: "What's free" (BIZ-27's paragraph, as held in `launch-copy/whats-free.md`; the hold lifted 2026-11-23) *(after BIZ-16 and MKT-14)*
+92a. BIZ-28: the web-only "Support Platestep" Founding Supporter link *(owner yes 2026-11-23; after BIZ-18. A run also skips it until the owner records the Stripe link and that BIZ-32 steps 1–4 and 10 are done.)*
 93. BIZ-08: the address on cards (a forwarded domain, never `github.io`) *(also waits for the owner to confirm the domain forwards)*
 94. MKT-10: program links *(after BIZ-08)*
 95. MKT-11: friend challenges *(after BIZ-08 and MKT-01)*
 96. MKT-08: side-by-side progress photos *(parked until Phase 4 is done, then ready)*
 97. MKT-12: one dated, sourced comparison page, `compare.html` *(owner yes 2026-11-08, D6; after BL-29 and MKT-14)*
+99. **BIZ-29: Platestep Plus v1** (an offline signed licence, the Plus section, early-access programs, then coaching notes) *(owner yes 2026-11-23; after slots 89–92a are merged, and no sooner than 2027-02-01, so it ships around March 2027. A run also skips it until the owner records the public key.)*
 
 - ~~BIZ-25: move the app's origin~~ (parked: owner chose forward only, 2026-11-08);
 - the BIZ-13 follow-up: own-cloud backup through the share sheet (no item written yet; it gets slot 98 when it is).
@@ -435,9 +442,9 @@ Added by the business-manager, 2026-11-07, against v3.514. Reasoning and evidenc
 - **Guard the free list in every later item:** no quotas, locks or "Pro" labels on logging, programs, progression, history, charts, food, backups or BYO-key AI. BIZ-18 criterion 4 tests for it.
 - **The Capacitor dependency:** store billing (BIZ-22, path A) needs the native build to support it. That effort is owned elsewhere; this is recorded only so nothing here waits on it by mistake.
 
-**Money model reopened (business-manager, 2026-11-23; proposal in `planning/monetization-2026-11.md`).** Re-rank requests for the project-manager:
-- **Hold BIZ-18 (slot 92)** until the owner answers BIZ-27. It would publish a free/paid paragraph that BIZ-27 proposes to replace.
-- **If BIZ-27, BIZ-28 and BIZ-32 are approved, BIZ-28 (the web-only "Support Platestep" link) joins Phase 5** beside BIZ-16, MKT-14 and BIZ-18. It's small (a constant, one Settings link and the README), and it's the first income, targeted for the December web launch.
-- **If BIZ-27, BIZ-29 and BIZ-30 are approved, BIZ-29 (membership v1) becomes the first item after Phase 5,** ahead of the program extensions (slots 88a–88d). Its coaching-note content needs the exercise-auditor's review time in January.
-- **Nothing in Phases 0–4 moves.** Safety, activation and data trust still decide whether anyone stays long enough to pay. No shipped feature becomes paid.
-- **BIZ-21's six triggers still gate hosted AI and sync (BIZ-13, BIZ-14).** If BIZ-27 is approved, T1 and T3 stop gating the on-device membership.
+**Money model answered (business-manager, 2026-11-23; owner "1-6 yes", "Call it Plus"; plan in `planning/monetization-2026-11.md`).** Applied to the sequence above:
+- **BIZ-18 (slot 92) is unheld** and ships BIZ-27's paragraph, which names Platestep Plus.
+- **BIZ-28 is slot 92a** (Phase 5, after BIZ-18). It also waits for the owner's Stripe link and the LLC steps (BIZ-32, owner action O7), so the first income can land at the December web launch.
+- **BIZ-29 is slot 99** (Platestep Plus v1): after the launch builds, and no sooner than 2027-02-01. Its coaching-note content needs the exercise-auditor's review time in January and February.
+- **Nothing in Phases 0–4 moves.** No shipped feature becomes paid.
+- **BIZ-21's six triggers still gate hosted AI and sync** (BIZ-13, BIZ-14, Plus v2). T1 and T3 no longer gate Plus v1.

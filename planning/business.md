@@ -22,7 +22,7 @@ Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `
    2. **Liftnext Pro, later:** a subscription only for new things that run on our servers (hosted AI, cloud sync). Early users get a founding price. The switch-on is triggered by metrics, not a date, and Play billing comes first.
    3. **Revenue that never touches the free app:** a coach plan where the coach pays and the clients stay free (BIZ-23), and paid programs written by real coaches with a revenue share (BIZ-24). The built-in programs stay free.
 
-   Details in §3; the coach layer is §3.8.
+   Details in §3; the coach layer is §3.8. **Revised 2026-11-23 (owner yes):** layer 2 is now **Platestep Plus**, holding *new* extras on the phone as well as on our servers. Layer 1's floor is everything in the app at public launch. See §3's adopted note and `monetization-2026-11.md`.
 4. **North star:** *weekly active trainers*, meaning people who log at least 2 training sessions in a calendar week (§4).
 
 ---
@@ -69,17 +69,18 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ---
 
-## 3. Business model: free at launch, a subscription later
+## 3. Business model: free at launch, Platestep Plus for new extras (revised 2026-11-23)
 
-> **Revised recommendation (pending owner), 2026-11-23.** The owner now wants income as the primary goal, with the community mission kept (his words are in `planning/monetization-2026-11.md`). The business-manager recommends changing one line of this section, and nothing else. **"Free forever on the phone, Pro only for server costs"** would become **"everything in the app at public launch stays free forever, safety is never paid, and an optional membership holds *new* extras, on the phone or on our servers."**
+> **Adopted 2026-11-23 (owner: "1-6 yes"; the paid tier is "Platestep Plus", "Call it Plus").** The owner wants income as the primary goal, with the community mission kept (`planning/monetization-2026-11.md`). This replaces one line of this section, and nothing else. **"Free forever on the phone, Pro only for server costs"** is now **"everything in the app at public launch stays free forever, safety is never paid, and an optional membership, Platestep Plus, holds *new* extras, on the phone or on our servers."** Where §3.3–§3.7 below say otherwise, this note wins. Where they say "Liftnext Pro" or "the subscription", read Platestep Plus.
 >
-> - **Membership v1:** coaching notes for each program week, new programs 60 days early, new reports and Year in Lifting extras.
-> - **Membership v2:** hosted AI and sync.
-> - **Prices:** $5.99 a month or $39.99 a year at list; $19.99 a year founding (half, as BIZ-20 already approved); a free membership for anyone who asks.
-> - **Timing:** a Founding Supporter link at web launch (December 2026); recurring web membership around March 2027.
-> - **Unchanged:** no ads (the trade-off is weighed in monetization §1.4), no data selling, no quotas, no clawbacks, BYO-key AI free, and the coach layer.
->
-> It's proposed in **BIZ-27 to BIZ-32** (all needs-owner). Until BIZ-27 is answered, **BIZ-18 is on hold**, so the older "What's free" paragraph can't be published by accident. If the owner declines, this section stands as written.
+> - **Plus v1 (BIZ-29, roadmap slot 99, around March 2027):** coaching notes for each program week, and new programs 60 days early. Then new reports and Year in Lifting extras.
+> - **Plus v2:** hosted AI and sync (BIZ-14, BIZ-13), still behind all six BIZ-21 triggers. T1 and T3 no longer gate v1.
+> - **Prices (BIZ-30):** $5.99 a month or $39.99 a year at list; $19.99 a year founding (half, BIZ-20); v1 is sold at the founding price only; a 7-day trial from v2; no lifetime plan at launch.
+> - **Community (BIZ-31):** a free membership for anyone who asks.
+> - **First dollars:** a web-only Founding Supporter link at web launch (BIZ-28, slot 92a), after the LLC and accounts (BIZ-32, owner action O7).
+> - **Payment paths (BIZ-22):** web (Stripe, with offline signed codes) and Play Billing.
+> - **The public wording:** `planning/launch-copy/whats-free.md`, now shipped by BIZ-18. It replaces §3.4's paragraph.
+> - **Unchanged:** no ads (the trade-off is weighed in monetization §1.4), no data selling, no quotas, no clawbacks, BYO-key AI free, the founding price, and the coach layer.
 
 **Owner's decision (2026-11-07, `pitch.md` → "Owner's answers"):** "income will eventually be the goal, but we can start with free and then go to subscription down the line." The owner asked "what do you guys think?" This section is the answer, and the rules that make the plan work. It replaces the earlier "free core, decide later" table. Revised 2026-11-07 against v3.515.
 
