@@ -55,6 +55,7 @@ async function insight(program, weeklyRpe){
     async function computeWeeklyRpeAvg(){ return [{avg: ${weeklyRpe}}]; }
     async function computeDaysSinceRest(){ return 1; }
     function rhrBaselineFrom(){ return null; }
+    function hrvBaselineFrom(){ return null; } function hrvRecentFrom(){ return null; } // v3.638 (BL-21): no HRV here (test-readiness-hrv.js)
     async function getMesocycleWeek(){ return 4; }
     async function isDeloadWeek(){ return false; }`], `__capture.push(await getReadinessInsight());`);
   return r;
