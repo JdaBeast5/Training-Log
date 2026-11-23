@@ -7017,6 +7017,9 @@
       <button class="switch-profile-btn" id="printProgramBtn">Print my program (full week, on paper)</button>
       <button class="switch-profile-btn" id="exportDataBtn">Export my data (backup as JSON)</button>
       <div class="history-hint field-note" id="exportKeysNote">API keys aren't included; enter them again after restoring.</div>
+      <!-- v3.631 (BL-22): the workout log as a spreadsheet, for another app or
+           a coach. Not a backup: it doesn't restore, and doesn't count as one. -->
+      <button class="switch-profile-btn" id="exportCsvBtn">Export workouts as CSV</button>
       <button class="switch-profile-btn" id="importDataBtn">Import backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
@@ -8481,7 +8484,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.630';
+const APP_VERSION = '3.631';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10207,6 +10210,9 @@ const WHATS_NEW = {
   ]},
   '3.630': { headline: 'The first screen says what the app is', points: [
     'For people opening the app for the first time: under "Who\'s training?", one line now says what it does. You won\'t see it if you already have a profile.',
+  ]},
+  '3.631': { headline: 'Export your workouts as CSV', points: [
+    'Settings has a new Export workouts as CSV button: the sets in your workout history as spreadsheet rows, in your units, for another app or a coach. Warm-ups are left out and drop sets get their own rows. Your JSON backup is unchanged.',
   ]},
 };
 
@@ -38075,6 +38081,106 @@ function isApiKeyStorageKey(key){
   return /-api-key$/.test(String(key));
 }
 
+// v3.631 (BL-22): the workout log as CSV, one row per logged set, for anyone
+// moving to another app or handing the numbers to a coach. Columns are ours
+// (Strong's exact header isn't verified); the header names the units.
+// - Warm-ups are left out for free: they live in entry.warmups, never read here.
+// - A drop set is its own row under its logged parent, with the parent's set
+//   number and Notes "drop".
+// - Over readExCorpus, so it holds the sets History shows: a key whose program
+//   day no longer exists is left out there, and here.
+// - Weights are stored in lb and written in the chosen unit; distances are
+//   stored in metres. A reps field that holds a time (getSetFieldUnit: a hold
+//   in seconds, cardio in minutes) goes to Seconds instead of Reps. Positional
+//   keys can hold another exercise's stamped entries (BL-51), so the
+//   prescription is the logged exercise's own, found by name in its program.
+// - RFC 4180: fields with a comma, quote or line break are quoted, quotes
+//   doubled, lines end in CRLF. A text field starting with = + - @ or a tab is
+//   prefixed with ' so a spreadsheet shows it rather than running it. The file
+//   starts with a byte-order mark so Excel reads it as UTF-8 (names carry —).
+function csvField(v, isText){
+  if(v == null) return '';
+  let str = String(v);
+  if(isText && /^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  return /[",\r\n]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+}
+function buildWorkoutCsv(corpus, unit, distUnit){
+  const kg = unit === 'kg';
+  const weightOut = lb => (lb == null || isNaN(lb)) ? null : Math.round((kg ? lb * LB_PER_KG : lb) * 10) / 10;
+  const metresPer = distUnit === 'km' ? M_PER_KM : M_PER_MI;
+  const distOut = m => (m == null || isNaN(m)) ? null : Math.round((m / metresPer) * 100) / 100;
+  // Counts are written only as numbers: a restored backup could hold a string
+  // there, and only the text columns get the formula guard.
+  const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
+  const header = ['Date', 'Program', 'Day', 'Exercise Name', 'Set Order', `Weight (${kg ? 'kg' : 'lb'})`, 'Reps', `Distance (${distUnit === 'km' ? 'km' : 'mi'})`, 'Seconds', 'RPE', 'Notes'];
+  const rows = [];
+  const byName = {}; // program -> {exercise name: its prescription}
+  const prescriptionFor = (program, name)=>{
+    if(!byName[program]){
+      byName[program] = {};
+      Object.values((programs[program] || {}).days || {}).forEach(d => (d.exercises || []).forEach(e => { if(!(e.name in byName[program])) byName[program][e.name] = e.sets; }));
+    }
+    return byName[program][name];
+  };
+  (corpus || []).forEach(({parsed, exDef, log})=>{
+    if(!parsed) return;
+    const program = parsed.programLabel || parsed.program || '';
+    const day = parsed.dayName || parsed.dayId || '';
+    const slotOrder = [parsed.program, String(parsed.dayId), Number(parsed.idx)];
+    (log || []).forEach(entry=>{
+      if(!entry || !/^\d{4}-\d{2}-\d{2}$/.test(String(entry.date))) return;
+      const name = entry.n || (exDef && exDef.name) || '';
+      const presc = (exDef && name === exDef.name) ? exDef.sets : prescriptionFor(parsed.program, name);
+      const fieldUnit = getSetFieldUnit(String(presc || ''));
+      const countCells = raw => { const r = num(raw); return r == null ? [null, null]
+        : fieldUnit === 'sec' ? [null, r] : fieldUnit === 'min' ? [null, Math.round(r * 60)] : [r, null]; };
+      (entry.sets || []).forEach((st, si)=>{
+        if(!isLoggedSet(st)) return; // an unlogged set, and any drop typed under it
+        const base = [entry.date, program, day, name, si + 1];
+        const [reps, secs] = countCells(st.reps);
+        rows.push({date: entry.date, slotOrder, cells: [...base, weightOut(st.weight), reps, distOut(st.distance), secs, num(st.rpe), st.note || null]});
+        (Array.isArray(st.drops) ? st.drops : []).forEach(d=>{
+          if(!d || d.reps == null) return;
+          const [dReps, dSecs] = countCells(d.reps);
+          rows.push({date: entry.date, slotOrder, cells: [...base, weightOut(d.weight), dReps, null, dSecs, null, 'drop']});
+        });
+      });
+    });
+  });
+  // Oldest first; within a day by program, day and the exercise's place in it
+  // (as a number, so the 11th exercise follows the 3rd); a stable sort keeps
+  // each exercise's sets and drops in order.
+  const cmp = (x, y)=> x < y ? -1 : x > y ? 1 : 0;
+  rows.sort((a, b)=> cmp(a.date, b.date) || cmp(a.slotOrder[0], b.slotOrder[0]) || cmp(a.slotOrder[1], b.slotOrder[1]) || (a.slotOrder[2] - b.slotOrder[2]));
+  const TEXT = new Set([0, 1, 2, 3, 10]); // Date, Program, Day, Exercise Name, Notes
+  const line = cells => cells.map((v, i)=> csvField(v, TEXT.has(i))).join(',');
+  return '\uFEFF' + [line(header), ...rows.map(r => line(r.cells))].join('\r\n') + '\r\n';
+}
+
+const EXPORT_CSV_LABEL = document.getElementById('exportCsvBtn').textContent;
+document.getElementById('exportCsvBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('exportCsvBtn');
+  if(btn.dataset.busy) return; // a second tap during "Downloaded" would keep that as the label
+  btn.dataset.busy = '1';
+  try{
+    const csv = buildWorkoutCsv(await readExCorpus(), weightUnit, distanceUnit);
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${appSlug()}-workouts-${(userProfile.name||'me').toLowerCase().replace(/\s+/g,'-')}-${getTodayKey()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    // Not a backup: last-backup is left alone, so the reminder still counts.
+    btn.textContent = 'Downloaded';
+  }catch(e){
+    btn.textContent = 'Export failed — try again';
+  }
+  setTimeout(()=>{ btn.textContent = EXPORT_CSV_LABEL; delete btn.dataset.busy; }, 2000);
+});
+
 document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('exportDataBtn');
   const originalText = btn.textContent;
@@ -45199,6 +45305,7 @@ function parseExKey(key){
       program, dayId, idx,
       exDef: legacyExDef(dayDef.exercises[idx], parts[5]),
       dayLabel: `${(programs[program] || {}).label || program} (${styleDef.label}) · ${dayDef.label}`,
+      programLabel: `${(programs[program] || {}).label || program} (${styleDef.label})`, dayName: dayDef.label, // v3.631 (BL-22): the CSV's columns
     };
   }
   const dayId = parts[2], idx = Number(parts[3]);
@@ -45209,6 +45316,7 @@ function parseExKey(key){
     program, dayId, idx,
     exDef: legacyExDef(dayDef.exercises[idx], parts[4]),
     dayLabel: `${progDef.label} · ${dayDef.label}`,
+    programLabel: progDef.label, dayName: dayDef.label, // v3.631 (BL-22): the CSV's columns
   };
 }
 
