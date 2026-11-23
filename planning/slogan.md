@@ -4,7 +4,7 @@ Owner: marketing-manager. Written 2026-11-23 against live **v3.645** (`APP_NAME 
 
 **Nothing here is a legal clearance.** Every screen below is a web search, plus Apple's iTunes Search API for the exact phrase in app titles and descriptions (US store, 25 results). No USPTO, EUIPO or WIPO search was run. Counsel should knock out the chosen line before it's printed on anything paid for.
 
-**No backlog items yet.** The owner picks first; §7 sketches the items.
+**No backlog items yet.** The owner picks first; §7 sketches the items. **Round 2 (§9)** adds the Plate + Step lines the owner asked for and changes the recommendation to **"Plate by plate, step by step."**
 
 ---
 
@@ -214,9 +214,155 @@ What the renders show:
 
 ---
 
+## 9. Round 2: lines built on the name (Plate + Step)
+
+The owner liked round 1 but wanted a line built on the name, as in "One step to the next plate". The coordinator brainstormed 12 more; marketing added 4 (14 to 17). Each is judged from two angles, because the owner asked for the marketing manager and the social media manager to pick together, and this file covers both jobs.
+
+### 9.1 The screen (2026-11-23, same method as §2)
+
+- **Web search, exact phrase,** for all 17, with trademark aggregators in the results. **No exact-phrase use was found for any of them** in fitness branding or trademarks. The conflicts below come from the parts of each line, not the whole.
+- **iTunes Search API, exact phrase in titles and descriptions:** zero hits for all 17. The fragment "small steps" alone returned three apps: a habit tracker, a baby-footprint app and a running app.
+- **Fit**, measured with `node tools/design/slogan/render.js 2` (results in `renders/r2-fit.json`):
+  - **Subtitle:** Apple's limit is 30 characters.
+  - **Bib band:** the 734 px rule from §2 applies. The band is already full, so no line goes on the bib; only "We'll plan the steps. You lift the plates." is too wide even on its own (818 px).
+  - **End card:** line count at 230 px. The mock-up steps the size down for longer lines.
+  - **Bio:** every line fits 150 characters together with the two promise lines.
+
+**Conflicts and echoes found:**
+
+| # | Line | Conflict |
+|---|---|---|
+| 3 | Step up to the next plate. | It's the baseball idiom "step up to the plate" with one word added. That helps recall but can't be owned. "Step-up plate" is also rack hardware sold by Synergee and Powertec, and a step-up is an exercise |
+| 4 | One step closer to the next plate. | "One Step Closer" is a well-known Linkin Park song title |
+| 5 | Step up a plate. | It reads as an exercise (a step-up on a plate) or as the rack attachment, the same problem that ruled out Platerise in naming.md |
+| 7 | Small steps. Heavy plates. | "Small steps" is crowded: SMALL STEPS THAT LEAD TO BIG RESULTS (registered, no. 5065215), THE POWER OF SMALL STEPS (owned by a fitness institute, for education services), SMALL STEPS = BIG CHANGES (filed 2024, wellness coaching), and a "Small Steps" step-count app |
+| 11 | Stack the steps. | StepStack is a UK step-count app that turns steps into coins, and STEPSAPP is a step-tracking mark. "Steps" alone reads as step counts, the risk naming.md §3.1 warned about |
+| 13 | We'll plan the steps. You lift the plates. | It echoes Kodak's "You press the button, we do the rest". It's also 42 characters, too wide for the band, and twice the word target |
+| 9, 10 | Every step adds a plate. / Every rep a step. Every step a plate. | **Untrue.** Not every session adds weight: progression holds, drops the weight or suggests an easier week. This is a results claim the code contradicts |
+| 2 | The next plate is one step away. | It promises how close the next plate is. Under the progression rules it is usually two sessions or more away |
+| 8, 16 | Step by step. Plate by plate. / Plate by plate, step by step. | No conflict found. Both halves are idioms, so the line can't be registered as a mark on its own. Next to the name it is distinctive. "Plate by plate" alone could read as cooking. The searches found no cookbook or restaurant with that title, and `#platebyplate` turned up no indexed use, though the networks themselves weren't searched |
+
+### 9.2 Scores
+
+Each criterion is scored 1 to 5.
+
+**(a) Brand and growth, out of 25:**
+- **R:** does it bring the name to mind (both "plate" and "step")?
+- **O:** can we own it (clean screen, distinctive)?
+- **L:** does it read as lifting, not food or step counts?
+- **H:** is it honest, with no results claim?
+- **M:** does it fit the mission (guidance for the people who need it) and support Plus?
+
+**(b) Social and content, out of 20:**
+- **T:** does it work as a hashtag or a recurring series?
+- **B:** does it work as a bio line?
+- **C:** does it work as the caption hook on a set video?
+- **S:** is it chantable and shareable?
+
+**Top 8.** Round 1's pick is included as the benchmark; it isn't a round-2 line.
+
+| Rank | Line | Chars | R | O | L | H | M | **(a)** | T | B | C | S | **(b)** | **Total /45** |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | **Plate by plate, step by step.** (16, marketing) | 28 | 5 | 3 | 4 | 5 | 4 | **21** | 5 | 5 | 4 | 5 | **19** | **40** |
+| (benchmark) | Earn the next plate. (round 1) | 20 | 3 | 5 | 5 | 5 | 3 | 21 | 5 | 5 | 5 | 4 | 19 | 40 |
+| 2 | **Earn the next plate, step by step.** (17, marketing) | 33 | 5 | 4 | 5 | 5 | 4 | **23** | 4 | 4 | 5 | 3 | **16** | **39** |
+| 3 | Step by step. Plate by plate. (8) | 29 | 5 | 3 | 3 | 5 | 4 | 20 | 4 | 4 | 4 | 5 | 17 | 37 |
+| 4 | Step by step to the next plate. (14, marketing) | 30 | 5 | 4 | 4 | 5 | 4 | 22 | 3 | 4 | 4 | 3 | 14 | 36 |
+| 5 | One step to the next plate. (1, the owner's) | 26 | 5 | 4 | 4 | 3 | 4 | 20 | 3 | 5 | 4 | 3 | 15 | 35 |
+| 6 | One step. One plate. (6) | 20 | 5 | 4 | 3 | 3 | 2 | 17 | 4 | 4 | 4 | 5 | 17 | 34 |
+| 7 | We'll plan the steps. You lift the plates. (13) | 42 | 5 | 3 | 5 | 5 | 5 | 23 | 1 | 4 | 3 | 2 | 10 | 33 |
+| 8 | Step up to the next plate. (3) | 26 | 5 | 2 | 3 | 4 | 3 | 17 | 3 | 4 | 4 | 4 | 15 | 32 |
+
+Line 13 ranks 7th on its brand score, but it can't be the slogan: it's 42 characters and echoes Kodak. Use it in long copy, such as a landing-page section or a launch post.
+
+**The rest:**
+
+| Line | (a) | (b) | Total | Main reason it ranks lower |
+|---|---|---|---|---|
+| One step closer to the next plate. (4) | 20 | 11 | 31 | The Linkin Park echo; 34 characters |
+| Small steps. Heavy plates. (7) | 16 | 15 | 31 | The "small steps" marks; "heavy" hints at an outcome |
+| Step up a plate. (5) | 16 | 13 | 29 | Reads as an exercise or rack hardware |
+| The next plate is one step away. (2) | 18 | 10 | 28 | Promises how close the next plate is |
+| Every step adds a plate. (9) | 15 | 12 | 27 | Untrue in code |
+| Your next step, already planned. (12) | 17 | 9 | 26 | No plate; a generic "next step" |
+| Every rep a step. Every step a plate. (10) | 14 | 12 | 26 | Untrue; 37 characters |
+| Stack the steps. (11) | 13 | 12 | 25 | Reads as step counts; StepStack |
+| Next step: the next plate. (15, marketing) | 19 | 12 | 31 | Clear, but flat as a hashtag or chant |
+
+**About the owner's line, "One step to the next plate."** It's the clearest name line on the list and a good bio line. It scores lower only on honesty: "one step" sounds like the next plate is a session away, and the rules usually take two or more. "Step by step to the next plate." (14) keeps his idea and fixes that word.
+
+### 9.3 Recommendation
+
+**Winner: "Plate by plate, step by step."** (28 characters)
+- **(a) Brand and growth:**
+  - It says both halves of the name, plate first, as marketing.md §2.1 requires ("lead with the plate, never with step"). Anyone who hears the slogan can rebuild the name.
+  - It promises nothing about results. It describes patience, which is the honest truth about progressive overload and suits beginners who need guidance.
+  - Its weakness is ownability: two idioms can't be registered as a mark. Next to the name and the Sash it still reads as ours.
+  - The food reading of "plate by plate" disappears beside the bar, the bib and the word "step".
+  - It fits Plus without overselling it: the free app gives the steps, and Plus adds coaching notes on top.
+- **(b) Social and content:**
+  - It's the most chantable line on the list.
+  - **`#PlateByPlate`** is short and works as a series: "Plate by plate, week 3", a creator's 12-week log, or a December recap.
+  - It fits a bio in one line, and as a set-video caption it turns any increment into a story ("+5 lb. Plate by plate.").
+
+**Runner-up: "Earn the next plate, step by step."** (33 characters)
+- **(a) Brand and growth:**
+  - It scores highest on brand (23/25). It keeps round 1's honest, true-in-code rule ("earn") and adds the name.
+  - Of the strong lines it is the clearest about lifting: "earn the next plate" can only mean the bar.
+- **(b) Social and content:**
+  - It's weaker, because it's long: 33 characters, five lines on the end card at full size, and a hashtag that's too long to chant.
+  - It is the best caption hook for the moment the app says "add weight next time".
+- **How to use it:** keep `#EarnTheNextPlate` as the caption sign-off for exactly those progression posts, alongside the main hashtag.
+
+**Placement is unchanged from §4.** Only the line changes. The store subtitle stays "Tells you what to lift next". The winner and runner-up are both too long to replace the subtitle well anyway (28 characters fits Apple's 30 but carries no search word).
+
+**Social bio (Instagram, Threads, X; 145 of 150 characters):**
+
+```
+Plate by plate, step by step.
+A free strength tracker that tells you what to lift next.
+Programs that progress with you. One-tap logging. No ads.
+```
+
+**TikTok (78 of 80 characters):**
+
+```
+Plate by plate, step by step. A free tracker that tells you what to lift next.
+```
+
+**Hashtags:** `#PlateByPlate` is the brand tag and the series. `#EarnTheNextPlate` is the sign-off on progression posts. Before launch, check both on Instagram and TikTok in the apps themselves; web search doesn't index hashtags. Don't use a tag someone else's community already owns.
+
+**Email signature:** `Platestep · Plate by plate, step by step.`
+
+### 9.4 Mock-ups (round 2)
+
+These show the top three by what they offer, not strictly by score:
+1. the winner (16);
+2. the runner-up (17);
+3. the owner's own line (1), so he can see it beside the others.
+
+Line 8 ranks third by score but is line 16 with its halves swapped, so a render of it would show nothing new.
+
+- **Files:** `tools/design/slogan/renders/r2-*.png` and `r2-contact-sheet.png`.
+- **Rendering:** run `node tools/design/slogan/render.js 2`. The pages take `?r=2&s=1|2|3`.
+- **Size steps:** lines over 24 characters step down to 104 px in the hero. On the end card, lines over 24 characters drop to 186 px and lines over 30 drop to 168 px.
+- **Round 1 change:** the round-1 render of "Load the bar. Log the set." now uses the smaller hero size too. That change is mine: the hero rule moved, and the round-1 wording is untouched.
+
+**What the renders show:**
+- **The winner** sets in two even lines on the hero and three on the end card. Its rhythm carries without the sub.
+- **The runner-up** needs three lines on the hero and still feels long.
+- **The owner's line** sets cleanly in two lines. On the Year in Lifting end card ("That's your year. One step to the next plate.") it reads well, but it implies next year is one step away.
+
+### 9.5 Proposed items, updated
+
+MKT-21 (the footer line) and MKT-22 (the Year in Lifting end card) in §7 are unchanged; only the text of `APP_SLOGAN` changes. They still wait for the owner's pick.
+
+---
+
 ## Sources (searched 2026-11-23)
 
 - Echoes found: [Gym Gym: Gym Workout Tracker ("Rack, log, next set.")](https://apps.apple.com/app/id6446095965); [Just Lift Fitness LLC trademarks](https://trademarks.justia.com/owners/just-lift-fitness-llc-5852559); [JUST LIFT BY JUSTIN](https://trademarks.justia.com/908/54/just-lift-by-90854570.html); [Just Lift Be Fit (App Store)](https://apps.apple.com/us/app/-/id6747419034); [LESS ATTITUDE. MORE FITNESS. (trademark)](https://trademarks.justia.com/883/08/less-attitude-more-88308361.html); [Gym Reapers, "Earned, Not Given"](https://uk.gymreapers.com/blogs/news/earned-not-given); [Freeletics, "Earned. Not given."](https://www.freeletics.com/en/blog/posts/earned-not-given/); [Earned Not Given program (TrainHeroic)](https://marketplace.trainheroic.com/workout-plan/program/rogers-program-1623963683); [Learn to Lift (Playbook)](https://my.playbookapp.io/ashley-weingart/programs/learn-to-lift/35684); [Lift - Rest - Repeat (Product Hunt)](https://www.producthunt.com/products/lift-rest-repeat/alternatives); [NextLift: Barbell Tracker](https://apps.apple.com/au/app/id6780114731); [Gymshark "We Do Gym" (The Drum)](https://thedrum.com/news/2024/06/18/crack-the-us-gymshark-tones-up-positioning-with-singular-message-we-do-gym).
 - "One plate at a time" in food use: [restaurant slogans (Eat App)](https://restaurant.eatapp.co/blog/restaurant-slogans); the iTunes Search API result "Plate: Meal Recipes for One".
+- Round 2: [SMALL STEPS THAT LEAD TO BIG RESULTS (trademark)](https://trademarks.justia.com/866/40/small-steps-that-lead-to-big-86640349.html); [Institute for Fitness & Health, Inc. trademarks (THE POWER OF SMALL STEPS)](https://trademark.justia.com/owners/institute-for-fitness-health-inc-3201032); [SMALL STEPS = BIG CHANGES, LLC](https://trademark.justia.com/owners/small-steps-big-changes-llc-5844630); [Small Steps (App Store)](https://apps.apple.com/si/app/small-steps/id6445825563); [StepStack (App Store)](https://apps.apple.com/gb/app/stepstack/id1611345028); [STEPSAPP (trademark)](https://trademarks.justia.com/792/01/stepsapp-79201044.html); [Synergee step-up plate](https://www.living.fit/products/synergee-pull-up-step-up-plate); [Powertec step-up plate attachment](https://www.topfitness.com/products/powertec-step-up-plate-attachment). Linkin Park's "One Step Closer" and Kodak's "You press the button, we do the rest" are general knowledge, not searched.
 - No exact-phrase use found for: "earn the next plate", "a plan for every lifter", "every lifter deserves a plan", "load the bar" with "log the set", "your next set, already planned", "plate by plate" as a fitness brand, "show up" with "we'll do the math", "stronger one plate at a time".
 - Store rules: [App Store Connect Help, "App information"](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information) (subtitle 30 characters), Apple guideline 2.3.7 (no prices in subtitles), as already cited in `store/app-store.md`.

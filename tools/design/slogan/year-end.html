@@ -30,6 +30,11 @@
 <div class="foot"><span data-sash></span><b>PLATESTEP</b></div>
 <p class="sample">Sample data</p>
 <script>
+  // Longer round-2 lines step the size down so the slogan stays within four lines above the foot rule.
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.querySelector('.slogan');
+    if (window.SLOGAN.length > 24) el.style.fontSize = window.SLOGAN.length > 30 ? '168px' : '186px';
+  });
   // Sample year: 41 of 52 weeks trained, coloured by a repeating plate-ink rotation (the data hue, not decoration).
   const inks = ['#D42F25', '#2C5BD8', '#F2C200', '#1E9E4A'], off = new Set([0, 1, 7, 15, 16, 22, 30, 31, 38, 44, 51]);
   document.getElementById('strip').innerHTML = Array.from({length: 52}, (_, w) =>

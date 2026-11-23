@@ -5,6 +5,7 @@
 <title>Slogan mock-up: landing hero (1280×800)</title>
 <link rel="stylesheet" href="slogan.css">
 <script src="slogans.js"></script>
+<script>document.addEventListener('DOMContentLoaded', () => { if (window.SLOGAN.length > 24) document.querySelector('h1').classList.add('long'); });</script>
 <!-- planning/slogan.md §5 mock-up 1. The landing page hero (store/landing-page.md §2.1) with the slogan as the H1 and
      the promise as the sub, so the page still says "what to lift next" in words a search engine reads (the <title>
      and meta description keep it too). Day 1 plate ink behind the phone, near-black page. Sample data only. -->
@@ -15,6 +16,7 @@
   .eyebrow{display:flex; align-items:center; gap:14px; font-size:22px; font-weight:600;}
   .eyebrow .sash{width:40px; height:40px; box-shadow:0 0 0 1.5px #3A3A3E;}
   h1{font-size:132px; margin-top:44px; max-width:640px;}
+  h1.long{font-size:104px;}
   .sub{font-size:22px; line-height:1.45; color:var(--text-2); margin-top:30px; max-width:560px;}
   .sub b{color:var(--text); font-weight:600;}
   .facts{font-size:16px; color:var(--text-3); margin-top:20px; letter-spacing:.01em;}
