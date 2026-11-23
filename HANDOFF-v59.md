@@ -1680,3 +1680,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - The list's `.set-chip-trend.is-up` is `--text-2`. With `body.has-cover`, `#mesocyclePhaseTag` is hidden by CSS only, because `renderUpNext` reads its text.
 - **Flagged (pre-existing):** the list's is-next chip draws a down arrow in #fff, invisible in light theme.
 - **Next:** UX-37 (slot 50n).
+
+## Addendum 164: UX-37 (v3.644, PR #229)
+- `.app-banner` is flat (`--surface`, `--rule`), and `.app-banner-urgent::before` is a 4 px red bar. The rail's buttons are under `.app-banner-rail .app-banner-btn*`, with an ink primary and a focus ring. The base `.app-banner-btn` is unchanged, because other sheets use it.
+- New harness states: `banner-update-*-402` and `banner-urgent-*-402`.
+- **Next:** MKT-05, the block-complete recap variant (slot 80).

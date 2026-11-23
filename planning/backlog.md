@@ -4355,7 +4355,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Test plan:** extend `test-whats-new.js` or add `test-app-banners.js`, and add the harness states.
 - **Files:** `index.html` (`.app-banner*` CSS around 3937–3966, `showUpdateBanner` ~53111, `showWhatsNewConfirm` ~35369, the storage banner ~15736, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js` (two states).
 - **Risk:** low. Style only; the update flow's logic is untouched, and that's guarded by `test-whats-new.js`.
-- **Status:** ready (owner 2026-11-23). Roadmap: right after UX-36.
+- **Status:** done (v3.644, PR #229, 2026-11-23). The rail's buttons are scoped under `.app-banner-rail`; the shared `.app-banner-btn` elsewhere keeps its look. The urgent bar is a `::before`, not a border.
 
 ### TOOL-01: The visual harness
 - **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
