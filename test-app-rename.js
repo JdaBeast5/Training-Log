@@ -96,11 +96,12 @@ test('REAL invocation: the share card prints the app name in capitals, never the
 
 test('REAL source: saved files carry the app name — the shared image and the backup', (assert)=>{
   const files = src.split('\n').filter(l => /new File\(\[blob\]|a\.download = /.test(l));
-  assert.strictEqual(files.length, 3, 'anchor: the three places the app names a saved file (the third is the symptom summary, which never carried the app name)');
+  assert.strictEqual(files.length, 4, 'anchor: the four places the app names a saved file (the symptom summary never carried the app name; the workout CSV joined in v3.631, BL-22)');
   // v3.547 (MKT-03): <slug>-<kind>-<date>.png (platestep-pr-2026-11-30.png).
   assert.ok(files.some(l => l.includes('new File([blob], `${appSlug()}-${cardData.kind || \'card\'}-${getTodayKey()}.png`')), 'the shared image is platestep-<kind>-<date>.png');
   // v3.572 (MKT-20): the backup takes the same appSlug() as the card.
   assert.ok(files.some(l => l.includes('a.download = `${appSlug()}-backup-')), 'the backup is platestep-backup-…');
+  assert.ok(files.some(l => l.includes('a.download = `${appSlug()}-workouts-')), 'the workout CSV is platestep-workouts-…'); // v3.631 (BL-22)
   assert.ok(!files.some(l => /training-log/.test(l)), 'no old name in either');
   assert.ok(!src.includes("fillText('TRAINING LOG'"), 'the hard-coded card footer is gone');
 });
