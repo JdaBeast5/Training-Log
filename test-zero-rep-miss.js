@@ -38,7 +38,8 @@ function prRun(newer){
      var programs = { strength: { label: 'Strength & Size', days: { d1: { label: 'Day 1', exercises: [ {name: 'Back Squat'} ] } } } };
      var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;`,
     extractConst(src, 'EXERCISE_CANONICAL'), // v3.549 (BL-54)
-    ...['normalizeExEntry', 'parseExKey', 'isMissedSet', 'topSetOf', 'estimated1RM', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs'].map(f => extractFunction(src, f)),
+    ...['normalizeExEntry', 'parseExKey', 'isMissedSet', 'topSetOf', 'estimated1RM', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'readExCorpusWithImported' /* v3.637 (BL-29) */, 'reconstructAllPRs'].map(f => extractFunction(src, f)),
+    'async function readImportedCorpus(){ return []; }',
   ], `__capture.push(await reconstructAllPRs());`);
 }
 

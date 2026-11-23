@@ -996,7 +996,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   4. "Remove imported history" leaves 0 `imported:` keys, and `reconstructAllPRs` returns the pre-import events.
 - **Test plan:** `test-strong-hevy-import.js`. The fixture is a few rows cut from a real export if the owner has sent one (trimmed, with nothing personal beyond exercise names, dates and sets, since the repo is public). If none has arrived, the fixture follows the column headers documented by Strong's and Hevy's own help pages, cited in the test, and the PR says "not yet checked against a real export". Sabotage: write the matched sets to the slot key, and criterion 2 must fail.
 - **Risk:** a new stored archive (approved, D6) and a new reader in `readExCorpus`, so every corpus consumer sees more entries. Guarded by `test-pr-timeline.js` and the corpus suites that extract `readExCorpus`; re-grep them. Strong's and Hevy's exact CSV formats are unverified.
-- **Status:** ready (owner yes 2026-11-08, D6: a separate "Imported" archive). The owner may send one Strong or Hevy export file to test against.
+- **Status:** done (v3.637, PR #221). The archive feeds only the PR/e1RM readers (readExCorpusWithImported), not readExCorpus, per D6. Formats unverified against a real export.
 
 ### BL-30: The per-muscle ledger on Today
 - **Why:** seeing "Chest 6 / 10" before leaving the gym is the audit's §5 differentiator against Fitbod. It builds on BL-20.

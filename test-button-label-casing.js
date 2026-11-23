@@ -18,7 +18,7 @@ const { readIndexSource, makeRunner } = require('./testHelpers.js');
 // Exported implicitly via closure in this file — not a function under test
 // in index.html, just this test's own detector, so it's defined directly
 // rather than extracted.
-const WHOLE_PHRASE_EXCEPTIONS = new Set(["What's New"]);
+const WHOLE_PHRASE_EXCEPTIONS = new Set(["What's New", "Import history from Strong or Hevy (CSV)" /* v3.637 (BL-29): two app names */]);
 
 function findTitleCaseViolations(html){
   const re = /<button[^>]*>([^<{]{2,200})<\/button>/g;

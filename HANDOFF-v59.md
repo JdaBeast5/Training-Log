@@ -1635,3 +1635,13 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - Added: `saved-meals`; `saveLogAsMeal`, `addSavedMealToLog` (it re-adds through `relogFoodEntry`, with a double-tap guard and Undo), `deleteSavedMeal` and `buildSavedMealBtn`. The Meals group leads My Foods, and `#saveMealBtn` sits under the log.
 - **BL-52 is held by the owner until about 2026-12-01.** BL-37 and BL-38 wait with it.
 - **Next:** the first ready item after slot 77 that doesn't depend on BL-52. BL-29 (Strong/Hevy import) is slot 77.
+
+## Addendum 157: BL-29 (v3.637, PR #221, 2026-11-23, morning run item 1)
+- The `imported:<slug>` archive. The pieces:
+  - parsing: `parseCsvText` and `parseWorkoutExport`;
+  - name matching: `matchImportName`, `refreshImportNameIndex` and `importEquipmentFits`;
+  - the import itself: `planWorkoutImport` and `applyWorkoutImport`;
+  - reading back: `readImportedCorpus` and `readExCorpusWithImported`;
+  - the Settings controls: `renderImportReview` and `refreshImportedControls`.
+- **Only** `reconstructAllPRs`, `collectLiftE1RMs` and `renderExerciseProgress` read the archive. Imported PR events carry `imported: true`.
+- **Unverified:** the real Strong and Hevy file formats.
