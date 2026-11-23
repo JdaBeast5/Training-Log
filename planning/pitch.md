@@ -112,6 +112,14 @@ Five signature moments, rendered at iPhone size in dark and light (`tools/design
 
 ## The business
 
+> **Revised 2026-11-23 (your "1-6 yes", "Call it Plus"):**
+> - **Free forever:** everything in the app at public launch, plus anything safety-related, with no ads, ever.
+> - **Platestep Plus:** an optional membership for *new* extras, on the phone or on our servers.
+> - **Prices:** $5.99 a month or $39.99 a year; $19.99 a year founding, locked; a free membership for anyone who asks.
+> - **First dollars:** a web-only Founding Supporter link at launch.
+>
+> This replaces the first two bullets and the pricing bullet below, which are kept as the record (`business.md` §3, `monetization-2026-11.md`).
+
 - **Free at launch, a subscription later (your call, 2026-11-07).** The rule: **if it runs on your phone, it's free forever, with no ads and no quotas.** That covers logging, programs, progression, history and charts, food, backup to your own cloud, and AI with your own key (BIZ-11, BIZ-13).
 - **The subscription only ever holds new things that run on our servers:** hosted AI (no key needed) and cloud sync. Nothing free is ever taken back; that's how MyFitnessPal (2022) and Strava (2020) got burned (business.md §3.2).
 - **Founding members:** everyone who trains with us before the subscription is announced gets a founding price, locked while they stay subscribed (BIZ-20).
@@ -151,6 +159,13 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Owner (2026-11-23), the money plan (PR #216): "1-6 yes", then "Call it Plus":**
+  - **BIZ-27, yes.** The rule is now: everything in the app at public launch is free forever; safety is never paid; no ads, ever; an optional membership holds *new* extras, on the phone or on our servers. BIZ-21's T1 and T3 no longer gate the on-device extras, and web payments run alongside Play (BIZ-22). BIZ-18's hold is lifted, and it ships the new "What's free" paragraph (`launch-copy/whats-free.md`).
+  - **BIZ-28, yes:** a web-only "Support Platestep" Founding Supporter link at the web launch (roadmap slot 92a). $19.99 buys a year of Plus at the founding price, refundable until it ships.
+  - **BIZ-29, yes:** Plus v1 behind offline signed licence codes, around March 2027 (slot 99, no sooner than 2027-02-01), then Play Billing when the Capacitor track supports it.
+  - **BIZ-30, yes:** $5.99 a month or $39.99 a year at list; $19.99 a year or $2.99 a month founding, locked; v1 at the founding price only; a 7-day trial from v2; no lifetime plan at launch. **The name: "Plus"**, so the paid tier is **Platestep Plus**.
+  - **BIZ-31, yes:** a free one-year membership for anyone who asks, with no proof, plus gift memberships.
+  - **BIZ-32, yes:** the LLC, EIN, bank account, terms and tax setup before the first sale. It's owner action **O7** below.
 - **Owner (2026-11-17):** UX-18 launch animation approved: bar to Sash, with the lockjaw collar. The bands keep the icon's angle, and light mode keeps the ink tile.
 - **Owner (2026-11-09), program extensions (PR #99): "pull the PR fix forward, 41a, 42a, 45a":**
   - **The 0-rep fix:** pulled forward as a new item, **BL-77** (slot 9c, right after BL-53). A set logged with 0 reps is a miss and never counts as a PR or best lift.
@@ -215,6 +230,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 | **O3** | Make `.claude/agents/build-automator.md` follow `automation.md` (sequence order, `claude/auto-<id>`), or add "automation.md wins" to the run prompt | **Edit the agent file** |
 | **O4** | Impeccable's downloaded engine in unattended runs? | **No**: Markdown fallback only |
 | **O6** | Add the v3.515/v3.516 addendum to `HANDOFF-v59.md` | **Yes** |
+| **O7** *(2026-11-23, BIZ-32)* | **Before the first sale (target 12 December 2026):**<br>• form the Florida LLC on Sunbiz ($125);<br>• registered agent;<br>• EIN;<br>• business bank account;<br>• Stripe in the LLC's name, with the Founding Supporter Payment Link;<br>• terms of sale, a refund policy, and the privacy-page line naming Stripe (counsel reads them);<br>• a CPA on estimated tax;<br>• Stripe Tax or a merchant of record before any non-US sale.<br>Record the Stripe link and the done dates in BIZ-28, which can't go live until steps 1–4 and the terms are done. The checklist is in `monetization-2026-11.md` §4.2 | **Yes** (you answered BIZ-32) |
 
 **Decisions**, ordered by what they unblock first:
 
@@ -241,7 +257,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 
 ## What we're deliberately NOT doing
 - **No social feed.** It's a complaint at Hevy (research.md §4).
-- **No ads,** ever. **No paywall** on anything that costs nothing to run.
+- **No ads,** ever. **No paywall** on anything in the app at public launch, or on anything safety-related (revised 2026-11-23: Platestep Plus may hold *new* extras).
 - **No generated Fitbod-style workouts.** Proven programs only.
 - **No exercise demos, 3D or AI video.** You parked them (HANDOFF-v59, Addendum 41).
 - **No analytics, attribution or tracking.** No server, no accounts, and no hosted AI yet.

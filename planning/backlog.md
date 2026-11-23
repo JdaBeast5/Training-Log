@@ -1,6 +1,6 @@
 # Backlog
 
-**Money model reopened (2026-11-23, against v3.632, business-manager).** The owner asked for income as the primary goal. The proposal is `planning/monetization-2026-11.md`. New items **BIZ-27 to BIZ-32**, all `needs-owner`, sit at the end of the Business (BIZ) section. **BIZ-18 is on hold** until BIZ-27 is answered, so the older "What's free" paragraph can't ship by accident. Nothing else in the build order changes.
+**Money model answered (2026-11-23, against v3.632, business-manager).** The owner answered "1-6 yes" to BIZ-27 to BIZ-32 (`planning/monetization-2026-11.md`, `pitch.md` "Owner's answers"), and named the paid tier **Platestep Plus** ("Call it Plus"). Buildable now, behind their gates: **BIZ-28** (roadmap slot 92a, Phase 5) and **BIZ-29** (slot 99, after the launch builds, no sooner than 2027-02-01). BIZ-27, BIZ-30, BIZ-31 and BIZ-32 are `answered`; BIZ-32 is the owner's action O7 in `pitch.md`. BIZ-18's hold is lifted, and it now ships the BIZ-27 paragraph.
 
 **Today coherence audit (2026-11-17, against v3.599, design-engineer).** The owner said Today "looks hodgepodge, stuck between old and new". The audit and twelve fixes, UX-19 to UX-30, are at the end of the Design (UX) section, under "Today coherence audit". All are `ready`, slotted at roadmap 50a–50l ahead of MKT-16. The harness gained an opt-in `--today` mode (full-page Today and its states) for their evidence. Baseline green: `check.sh` and 246/246 suites.
 
@@ -2827,14 +2827,15 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - The free/paid line (business.md §3.3) only protects users and the brand if it's public **before** anyone could be affected, so it can never look retroactive (§3.4).
   - Today nothing in the app or the README says what is free or why.
 - **Change:**
-  - One short "What's free" note in Settings (near the privacy link from BIZ-16), with the same text in the README and in MKT-14's landing page. The text is business.md §3.4's revised wording, with `{name}` filled from `APP_NAME` once the owner settles the public name: "Everything {name} does on your phone is free, forever, with no ads, including every program that comes with the app. We may fix or retire a feature for safety, but we will never put it behind a payment. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with {name} before then gets a founding price for as long as they stay subscribed. Coaches may one day pay to manage clients or sell programs they wrote; their clients and everyone else keep everything above for free."
+  - One short "What's free" note in Settings, `#whatsFreeNote` (near the privacy link from BIZ-16), with the same text in the README and in MKT-14's landing page. **The text is BIZ-27's paragraph** (owner yes 2026-11-23; `planning/launch-copy/whats-free.md` holds the published form), with `{name}` filled from `APP_NAME`: "{name} is free to use, with no ads, ever. Everything in the app when it launched stays free forever with no limits: logging, every built-in program with its progression, your full history and charts, food logging, health tracking, safety guidance, and backing up or exporting your data. We may fix or retire a feature for safety, but we will never put a free feature behind a payment. An optional membership, {name} Plus, pays for {name}'s development and adds new extras on top, like coaching notes for your program, new programs before everyone else (they then join the free library), and later AI coaching without your own key and cloud sync. Anyone who trained with {name} before {name} Plus launched gets a founding price for as long as they stay a member, and anyone who can't afford it can ask for a free membership. Coaches may one day pay to manage clients or sell programs they wrote; their clients keep everything above for free."
+  - *(Superseded 2026-11-23:* the 2026-11-07 paragraph, "Everything {name} does on your phone is free, forever …", is replaced by the one above. The older "if it runs on your phone, it's free" line stays dropped.)
   - *(Alignment round:* the older "if it runs on your phone, it's free" line is dropped, because it would make a paid coach program a broken promise; business.md §3.4.)
   - Copy only; nothing is gated.
   - Marketing owns tone (marketing.md §2). This item owns the facts.
 - **Acceptance criteria:**
-  1. The Settings note exists in the parsed `index.html` and contains "free, forever" and "no ads".
+  1. The Settings note `#whatsFreeNote` exists in the parsed `index.html` and contains "free forever", "no ads" and "safety".
   2. The note's text equals the README's "What's free" paragraph (normalised whitespace), so the two can't drift.
-  3. The note contains no price, no currency symbol and no date (regex count 0) until BIZ-21 sets them.
+  3. The note contains no price, no currency symbol, no digit and no date (regex count 0).
   4. *(Split out to BIZ-18a, which ships early as its own ready version.)* This item keeps BIZ-18a's test passing.
 - **Test plan:** new `test-whats-free.js`, which parses the real `index.html` and `README.md`. Sabotage: change one word in the README paragraph, and criterion 2 must fail.
 - **Files:** `index.html` (Settings), `README.md`, `sw.js`, the test; later `about.html` (MKT-14).
@@ -2842,7 +2843,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - It's a public commitment with consumer-promise implications, so the owner must approve the exact words.
   - Ship it after BIZ-07 and BIZ-16 so all three say the same thing.
 - **Status:** ready (after BIZ-16 and MKT-14) (owner yes 2026-11-08, D9(a)). At public launch (Phase 5) and not before; `{name}` is filled from `APP_NAME` (Platestep). Roadmap slot 92.
-- **Hold (business-manager, 2026-11-23):** don't build until BIZ-27 is answered. The owner reopened the money model on 2026-11-23, and BIZ-27 proposes a replacement paragraph (`planning/monetization-2026-11.md` §3.6). If BIZ-27 is approved, this item ships that paragraph instead of the one above, with the same criteria. If it's declined, the hold lifts and the text above stands.
+- **Hold lifted (owner yes to BIZ-27, 2026-11-23):** ships BIZ-27's paragraph above, with these criteria. BIZ-29's later guard allowlists `#whatsFreeNote`, because the paragraph names Platestep Plus.
 
 ### BIZ-18a: The free-list guard test
 - **Why:** BIZ-18's criterion 4 (no lock, upgrade or "Pro" label in free areas) only protects the free list if it runs on **every** later build. Inside a needs-owner Phase 5 item it would run on none (business-manager, non-blocking; roadmap "Business priorities" asked for it).
@@ -2895,7 +2896,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - T1 and T2 depend on the store consoles. With no analytics, a PWA-only audience is invisible.
   - The 16% threshold is our proposal, not an industry benchmark.
-- **Status:** answered (owner yes 2026-11-08, D9(c)): the six triggers replace "90 days of data", and no billing code is written until they all hold. Recorded in `business.md` §3.5; the monthly check line starts once a store console has data.
+- **Status:** answered (owner yes 2026-11-08, D9(c)): the six triggers replace "90 days of data", and no billing code is written until they all hold. Recorded in `business.md` §3.5; the monthly check line starts once a store console has data. **Updated (owner yes to BIZ-27, 2026-11-23):** T1 and T3 no longer gate Platestep Plus's on-device extras (BIZ-29). All six triggers still gate hosted AI and sync (BIZ-13, BIZ-14).
 
 ### BIZ-22: The payment path
 - **Why:**
@@ -2913,7 +2914,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Accounts, money, contracts, tax, and a server that user data goes to (for opt-in users).
   - Web purchases unlocking an iOS store app risk App Review rejection (guideline 3.1.1, from developer reports).
   - The 2026 Play fee changes are reported but unverified here.
-- **Status:** answered (owner yes 2026-11-08, D9(d): Play billing first; web payments only if iPhone PWA demand is large; no billing or server code before BIZ-21's triggers). Recorded in `business.md` §3.6. The optional "support us" link (path D) was not separately answered and stays off. *Original question:* "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
+- **Status:** answered (owner yes 2026-11-08, D9(d): Play billing first; web payments only if iPhone PWA demand is large; no billing or server code before BIZ-21's triggers). Recorded in `business.md` §3.6. The optional "support us" link (path D) was not separately answered and stays off. **Updated (owner yes to BIZ-27 and BIZ-28, 2026-11-23):** path B (web payments through Stripe, with offline signed licence codes; BIZ-29) now runs alongside path A, because iPhone users have no store build. Path D is on, as BIZ-28's Founding Supporter link, on the web build only. *Original question:* "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
 
 ### BIZ-23: The coach plan: the coach pays, the clients are free
 - **Why:**
@@ -2985,7 +2986,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Tools:** `security-review`.
 - **Status:** ready
 
-### BIZ-27: The money rule, revised: a frozen free floor plus a membership for new extras
+### BIZ-27: The money rule, revised: a frozen free floor plus Platestep Plus for new extras
 - **Why:**
   - **The owner, 2026-11-23:** "it is supposed to bring in income primarily while helping the community" (`planning/monetization-2026-11.md`, header).
   - **Under the current rule** (business.md §3.3: only server-run things can be paid), there is nothing to sell until hosted AI and sync exist. That's after a server, counsel and BIZ-21's six triggers, so Q3 2027 at the earliest. At about 1k active users, server and AI costs would eat most of that revenue (monetization §1.1).
@@ -3003,7 +3004,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - Reviewers may read any paid tier as "the free app got worse". The guard is that the floor is everything at launch, published before any paid extra exists.
   - Ads stay out, and that leaves money on the table at scale: monetization §1.4 puts it at about $13,000–38,000 a year in gross ad revenue at 10k active users (an assumption).
-- **Status:** needs-owner. **Question:** "Replace 'free forever on the phone, Pro only for server costs' with 'everything at launch free forever, safety never paid, and a membership for new extras on the phone or server, no ads ever', and publish monetization §3.6's paragraph at launch?" **Recommendation:** yes. It makes income possible in 2027 without taking anything from anyone, and it keeps every promise that protects users.
+- **Status:** answered (owner yes 2026-11-23, "1-6 yes"). Recorded in business.md §3 (adopted note) and monetization §6; `whats-free.md` and BIZ-18 carry the §3.6 paragraph, naming Platestep Plus. *Original question:* "Replace 'free forever on the phone, Pro only for server costs' with 'everything at launch free forever, safety never paid, and a membership for new extras on the phone or server, no ads ever', and publish monetization §3.6's paragraph at launch?" **Recommendation:** yes. It makes income possible in 2027 without taking anything from anyone, and it keeps every promise that protects users.
 
 ### BIZ-28: A "Founding Supporter" link on the web build at launch
 - **Why:**
@@ -3011,7 +3012,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - **Store rules:** Apple has rejected an About-page "Tips" link under guideline 3.1.1 ([Apple forum 844046](https://developer.apple.com/forums/thread/844046)). Google Play requires its billing for digital goods ([Payments policy](https://support.google.com/googleplay/android-developer/answer/10281818), via search). So the link appears only outside a native shell.
 - **Change** (once the owner supplies the Stripe Payment Link URL):
   - Add a constant, `SUPPORT_URL`, next to `APP_NAME`.
-  - Add one link in Settings → About, "Support Platestep", with the line: "Founding Supporters pay for development and get a year of founding membership when it launches. Nothing in the app is locked."
+  - Add one link in Settings → About, "Support Platestep", with the line: "Founding Supporters pay for development and get a year of Platestep Plus at the founding price when it launches. Nothing in the app is locked."
   - Add the same URL to the README and to MKT-14's landing page.
   - Render the link only when the app isn't running in a native shell, by reading the existing environment check if there is one (re-grep). Don't touch the Capacitor files.
   - No price appears in the app: the Stripe page shows it.
@@ -3025,18 +3026,18 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** new `test-support-link.js`, with the real Settings markup and the real render path. Sabotage: render the link unconditionally, and criterion 2 must fail; put a "$" in the line, and criterion 4 must fail.
 - **Files:** `index.html` (constants near `APP_NAME`, and the Settings About section; re-grep), `sw.js`, `README.md`, the test; later `about.html` (MKT-14).
 - **Risk:**
-  - It's money, an account (Stripe, in the LLC's name, BIZ-32) and a promise: a year of founding membership to deliver. So the supporter terms say "refundable on request until membership v1 ships".
+  - It's money, an account (Stripe, in the LLC's name, BIZ-32) and a promise: a year of Platestep Plus to deliver. So the supporter terms say "refundable on request until Platestep Plus v1 ships".
   - The privacy page must name Stripe as the payment processor (BIZ-16). Stripe holds the buyer's email; the app holds nothing.
-- **Status:** needs-owner. **Question:** "At the web launch, add a 'Support Platestep' link (Stripe, $19.99, a year of founding membership paid in advance, refundable until it ships; web build only)?" **Recommendation:** yes. It's honest, it's first income in December 2026, and it locks nothing.
+- **Status:** ready (owner yes 2026-11-23, "1-6 yes"). **Roadmap slot 92a, Phase 5, after BIZ-18**, behind the Phase 3 hard gate like every Phase 5 slot. **A run also skips it until the owner records two things in this item:** the Stripe Payment Link URL for `SUPPORT_URL`, and that BIZ-32 steps 1–4 and 10 are done (LLC, registered agent, EIN, bank account, and terms, refund policy and privacy line). The same pattern as BIZ-08's domain. *Original question:* "At the web launch, add a 'Support Platestep' link (Stripe, $19.99, a year of founding membership paid in advance, refundable until it ships; web build only)?" **Recommendation:** yes. It's honest, it's first income in December 2026, and it locks nothing.
 
-### BIZ-29: Membership v1: on-device extras behind an offline, signed licence
+### BIZ-29: Platestep Plus v1: on-device extras behind an offline, signed licence
 - **Why:**
   - On-device extras cost about nothing to run, so membership income is margin from the first member (monetization §1.1).
   - There's no server, so the licence is a short code signed on the owner's own computer and verified in the app with WebCrypto (ECDSA P-256). There's no network call and no account (monetization §4).
 - **Change** (after BIZ-27 and BIZ-30 are approved):
   - **The check:** add a pure `verifyMemberLicence(code, publicKeyJwk = LICENCE_PUBLIC_KEY_JWK)` that returns `{valid, plan, expires, founding}`. The payload holds a licence id, a plan (`member` or `community`), an expiry, the founding flag and a signature. **No email or name.**
   - **Storage:** the code is stored with `window.storage` under a namespaced key and travels in the JSON backup.
-  - **Where members see it:** a Settings → Membership section (enter a code; see the plan and expiry). It's the only place the membership is advertised in the app, apart from What's New.
+  - **Where members see it:** a Settings → Platestep Plus section, `#plusSection` (enter a code; see the plan and expiry). It's the only place Platestep Plus is advertised in the app, apart from What's New, the What's-free note and BIZ-28's support line.
   - **v1 extras:**
     - coaching notes per program week, written and cited in `content-*.js` for 3–4 programs first, with no health claims and none for `MEDICAL_STYLES`;
     - an `earlyAccessUntil` date on new programs only, after which they're free;
@@ -3046,7 +3047,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Acceptance criteria:**
   1. **Real codes verify, and only real ones.** With a test key pair generated in the test, a code signed by its private key verifies as `valid: true` with the right plan and expiry. The same code with one character changed is `valid: false`. A code signed by a different key is `valid: false`. A code past `expires` plus 14 days (a stubbed date) is `valid: false`.
   2. Verifying makes 0 network calls (stub-counted).
-  3. **Without a licence, the free areas are unchanged.** The whole static app and the four renderers in BIZ-18a criterion 2 show 0 coaching-note or early-access elements and no teaser. `test-free-list-guard.js` passes, extended to `/\b(membership|member|subscribe|plus)\b/i` outside `#membershipSection`.
+  3. **Without a licence, the free areas are unchanged.** The whole static app and the four renderers in BIZ-18a criterion 2 show 0 coaching-note or early-access elements and no teaser. `test-free-list-guard.js` passes, extended outside `#plusSection` to the case-sensitive `/\bPlus\b/` plus `/\b(Platestep Plus|membership|subscribe|subscription)\b/i`. The only allowlisted elements are `#whatsFreeNote` (BIZ-18) and BIZ-28's support line. A bare, case-insensitive "plus" isn't banned: it appears 207 times in ordinary copy at v3.632, while a capitalised "Plus", "Platestep Plus" and "subscri…" appear 0 times, and "membership" only in script comments.
   4. With a valid licence, a program week that has notes renders its coaching-note element (count 1). Without one, the count is 0.
   5. A program with `earlyAccessUntil` in the future is in the picker for members only. After that date (stubbed) it's listed for everyone. **No program present at launch has `earlyAccessUntil`** (count 0, a guard against gating the floor).
   6. **Safety is never gated.** The real BL-01, BL-02 and BL-69 functions, the safety cues and the substitutions return identical output with and without a licence.
@@ -3059,9 +3060,9 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - **Key management:** if the private key is lost, no new codes; if it leaks, anyone can mint them. Keep two offline copies; rotating the key means a new public key in a new version.
   - Money, accounts (Stripe), terms of sale and refunds, which counsel should read.
   - Note content must pass the auditor and BIZ-15's claims rules.
-- **Status:** needs-owner (money, accounts, contracts). **Question:** "Build membership v1 (coaching notes, early-access programs, then reports and Year in Lifting extras) behind offline signed licence codes sent by hand after a Stripe sale, about March 2027, with Play Billing added when the Capacitor track supports it?" **Recommendation:** yes, after BIZ-27 and BIZ-30.
+- **Status:** ready (owner yes 2026-11-23, "1-6 yes"; name "Plus"). **Roadmap slot 99:** after the Phase 5 launch builds (slots 89–92a) are merged, and **no sooner than 2027-02-01**, so it ships around March 2027. **A run also skips it until the owner records `LICENCE_PUBLIC_KEY_JWK` here** (public key only; he generates the key pair on his own machine). Coaching notes need the exercise-auditor's review; a first version may ship the licence check, the Plus section and the early-access flag with notes for one program, and later items add notes for more programs. *Original question:* "Build membership v1 (coaching notes, early-access programs, then reports and Year in Lifting extras) behind offline signed licence codes sent by hand after a Stripe sale, about March 2027, with Play Billing added when the Capacitor track supports it?" **Recommendation:** yes, after BIZ-27 and BIZ-30.
 
-### BIZ-30: Membership prices, trial, lifetime and name
+### BIZ-30: Platestep Plus prices, trial, lifetime and name
 - **Why:**
   - **Prices (third-party, monetization §3.3):** Hevy $2.99/$23.99/$74.99 lifetime; Strong $4.99/$29.99/$99.99; Boostcamp $14.99/$59.99; MacroFactor $11.99/$71.99; Fitbod $15.99/$95.99.
   - **The category median** is $9.70 a month and $39.99 a year (RevenueCat 2025 via [Airbridge](https://www.airbridge.io/en/blog/subscription-app-pricing-by-category-2026-benchmark), secondary).
@@ -3072,12 +3073,12 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - **Launch pricing:** v1 is sold at the founding price only; the list price starts for new members when v2 (hosted AI and sync) ships.
   - **Trial:** none on v1. A 7-day trial on the annual plan from v2, with the price and conversion date shown at the same size as the offer.
   - **No lifetime plan at launch.** Revisit after six months, for on-device extras only, at about 2.5× annual. Never for hosted AI.
-  - **The name:** "Membership" or "Plus" (not "Pro"; BIZ-18a's guard).
+  - **The name:** **Platestep Plus** (owner, 2026-11-23: "Call it Plus"). Not "Pro", per BIZ-18a's guard.
 - **Acceptance criteria:** the owner's answer is recorded in monetization §6 and business.md §3.7. BIZ-29's and BIZ-22's later items use these numbers.
 - **Test plan:** none; a decision.
 - **Files:** `planning/monetization-2026-11.md`, `planning/business.md`.
 - **Risk:** a price that's too low can't carry hosted AI. BIZ-21's T4 measures AI cost per member before v2, and the list price can still be raised for new members then. Founding prices never change.
-- **Status:** needs-owner. **Question:** "$5.99 a month or $39.99 a year list; $19.99 a year founding (locked); v1 at the founding price only; a trial only from v2; no lifetime at launch; and do you want 'Membership' or 'Plus'?" **Recommendation:** yes to the numbers. The name is your call; "Membership" is plainest.
+- **Status:** answered (owner yes 2026-11-23, "1-6 yes"; the name **Platestep Plus**, "Call it Plus"). Recorded in monetization §3.3, §3.4 and §6. *Original question:* "$5.99 a month or $39.99 a year list; $19.99 a year founding (locked); v1 at the founding price only; a trial only from v2; no lifetime at launch; and do you want 'Membership' or 'Plus'?" **Recommendation:** yes to the numbers. The name is your call; "Membership" is plainest. *(Superseded: the owner chose "Plus" on 2026-11-23.)*
 
 ### BIZ-31: A free membership for anyone who needs it, plus gifted memberships
 - **Why:**
@@ -3088,14 +3089,14 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - **How to ask:** email `support@platestep.com` and say money is tight. **No proof and no questions;** a one-year code; renew on request.
   - **AI cost:** the community membership gets hosted AI under the same fair-use limit, from a monthly pool the owner sets.
   - **Gifts:** members can buy a gift membership that adds to the pool.
-  - **Where it's said:** in the "What's free" paragraph (monetization §3.6) and the Membership section.
-- **Acceptance criteria:** the owner's answer is recorded in monetization §6. If approved, BIZ-29's criterion 1 includes a `community` code that verifies with `plan === 'community'`, and the Membership section shows the request line (count 1).
+  - **Where it's said:** in the "What's free" paragraph (monetization §3.6) and the Platestep Plus section.
+- **Acceptance criteria:** the owner's answer is recorded in monetization §6. If approved, BIZ-29's criterion 1 includes a `community` code that verifies with `plan === 'community'`, and the Platestep Plus section (`#plusSection`) shows the request line (count 1).
 - **Test plan:** covered by BIZ-29's test once approved.
 - **Files:** `planning/monetization-2026-11.md`; later `index.html` (via BIZ-29).
 - **Risk:**
   - People who could pay may ask. That's accepted: the on-device extras cost nothing, and the AI pool is capped.
   - It handles the requester's email. That's support mail, the same as any support request, and the privacy page says so.
-- **Status:** needs-owner. **Question:** "Offer a free one-year membership to anyone who asks and says money is tight, with no proof, renewable, with hosted AI from a capped pool; and let members gift memberships into that pool?" **Recommendation:** yes.
+- **Status:** answered (owner yes 2026-11-23, "1-6 yes"). It's built through BIZ-29 (plan `community`) and runs as an owner process by support email. *Original question:* "Offer a free one-year membership to anyone who asks and says money is tight, with no proof, renewable, with hosted AI from a capped pool; and let members gift memberships into that pool?" **Recommendation:** yes.
 
 ### BIZ-32: Business setup before the first sale: LLC, tax and payment accounts
 - **Why:**
@@ -3118,7 +3119,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none; owner steps.
 - **Files:** `planning/monetization-2026-11.md`.
 - **Risk:** this is not legal or tax advice. Using the owner's SSN instead of an EIN, or mixing personal and business money, weakens the LLC's protection.
-- **Status:** needs-owner (it costs money and needs accounts and contracts). **Question:** "Form the Florida LLC, get the EIN and open a business bank account before the first sale (target 12 December), and use Stripe Tax or a merchant of record before selling outside the US?" **Recommendation:** yes.
+- **Status:** answered (owner yes 2026-11-23, "1-6 yes"). It's the owner's action **O7** in `pitch.md`, due before the first sale (target 12 December 2026). BIZ-28 can't go live until steps 1–4 and 10 are recorded. *Original question:* "Form the Florida LLC, get the EIN and open a business bank account before the first sale (target 12 December), and use Stripe Tax or a merchant of record before selling outside the US?" **Recommendation:** yes.
 
 ## Marketing (MKT): added by marketing-manager, 2026-11-07
 
