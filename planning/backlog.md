@@ -2670,7 +2670,8 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - Today's Priorities ordering. Guarded by `test-today-priorities.js`.
   - Don't show it inside the Capacitor build. Standalone detection covers that; verify in the test.
-- **Status:** ready
+- **Owner, 2026-11-23:** iPhone and iPad only, and the row says to export first and import in the installed copy (a Home Screen copy keeps its own storage). **Revisit once the native Android and Apple apps exist.**
+- **Status:** done (v3.628, PR #207)
 
 ### BIZ-08: Share cards carry the app's address
 - **Why:** PR, streak and weekly share cards end with the text "TRAINING LOG" (`buildShareCardBlob`, 29510) and share text with no URL (~29620). Every share is a referral that can't be followed. The marketing-manager owns share moments; this item only adds the link.
