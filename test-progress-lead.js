@@ -31,7 +31,7 @@ const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
 const FN = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep',
   'analyzeProgressionSignal', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise', 'isDumbbellExercise',
-  'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'recentBestE1RM',
+  'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'rpeAdjustedE1RM' /* v3.640 (BL-34) */, 'recentBestE1RM',
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot', 'normalizeExEntry', 'canonicalExName', 'groupCorpusByExercise',
   'escapeHtml', 'parseDateKey', 'formatDate', 'formatShortDate', 'nextTimeSuggestion', 'parseSetCount', 'dayInk', 'mondayOf', 'setCountOf',
   'computeWeeklyMuscleSets', 'renderMuscleLedgerHtml',
