@@ -1657,3 +1657,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - `progressCardData` and `progressShareCards`, plus a delegated click handler for `[data-progress-share]`;
   - `drawStoryCard` now draws `card.spark`.
 - **Flagged:** the slot-scoped `saveExSet` PR check versus the pooled PR timeline.
+
+## Addendum 160: BL-34 (v3.640, PR #224, on #223; morning run item 4), and MKT-05 skipped
+- `rpeAdjustedE1RM`, and `recentBestE1RM(past, {plain})`. `buildPastSessions` gains `topSetRpe`, and `rpeCtx` gains `stepE1rm`.
+- **MKT-05 is needs-owner.** Its criteria and the summit note disagree on where it shows.
+- **Stack order:** #221 → #222 → #223 → #224, each merged from the one below. #221 received review fixes that were merged down.

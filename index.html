@@ -8515,7 +8515,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.639';
+const APP_VERSION = '3.640';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10269,6 +10269,9 @@ const WHATS_NEW = {
   '3.639': { headline: 'Records show the gain', points: [
     'A new heaviest weight now says what it beat: "+10 lb over 215 lb".',
     'A lift\'s history has a Share progress button: a story card from your first estimated 1RM to your best, with the line in between.',
+  ]},
+  '3.640': { headline: 'RPE-mode loads count your reps in reserve', points: [
+    'In RPE mode, a set you logged at RPE 7 now counts the reps you had left when the app works out your next load, so it no longer underestimates you. Records and strength charts are unchanged.',
   ]},
 };
 
@@ -29862,11 +29865,26 @@ function rpeTargetFor(week, inDeload, program, category){
 // people abandon a percentage-based program.
 const RPE_E1RM_LOOKBACK_SESSIONS = 6;
 
-function recentBestE1RM(pastSessions){
+// v3.640 (BL-34, audit M-4): a set logged below RPE 10 left reps in the tank,
+// so its e1RM counts them: w × (1 + (reps + 10 − RPE)/30), the reps-to-failure
+// loadForRpeTarget already assumes, with the same 15-rep ceiling. Only for an
+// RPE of 6–10 on the session's top set; otherwise plain estimated1RM.
+// RPE-mode load targets only (owner, D3): estimated1RM, the PR history and the
+// e1RM charts are unchanged, and the progression step (stepE1rm) asks for the
+// plain figure ({plain: true}) so double progression is untouched too.
+function rpeAdjustedE1RM(weight, reps, rpe){
+  if(rpe == null || !(rpe >= 6 && rpe <= 10)) return estimated1RM(weight, reps);
+  if(weight == null || reps == null || reps <= 0) return null;
+  const n = reps + rirFromRpe(rpe);
+  if(n > 15) return estimated1RM(weight, reps); // past the ceiling with the reserve counted: the plain figure, never none
+  return Math.round(weight * (1 + n / 30));
+}
+function recentBestE1RM(pastSessions, opts){
   if(!pastSessions || !pastSessions.length) return null;
+  const plain = !!(opts && opts.plain);
   let best = null;
   pastSessions.slice(0, RPE_E1RM_LOOKBACK_SESSIONS).forEach(s=>{
-    const e = estimated1RM(s.weight, s.reps);
+    const e = plain ? estimated1RM(s.weight, s.reps) : rpeAdjustedE1RM(s.weight, s.reps, s.topSetRpe);
     if(e != null && (best === null || e > best)) best = e;
   });
   return best;
@@ -29946,7 +29964,7 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // v3.552 (BL-24): the step scales with recent strength, never on the
   // clinical plans; computeSuggestedSet gets the same e1RM through rpeCtx.
   // Computed only where a message names a step (Program Fit reads just the type).
-  const stepE1rm = ()=> clinicalProgram ? null : recentBestE1RM(pastSessions);
+  const stepE1rm = ()=> clinicalProgram ? null : recentBestE1RM(pastSessions, {plain: true}); // v3.640 (BL-34): unadjusted, as before
   // With one session, only the non-clinical one-session increase below applies.
   const twoSessions = !!s1;
 
@@ -30097,7 +30115,8 @@ function buildPastSessions(log, excludeDate){
       // grinding top sets from the one-session "reps to spare" rule.
       const topRpeSets = (e.sets||[]).filter(s=> s.weight === top.weight && s.rpe != null);
       const topRpe = topRpeSets.length ? topRpeSets.reduce((sum,s)=> sum+s.rpe, 0) / topRpeSets.length : null;
-      return {date: e.date, weight: top.weight, reps: top.reps, avgRpe, minRepsAtTop, topRpe};
+      // v3.640 (BL-34): the top set's own RPE, for recentBestE1RM's RPE-mode e1RM.
+      return {date: e.date, weight: top.weight, reps: top.reps, avgRpe, minRepsAtTop, topRpe, topSetRpe: top.rpe != null ? Number(top.rpe) : null};
     })
     .filter(Boolean);
 }
@@ -30595,7 +30614,9 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   }
   // v3.552 (BL-24): the same recent e1RM the signal used; none on the clinical plans.
   const clinicalCtx = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
-  const increment = getLoadIncrement(category, (rpeCtx && !clinicalCtx) ? rpeCtx.e1rm : null);
+  // v3.640 (BL-34): the step is sized from the plain e1RM (stepE1rm) where the
+  // caller gives one; the RPE-adjusted e1RM is for the RPE-mode target above.
+  const increment = getLoadIncrement(category, (rpeCtx && !clinicalCtx) ? (rpeCtx.stepE1rm !== undefined ? rpeCtx.stepE1rm : rpeCtx.e1rm) : null);
   const bottomRep = parseBottomRep(ex.sets);
   const topRep = parseTopRep(ex.sets);
   // Rounding target follows the plate reality of the display unit, the same
@@ -31571,7 +31592,7 @@ async function renderWorkout(){
       // Built once per exercise rather than per set row — recentBestE1RM walks
       // the session list, and doing that inside the row loop would repeat it
       // for every set of every exercise on the day.
-      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), week: mesoWeek, program: activeProgram, category: exCategory};
+      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), stepE1rm: recentBestE1RM(pastSessions, {plain: true}), week: mesoWeek, program: activeProgram, category: exCategory}; // v3.640 (BL-34)
       const signal = analyzeProgressionSignal(pastSessions, ex, exCategory, activeProgram);
       // v3.560 (BL-11): weightless rows progress by reps or seconds.
       const repSug = suggestRepProgression(ownLogs[i], ex, activeProgram);
@@ -32423,7 +32444,7 @@ function nextTimeSuggestion(inp, dateKey, program, inDeload, week){
   if(!today || !(today.sets || []).some(st=> st && st.weight != null && st.reps != null)) return null;
   const past = buildPastSessions(log, null);
   const signal = analyzeProgressionSignal(past, ex, category, program);
-  const rpeCtx = {e1rm: recentBestE1RM(past), week, program, category};
+  const rpeCtx = {e1rm: recentBestE1RM(past), stepE1rm: recentBestE1RM(past, {plain: true}), week, program, category}; // v3.640 (BL-34)
   const basis = priorSetForSlot(today, 0, ex, false);
   // With nothing to change, the set fields ghost today's own numbers (as
   // renderWorkout's placeholders do), so that is what next time holds at.

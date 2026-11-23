@@ -1081,7 +1081,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   4. In RPE mode, week 2 (RPE 8), a prior top set of 100×8 @ RPE 7 gives a suggested 8-rep load from the adjusted e1RM (137), not from 127.
 - **Test plan:** new `test-rpe-adjusted-e1rm.js`, with the real `buildPastSessions`, `recentBestE1RM`, `estimated1RM`, `loadForRpeTarget` and `reconstructAllPRs`. Sabotage: put the RPE adjustment inside `estimated1RM`, and criterion 3 must fail.
 - **Risk:** RPE-mode load targets rise for anyone who logs RPE below 10. Guarded by `test-rpe-safety-caps.js` (clinical caps still bound the target), `test-progress-badge-rpe-teal.js`, `test-pr-timeline.js` and `test-performance-delta-colours.js`.
-- **Status:** ready (owner yes 2026-11-08, D3: RPE-mode targets only; PR history stays put).
+- **Status:** done (v3.640, PR #224, stacked on #223/#222/#221). The double-progression step reads the plain figure ({plain: true}; rpeCtx.stepE1rm).
 
 ### BL-35: Replace Neck Bridges with a 4-way neck isometric (SAF-4)
 - **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (`index.html` 11056) and five grappling day-count variants (21282, 21320, 21363, 21413, 21464). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
@@ -3258,7 +3258,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Files:** `index.html` (26723, 41641, 45414–45480), `sw.js`, the test.
 - **Risk:** the end-of-week flow already shows a status line and a week share button. Keep one share button visible at a time; check in Playwright.
 - **Summit note (summit 2026-11-07):** Render it as the **last-week variant of UX-11's recap sheet**, not a separate celebration, so there aren't two interruptions on one Monday (summit §1.4). Record wording follows summit R6.
-- **Status:** ready (after UX-11)
+- **Status:** needs-owner (2026-11-23 morning run): the criteria fire a "Block complete" celebration from archiveCurrentWeek, while the summit note says it must be the last-week variant of UX-11's Monday recap sheet. Which surface?
 
 ### MKT-06: Year in Lifting (an annual recap, on device)
 - **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
