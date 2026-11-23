@@ -2525,7 +2525,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (9629, 32405–32412, 33783–33792, 33895), `sw.js`, the test.
 - **Risk:** low. Multi-user devices are guarded by `test-first-launch.js`. If BIZ-01 ships first, this is its natural first step; don't merge the two into one version.
 - **Summit note (summit 2026-11-07):** UX-06 must keep `#headerEyebrow`, or update `test-first-launch.js` deliberately with a dated note.
-- **Status:** done (v3.624, PR #203). Fills only a brand-new profile after a clean read. Owner OK'd (2026-11-22) that the setup card then moves to Settings, as for any named profile.
+- **Status:** done (v3.624, PR #203). Fills only a brand-new profile after a clean read. Owner OK'd (2026-11-22) that the setup card then moves to Settings, as for any named profile. **Fixed in v3.625 (PR #204):** the real storage throws 'not found' for a missing key, so v3.624's fill never ran; it now does, and only for a profile created this session (createNewUser's sessionStorage marker).
 
 ### BIZ-03: Placeholder calorie targets say they are placeholders
 - **Why:** before any height, weight or age is entered, the Log tab shows "2169 cal left of 2169" as if it were the user's own target. It's `computeTargets` (33172) run on the defaults (30 years, 5'8", 160 lb; `userProfile` 32594). A number that looks personal but isn't is a trust problem for the people who log food (business.md §5.2).
