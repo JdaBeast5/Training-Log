@@ -28,7 +28,7 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe
   'analyzeProgressionSignal', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise', 'isDumbbellExercise',
   'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'recentBestE1RM',
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot',
-  'normalizeExEntry', 'parseExKey', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs',
+  'normalizeExEntry', 'parseExKey', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'readExCorpusWithImported' /* v3.637 (BL-29) */, 'reconstructAllPRs',
   'sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs', 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
   'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet', 'bestLabel', /* 2026-11-22 (v3.611, UX-30): the shared best labeller */
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
@@ -79,6 +79,7 @@ function mount({reduce = false, mode = 'progression', program = 'strength', stor
     Element.prototype.animate = function(frames, opts){ window.__anims.push({el: this, frames, opts}); return {}; };
     async function isDeloadWeek(){ return false; }
     async function getMesocycleWeek(){ return 2; }
+    async function readImportedCorpus(){ return []; } // v3.637 (BL-29): no imported archive here
     function preloadShareCardFont(){}
     window.__shared = [];
     async function shareCelebrationCard(data, btn){ window.__shared.push({data, btn}); }`,

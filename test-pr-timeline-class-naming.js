@@ -69,6 +69,7 @@ test('REAL invocation: renderPrTimeline, given one real logged PR, renders a row
     extractFunction(src, 'groupCorpusByExercise'),
     `var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;`,
     extractFunction(src, 'readExCorpus'),
+    extractFunction(src, 'readExCorpusWithImported'), 'async function readImportedCorpus(){ return []; }', // v3.637 (BL-29): no imported archive here
     extractFunction(src, 'reconstructAllPRs'),
     extractFunction(src, 'renderCollapsibleList'),
     extractFunction(src, 'renderPrTimeline'),

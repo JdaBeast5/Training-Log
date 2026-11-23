@@ -1362,6 +1362,11 @@
   .food-log-list:has(> .empty-note) ~ #saveMealBtn,
   .food-log-list:has(> .empty-note) ~ #saveMealWrap{display:none;}
   .save-meal-btn{margin-top:10px;}
+  /* v3.637 (BL-29): the Strong/Hevy import review. */
+  .import-review{margin-top:10px; padding:12px; border:1px solid var(--line); border-radius:var(--radius-md); font-size:13px;}
+  .import-review ul{margin:6px 0 10px; padding-left:18px;}
+  .import-review li{margin:2px 0;}
+  .import-review .import-actions{display:flex; gap:8px; margin-top:10px;}
   .save-meal-form{display:flex; flex-direction:column; gap:8px; padding-top:8px;}
   .saved-meals-label{margin-top:2px;}
   .year-recap-btn{
@@ -7034,6 +7039,13 @@
       <div class="status-msg" id="importDataStatus"></div>
       <button class="switch-profile-btn" id="verifyBackupBtn">Check a backup file (reads it, changes nothing)</button>
       <input type="file" id="verifyBackupInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to check">
+      <!-- v3.637 (BL-29): history from Strong or Hevy, into a separate archive
+           that feeds PRs and the e1RM charts only (owner, D6). -->
+      <button class="switch-profile-btn" id="importOtherAppBtn">Import history from Strong or Hevy (CSV)</button>
+      <input type="file" id="importOtherAppInput" accept=".csv,text/csv" style="display:none" aria-label="Choose a Strong or Hevy export file">
+      <div id="importOtherAppReview" class="import-review" hidden></div>
+      <div class="status-msg" id="importOtherAppStatus" role="status"></div>
+      <button class="switch-profile-btn" id="removeImportedBtn" hidden>Remove imported history</button>
       <div class="status-msg" id="verifyBackupStatus"></div>
       <div id="verifyBackupReport"></div>
       <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="7" x2="19" y2="7"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 12.2a1 1 0 0 0 1 .8h6a1 1 0 0 0 1-.8L17 7"/><line x1="10" y1="11" x2="10" y2="16"/><line x1="14" y1="11" x2="14" y2="16"/></svg> Delete all my data (this profile, permanently)</button>
@@ -8502,7 +8514,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.636';
+const APP_VERSION = '3.637';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10246,6 +10258,9 @@ const WHATS_NEW = {
   ]},
   '3.636': { headline: 'Saved meals', points: [
     'Eat the same breakfast most days? Under what you\'ve eaten, Save as meal keeps the whole list under a name. It shows at the top of My Foods, and one tap adds every item back with the same portions. Deleting a meal never changes a day you already logged.',
+  ]},
+  '3.637': { headline: 'Bring your history from Strong or Hevy', points: [
+    'Settings can now import a CSV export from Strong or Hevy. You see what matches before anything is saved. Imported sets count toward your records and strength charts, labelled as imported, and never change your program, suggestions or streak. One button removes them all again.',
   ]},
 };
 
@@ -32279,7 +32294,7 @@ async function sessionShareStats(listEl, dateKey, program){
   }
   if(minutes > 0) stats.push({value: String(minutes), label: 'MIN'});
   let prs = 0;
-  try{ prs = (await reconstructAllPRs()).filter(e=> e.date === dateKey).length; }catch(e){}
+  try{ prs = (await reconstructAllPRs()).filter(e=> e.date === dateKey && !e.imported).length; }catch(e){}
   if(prs > 0) stats.push({value: String(prs), label: 'PRS'});
   return {icon: 'flag', headline: 'SESSION COMPLETE', stats, kind: 'session', dayId: activeDay};
 }
@@ -32301,7 +32316,7 @@ async function finishSheetModel(listEl, dateKey, program){
   let best = null;
   try{
     const events = await reconstructAllPRs();
-    const today = events.filter(e=> e.date === dateKey);
+    const today = events.filter(e=> e.date === dateKey && !e.imported); // v3.637 (BL-29): today's records are ones set here
     if(today.length){
       const top = today.find(e=> e.type === 'weight') || today[0];
       const before = events.find(e=> e.name === top.name && e.date < dateKey);
@@ -38330,6 +38345,28 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
     btn.textContent = 'Export failed — try again';
     setTimeout(()=> btn.textContent = originalText, 2000);
   }
+});
+
+// v3.637 (BL-29): Strong or Hevy history.
+document.getElementById('importOtherAppBtn').addEventListener('click', ()=> document.getElementById('importOtherAppInput').click());
+document.getElementById('importOtherAppInput').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  const status = document.getElementById('importOtherAppStatus');
+  status.textContent = '';
+  let parsed;
+  try{ parsed = parseWorkoutExport(await file.text()); }catch(err){ parsed = {ok: false, error: "That file couldn't be read."}; }
+  if(!parsed.ok){ importPending = null; renderImportReview(); status.textContent = parsed.error; return; }
+  await refreshImportNameIndex(); // custom exercises, and any added since the last import
+  importPending = {parsed, unit: parsed.weightUnit || weightUnit};
+  renderImportReview();
+});
+document.getElementById('removeImportedBtn').addEventListener('click', async ()=>{
+  if(!confirm('Remove all history imported from Strong or Hevy? Everything you logged in this app stays.')) return;
+  await removeImportedHistory();
+  document.getElementById('importOtherAppStatus').textContent = 'Imported history removed.';
+  await refreshImportedControls();
 });
 
 document.getElementById('importDataBtn').addEventListener('click', ()=>{
@@ -45612,6 +45649,293 @@ async function readExCorpus(){
   }
 }
 
+// [IMPORTED HISTORY] -------------------------------------------------------------
+// v3.637 (BL-29): history from Strong or Hevy, in a separate archive (owner, D6,
+// 2026-11-08): imported:<exercise slug>, in the same {date, sets} shape the ex:
+// logs use, each entry stamped with the app's exercise name (n) and the source
+// (src). Nothing is ever written to an ex: slot key, so progression, suggestions,
+// the deload clock, the calendar, streaks, the year recap and "Training since"
+// never see it. Only the PR and e1RM readers merge it in (readExCorpusWithImported),
+// through the existing groupCorpusByExercise path. The JSON backup carries it like
+// any key; "Remove imported history" deletes every imported: key and nothing else.
+//
+// Neither app documents its CSV publicly. The columns follow what third-party
+// importers read (one row per set): Strong "Date, Workout Name, Exercise Name,
+// Set Order, Weight, Reps, Distance, Seconds, Notes, Workout Notes, RPE";
+// Hevy "title, start_time, end_time, …, exercise_title, set_index, set_type,
+// weight_kg | weight_lbs, reps, distance_km | distance_miles, duration_seconds,
+// rpe". Not yet checked against a real export.
+const IMPORTED_PREFIX = 'imported:';
+
+// RFC 4180 reader; the delimiter (comma or semicolon) is read off the header line.
+function parseCsvText(text){
+  text = String(text || '').replace(/^﻿/, '');
+  const firstLine = text.split(/\r?\n/, 1)[0] || '';
+  const delim = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+  const rows = []; let row = [], field = '', quoted = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(quoted){
+      if(c === '"'){ if(text[i + 1] === '"'){ field += '"'; i++; } else quoted = false; }
+      else field += c;
+      continue;
+    }
+    if(c === '"' && field === '') quoted = true;
+    else if(c === delim){ row.push(field); field = ''; }
+    else if(c === '\n' || c === '\r'){
+      if(c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); field = '';
+      if(row.some(f => f !== '')) rows.push(row);
+      row = [];
+    }
+    else field += c;
+  }
+  row.push(field);
+  if(row.some(f => f !== '')) rows.push(row);
+  return rows;
+}
+
+const IMPORT_MONTHS = {jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12};
+// "2023-05-10 07:12:33" (Strong), "10 May 2023, 07:12" or "May 10, 2023 7:12 AM" (Hevy) → YYYY-MM-DD.
+function importDateKey(v){
+  const s = String(v || '').trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+  const pad = n => String(n).padStart(2, '0');
+  m = /^(\d{1,2})\s+([A-Za-z]{3})[A-Za-z]*\s+(\d{4})/.exec(s);
+  if(m && IMPORT_MONTHS[m[2].toLowerCase()]) return `${m[3]}-${pad(IMPORT_MONTHS[m[2].toLowerCase()])}-${pad(m[1])}`;
+  m = /^([A-Za-z]{3})[A-Za-z]*\s+(\d{1,2}),?\s+(\d{4})/.exec(s);
+  if(m && IMPORT_MONTHS[m[1].toLowerCase()]) return `${m[3]}-${pad(IMPORT_MONTHS[m[1].toLowerCase()])}-${pad(m[2])}`;
+  return null;
+}
+
+// Reads a Strong or Hevy export. Weights come back in the file's unit
+// (weightUnit: 'kg' | 'lb', or null when the file doesn't say, as Strong's
+// doesn't); distances in metres where the header names the unit. Warm-up sets
+// and rows with no reps are left out.
+function parseWorkoutExport(text){
+  const rows = parseCsvText(text);
+  if(rows.length < 2) return {ok: false, error: 'That file has no rows to read.'};
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  const col = name => head.indexOf(name);
+  // A semicolon file writes decimal commas ("102,5"); a comma file can only
+  // carry a comma inside quotes, as a thousands separator ("1,005").
+  const firstLine = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || '';
+  const decimalComma = firstLine.split(';').length > firstLine.split(',').length;
+  const num = v => {
+    const t = String(v == null ? '' : v).trim();
+    if(t === '') return null;
+    const n = Number(decimalComma ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, ''));
+    return isFinite(n) ? n : null;
+  };
+  let source, idx, weightUnit = null, distPerUnit = null;
+  if(col('exercise name') >= 0 && col('date') >= 0){
+    source = 'Strong';
+    idx = {date: col('date'), name: col('exercise name'), order: col('set order'), weight: col('weight'), reps: col('reps'), rpe: col('rpe')};
+  } else if(col('exercise_title') >= 0 && col('start_time') >= 0){
+    source = 'Hevy';
+    const wk = col('weight_kg'), wl = col('weight_lbs'), dk = col('distance_km'), dm = col('distance_miles');
+    weightUnit = wk >= 0 ? 'kg' : wl >= 0 ? 'lb' : null;
+    distPerUnit = dk >= 0 ? 1000 : dm >= 0 ? 1609.344 : null;
+    idx = {date: col('start_time'), name: col('exercise_title'), type: col('set_type'), weight: wk >= 0 ? wk : wl, reps: col('reps'), rpe: col('rpe'), dist: dk >= 0 ? dk : dm};
+  } else {
+    return {ok: false, error: "That doesn't look like a Strong or Hevy export: the columns aren't ones either app writes."};
+  }
+  const sets = [];
+  let skipped = 0; // warm-ups, and rows with no reps (or, for Hevy, no distance): said in the review
+  for(const r of rows.slice(1)){
+    const date = importDateKey(r[idx.date]);
+    const name = String(r[idx.name] || '').trim();
+    if(!date || !name){ skipped++; continue; }
+    if(idx.order != null && idx.order >= 0 && /^w/i.test(String(r[idx.order] || '').trim())){ skipped++; continue; } // Strong marks warm-ups W
+    if(idx.type != null && idx.type >= 0 && /warm/i.test(String(r[idx.type] || ''))){ skipped++; continue; }      // Hevy: set_type warmup
+    const reps = num(r[idx.reps]);
+    const distance = idx.dist != null && idx.dist >= 0 && distPerUnit && num(r[idx.dist]) ? num(r[idx.dist]) * distPerUnit : null;
+    if(!(reps > 0) && !(distance > 0)){ skipped++; continue; }
+    const weight = idx.weight >= 0 ? num(r[idx.weight]) : null;
+    sets.push({date, name, weight: weight > 0 ? weight : null, reps: reps > 0 ? reps : null, rpe: idx.rpe >= 0 ? num(r[idx.rpe]) : null, distance});
+  }
+  return {ok: true, source, weightUnit, sets, skipped};
+}
+
+// A name from the other app → an exercise in this one, or null. Exact (any
+// case) first, then without the "(Barbell)" style equipment suffix both apps
+// use, with "(Dumbbell)" read as this app's "DB" prefix, then a few common names.
+const IMPORT_NAME_ALIASES = {
+  'bent over row': 'Barbell Row', 'barbell bent over row': 'Barbell Row', 'pendlay row': 'Barbell Row',
+  'pull up': 'Pull-ups (or assisted)', 'pull-up': 'Pull-ups (or assisted)', 'pull ups': 'Pull-ups (or assisted)', 'chin up': 'Pull-ups (or assisted)',
+  'bicep curl': 'DB Curl', 'biceps curl': 'DB Curl', 'shoulder press': 'Overhead Press', 'military press': 'Overhead Press',
+  'seated row': 'Seated Cable Row', 'lat pull down': 'Lat Pulldown', 'barbell squat': 'Squat', 'back squat': 'Squat',
+};
+// The names the matcher knows: exerciseInfo, every program's exercises and the
+// person's custom exercises. Rebuilt before each review (refreshImportNameIndex),
+// so an exercise added since is matched.
+let importNameIndex = null;
+function buildImportNameIndex(extraNames){
+  importNameIndex = new Map();
+  const names = new Set(Object.keys(typeof exerciseInfo === 'object' && exerciseInfo ? exerciseInfo : {}));
+  Object.values(programs).forEach(p => Object.values(p.days || {}).forEach(d => (d.exercises || []).forEach(e => e && e.name && names.add(e.name))));
+  (extraNames || []).forEach(n => n && names.add(n));
+  names.forEach(n => { const k = n.toLowerCase(); if(!importNameIndex.has(k)) importNameIndex.set(k, n); });
+}
+async function refreshImportNameIndex(){
+  const extra = [];
+  try{
+    const res = await window.storage.list('custom-ex:');
+    for(const k of (res && res.keys) || []){
+      try{ const v = await window.storage.get(k); (JSON.parse(v && v.value || '[]') || []).forEach(e => e && e.name && extra.push(e.name)); }catch(e){}
+    }
+  }catch(e){}
+  buildImportNameIndex(extra);
+}
+// The equipment in brackets has to agree with the exercise it lands on: a
+// dumbbell, machine, Smith or trap-bar lift is never filed under the barbell
+// lift of the same name, and a barbell one never under a "DB" exercise. Anything
+// that can't be placed is listed as unmatched instead.
+function importEquipmentFits(target, equip){
+  if(!equip) return true;
+  const t = target.toLowerCase();
+  if(/^db /.test(t) || /dumbbell/.test(t)) return equip === 'dumbbell';
+  if(typeof isBarbellExercise === 'function' && isBarbellExercise(target)) return equip === 'barbell';
+  return equip !== 'dumbbell' && equip !== 'barbell' && !/smith|trap/.test(equip);
+}
+function matchImportName(raw){
+  if(!importNameIndex) buildImportNameIndex();
+  const name = String(raw || '').trim().replace(/\s+/g, ' ');
+  const lower = name.toLowerCase();
+  const m = /^(.*?)\s*\(([^)]*)\)\s*$/.exec(lower);
+  const base = m ? m[1].trim() : lower, equip = m ? m[2].trim() : '';
+  const exact = importNameIndex.get(lower);
+  if(exact) return canonicalExName(exact);
+  const candidates = [];
+  if(equip === 'dumbbell') candidates.push('db ' + base);
+  if(equip === 'barbell') candidates.push('barbell ' + base);
+  candidates.push(base);
+  if(IMPORT_NAME_ALIASES[base]) candidates.push(IMPORT_NAME_ALIASES[base].toLowerCase());
+  for(const c of candidates){
+    const hit = importNameIndex.get(c);
+    if(hit && importEquipmentFits(hit, equip)) return canonicalExName(hit);
+  }
+  return null;
+}
+
+const importSlug = name => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+// What an import would do: matched sets grouped per app exercise and date (in
+// lb), the name mapping, and the names that won't be imported.
+function planWorkoutImport(parsed, fileWeightUnit){
+  // Unrounded, as toCanonicalLb stores a kg weight typed in the app, so the same kg weight is the same lb.
+  const toLb = w => w == null ? null : (fileWeightUnit === 'kg' ? w / LB_PER_KG : w);
+  const byEx = new Map(), mapping = new Map(), unmatched = new Map();
+  let setCount = 0;
+  for(const st of parsed.sets || []){
+    const app = matchImportName(st.name);
+    if(!app){ unmatched.set(st.name, (unmatched.get(st.name) || 0) + 1); continue; }
+    const mk = st.name + '\u0000' + app;
+    mapping.set(mk, (mapping.get(mk) || 0) + 1);
+    if(!byEx.has(app)) byEx.set(app, new Map());
+    const days = byEx.get(app);
+    if(!days.has(st.date)) days.set(st.date, []);
+    const set = {weight: toLb(st.weight), reps: st.reps};
+    if(st.rpe != null) set.rpe = st.rpe;
+    if(st.distance != null) set.distance = Math.round(st.distance);
+    days.get(st.date).push(set);
+    setCount++;
+  }
+  return {
+    source: parsed.source, setCount, byEx,
+    mapping: [...mapping].map(([k, n]) => { const [from, to] = k.split('\u0000'); return {from, to, sets: n}; }),
+    unmatched: [...unmatched].map(([from, n]) => ({from, sets: n})),
+  };
+}
+
+// Writes the plan to imported: keys only. Re-importing a file from the same
+// source replaces that source's entries on the dates it covers, so nothing doubles.
+async function applyWorkoutImport(plan){
+  for(const [app, days] of plan.byEx){
+    const key = IMPORTED_PREFIX + importSlug(app);
+    let log = [];
+    try{ const res = await window.storage.get(key); if(res && res.value) log = JSON.parse(res.value); }catch(e){}
+    if(!Array.isArray(log)) log = [];
+    log = log.filter(e => !(e && e.src === plan.source && days.has(e.date)));
+    for(const [date, sets] of days) log.push({date, sets, n: app, src: plan.source});
+    log.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    await window.storage.set(key, JSON.stringify(log));
+  }
+}
+
+async function importedKeys(){
+  try{ const res = await window.storage.list(IMPORTED_PREFIX); return (res && res.keys) || []; }catch(e){ return []; }
+}
+async function removeImportedHistory(){
+  for(const k of await importedKeys()){ try{ await window.storage.delete(k); }catch(e){} }
+}
+
+// The archive as corpus entries, one per exercise and source, labelled
+// "Imported (Strong)". The exercise's own definition (for its prescription) when
+// a program has it.
+async function readImportedCorpus(){
+  const out = [];
+  for(const key of await importedKeys()){
+    let log = [];
+    try{ const res = await window.storage.get(key); if(res && res.value) log = JSON.parse(res.value); }catch(e){}
+    if(!Array.isArray(log) || !log.length) continue;
+    const bySrc = new Map();
+    for(const e of log){ if(e && e.date && Array.isArray(e.sets)){ const src = e.src || 'other app'; if(!bySrc.has(src)) bySrc.set(src, []); bySrc.get(src).push(normalizeExEntry(e)); } }
+    const name = (log.find(e => e && e.n) || {}).n || key.slice(IMPORTED_PREFIX.length);
+    let exDef = null;
+    for(const p of Object.values(programs)){ for(const d of Object.values(p.days || {})){ exDef = (d.exercises || []).find(e => e && canonicalExName(e.name) === name) || null; if(exDef) break; } if(exDef) break; }
+    exDef = {...(exDef || {sets: ''}), name};
+    for(const [src, entries] of bySrc){
+      out.push({key, parsed: {program: 'imported', dayId: src, idx: 0, exDef, dayLabel: `Imported (${src})`}, exDef, log: entries});
+    }
+  }
+  return out;
+}
+// The review: what will be imported, as what, and what won't. Strong's file
+// doesn't say its weight unit, so the person picks it (the app's unit first).
+let importPending = null; // {parsed, unit}
+function renderImportReview(){
+  const box = document.getElementById('importOtherAppReview');
+  if(!box) return;
+  if(!importPending){ box.hidden = true; box.innerHTML = ''; return; }
+  const {parsed, unit} = importPending;
+  const plan = planWorkoutImport(parsed, unit);
+  importPending.plan = plan;
+  const exCount = plan.byEx.size;
+  const unitPick = parsed.weightUnit ? `<div>Weights in this file are in ${parsed.weightUnit}.</div>`
+    : `<label>Weights in this file are in <select id="importUnitSelect" class="care-input" style="width:auto; display:inline-block;"><option value="lb"${unit === 'lb' ? ' selected' : ''}>lb</option><option value="kg"${unit === 'kg' ? ' selected' : ''}>kg</option></select></label>`;
+  box.innerHTML = `<div><b>From ${escapeHtml(plan.source)}:</b> ${plan.setCount} set${plan.setCount === 1 ? '' : 's'} for ${exCount} exercise${exCount === 1 ? '' : 's'}. They go into your records and strength charts, labelled "Imported (${escapeHtml(plan.source)})". Your program history and suggestions aren't touched.</div>
+    ${unitPick}
+    ${plan.mapping.length ? `<div style="margin-top:8px;">Matched:</div><ul>${plan.mapping.map(m => `<li>${escapeHtml(m.from)} → ${escapeHtml(m.to)} (${m.sets})</li>`).join('')}</ul>` : ''}
+    ${plan.unmatched.length ? `<div>Not imported, no match in this app:</div><ul>${plan.unmatched.map(u => `<li>${escapeHtml(u.from)} (${u.sets})</li>`).join('')}</ul>` : ''}
+    ${parsed.skipped ? `<div>${parsed.skipped} row${parsed.skipped === 1 ? '' : 's'} left out: warm-ups, and rows with no reps.</div>` : ''}
+    <div class="import-actions"><button type="button" class="save-btn" id="importConfirmBtn"${plan.setCount ? '' : ' disabled'}>Import ${plan.setCount} set${plan.setCount === 1 ? '' : 's'}</button><button type="button" class="user-picker-cancel" id="importCancelBtn">Cancel</button></div>`;
+  box.hidden = false;
+  const sel = document.getElementById('importUnitSelect');
+  if(sel) sel.addEventListener('change', ()=>{ importPending.unit = sel.value; renderImportReview(); });
+  document.getElementById('importCancelBtn').addEventListener('click', ()=>{ importPending = null; renderImportReview(); });
+  document.getElementById('importConfirmBtn').addEventListener('click', async ()=>{
+    const done = importPending && importPending.plan;
+    if(!done || !done.setCount) return;
+    await applyWorkoutImport(done);
+    importPending = null;
+    renderImportReview();
+    document.getElementById('importOtherAppStatus').textContent = `Imported ${done.setCount} set${done.setCount === 1 ? '' : 's'} from ${done.source}. They show in your records and strength charts.`;
+    await refreshImportedControls();
+  });
+}
+async function refreshImportedControls(){
+  const btn = document.getElementById('removeImportedBtn');
+  if(btn) btn.hidden = (await importedKeys()).length === 0;
+}
+
+// PRs and the e1RM charts only (D6): the slot corpus plus the archive.
+async function readExCorpusWithImported(){
+  const [slots, imported] = await Promise.all([readExCorpus(), readImportedCorpus()]);
+  return imported.length ? [...slots, ...imported] : slots;
+}
+
 // [WORKOUT / FOODLOG / WATER CORPORA] --------------------------------------
 // Same problem readExCorpus solved for ex:, one level down. fetchDayStatuses,
 // fetchWorkoutDates, and the inline key-walk inside
@@ -45946,7 +46270,7 @@ async function collectLiftE1RMs(){
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - STRENGTH_CONTEXT_WINDOW_DAYS);
   const best = {};
-  const corpus = await readExCorpus();
+  const corpus = await readExCorpusWithImported(); // v3.637 (BL-29): plus imported history
   for(const {exDef, log} of corpus){
     const liftKey = liftKeyForExercise(exDef && exDef.name);
     if(!liftKey) continue;
@@ -46094,7 +46418,7 @@ async function renderExerciseProgress(){
   const el = document.getElementById('exerciseProgress');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  const corpus = await readExCorpus();
+  const corpus = await readExCorpusWithImported(); // v3.637 (BL-29): plus imported history
 
   if(corpus.length === 0){
     el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
@@ -46111,11 +46435,14 @@ async function renderExerciseProgress(){
     if(log.length === 0) continue;
 
     const first = sessionTopOf(log[0]); // v3.537 (BL-77): what the session was
-    const latestEntry = log[log.length-1];
+    // v3.637 (BL-29): "latest" and "ready to go up" come from sessions logged
+    // here; imported history (src) only counts toward the first log and the best.
+    const appLog = log.filter(e => !e.src);
+    const latestEntry = (appLog.length ? appLog : log)[(appLog.length ? appLog : log).length - 1];
     const latest = sessionTopOf(latestEntry);
     const topRep = parseTopRep(exDef.sets);
     // v3.538 (BL-08): every set at the latest top weight, as the workout view.
-    const readyToProgress = latest && latest.reps!=null && topRep!=null && latest.reps >= topRep
+    const readyToProgress = appLog.length > 0 && latest && latest.reps!=null && topRep!=null && latest.reps >= topRep
       && (latestEntry.sets||[]).filter(s=> s.weight === latest.weight && s.reps != null).every(s=> s.reps >= topRep);
     const bestEver = maxWeightEver(log, null);
     const latestVolume = volumeOf(latestEntry);
@@ -46193,7 +46520,7 @@ async function renderExerciseProgress(){
 // that ever happened, using data that's already there. No new storage key,
 // no risk of it ever drifting out of sync with the live PR badge logic.
 async function reconstructAllPRs(){
-  const corpus = await readExCorpus();
+  const corpus = await readExCorpusWithImported(); // v3.637 (BL-29): plus imported history
 
   const events = [];
   // The running max is per EXERCISE, not per program slot. Keyed by slot, the
@@ -46222,7 +46549,7 @@ async function reconstructAllPRs(){
       // entirely, since it only ever checked whether raw top-set weight
       // itself had increased.
       if(isWeightPR || isE1RMPR){
-        events.push({date: entry.date, name: group.name, dayLabel: group.entryLabels[i], weight: top.weight, reps: top.reps, type: isWeightPR ? 'weight' : 'strength', e1rm});
+        events.push({date: entry.date, name: group.name, dayLabel: group.entryLabels[i], weight: top.weight, reps: top.reps, type: isWeightPR ? 'weight' : 'strength', e1rm, ...(entry.src ? {imported: true} : {})}); // v3.637 (BL-29): imported history is marked
       }
       if(isWeightPR) runningMaxWeight = top.weight;
       if(isE1RMPR) runningMaxE1RM = e1rm;
@@ -50099,7 +50426,7 @@ async function weekShareTrainingStats(weekStartKey){
   const endKey = dateKeyMinusDays(weekStartKey, -6);
   const inWeek = (d) => d >= weekStartKey && d <= endKey;
   let prs = 0, sets = 0;
-  try{ prs = (await reconstructAllPRs()).filter(ev => inWeek(ev.date)).length; }catch(e){}
+  try{ prs = (await reconstructAllPRs()).filter(ev => inWeek(ev.date) && !ev.imported).length; }catch(e){}
   try{
     for(const {log} of await readExCorpus()){
       for(const entry of log || []){
@@ -50168,7 +50495,7 @@ async function weeklyRecapModel(weekStartKey){
   }
   const bests = [];
   // Newest first, one per lift: a lift with two records last week shows its latest.
-  for(const ev of (prs || []).filter(e => e.date >= weekStartKey && e.date <= end).sort((a, b) => b.date.localeCompare(a.date))){
+  for(const ev of (prs || []).filter(e => e.date >= weekStartKey && e.date <= end && !e.imported).sort((a, b) => b.date.localeCompare(a.date))){
     if(bests.some(b => b.name === ev.name)) continue;
     bests.push({name: ev.name, label: bestLabel(ev.type), weight: ev.weight, reps: ev.reps});
   }
@@ -52751,6 +53078,7 @@ if(activeUserId){
     requestPersistentStorage();
     renderStorageUsage();
     renderStorageBanner();
+    refreshImportedControls(); // v3.637 (BL-29): Remove imported history, when there is any
     await restoreActiveView();
     await restoreGymMode();
     restoreRestTimer();

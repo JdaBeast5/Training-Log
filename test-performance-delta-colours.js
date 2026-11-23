@@ -18,6 +18,7 @@ function progress(firstW, lastW){
     var weightUnit = 'lb';
     const fmtWeight = lb => lb + ' lb', toDisplayWeight = lb => lb;
     const readExCorpus = async () => [1];
+    const readExCorpusWithImported = readExCorpus; // v3.637 (BL-29): the PR/e1RM readers' corpus, no archive here
     const groupCorpusByExercise = () => [{name:'Bench Press', exDef:{sets:'3×8'}, log:[{sets:[{weight:${firstW}, reps:5}]}, {sets:[{weight:${lastW}, reps:5}]}]}];
     const topSetOf = e => e.sets[0], sessionTopOf = topSetOf /* v3.537 (BL-77) */, maxWeightEver = () => ${Math.max(firstW, lastW)}, volumeOf = () => 1000, estimated1RM = () => 200;
     const describeExercisePlaces = () => 'Day 1', reconstructAllPRs = async () => [];
