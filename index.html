@@ -8460,7 +8460,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.627';
+const APP_VERSION = '3.628';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10177,6 +10177,9 @@ const WHATS_NEW = {
   ]},
   '3.627': { headline: 'An earlier backup nudge', points: [
     'Everything you log lives only on this phone, so the first reminder to export a backup now comes after 3 sessions instead of 10.',
+  ]},
+  '3.628': { headline: 'Install it for a safer log', points: [
+    'Using the app in Safari on iPhone or iPad? After your first set, Today\'s Priorities shows how to move your log to the Home Screen: export a backup, add the app, and import the backup there. Already installed? Nothing changes for you.',
   ]},
 };
 
@@ -15868,6 +15871,36 @@ async function getBackupReminderInsight(){
   return `<b>${since} sessions since your last backup</b> (${fmtDayLabel(lastBackup)}). Worth running <b>Export My Data</b> in your profile again — it takes a second and it is the only copy that isn't in this browser.`;
 }
 
+// v3.628 (BIZ-10): a one-time "Add to Home Screen" hint for someone using the
+// app in a browser tab. Safari's storage cap reportedly treats home-screen apps
+// apart, and installing opens the full-screen app. Shown once there is a set
+// worth keeping; Hide is for good (install-hint-dismissed). Never inside an
+// installed copy: display-mode standalone (and iOS's navigator.standalone), or
+// the Capacitor shell, whose WebView doesn't report standalone.
+// iPhone and iPad only (owner, 2026-11-23): the steps are Safari's, and that is
+// where the storage cap applies. A Home Screen copy keeps its own storage, so
+// the row says to export first and import there, or the new icon opens empty.
+// The owner will revisit this once the native Android and Apple apps exist.
+const INSTALL_HINT_DISMISSED_KEY = 'install-hint-dismissed';
+function isAppleTouchDevice(){
+  const nav = window.navigator || {};
+  // iPadOS reports itself as a Mac; touch points tell the two apart.
+  return /iPhone|iPad|iPod/.test(nav.userAgent || '') || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+}
+function runningInstalled(){
+  if(window.Capacitor) return true;
+  if(window.navigator && window.navigator.standalone === true) return true;
+  return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
+
+async function getInstallHintInsight(){
+  if(runningInstalled() || !isAppleTouchDevice()) return null;
+  if(!await getMilestone('has-logged-first-set')) return null;
+  if(await getMilestone(INSTALL_HINT_DISMISSED_KEY)) return null;
+  return '<b>Install it:</b> Export My Data in your profile first, then Share → Add to Home Screen and import the file there. It keeps your log safer and opens full screen.'
+    + '<span class="year-recap-actions"><button type="button" class="year-recap-btn" data-install-hint-hide>Hide</button></span>';
+}
+
 async function getPregnancyHeatInsight(){
   if(!hasCondition('prenatal')) return null;
   if(activeProgram !== 'yoga') return null;
@@ -16350,12 +16383,12 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap, yearRecap, earlyDeload] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap, yearRecap, earlyDeload, installHint] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
     getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(), getYearRecapInsight(),
-    getEarlyDeloadInsight(),
+    getEarlyDeloadInsight(), getInstallHintInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -16387,8 +16420,10 @@ async function renderTodayInsights(){
   // the day-to-day nudges.
   // earlyDeload (v3.554) sits right under readiness: both answer "how hard
   // today", and it is the one row here that acts on the answer.
-  const rows = {pregnancyHeat, readiness, earlyDeload, sessionHeadsUp, weeklyRecap, deficit, yearRecap, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
-  const order = ['pregnancyHeat', 'readiness', 'earlyDeload', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'yearRecap', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  // installHint (v3.628) sits just above backup: both are about keeping the
+  // log safe, neither about today's training.
+  const rows = {pregnancyHeat, readiness, earlyDeload, sessionHeadsUp, weeklyRecap, deficit, yearRecap, cycle, stackNudge, staleRegion, weighIn, waterPace, installHint, backup};
+  const order = ['pregnancyHeat', 'readiness', 'earlyDeload', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'yearRecap', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'installHint', 'backup'];
   const hidden = await getHiddenPriorities();
   const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
@@ -16406,6 +16441,7 @@ async function renderTodayInsights(){
   if(summaryText){
     const lead = document.createElement('div');
     lead.innerHTML = rows[safetyId || items[0]];
+    lead.querySelectorAll('[data-install-hint-hide]').forEach(b => b.remove()); // its Hide button isn't part of the line
     summaryText.textContent = `${items.length} note${items.length === 1 ? '' : 's'} · ${lead.textContent.replace(/\s+/g, ' ').trim()}`;
   }
   const prioritiesWrap = document.getElementById('prioritiesWrap'), prioritiesBtn = document.getElementById('prioritiesSummary');
@@ -16440,6 +16476,17 @@ async function renderTodayInsights(){
     await renderTodayInsights();
     showUndoToast(`Hidden for ${recapHide.dataset.yearRecapHide}`, async ()=>{
       try{ await window.storage.delete(key); }catch(err){}
+      await renderTodayInsights();
+    });
+  });
+  // The install hint's Hide is for good, not for today (with Undo).
+  const installHide = el.querySelector('[data-install-hint-hide]');
+  if(installHide) installHide.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    try{ await window.storage.set(INSTALL_HINT_DISMISSED_KEY, '1'); }catch(err){}
+    await renderTodayInsights();
+    showUndoToast('Install hint hidden', async ()=>{
+      try{ await window.storage.delete(INSTALL_HINT_DISMISSED_KEY); }catch(err){}
       await renderTodayInsights();
     });
   });
