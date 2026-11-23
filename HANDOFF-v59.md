@@ -1662,3 +1662,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `rpeAdjustedE1RM`, and `recentBestE1RM(past, {plain})`. `buildPastSessions` gains `topSetRpe`, and `rpeCtx` gains `stepE1rm`.
 - **MKT-05 is needs-owner.** Its criteria and the summit note disagree on where it shows.
 - **Stack order:** #221 → #222 → #223 → #224, each merged from the one below. #221 received review fixes that were merged down.
+
+## Addendum 161: BL-32 (v3.641, PR #225, on #224; morning run item 5)
+- Added: `EASIER_DAY_KEY` (`easier-day`, which holds today's date), `EASIER_DAY_RPE` 8, `easierDayToday()` and `rpeTargetForDay(rpeCtx, inDeload)`. `buildProgressBadge` and `computeSuggestedSet` read `rpeTargetForDay`.
+- The button shows only on `caution` in RPE mode. Undo shows whenever the day is chosen. The handlers re-render with `renderWorkout()`.
+- **Flagged:** on a cold reload, the badge's reason text can lack the readiness flags until the readiness card has rendered once.
+- **Stack order:** #221 → #222 → #223 → #224 → #225.

@@ -18,7 +18,7 @@ const src = readIndexSource();
 const indexOnly = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { test, run } = makeRunner('test-rpe-safety-caps.js');
 
-const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe', 'loadForRpeTarget',
+const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay' /* v3.641 (BL-32) */, 'rirFromRpe', 'loadForRpeTarget',
   'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'analyzeProgressionSignal', 'buildProgressBadge',
   'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise',
   'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'recentBestE1RM']; // v3.552 (BL-24): the last two
@@ -116,11 +116,13 @@ test('criterion 5: RPE_BY_CYCLE_WEEK[ is read only inside rpeTargetFor and targe
   const reads = (text) => (stripLineComments(text).match(/RPE_BY_CYCLE_WEEK\s*\[/g) || []).length;
   const total = reads(indexOnly);
   const inHelpers = reads(extractFunction(src, 'rpeTargetFor')) + reads(extractFunction(src, 'targetRpeForWeek'));
+  assert.match(extractFunction(src, 'rpeTargetForDay'), /rpeTargetFor\(rpeCtx\.week, inDeload, rpeCtx\.program, rpeCtx\.category\)/, 'the day target is rpeTargetFor, capped');
   assert.strictEqual(inHelpers, 2, 'one read in each helper');
   assert.strictEqual(total, 2, 'no other reads anywhere in index.html, got ' + total);
   for(const fn of ['buildProgressBadge', 'computeSuggestedSet', 'renderLoadModeNote']){
     assert.strictEqual(reads(extractFunction(src, fn)), 0, fn + ' reads the table directly');
-    assert.ok(/\brpeTargetFor\s*\(/.test(stripLineComments(extractFunction(src, fn))), fn + ' calls rpeTargetFor');
+    // 2026-11-23 (v3.641, BL-32): rpeTargetForDay wraps rpeTargetFor (the easier-day cap), so either is the one source.
+    assert.ok(/\brpeTargetFor(Day)?\s*\(/.test(stripLineComments(extractFunction(src, fn))), fn + ' calls rpeTargetFor');
   }
 });
 

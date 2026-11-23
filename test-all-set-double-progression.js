@@ -22,7 +22,7 @@ const { readIndexSource, extractFunction, extractConst, runSandbox, makeRunner }
 const src = readIndexSource();
 const { test, run } = makeRunner('test-all-set-double-progression.js');
 
-const FNS = ['isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor',
+const FNS = ['isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay' /* v3.641 (BL-32) */,
   'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'analyzeProgressionSignal',
   'buildProgressBadge', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise',
   'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'rpeAdjustedE1RM' /* v3.640 (BL-34) */, 'recentBestE1RM']; // v3.552 (BL-24): the last two
