@@ -1584,3 +1584,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - The harness runs desktop Chromium, so the row doesn't show there; to see it, shoot with an iPhone user agent.
 - **Flagged:** the year recap and early deload rows still leak their button text into the Priorities summary line.
 - **Next:** BIZ-07 (slot 67).
+
+## Addendum 149: BIZ-07 (v3.629, PR #208, 2026-11-23)
+- The head gains a meta description and og:* tags; the manifest description is the business.md §1 promise; the README has install steps and the privacy facts.
+- `test-metadata-truth.js` ties every static copy of the name to `APP_NAME`, and fails if index.html gains an outside host the README doesn't name. A new API therefore needs a README line.
+- **Next:** the next ready item in the roadmap sequence after slot 67.
