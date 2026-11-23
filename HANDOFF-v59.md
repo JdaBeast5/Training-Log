@@ -1573,3 +1573,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `maybeStartQuickStart` (end of boot) → `showQuickStart` in `#userPickerOverlay` (`quick-start-mode`) → three steps (`quickStartSteps`) → `finishQuickStart` (saveProfile, saveDaysPerWeekPref, `quickStartProgram` → saveActiveProgram, reload). Skip/finish clear the session marker. Routing table in PR #205.
 - **Flagged:** renderProgramRec still recommends Bodybuilding to a 3-day gain profile (recommendProgram ignores days).
 - **Next:** BIZ-04 (slot 65).
+
+## Addendum 147: BIZ-04 (v3.627, PR #206, 2026-11-23)
+- `BACKUP_NUDGE_FIRST` 10 → 3; repeat and copy unchanged. Test on the real `buildNamespacedStorage`.
+- **Next:** BIZ-10 (slot 66), the Add to Home Screen hint.

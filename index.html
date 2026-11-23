@@ -8460,7 +8460,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.626';
+const APP_VERSION = '3.627';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10174,6 +10174,9 @@ const WHATS_NEW = {
   ]},
   '3.626': { headline: 'Three questions to start', points: [
     'A new profile now starts with three quick taps: your goal, how many days a week you can train, and whether you train at a gym or at home. Your first program follows from the answers. Skip keeps the usual start.',
+  ]},
+  '3.627': { headline: 'An earlier backup nudge', points: [
+    'Everything you log lives only on this phone, so the first reminder to export a backup now comes after 3 sessions instead of 10.',
   ]},
 };
 
@@ -15835,7 +15838,7 @@ async function requestPersistentStorage(){
 // hasn't trained for three weeks has nothing new to lose and should not be
 // nagged, and someone training six days a week accumulates exposure far faster
 // than a calendar would suggest.
-const BACKUP_NUDGE_FIRST = 10;   // sessions before the first-ever reminder
+const BACKUP_NUDGE_FIRST = 3;    // sessions before the first-ever reminder (v3.627, BIZ-04: was 10; three sessions is a program week worth losing)
 const BACKUP_NUDGE_REPEAT = 20;  // sessions since the last backup thereafter
 
 async function getBackupReminderInsight(){

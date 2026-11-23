@@ -2563,7 +2563,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** new `test-backup-reminder.js`, with a real invocation against a stub `window.storage`. Sabotage: set it back to 10, and criterion 1 must fail.
 - **Files:** `index.html` (14320), `sw.js`, the test.
 - **Risk:** one more Today's Priorities row for new users. Guarded by `test-today-priorities.js`.
-- **Status:** ready
+- **Status:** done (v3.627, PR #206).
 
 ### BIZ-05: A starting-load hint on an exercise's very first set
 - **Why:** on a first-ever set the sheet opens with empty lb and reps fields, and nothing says how to choose a weight (Playwright, Bench Press set 1). After one entry the app suggests well (95×6 led to 100×4 with Undo). Only the very first set lacks guidance.
