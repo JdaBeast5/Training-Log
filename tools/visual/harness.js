@@ -17,6 +17,11 @@
 //                   states (rest, finish, rest day, backdated, Quiet, first run,
 //                   the day sheet, the streak milestone, the 904 panes), at DPR 1.
 //                   Output in <out>/today/. --base, --rev and --only work.
+//   --tabs          tab audit mode (TOOL-02): every other tab top to bottom (Food,
+//                   Progress with every Analysis group open, History, Care, Coach,
+//                   Learn, an open masterclass, Settings), dark and light at 402,
+//                   plus Progress and Learn at 904, full page at DPR 1. Output in
+//                   <out>/tabs/. --base, --rev and --only work.
 //
 // Output (all under --out, which is gitignored):
 //   <label>/<state>.png      one PNG per state (label = "worktree" or a short sha)
@@ -203,9 +208,115 @@ function buildTodayStates(){
   return states;
 }
 
+// ---- Tab audit mode (--tabs) ---------------------------------------------------
+// TOOL-02, for the tab audit (planning/backlog.md, UX-38 to UX-50). The default
+// matrix shoots one viewport per view and never reaches Care, Coach, Learn,
+// Settings or an open masterclass, so a 2.0 leftover below the fold never shows
+// in a PR's contact sheet. This mode shoots each of them top to bottom. It never
+// changes the default mode's states or bytes.
+//
+// "Top to bottom" means full page, and where the content scrolls inside a panel
+// instead of the page (the Settings sheet, a split tab's panes at 904), the
+// viewport is first made tall enough that the panel no longer scrolls (TABS_GROW).
+// Progress opens every Analysis group through the app's own storage keys, and
+// the run checks the shot is taller than the tab with the default groups
+// collapsed (acceptance criterion 3), so a group that failed to open fails the
+// run rather than passing as a short page.
+const ALL_GROUPS_OPEN = {
+  'analysis-group-collapsed:insights': 'false',
+  'analysis-group-collapsed:body-health': 'false',
+  'analysis-group-collapsed:training': 'false',
+};
+const TABS_GROW = {
+  settings: ['#settingsOverlay .settings-panel-body'],
+  split: ['.wrap > .posture-split:not([style*="none"])', '.wrap > .posture-split:not([style*="none"]) > .split-primary'],
+};
+function buildTabsStates(){
+  const states = [];
+  const t = (name, theme, size, extra) => states.push({
+    id: `tabs-${name}-${theme}-${size}`, tab: name, group: 'tabs', theme, size, motion: 'no-preference', dpr: 1, fullPage: true,
+    ...extra, storage: { ...SEEN_MILESTONE, ...(extra.storage || {}) },
+  });
+  const tabs = [
+    ['food', { view: 'log' }],
+    ['progress', { view: 'analysis', storage: ALL_GROUPS_OPEN, groupsOpen: true }],
+    ['history', { view: 'history' }],
+    ['care', { view: 'care' }],
+    ['coach', { view: 'coach' }],
+    ['learn', { view: 'learn' }],
+    ['masterclass', { view: 'learn', masterclass: true }],
+    ['settings', { view: 'today', settings: true, grow: TABS_GROW.settings }],
+  ];
+  for(const theme of ['dark', 'light']) for(const [name, extra] of tabs) t(name, theme, 402, extra);
+  // The Duo unfolded: Progress (the dashboard grid) and Learn (a split tab).
+  t('progress', 'dark', 904, tabs[1][1]);
+  t('learn', 'dark', 904, { ...tabs[5][1], grow: TABS_GROW.split });
+  // A grown viewport already holds the whole panel; a full-page shot would add
+  // the page under the Settings sheet (Today) as an empty tail.
+  for(const st of states) if(st.grow) st.fullPage = false;
+  return states;
+}
+
+// --tabs steps: the taps a person would make (a masterclass's index button, the
+// cog), then the viewport grown until the named panels stop scrolling. A base
+// without the element fails loudly, never silently.
+async function runTabsStep(page, state){
+  await settle(page);
+  if(state.masterclass){
+    const btn = await page.$('#masterclassIndex .masterclass-index-btn:not(.current)');
+    if(!btn) throw new Error(`${state.id}: no masterclass index button outside the program's own`);
+    await btn.click();
+    await settle(page);
+    await page.waitForSelector('#masterclassIndex .masterclass-index-btn[aria-expanded="true"]:not(.current)', { timeout: 10000 });
+  }
+  if(state.settings){
+    await page.click('#settingsCog');
+    await page.waitForSelector('#settingsOverlay.active', { timeout: 10000 });
+    await settle(page);
+  }
+  if(state.grow){
+    const vp = { ...page.viewportSize() };
+    for(let pass = 0; pass < 12; pass++){
+      const over = await page.evaluate(sels => {
+        let most = 0, found = 0;
+        for(const s of sels) for(const el of document.querySelectorAll(s)){
+          found++;
+          most = Math.max(most, el.scrollHeight - el.clientHeight);
+        }
+        return found ? most : -1;
+      }, state.grow);
+      if(over < 0) throw new Error(`${state.id}: none of ${state.grow.join(', ')} is on the page`);
+      if(over <= 1) break;
+      // A panel capped at a share of the viewport (Settings: 88vh) grows by
+      // less than the viewport does, so overshoot; the panel sizes to content.
+      vp.height += Math.ceil(over / 0.8);
+      await page.setViewportSize(vp);
+      await settle(page);
+      if(pass === 11) throw new Error(`${state.id}: ${state.grow.join(', ')} still scrolls after 12 passes`);
+    }
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+}
+
+// Criterion 3: the Progress shot (every group seeded open) must be taller than
+// the same tab with the groups at their defaults (Body & Health and Training
+// collapsed). Measured after the shot, in the same page, so it can't change it.
+async function checkGroupsOpen(page, state, file){
+  const shot = pngInfo(file).height / (state.dpr || DPR);
+  const r = await page.evaluate(() => {
+    const headers = [...document.querySelectorAll('#analysisView > .analysis-group-header')];
+    const open = headers.filter(h => h.getAttribute('aria-expanded') === 'true').length;
+    for(const h of headers) setAnalysisGroupCollapsed(h, !!ANALYSIS_GROUP_DEFAULT_COLLAPSED[h.dataset.group]);
+    return { groups: headers.length, open };
+  });
+  await settle(page);
+  const collapsed = await page.evaluate(() => document.documentElement.scrollHeight);
+  return { shot, collapsed, groups: r.groups, open: r.open, pass: shot > collapsed };
+}
+
 // ---- CLI -------------------------------------------------------------------
 function parseArgs(argv){
-  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null, store: false, today: false };
+  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null, store: false, today: false, tabs: false };
   for(let i = 0; i < argv.length; i++){
     const k = argv[i];
     const v = () => { const x = argv[++i]; if(x === undefined) throw new Error(`${k} needs a value`); return x; };
@@ -215,7 +326,8 @@ function parseArgs(argv){
     else if(k === '--only') a.only = v().split(',').map(s => s.trim()).filter(Boolean);
     else if(k === '--store') a.store = true;
     else if(k === '--today') a.today = true;
-    else if(k === '-h' || k === '--help'){ console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 25).join('\n')); process.exit(0); }
+    else if(k === '--tabs') a.tabs = true;
+    else if(k === '-h' || k === '--help'){ console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 30).join('\n')); process.exit(0); }
     else throw new Error(`unknown option ${k}`);
   }
   return a;
@@ -505,11 +617,16 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
         }
       }
       if(state.group === 'today') await runTodayStep(page, state);
+      if(state.group === 'tabs') await runTabsStep(page, state);
       if(state.step) await runStoreStep(page, state);
       await settle(page);
       const file = path.join(outDir, `${state.id}.png`);
       await page.screenshot({ path: file, animations: 'disabled', caret: 'hide', scale: 'device', fullPage: !!state.fullPage });
       run.states.push({ id: state.id, ms: Date.now() - t0, bytes: fs.statSync(file).size });
+      if(state.groupsOpen){
+        const c = await checkGroupsOpen(page, state, file);
+        (run.groupChecks = run.groupChecks || []).push({ state: state.id, ...c });
+      }
       process.stdout.write(`  ${label} ${state.id.padEnd(22)} ${String(Date.now() - t0).padStart(5)} ms\n`);
       await context.close();
     }
@@ -585,6 +702,7 @@ const GROUP_TITLES = {
   extra: 'Gym mode, rest timer, first-run sheet, finish sheet (402×874, dark and light)',
   reduce: 'Reduce Motion pass (402×874, dark)',
   today: 'Today audit (--today): 402 full page top to bottom, the states, and 904 viewports (dark, then light; DPR 1)',
+  tabs: 'Tab audit (--tabs): Food, Progress, History, Care, Coach, Learn, a masterclass, Settings, top to bottom (402 dark, then light; then 904 dark; DPR 1)',
 };
 
 async function contactSheet(states, headDir, file, meta, report){
@@ -592,7 +710,7 @@ async function contactSheet(states, headDir, file, meta, report){
   const fig = s => {
     const r = report && report[s.id];
     const changed = r && r.result === 'changed';
-    if(s.group === 'today') return `<figure class="${s.size === 904 ? 'tw' : 'tp'}${changed ? ' changed' : ''}"><img src="${dataUrl(path.join(headDir, `${s.id}.png`))}"><figcaption>${esc(s.id)}${changed ? ` · ${r.pixels} px` : ''}</figcaption></figure>`;
+    if(s.group === 'today' || s.group === 'tabs') return `<figure class="${s.size === 904 ? 'tw' : 'tp'}${changed ? ' changed' : ''}"><img src="${dataUrl(path.join(headDir, `${s.id}.png`))}"><figcaption>${esc(s.id)}${changed ? ` · ${r.pixels} px` : ''}</figcaption></figure>`;
     return `<figure class="${s.size === 904 ? 'w' : 'p'}${changed ? ' changed' : ''}"><img src="${dataUrl(path.join(headDir, `${s.id}.png`))}"><figcaption>${esc(s.id)}${changed ? ` · ${r.pixels} px` : ''}</figcaption></figure>`;
   };
   const section = g => {
@@ -610,7 +728,7 @@ async function contactSheet(states, headDir, file, meta, report){
     img{display:block;border:1px solid #2c2c33;border-radius:3px}
     .p img{width:84px} .w img{width:178px}
     .p{width:84px} .w{width:178px}
-    .tp img,.tp{width:112px} .tw img,.tw{width:236px} .gtoday{align-items:flex-start}
+    .tp img,.tp{width:112px} .tw img,.tw{width:236px} .gtoday,.gtabs{align-items:flex-start}
     figcaption{color:#9a9aa4;font-size:9px;overflow-wrap:anywhere}
     .changed img{border:3px solid #ff2d55} .changed figcaption{color:#ff6b86}
   </style></head><body>
@@ -618,7 +736,7 @@ async function contactSheet(states, headDir, file, meta, report){
   <div class="meta">${esc(meta.line)}</div>
   ${section('402')}${section('904')}
   <div class="pair">${section('extra')}${section('reduce')}</div>
-  ${section('today')}
+  ${section('today')}${section('tabs')}
   </body></html>`;
   await withPage(async page => {
     await page.setContent(html, { waitUntil: 'load' });
@@ -778,8 +896,10 @@ async function main(){
       'store-deload': readFixture('fixture-store-deload.json'),
     });
   }
-  let states = args.today ? buildTodayStates() : buildStates();
+  if(args.today && args.tabs) throw new Error('--today and --tabs are separate modes; run one at a time');
+  let states = args.today ? buildTodayStates() : args.tabs ? buildTabsStates() : buildStates();
   if(args.today) args.out = path.join(args.out, 'today');
+  if(args.tabs) args.out = path.join(args.out, 'tabs');
   if(args.only){
     const unknown = args.only.filter(id => !states.some(s => s.id === id));
     if(unknown.length) throw new Error(`unknown state id(s): ${unknown.join(', ')}`);
@@ -804,7 +924,7 @@ async function main(){
 
     const blocked = H.run.blocked.length + (B ? B.run.blocked.length : 0);
     const errors = H.run.pageErrors.concat(B ? B.run.pageErrors : []);
-    const line = `${states.length} states · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · DPR ${args.today ? 1 : DPR}`
+    const line = `${states.length} states · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · DPR ${args.today || args.tabs ? 1 : DPR}`
       + ` · outbound requests blocked: ${blocked}` + (base ? ` · diff vs ${base.label.replace(/^base-/, '')}` : '');
     const sheet = path.join(args.out, 'contact-sheet.png');
     const bytes = await contactSheet(states, H.outDir, sheet, { label: head.label, appVersion: H.run.appVersion, line }, report);
@@ -822,6 +942,15 @@ async function main(){
       for(const [id, r] of Object.entries(report)) console.log(`  ${r.result === 'same' ? 'same   ' : r.result.padEnd(7)} ${id}${r.pixels ? `  ${r.pixels} px (${r.share}%)` : ''}`);
     }
     if(blocked > 0) process.exitCode = 2;
+    if(args.tabs){
+      // TOOL-02's gates: no page errors, and every Progress shot taller than the
+      // tab with its groups at their defaults (criterion 3).
+      if(errors.length && !process.exitCode) process.exitCode = 3;
+      for(const R of [H, B].filter(Boolean)) for(const c of R.run.groupChecks || []){
+        console.log(`groups open ${c.pass ? 'ok    ' : 'FAILED'} ${R.run.label} ${c.state}: shot ${c.shot} px, defaults collapsed ${c.collapsed} px (${c.open} of ${c.groups} groups open)`);
+        if(!c.pass && !process.exitCode) process.exitCode = 4;
+      }
+    }
   }finally{
     for(const s of [head, base]) if(s && s.temp) fs.rmSync(s.dir, { recursive: true, force: true });
   }
