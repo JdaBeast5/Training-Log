@@ -1762,3 +1762,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - `--float-panel-fill` is unused;
   - historical comments still mention Gym mode.
 - **Next:** UX-65 (80u1), then UX-62 (80v).
+
+## Addendum 175: UX-65 (v3.655, PR #252)
+- `warmupSetsEnabled` starts true. `loadWarmupSetsPref` turns it off only for a stored `'0'`.
+- **Flagged:** the caption in `tools/design/flow/render.js` still says off by default.
+- **Next:** UX-62 (80v), the warm-up line on the cover. It re-adds the `pendingWarmupChip` rule as a pure helper.
