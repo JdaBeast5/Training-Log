@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slogan mock-up: social profile header (430×760)</title>
+<link rel="stylesheet" href="slogan.css">
+<script src="slogans.js"></script>
+<!-- planning/slogan.md §5 mock-up 3. A generic phone social-profile header (Instagram/TikTok-shaped, not either
+     network's exact layout): Sash avatar, name, the slogan as the bio's first line, the promise, the link. No follower
+     or post counts are shown: inventing them would be fake social proof. The handle is a placeholder; social handles
+     were never checked (naming.md §6). Grid tiles stand in for bib and recap posts. -->
+<style>
+  body{width:430px; height:760px;}
+  .top{display:flex; justify-content:space-between; align-items:center; padding:22px 20px 0; font-size:17px; font-weight:700;}
+  .top small{font-weight:500; color:var(--text-3); font-size:12px;}
+  .id{display:flex; gap:18px; align-items:center; padding:22px 20px 0;}
+  .av{width:88px; height:88px; border-radius:50%; overflow:hidden; box-shadow:0 0 0 2px #3A3A3E;}
+  .av .sash{width:88px; height:88px; border-radius:0;}
+  .nm{font-size:22px; font-weight:700;} .cat{font-size:14px; color:var(--text-3); margin-top:4px;}
+  .bio{padding:16px 20px 0; font-size:15px; line-height:1.42;}
+  .bio .s{font-weight:700;}
+  .bio a{color:#8FB0FF; text-decoration:none; font-weight:600;}
+  .btns{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:16px 20px 0;}
+  .btns span{background:var(--surface-2); border-radius:10px; text-align:center; padding:10px 0; font-size:14px; font-weight:600;}
+  .btns span:first-child{background:var(--text); color:var(--ground);}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-top:20px;}
+  .grid i{display:block; aspect-ratio:3/4; position:relative;}
+  .grid i::after{content:''; position:absolute; left:18%; right:18%; top:16%; bottom:16%; background:#FBFBF8; transform:rotate(-2.5deg); border-top:14px solid #111110;}
+  .grid i.y::after{background:#1E1E20; border-top-color:#151516;}
+</style>
+</head>
+<body>
+<div class="top"><span>platestep</span><small>handle not checked</small></div>
+<div class="id"><div class="av" data-sash></div><div><p class="nm">Platestep</p><p class="cat">App · strength training</p></div></div>
+<div class="bio">
+  <p class="s" data-slogan></p>
+  <p>A free strength tracker that tells you what to lift next.</p>
+  <p>Programs that progress with you. One-tap logging. No ads.</p>
+  <p><a>platestep.app</a></p>
+</div>
+<div class="btns"><span>Follow</span><span>Message</span></div>
+<div class="grid" aria-hidden="true">
+  <i style="background:#D42F25"></i><i style="background:#2C5BD8"></i><i class="y" style="background:#151516"></i>
+  <i style="background:#F2C200"></i><i style="background:#1E9E4A"></i><i style="background:#D42F25"></i>
+</div>
+</body>
+</html>
