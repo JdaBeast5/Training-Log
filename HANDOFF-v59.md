@@ -1735,3 +1735,18 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - The JS: `renderWarmupChips`'s chip handler offers `showUndoToast('Logged warm-up …')` on a tick. The gym dock's Log button only calls `warm.click()`.
 - **Flagged:** Undo after a re-render looks in the old block (old); Edit and Skip are link blue.
 - **Next:** UX-17b (Gym mode goes; the harness drops the `gym-*` states).
+
+## Addendum 173: UX-17b (v3.653, PR #249)
+- **Gone:** `#gymEnterBtn`, `#gymDock` and `#gymOffer`, plus the whole GYM MODE script block:
+  - the state, prefs, clock, persist and restore;
+  - `refreshGymDock` and `openFirstIncompleteExercise`;
+  - `refreshGymLogBtn`, `pendingWarmupChip` and the dock's Log handler;
+  - finishing, enter, exit, the offer and wiring.
+- **Their call sites are trimmed:**
+  - `toggleExerciseBlockFromHeader`, renderWorkout's completion, `refreshGymDock` and the save path's offer;
+  - `switchView` (the offer hide), `syncTodayChrome` (the gym-mode check) and `recapMayOpen`;
+  - init (`loadGymPrefs` and `restoreGymMode`) and `wireGymMode`.
+- **`sessionShareStats`:** MIN comes from `getWorkoutTimeWindow` only.
+- **`?view=gym`:** `launchViewFromUrl` maps it to `today`; there's no flag.
+- **The harness:** the gym states are gone, and store frame 2 is `store-cover`.
+- **Next:** UX-17c. It removes the gym CSS, including the `#gymEnterBtn` selectors and the `.exercise-block.open` literal, and makes the CLAUDE.md `--rim` note edit.
