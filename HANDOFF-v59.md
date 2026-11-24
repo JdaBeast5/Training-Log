@@ -1694,3 +1694,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `APP_SLOGAN` (after `APP_NAME`) and `renderAppFooter()`, which `init` calls. In the unfolded posture the slogan is hidden.
 - **Next:** MKT-22 (Year in Lifting ends on `APP_SLOGAN`), then MKT-23.
 - **Test note:** strip comments line by line, not with a `/* */` regex. `accept="image/*"` breaks the regex.
+
+## Addendum 167: MKT-22 (v3.647, PR #242)
+- `yearRecapCards` ends on `{headline:"THAT'S YOUR YEAR.", detail: APP_SLOGAN, kind:'year-end'}` with no stats. `renderYearRecapHistory` has a `rowText` that handles a card without stats.
+- **Next:** MKT-23 ("Step up a plate!", bib A + Today T1).

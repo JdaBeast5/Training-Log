@@ -8550,7 +8550,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.646';
+const APP_VERSION = '3.647';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10330,6 +10330,9 @@ const WHATS_NEW = {
   ]},
   '3.646': { headline: 'Plate by plate', points: [
     'The footer now carries our line: plate by plate, step by step.',
+  ]},
+  '3.647': { headline: 'Your year ends on our line', points: [
+    'From 1 December, your Year in Lifting cards end on one more: That\'s your year. Plate by plate, step by step.',
   ]},
 };
 
@@ -16519,6 +16522,10 @@ function yearRecapCards(r, d){
   if(d.topLift) cards.push(card([{value: '+' + fmtWeight(d.topLift.gainLb), label: 'BIGGEST E1RM GAIN'}, {value: d.topLift.name.toUpperCase(), label: 'LIFT'}]));
   if(d.topGroup) cards.push(card([{value: d.topGroup.group.toUpperCase(), label: 'MOST-TRAINED'}, {value: d.topGroup.sets.toLocaleString('en-US'), label: 'SETS'}]));
   if(d.longestStreak > 0) cards.push(card([{value: String(d.longestStreak), label: 'WEEKS IN A ROW'}]));
+  // v3.647 (MKT-22, owner 2026-11-24): the set always ends on the slogan (it
+  // always holds the summary and weeks cards before it). No stats, so
+  // drawStoryCard draws it through its headline-and-detail branch.
+  cards.push({icon:'trophy', headline: "THAT'S YOUR YEAR.", detail: APP_SLOGAN, kind:'year-end', dayId: activeDay});
   return cards;
 }
 
@@ -16548,7 +16555,10 @@ async function renderYearRecapHistory(){
   yearRecapHistoryCards = cards;
   if(activeProgram !== 'medical') preloadShareCardFont();
   document.getElementById('yearRecapHistoryTitle').textContent = `Your ${year} in lifting`;
-  list.innerHTML = cards.map((c, i) => `<div class="diag-row"><span>${c.stats.map(st => `<b>${escapeHtml(st.value)}</b> ${escapeHtml(st.label.toLowerCase())}`).join(' · ')}</span>`
+  // v3.647 (MKT-22): a card without stats (the year's end) is its headline and line.
+  const rowText = c => Array.isArray(c.stats) ? c.stats.map(st => `<b>${escapeHtml(st.value)}</b> ${escapeHtml(st.label.toLowerCase())}`).join(' · ')
+    : `<b>${escapeHtml(c.headline.charAt(0) + c.headline.slice(1).toLowerCase())}</b> ${escapeHtml(c.detail || '')}`;
+  list.innerHTML = cards.map((c, i) => `<div class="diag-row"><span>${rowText(c)}</span>`
     + (activeProgram === 'medical' ? '' : `<button type="button" class="year-recap-btn" id="yearRecapCardBtn${i}" data-year-recap-card="${i}">Share</button>`) + `</div>`).join('');
   list.onclick = (ev) => {
     const btn = ev.target.closest('[data-year-recap-card]');
