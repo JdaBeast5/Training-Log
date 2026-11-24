@@ -1,4 +1,7 @@
 'use strict';
+// 2026-11-24 (v3.653, UX-17b): Gym mode is gone, so maybeOfferGymMode is never
+// called; the cases that counted one offer now count none. The rest-timer
+// assertions are unchanged.
 // Behavioral coverage for a bug found during a dedicated Today/Workout-
 // logging audit (not user-reported, not a hypothetical): wireSetRow's
 // save() called startRestTimer() on every finished set with no
@@ -113,7 +116,7 @@ function flush(){
 
 const { test, run } = makeRunner('test-backdating-rest-timer-suppression.js');
 
-test('REAL invocation: finishing a set while backdating (selectedLogDate !== today) does NOT start the rest timer, but still offers gym mode', async (assert)=>{
+test('REAL invocation: finishing a set while backdating (selectedLogDate !== today) does NOT start the rest timer; 2026-11-24 (v3.653, UX-17b): the gym-mode offer it also checked is gone', async (assert)=>{
   const { document, window: win } = runJsdom(bodyHtml(), globalsFor(PAST_DATE), [getTodayKeySrc, isBackdatingSrc, checkFnSrc, wireSetsBlockSrc, `
     wireSetsBlock(document.getElementById('row'), 0, {name:'Bench Press', sets:'4x4-6'});
   `]);
@@ -123,7 +126,7 @@ test('REAL invocation: finishing a set while backdating (selectedLogDate !== tod
   setValueAndChange(row.querySelector('.ex-reps'), '5');
   await flush();
   assert.strictEqual(win.__restCalls, 0, 'a finished set while backdating must NOT start a live rest timer — there is no "next set" about to happen right now');
-  assert.strictEqual(win.__gymCalls, 1, 'maybeOfferGymMode is called regardless — it already has its own internal backdating guard, unaffected by this fix');
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(win.restTargetBySlot)), {}, 'no rest target should be recorded while backdating');
 });
 
@@ -137,7 +140,7 @@ test('regression guard: finishing a set on the REAL today (not backdating) still
   setValueAndChange(row.querySelector('.ex-reps'), '5');
   await flush();
   assert.strictEqual(win.__restCalls, 1, 'a finished set on the real current day must still start the rest timer normally');
-  assert.strictEqual(win.__gymCalls, 1);
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(win.restTargetBySlot)), {'ex:test:d1:0': 90});
 });
 

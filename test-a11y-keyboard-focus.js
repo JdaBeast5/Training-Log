@@ -48,7 +48,6 @@ const openHelperSrc = [
   extractConst(src, 'OPEN_POSTURE_QUERY'),
   extractFunction(src, 'isOpenPosture'),
   extractFunction(src, 'toggleExerciseBlockFromHeader'),
-  'var gymModeActive = false;',
 ].join('\n');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 
@@ -253,7 +252,10 @@ test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes thro
   // (test-duo-gym-tap-to-switch.js).
   // v3.651 (BL-79): 11 -> 10. The sheet's Drop set adds drop lines in the
   // sheet instead of opening the exercise (the v3.299 call above is gone).
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 10);
+  // 2026-11-24 (v3.653, UX-17b): 10 -> 5. Gym mode's five went with it: the
+  // header toggle's "close the other open exercise" in the gym split,
+  // openFirstIncompleteExercise's two, and the dock's follow-the-next-set two.
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 5);
   assert.strictEqual(src.includes('setExerciseUnitOpen'), false, 'the old pairing wrapper must be gone entirely, not just uncalled');
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);

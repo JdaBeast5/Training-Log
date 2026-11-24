@@ -94,7 +94,6 @@ function mount(listHtml, {exercises = []} = {}){
     var setChipLongPressAt = 0;
     function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
     function openSetSheet(row, chip){ window.__sheet = {row, chip}; }
-    function refreshGymLogBtn(){}
   `, [...FNS, CHIP_CLICK, ...WIRING, `
     // The RIR label each header carries, from the real rirLabelHtml.
     window.__rir = (ex) => rirLabelHtml(ex, activeProgram, false);
@@ -549,7 +548,7 @@ async function mountDay(dayDef, {restDone = false} = {}){
     function renderTodayInsights(){} function renderArchiveWeekVisibility(){} function renderDayInsight(){}
     function getDayPlateClass(){ return 'p-off'; } function applyDayInk(){ document.body.classList.add('day-off'); return 'off'; } function dayGlyphSvg(){ return ''; }
     function formatLogDateLabel(){ return 'Today'; }
-    function renderCoverBar(){} function refreshGymLogBtn(){} function focusExerciseDetail(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
+    function renderCoverBar(){} function focusExerciseDetail(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
   `, [...FNS, extractFunction(src, 'renderWorkout'), extractFunction(src, 'syncStickyDayTitle'),
     // A training day carries on past the rest branch into code this fixture
     // doesn't load; everything the rest branch sets happens before that.
@@ -588,10 +587,12 @@ test('UX-25 criterion 2: checking it writes rest-log:<date>:<program>:<day> = {"
   assert.strictEqual(again.$('restDoneLabel').textContent, 'Marked as done for today');
 });
 
-test('UX-25 criterion 3: on a rest day Gym mode, the session length and Add custom exercise compute display:none; on a training day they don\'t, and the cover\'s rest slot is cleared', async (assert)=>{
+// 2026-11-24 (v3.653, UX-17b): Gym mode's button is gone; the other two are still checked.
+test('UX-25 criterion 3: on a rest day the session length and Add custom exercise compute display:none; on a training day they don\'t, and the cover\'s rest slot is cleared', async (assert)=>{
   const rest = await mountDay(REST_DAY);
   rest.doc.body.classList.add('has-cover');
-  for(const el of [rest.$('gymEnterBtn'), rest.$('sessionLengthSelector').closest('.session-length-wrap'), rest.$('addCustomExerciseBtn')])
+  assert.strictEqual(rest.$('gymEnterBtn'), null, 'no Gym mode button');
+  for(const el of [rest.$('sessionLengthSelector').closest('.session-length-wrap'), rest.$('addCustomExerciseBtn')])
     assert.strictEqual(rest.cs(el).display, 'none', (el.id || el.className) + ' on a rest day');
   // The same page, then a training day: the real renderWorkout clears the slot and the class.
   const train = rest;
@@ -600,7 +601,7 @@ test('UX-25 criterion 3: on a rest day Gym mode, the session length and Add cust
   assert.ok(!train.$('workoutCard').classList.contains('is-rest-day'), 'a training day: no is-rest-day');
   assert.ok(train.$('coverRestDay').hidden && train.$('coverRestDay').innerHTML === '', 'the cover\'s rest slot is cleared');
   assert.strictEqual(train.doc.querySelectorAll('#restDoneCheckbox').length, 0, 'no rest checkbox on a training day');
-  for(const el of [train.$('gymEnterBtn'), train.$('sessionLengthSelector').closest('.session-length-wrap'), train.$('addCustomExerciseBtn')])
+  for(const el of [train.$('sessionLengthSelector').closest('.session-length-wrap'), train.$('addCustomExerciseBtn')])
     assert.notStrictEqual(train.cs(el).display, 'none', (el.id || el.className) + ' on a training day');
 });
 

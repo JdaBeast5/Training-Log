@@ -56,7 +56,6 @@ const setExerciseBlockOpenSrc = [
   extractConst(src, 'OPEN_POSTURE_QUERY'),
   extractFunction(src, 'isOpenPosture'),
   extractFunction(src, 'toggleExerciseBlockFromHeader'),
-  'var gymModeActive = false;',
   // 2026-11-03 (v3.499): the render loop records each exercise for the
   // open-screen details pane (test-open-screen-2-0.js).
   'var exerciseDetailByIdx = {};',
@@ -169,7 +168,6 @@ function buildWiredPair(){
     window.saveWeekProgress = ()=>{};
     window.renderTabs = ()=>{};
     window.refreshGymDock = ()=>{};
-    window.gymModeActive = false;
     window.triggerCelebration = ()=>{};
     // 2026-11-16 (v3.581, MKT-04): the completing click now builds share data; stubbed at its boundary like the celebration.
     window.sessionShareStats = async ()=> undefined;

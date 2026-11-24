@@ -99,17 +99,12 @@ test('REAL invocation: buildProgressBadge\'s RPE target badge leads with the wee
   assert.deepStrictEqual(emojiIn(el.textContent), []);
 });
 
-test('REAL markup: Gym mode carries the app\'s barbell outline (aria-hidden) and is named "Gym mode"; adapt and archive buttons are emoji-free', (assert)=>{
+// 2026-11-24 (v3.653, UX-17b): the Gym mode button (and its barbell outline) went with Gym mode.
+test('REAL markup: adapt and archive buttons are emoji-free (the Gym mode button is gone)', (assert)=>{
   const { window } = runJsdom(extractElementById(src, 'workoutCard'), '', []);
   const doc = window.document;
-  const gym = doc.getElementById('gymEnterBtn');
-  const svg = gym.querySelector('svg.gym-enter-icon');
-  assert.ok(svg && svg.getAttribute('aria-hidden') === 'true', 'Gym mode icon must be an aria-hidden svg');
-  // Same artwork as the Training Style card's header icon, not a new drawing.
-  const styleIcon = extractElementById(src, 'programHeader').match(/<svg[\s\S]*?<\/svg>/)[0];
-  assert.strictEqual(svg.innerHTML, (()=>{ const d = doc.createElement('div'); d.innerHTML = styleIcon; return d.querySelector('svg').innerHTML; })());
-  assert.strictEqual(gym.textContent.trim(), 'Gym mode');
-  for(const id of ['gymEnterBtn', 'adaptWorkoutBtn', 'archiveWeekBtn']){
+  assert.strictEqual(doc.getElementById('gymEnterBtn'), null);
+  for(const id of ['adaptWorkoutBtn', 'archiveWeekBtn']){
     assert.deepStrictEqual(emojiIn(doc.getElementById(id).textContent), [], `#${id}`);
   }
 });

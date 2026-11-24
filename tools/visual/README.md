@@ -25,8 +25,8 @@ Other options: `--rev <commit>` shoots a commit instead of the working tree, `--
 ## The state matrix (26 states)
 
 - **Views:** Today, Food (the `log` view), Progress (`analysis`) and History, in dark and light, at 402×874 (iPhone) and 904×678 (Duo unfolded). That's 16 states, named `<view>-<theme>-<width>`.
-- **Extras at 402×874, in dark and light:** Gym mode (`gym-*`, 23 minutes into a session), the rest timer (`rest-*`, 2:30 left of 4:00 after Bench set 2), and the first-run sheet (`firstrun-*`, an empty device).
-- **Reduce Motion pass:** `today`, `gym`, `rest` and `firstrun` at 402×874 dark, with `prefers-reduced-motion: reduce` emulated (ids end `-rm`).
+- **Extras at 402×874, in dark and light:** the rest timer (`rest-*`, 2:30 left of 4:00 after Bench set 2), and the first-run sheet (`firstrun-*`, an empty device).
+- **Reduce Motion pass:** `today`, `rest` and `firstrun` at 402×874 dark, with `prefers-reduced-motion: reduce` emulated (ids end `-rm`).
 
 ## Store mode (`--store`)
 
@@ -44,7 +44,7 @@ This shoots the App Store and Google Play screenshots in `planning/store/screens
 | # | Frame id | Caption | What's on screen |
 |---|---|---|---|
 | 1 | `store-today` | Tells you what to lift next | Today, scrolled to the workout card (phase, Up next, Bench open). The header streak is out of frame. |
-| 2 | `store-gym` | One tap logs the set | Gym mode on Bench, as in `gym-dark-402`. |
+| 2 | `store-cover` | One tap logs the set | Today's cover: Bench's next set, big, and Log set. (Was `store-gym`, Gym mode on Bench, until Gym mode went in v3.653.) |
 | 3 | `store-progression` | Adds weight when you earn it | Overhead Press open. Its badge reads "Hit 10+ reps at 105 lb for 2 sessions straight — add 5 lb next time". |
 | 4 | `store-program` | Programs that show their sources | The Training Style card: overview, program description and "What this is based on" (ACSM's 2026 guidelines). No clinical program in frame. |
 | 5 | `store-progress` | Every record, every week | Analysis with Insights collapsed and Training Trends open (seeded `analysis-group-collapsed:*`), scrolled to Exercise Progress. The PR timeline named in the storyboard is on History, not Analysis. |
@@ -88,7 +88,6 @@ Every state seeds the 8-week streak as already celebrated (`week-streak-last-cel
 | `tday-daysheet-<theme>-402` | The day sheet, opened from the cover's headline |
 | `tday-milestone-<theme>-402` | The 8-week streak milestone as it opens on load |
 | `tday-firstrun-<theme>-402` | Full page, Today after creating a first profile ("Sam") at Who's training? |
-| `tday-gym-<theme>-402` | Full page, Gym mode (its entry point is on Today) |
 | `tday-<theme>-904` | Unfolded, both panes at the top |
 | `tday-left-<theme>-904` | Unfolded, the left pane scrolled 650 px |
 | `tday-right-<theme>-904` | Unfolded, the right pane (the tab) scrolled 1,000 px |
@@ -126,7 +125,7 @@ That's 18 PNGs: eight tabs in dark and light at 402×874, plus two at 904×678 i
 ## Why two runs give the same bytes
 
 - **Fixture:** `fixture.json` is the committed seed (store mode adds two variants of it, above). Jordan, 31, on a lean bulk, has run Strength & Size since 7 September 2026, with eight weeks of history. Bench Press has the richest log, and today's Day 1 is in progress with two Bench sets logged. `make-fixture.js` generated the file deterministically. Edit that script, then rerun `node tools/visual/make-fixture.js`; don't hand-edit the JSON. `whats-new-last-seen` is filled with the shot commit's `APP_VERSION`, so What's New never opens over a state.
-- **Clock:** `Date` is frozen at Monday 2 November 2026, 18:10, America/New_York (`page.clock.setFixedTime`). Timers still run, so the gym clock and rest countdown hold still. The locale is `en-US`.
+- **Clock:** `Date` is frozen at Monday 2 November 2026, 18:10, America/New_York (`page.clock.setFixedTime`). Timers still run, so the rest countdown holds still. The locale is `en-US`.
 - **Launch:** the launch-played preset (`sessionStorage['launch-played']`) is set, so the cold-launch mark never plays.
 - **Randomness:** `Math.random` is seeded (mulberry32).
 - **Service workers:** blocked. The app is served by the harness's own `127.0.0.1` server with `no-store`.

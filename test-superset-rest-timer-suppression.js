@@ -1,4 +1,7 @@
 'use strict';
+// 2026-11-24 (v3.653, UX-17b): Gym mode is gone, so maybeOfferGymMode is never
+// called; the cases that counted one offer now count none. The rest-timer
+// assertions are unchanged.
 // Behavioral coverage for another Gym Mode audit finding, fixed alongside
 // the superset field-chaining work (test-superset-field-chaining.js):
 // getDefaultRestSeconds/startRestTimer never checked ex.superTag, so
@@ -106,7 +109,7 @@ function flush(){
 
 const { test, run } = makeRunner('test-superset-rest-timer-suppression.js');
 
-test('REAL invocation: finishing a set on the TOP half of a superset (ex.superTag set) does NOT start the rest timer, but still offers gym mode', async (assert)=>{
+test('REAL invocation: finishing a set on the TOP half of a superset (ex.superTag set) does NOT start the rest timer; 2026-11-24 (v3.653, UX-17b): the gym-mode offer it also checked is gone', async (assert)=>{
   const { document, window: win } = runJsdom(bodyHtml(), GLOBALS, [checkFnSrc, wireSetsBlockSrc, `
     wireSetsBlock(document.getElementById('row'), 0, {name:'DB Curl', sets:'3x10-12', superTag:'Superset with next'});
   `]);
@@ -116,7 +119,7 @@ test('REAL invocation: finishing a set on the TOP half of a superset (ex.superTa
   setValueAndChange(row.querySelector('.ex-reps'), '10');
   await flush();
   assert.strictEqual(win.__restCalls, 0, 'a finished set on a superset\'s top half must NOT start a rest timer — the connector itself says there is no rest between these two');
-  assert.strictEqual(win.__gymCalls, 1, 'the gym-mode offer is a separate, unrelated consequence of the same isRealSet signal and must still fire normally');
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
   // JSON round-trip: win.restTargetBySlot is a plain object built inside the
   // jsdom realm, whose prototype differs from the host Node process's
   // Object.prototype even when structurally identical — assert.deepStrictEqual
@@ -135,7 +138,7 @@ test('regression guard: a plain exercise with no superTag at all still starts th
   setValueAndChange(row.querySelector('.ex-reps'), '12');
   await flush();
   assert.strictEqual(win.__restCalls, 1, 'an exercise with no superTag — including the BOTTOM half of a pair, which carries no superTag of its own — must still get the normal rest timer');
-  assert.strictEqual(win.__gymCalls, 1);
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(win.restTargetBySlot)), {'ex:test:d1:0': 90}, 'the rest target must still be recorded for a real rest-timer slot');
 });
 

@@ -118,11 +118,13 @@ test('REAL invocation: positionProfileCard() still puts an UNFINISHED profile ab
 // extras. Measured in Chromium on the seeded returning user: first exercise
 // 1613px (pre-rollout) -> 1130px (v3.271) -> 924px. The adapt panel still opens
 // and gym mode still hides the moved items (their rules are id-based).
-test('REAL markup (v3.282): Gym mode, today\'s standout and the voice tip stay above the exercise list; Adapt and the day insight follow it', (assert)=>{
+// 2026-11-24 (v3.653, UX-17b): Gym mode's button is gone; the standout is still checked.
+test('REAL markup (v3.282): today\'s standout and the voice tip stay above the exercise list; Adapt and the day insight follow it', (assert)=>{
   const document = freshToday();
   const list = document.getElementById('exerciseList');
   // v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips. The voice tip (#voiceHintBanner) went with it.
-  for(const id of ['gymEnterBtn', 'todayStandoutBanner']){
+  assert.strictEqual(document.getElementById('gymEnterBtn'), null, 'v3.653: no Gym mode button');
+  for(const id of ['todayStandoutBanner']){
     assert.ok(precedes(document.getElementById(id), list), `#${id} must stay above the exercise list`);
   }
   for(const id of ['adaptWorkoutBtn', 'adaptWorkoutPanel', 'dayInsight']){

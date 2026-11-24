@@ -55,7 +55,6 @@ function mount(listHtml){
     function isBarbellExercise(){ return true; }
     function isDumbbellExercise(){ return false; }
     function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
-    function refreshGymLogBtn(){}
   `, [...FNS, `document.getElementById('exerciseList').innerHTML = ${JSON.stringify(listHtml)}.split('__LOGGER__').join(exLoggerHtml());
     window.__renderAll = renderAllSetChips; window.__log = logExerciseLogger; renderAllSetChips();`]);
   const doc = window.document;

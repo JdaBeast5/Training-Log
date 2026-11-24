@@ -234,16 +234,11 @@ test('criterion 5: chips in the cover\'s grammar: done = --text fill with a chec
   assert.notStrictEqual(gym.cs(gym.doc.querySelector('.set-chip.is-done')).getPropertyValue('background'), 'var(--text)', 'gym mode\'s done chip is its own');
 });
 
-test('criterion 4 (CSS part): Gym mode is a plain 44pt text button, no plate-blue border, named "Gym mode"; session length is text with a chevron', (assert)=>{
+// 2026-11-24 (v3.653, UX-17b): the Gym mode half of this criterion retired with
+// the button; the session length's half stays.
+test('criterion 4 (CSS part): session length is text with a chevron, a 44pt target; there is no Gym mode button', (assert)=>{
   const ui = page('day-red has-cover');
-  const btn = ui.$('gymEnterBtn');
-  const s = ui.cs(btn);
-  assert.strictEqual(btn.textContent.trim(), 'Gym mode', 'its accessible name');
-  assert.ok(parseFloat(s.minHeight) >= 44, 'min-height ≥ 44: ' + s.minHeight);
-  assert.ok(/^none/.test(s.borderTopStyle) || s.borderStyle === 'none', 'no border');
-  assert.ok(!/91,\s*124,\s*255|plate-blue/.test(s.borderTopColor + s.borderColor), 'no plate-blue border');
-  assert.ok(!/glass/.test(s.backgroundColor + s.background), 'no pill fill');
-  assert.strictEqual(ui.cs(btn.querySelector('.gym-enter-icon')).color, 'var(--text-2)');
+  assert.strictEqual(ui.$('gymEnterBtn'), null, 'v3.653: no Gym mode button');
   const sel = ui.cs(ui.$('sessionLengthSelector'));
   assert.ok(/^none/.test(sel.borderTopStyle) || sel.borderStyle === 'none');
   assert.ok(parseFloat(sel.minHeight) >= 44);
@@ -260,7 +255,7 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
     function renderCoverBar(){} // the plate stack (test-plate-stack.js)
     /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){}
-    function refreshGymLogBtn(){} ${STUBS}`, FNS);
+    ${STUBS}`, FNS);
   const doc = window.document;
   const now = () => [...doc.querySelectorAll('#exerciseList .is-now')];
   window.renderAllSetChips(); window.renderUpNext();
@@ -399,7 +394,7 @@ test('UX-24 criterion 3: the sticky header prints "Set 3 of 6 · Bench Press" fr
   const { window } = runJsdom(extractElementById(src, 'upNext') + extractElementById(src, 'stickyDayHeader') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
       <div id="mesocyclePhaseTag"></div><div id="exerciseList">${list}</div>`, `
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true;
-    function renderCoverBar(){} function refreshGymLogBtn(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){} ${STUBS}`, FNS);
+    function renderCoverBar(){} /* 2026-11-22 (v3.622, UX-14): renderUpNext refreshes the open-screen pane's plate stack (test-open-screen-2-0.js) */ function renderExerciseDetailBar(){} ${STUBS}`, FNS);
   const doc = window.document, title = doc.getElementById('stickyDayTitle');
   title.dataset.day = 'Day 1 — Upper · Strength'; // as renderWorkout writes it
   window.renderAllSetChips(); window.renderUpNext();

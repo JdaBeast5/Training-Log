@@ -29,7 +29,7 @@ const FN_NAMES = ['cycleWeekOf', 'mesocyclePhaseTag', 'volumeModifiersApply', 'i
   'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'rpeAdjustedE1RM' /* v3.640 (BL-34) */, 'recentBestE1RM',
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot',
   'normalizeExEntry', 'parseExKey', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'readExCorpusWithImported' /* v3.637 (BL-29) */, 'reconstructAllPRs',
-  'sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs', 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
+  'sessionShareStats', 'getWorkoutTimeWindow', /* v3.653 (UX-17b): gymElapsedMs went with Gym mode */ 'escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel',
   'finishSheetModel', 'nextTimeSuggestion', 'openFinishSheet', 'closeFinishSheet', 'bestLabel', /* 2026-11-22 (v3.611, UX-30): the shared best labeller */
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
   'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg',
@@ -68,7 +68,7 @@ function mount({reduce = false, mode = 'progression', program = 'strength', stor
   const { window } = runJsdom(extractElementById(src, 'finishSheet') + '<div id="todayView" tabindex="-1"></div><button id="upNextDayBtn"></button>'
     + `<div id="dayTitle">Upper · Strength</div><div id="exerciseList">${list([5, 5, 5, 0])}${list([8, 8])}</div>`, `
     var loadSuggestionMode = ${JSON.stringify(mode)}, activeProgram = ${JSON.stringify(program)}, activeDay = 'd1', weightUnit = 'lb', equipmentProfile = null;
-    var selectedLogDate = '${TODAY}', gymModeActive = false, gymAccumMs = 0, gymStretchStart = 0;
+    var selectedLogDate = '${TODAY}';
     var COMBAT_STYLES = {}, CYCLING_STYLES = {};
     var programs = {strength: {label: 'Strength & Size', days: {d1: {exercises: [{name: 'Bench Press'}, {name: 'Barbell Row'}]}}}};
     var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;
@@ -300,8 +300,12 @@ test('09b: the best set carries its plate stack (UX-07\'s drawing): 185 is 45 ·
 });
 
 test('09b criterion 4: the PR celebration still fires once per PR, at its one site; nothing in the finish sheet raises another', (assert)=>{
-  const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  // 2026-11-24 (v3.653, UX-17b): line by line (as test-app-slogan.js does). A
+  // regex strip of /* … */ across the whole file eats real code wherever a
+  // string holds "/*" (accept="image/*"), and the removal moved where it lands.
+  const strip = t => t.split('\n').filter(l => !/^\s*(\/\/|\/\*|\*)/.test(l)).map(l => l.replace(/\s\/\/ .*$/, '')).join('\n');
   const code = strip(src);
+  assert.ok(code.includes('function drawStoryCard(') && code.includes('function renderAppFooter('), 'anchor: the stripped source keeps the whole app');
   // 2026-11-22 (v3.611, UX-30): the PR moment's words come from bestLabel now ("Heaviest weight yet", not "New PR!").
   assert.strictEqual((code.match(/triggerCelebration\('trophy', bestLabel\('weight'\)/g) || []).length, 1, 'one PR celebration site');
   for(const f of ['finishSheetModel', 'openFinishSheet', 'playFinishFlood', 'finishPlatesHtml', 'closeFinishSheet', 'nextTimeSuggestion']){

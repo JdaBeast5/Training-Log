@@ -29,29 +29,29 @@ const rule = sel => { const f = allRules().filter(r => r.selectorText === sel); 
 const $ = id => document.getElementById(id);
 const precedes = (a, b) => !!(a.compareDocumentPosition(b) & 4);
 
-test('REAL markup: phase and length share one meta line; length and Gym mode share one actions row, above Up next', (assert)=>{
+// 2026-11-24 (v3.653, UX-17b): Gym mode is gone, so the actions row holds the
+// session length alone (Today lays the row out as flex, start-aligned).
+test('REAL markup: phase and length share one meta line; the session length has the actions row (Gym mode gone), above Up next', (assert)=>{
   const meta = $('mesocyclePhaseTag').parentElement;
   assert.ok(meta.classList.contains('duration-row'));
   assert.strictEqual($('dayDuration').parentElement, meta, 'length sits on the meta line');
-  const actions = $('gymEnterBtn').parentElement;
-  assert.ok(actions.classList.contains('session-actions'));
-  assert.strictEqual($('sessionLengthSelector').closest('.session-actions'), actions, 'the select is in the same row');
-  assert.strictEqual(actions.children.length, 2, 'exactly the two controls');
+  const actions = $('sessionLengthSelector').closest('.session-actions');
+  assert.ok(actions, 'the select is in the actions row');
+  assert.strictEqual(actions.children.length, 1, 'only the session length now');
   assert.ok(precedes(meta, $('sessionCalTotal')) && precedes($('sessionCalTotal'), actions), 'meta, calories, actions');
   // 2026-11-17 (v3.593, UX-06a): Up next left the workout card for the top of
   // Today as its cover, so it now comes before the card and these controls.
   assert.ok(precedes($('upNext'), actions) && !$('upNext').closest('#workoutCard'), 'Up next (the cover) leads Today, ahead of the controls');
-  assert.strictEqual(document.querySelectorAll('#gymEnterBtn').length, 1, 'sabotage anchor: one Gym mode button, not a leftover copy');
+  assert.strictEqual(document.querySelectorAll('#gymEnterBtn, .gym-enter-btn').length, 0, 'v3.653: no Gym mode button');
 });
 
-test('REAL CSSOM: the pair is matched — same height, same type, both glass pills; the select shows a chevron', (assert)=>{
-  const sel = rule('.session-length-select'), gym = rule('.gym-enter-btn');
-  assert.strictEqual(rule('.session-actions').getPropertyValue('grid-template-columns'), '1fr 1fr');
-  for(const p of ['min-height', 'font-weight', 'border-radius']) assert.strictEqual(sel.getPropertyValue(p), gym.getPropertyValue(p), p);
+// 2026-11-24 (v3.653, UX-17b): the select's matched partner (Gym mode) is gone;
+// the select's own checks stay.
+test('REAL CSSOM: the session length is a full touch target at 16px; the select shows a chevron', (assert)=>{
+  const sel = rule('.session-length-select');
   assert.strictEqual(sel.getPropertyValue('min-height'), '44px', 'a full touch target');
   // Selects render at 16px whatever their rule says (global iOS zoom guard), so the button must say 16px.
   assert.ok(allRules().some(r => r.selectorText === 'input, select, textarea' && /^16px/.test(r.style.getPropertyValue('font-size'))), 'the zoom guard exists');
-  assert.strictEqual(gym.getPropertyValue('font-size'), '16px');
   assert.strictEqual(sel.getPropertyValue('background'), 'var(--glass-fill)');
   assert.ok($('sessionLengthSelector').nextElementSibling.classList.contains('session-length-chevron'));
   assert.strictEqual(rule('.session-length-chevron').getPropertyValue('pointer-events'), 'none', 'taps fall through to the select');

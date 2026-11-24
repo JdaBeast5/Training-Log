@@ -58,12 +58,12 @@ const wiringSrc = extractBetween(
 // 2026-11-03 (v3.494): the header listener calls toggleExerciseBlockFromHeader
 // (the open-posture gym-mode switch, test-duo-gym-tap-to-switch.js), which sits
 // with its posture check just above setExerciseBlockOpen, so the slice starts
-// there. gymModeActive is false: this test is about the normal (non-gym) tap.
+// there. (v3.653, UX-17b: Gym mode is gone; this is the only tap.)
 const openHelperSrc = extractBetween(
   'setExerciseBlockOpen helper',
   "const OPEN_POSTURE_QUERY = '",
   '\nasync function renderWorkout(){'
-) + '\nvar gymModeActive = false;';
+);
 
 function buildFixture(){
   return `
