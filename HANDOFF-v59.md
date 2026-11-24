@@ -1698,3 +1698,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 167: MKT-22 (v3.647, PR #242)
 - `yearRecapCards` ends on `{headline:"THAT'S YOUR YEAR.", detail: APP_SLOGAN, kind:'year-end'}` with no stats. `renderYearRecapHistory` has a `rowText` that handles a card without stats.
 - **Next:** MKT-23 ("Step up a plate!", bib A + Today T1).
+
+## Addendum 168: MKT-23 (v3.648, PR #243)
+- `STEP_UP_CHEER` and `isStepUp` sit beside `computeSuggestedSet`. `renderWorkout` hoists `firstBasis` and `suggestedFirst`, and stamps `data-step-up` on the block or superset member. `renderUpNext` fills `#upNextCheer`. The bib model's `lead.stepUp` is drawn by `drawBibCard`.
+- **Next:** UX-51, BL-78, BL-79, then UX-17a–c, then UX-38 onward.

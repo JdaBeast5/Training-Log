@@ -34,7 +34,7 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetF
   // 2026-11-17 (v3.599, UX-09b): the flood and the best set's plate stack.
   'finishPlatesHtml', 'playFinishFlood', 'platesPerSide', 'plateCaption', 'barStackSvg',
   // 2026-11-22 (v3.617, MKT-16): finishSheetModel builds the bib card's data from the same session (test-bib-card.js).
-  'entryHasLoggedSet' /* v3.633 (BIZ-19): shared logged-set test */, 'trainingDayNumber', 'bibLeadLift',
+  'entryHasLoggedSet' /* v3.633 (BIZ-19): shared logged-set test */, 'trainingDayNumber', 'bibLeadLift', 'isStepUp' /* 2026-11-24 (v3.648, MKT-23) */,
   // 2026-11-22 (v3.618, MKT-18): openFinishSheet wires "Pin on a photo" (test-bib-photo.js).
   'wireFinishPhoto',
   // 2026-11-22 (v3.619, MKT-17): the model carries the number and the milestone reached today.
@@ -388,6 +388,31 @@ test('MKT-16: the shared session carries the bib card\'s data, from the same ses
   assert.strictEqual(JSON.stringify(b.lead.plates), '[45,25]', '185 on a 45 bar: 45 · 25 a side');
   assert.strictEqual(b.lead.note, m.next.find(n => n.name === 'Bench Press').words, 'the finish sheet\'s own next-time line');
   assert.ok(!('minutes' in b) || b.minutes === m.share.stats.filter(s => s.label === 'MIN').map(s => s.value)[0] || b.minutes === '', 'minutes only when known');
+});
+
+// ---- v3.648 (MKT-23): the bib's cheer, only when next time really goes up ----
+// Sabotage: drop the before-today check and the first-session case fails.
+const at = (date, reps) => ({date, n: 'Bench Press', sets: reps.map(r => ({weight: 185, reps: r}))});
+async function bibLead(log){
+  const ui = mount({store: {'ex:strength:d1:0': log}, inputs: [[BENCH, log, 'chest']]});
+  const m = await ui.open();
+  return {lead: m.share.bib.lead, next: m.next.find(n => n.name === 'Bench Press')};
+}
+test('MKT-23 criterion 5: Bench at 185 × 6 on every set today, with earlier sessions: the bib carries stepUp, next 190 lb', async (assert)=>{
+  const {lead, next} = await bibLead([at('2026-10-26', [6, 5, 5, 5]), at(TODAY, [6, 6, 6, 6])]);
+  assert.strictEqual(next.reason, 'increase', 'anchor: the real engine raises it');
+  assert.strictEqual(JSON.stringify(lead.stepUp), JSON.stringify({next: '190 lb'}));
+});
+test('MKT-23 criterion 5: a hold (185 × 5, 5) gives no stepUp', async (assert)=>{
+  const {lead, next} = await bibLead([at('2026-10-26', [5, 5]), at(TODAY, [5, 5])]);
+  assert.notStrictEqual(next.reason, 'increase', 'anchor: no increase');
+  assert.strictEqual(lead.stepUp, null);
+});
+test('MKT-23 criterion 5: Bench\'s only session is today, at the top: no stepUp, though "Next time" still says up a step', async (assert)=>{
+  const {lead, next} = await bibLead([at(TODAY, [6, 6, 6, 6])]);
+  assert.strictEqual(next.reason, 'increase', 'anchor: step 4 of computeSuggestedSet raises it');
+  assert.match(next.words, /up a step/);
+  assert.strictEqual(lead.stepUp, null, 'no last time, no cheer');
 });
 
 run();
