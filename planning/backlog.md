@@ -1698,7 +1698,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   3. Weeks 1, 5 (deload) and 6 are covered.
 - **Test plan:** extend the bib test (MKT-16's suite). Sabotage: restore the raw `week`, and criterion 1 fails.
 - **Files:** `index.html` (~32574, ~33003), `sw.js`, the bib test.
-- **Status:** ready. **Owner's answer (2026-11-24): (a)**, the block week on the bib, `WK n/5`, to match Today. Option (b) is not built.
+- **Status:** done (v3.650, PR #245, 2026-11-24). Band floor 22 px (Chromium: 629 of 676 px for the longest bib label); a cut keeps the week whole. **Owner's answer (2026-11-24): (a)**, the block week on the bib, `WK n/5`, to match Today. Option (b) is not built.
 
 ### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
 - **Why:** the same lift under two names splits grouping:
