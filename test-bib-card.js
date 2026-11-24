@@ -48,7 +48,7 @@ test('criterion 1: three years of sets on 4 dates a week: the number is the coun
 });
 
 // ── the drawing, on test-share-card-format.js's recording context ──────────
-const DATA = ['programs', 'DAY_INKS', 'CUSTOM_PLATES', 'SHARE_CARD_INKS', 'SASH_ORDER', 'APP_NAME', 'PLATE_INKS', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES'].map(c => extractConst(src, c));
+const DATA = ['programs', 'DAY_INKS', 'CUSTOM_PLATES', 'SHARE_CARD_INKS', 'SASH_ORDER', 'APP_NAME', 'PLATE_INKS', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES', 'STEP_UP_CHEER' /* 2026-11-24 (v3.648, MKT-23) */].map(c => extractConst(src, c));
 const FNS = ['appSlug', 'dayInk', 'wrapCanvasText', 'celebrationIconPath', 'shareCardFootRow', 'drawSashMark', 'drawShareCardFoot', 'drawBibCard', 'drawStoryCard', 'buildShareCardBlob',
   'platesPerSide', 'getEquipment', 'isBarbellExercise'].map(f => extractFunction(src, f));
 FNS.push(extractConst(src, 'ordinalSuffix'));
@@ -71,6 +71,8 @@ function makeCtx(rec){
       if(k === 'fillText') return (txt, x, y) => { const [cx, cy] = apply(x, y); rec.text.push({txt: String(txt), x: cx, y: cy, font: st.font, fill: st.fillStyle}); };
       if(k === 'moveTo' || k === 'lineTo') return (x, y) => { const [cx, cy] = apply(x, y); rec.path.push({op: k, x: cx, y: cy}); };
       if(k === 'fillRect') return (x, y, w, h) => { const [cx, cy] = apply(x + w/2, y + h/2); rec.rects.push({cx, cy, w, h, fill: st.fillStyle}); };
+      // 2026-11-24 (v3.648, MKT-23): stroked boxes too (the milestone stamp), as their four corners after the transform.
+      if(k === 'strokeRect') return (x, y, w, h) => { (rec.strokes = rec.strokes || []).push([[x, y], [x + w, y], [x, y + h], [x + w, y + h]].map(([a, b]) => apply(a, b))); };
       // Font-aware (about 0.58 em a glyph), so shrink-to-fit is exercised honestly. (\\d: this stub is a template
       // string; a bare \d here became "d" and every measure fell back to 34 px until v3.619.)
       if(k === 'measureText') return (txt) => ({ width: String(txt).length * 0.58 * Number((/(\\d+)px/.exec(st.font) || [0, 34])[1]) });
@@ -85,7 +87,7 @@ function makeCtx(rec){
 var document = { createElement: () => { const rec = {text: [], rects: [], path: []}; __recs.push(rec);
   const c = {width: 0, height: 0, getContext: () => makeCtx(rec), toBlob: (cb) => cb(null)}; rec.canvas = c; return c; } };
 var __recs = [];
-function draw(card, format){ __recs = []; buildShareCardBlob(card, format); const r = __recs[0]; return {w: r.canvas.width, h: r.canvas.height, text: r.text, rects: r.rects, path: r.path}; }
+function draw(card, format){ __recs = []; buildShareCardBlob(card, format); const r = __recs[0]; return {w: r.canvas.width, h: r.canvas.height, text: r.text, rects: r.rects, path: r.path, strokes: r.strokes || []}; }
 `;
 const BENCH = {name: 'Bench Press', reps: ['6', '6', '5', '5'], weightLabel: '160 lb', unit: 'lb', note: 'Hold until every set reaches the top of the range.'};
 function card(over = {}, leadOver = {}){
@@ -234,6 +236,64 @@ test('the other cards keep their layouts: a PR or streak story is not a bib', (a
   const [r] = runSandbox([STUB, ...DATA, ...FNS], `__capture.push(draw({kind: 'pr', icon: 'flag', headline: 'NEW PR', detail: 'Bench Press — 160 lb', dayId: 'd1'}));`);
   assert.ok(r.text.some(t => t.txt === 'NEW PR'));
   assert.ok(!r.text.some(t => t.txt === 'No.'));
+});
+
+// ---- v3.648 (MKT-23, option A): "Step up a plate!" in the note's place -------
+// Sabotage: draw the cheer whatever stepUp says and the null case fails.
+const CHEER = require('vm').runInNewContext(extractConst(src, 'STEP_UP_CHEER').replace(/^const STEP_UP_CHEER\s*=\s*/, '').replace(/;\s*$/, ''));
+test('MKT-23 criterion 6: with stepUp, the cheer is drawn once (inside the bib) in place of the note; without it, no "Step up"', (assert)=>{
+  const up = drawn(card({}, {stepUp: {next: '165 lb'}}));
+  const hits = up.text.filter(t => t.txt === CHEER);
+  assert.strictEqual(CHEER, 'Step up a plate!', 'anchor: the const');
+  assert.strictEqual(hits.length, 1);
+  assert.ok(hits[0].y > 250 && hits[0].y < 1620, 'y ' + hits[0].y);
+  assert.match(hits[0].font, /Archivo/, 'the display face');
+  assert.ok(up.text.some(t => t.txt === 'Next time 165 lb'), 'the next weight beside it');
+  assert.ok(!up.text.some(t => /^500 30px/.test(t.font)), 'the note is not drawn that day');
+  const hold = drawn(card({}, {stepUp: null}));
+  assert.ok(!hold.text.some(t => /Step up/.test(t.txt)));
+  assert.ok(hold.text.some(t => /^500 30px/.test(t.font)), 'anchor: the note is back');
+});
+
+test('MKT-23 criterion 6: the cheer\'s ink is the day\'s spot ink on red, the bib\'s black on yellow', (assert)=>{
+  const [inks] = runSandbox([...DATA, "__capture.push(SHARE_CARD_INKS.spot.red);"], '');
+  const red = drawn(card({}, {stepUp: {next: '165 lb'}})).text.find(t => t.txt === CHEER);
+  assert.strictEqual(red.fill, inks, 'red day');
+  // Strength & Size's yellow day.
+  const [yDay] = runSandbox([STUB, ...DATA, ...FNS], `__capture.push(Object.keys(programs.strength.days).find(d => dayInk(d, 'strength') === 'yellow'));`);
+  assert.ok(yDay, 'anchor: a yellow day exists');
+  const c = card({}, {stepUp: {next: '165 lb'}}); c.dayId = yDay;
+  const yel = drawn(c).text.find(t => t.txt === CHEER);
+  assert.strictEqual(yel.fill, '#0C0C0D', 'yellow day: the bib\'s black');
+});
+
+test('MKT-23 criterion 6: with the milestone stamp too, the stamp and the cheer don\'t overlap', (assert)=>{
+  const r = drawn(card({milestone: 50}, {stepUp: {next: '165 lb'}}));
+  assert.ok(r.strokes.length >= 1, 'anchor: the stamp is drawn');
+  const t = r.text.find(x => x.txt === CHEER);
+  const px = Number(/(\d+)px/.exec(t.font)[1]);
+  assert.ok(px < 64, 'anchor: it shrank beside the stamp (' + px + ' px)');
+  const w = CHEER.length * 0.58 * px; // the stub's measure at the drawn size
+  const cheer = {x1: t.x, x2: t.x + w, y1: t.y - px / 2, y2: t.y + px / 2}; // middle baseline
+  for(const corners of r.strokes){
+    const xs = corners.map(c => c[0]), ys = corners.map(c => c[1]);
+    const box = {x1: Math.min(...xs), x2: Math.max(...xs), y1: Math.min(...ys), y2: Math.max(...ys)};
+    const meet = !(box.x2 < cheer.x1 || box.x1 > cheer.x2 || box.y2 < cheer.y1 || box.y1 > cheer.y2);
+    assert.ok(!meet, `stamp ${JSON.stringify(box)} vs cheer ${JSON.stringify(cheer)}`);
+  }
+});
+
+test('MKT-23 review fix: a long "Next time" (kg, a fallback-wide face) shrinks with the cheer and stays inside the bib', (assert)=>{
+  const r = drawn(card({}, {stepUp: {next: '102.5 kg'}}));
+  const i = r.path.findIndex((p, j) => p.op === 'moveTo' && r.path[j + 1] && r.path[j + 1].op === 'lineTo' && r.path[j + 1].x - p.x > 700);
+  assert.ok(i >= 0, 'anchor: the tear line marks the bib\'s width');
+  const right = r.path[i + 1].x;
+  const nxt = r.text.find(x => x.txt === 'Next time 102.5 kg');
+  const px = Number(/(\d+)px/.exec(nxt.font)[1]);
+  const end = nxt.x + nxt.txt.length * 0.58 * px;
+  assert.ok(end <= right + 1, `the line ends at ${Math.round(end)}, the bib's text edge is ${Math.round(right)}`);
+  const cheer = r.text.find(x => x.txt === CHEER);
+  assert.ok(nxt.x > cheer.x, 'anchor: beside the cheer');
 });
 
 run();

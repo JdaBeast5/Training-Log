@@ -184,6 +184,13 @@ function buildStates(){
 // Steps only call what a user taps (or the finish sheet's own opener, as the
 // default finish state does).
 const SEEN_MILESTONE = { 'week-streak-last-celebrated': '8' };
+// v3.648 (MKT-23): the fixture's Bench log with 19 and 26 October at the top of
+// 4-6 on every set, and no entry today (as tools/design/cheer/render.js seeds it).
+const STEPUP_BENCH = (()=>{
+  const f = JSON.parse(fs.readFileSync(path.join(HERE, 'fixture.json'), 'utf8'));
+  const log = JSON.parse(f['trainingLog_usr1:ex:strength:d1:0']);
+  return JSON.stringify(log.filter(e => e.date !== '2026-11-02').map(e => (e.date === '2026-10-19' || e.date === '2026-10-26') ? {...e, sets: e.sets.map(st => ({...st, reps: 6}))} : e));
+})();
 function buildTodayStates(){
   const states = [];
   const t = (id, size, theme, extra) => states.push({
@@ -192,6 +199,9 @@ function buildTodayStates(){
   });
   for(const theme of ['dark', 'light']){
     t(`tday-${theme}-402`, 402, theme, { fullPage: true });
+    // v3.648 (MKT-23): Bench's last two sessions at the top of the range and today
+    // not started, so the real engine raises it and the cover cheers.
+    t(`tday-stepup-${theme}-402`, 402, theme, { storage: { ...SEEN_MILESTONE, 'ex:strength:d1:0': STEPUP_BENCH } });
     t(`tday-rest-${theme}-402`, 402, theme, { fullPage: true, rest: true });
     t(`tday-quiet-${theme}-402`, 402, theme, { fullPage: true, storage: { ...SEEN_MILESTONE, 'cover-style': 'quiet' } });
     t(`tday-restday-${theme}-402`, 402, theme, { fullPage: true, pickDay: 7 });

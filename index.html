@@ -1063,6 +1063,9 @@
   .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
   .cover-rx, .cover-hint, .cover-why, .cover-caution{font-size:var(--meta-on-spot); line-height:1.35;}
   .cover-rx{margin-top:2px;}
+  /* v3.648 (MKT-23): the cheer, in the cover's ink and display face; no motion. */
+  .cover-cheer{margin-top:6px; font-family:var(--font-display); font-weight:800; font-stretch:68%; font-size:26px; line-height:1.05; letter-spacing:.005em;}
+  .cover-cheer small{font-family:var(--font-sans); font-stretch:100%; font-weight:600; font-size:var(--meta-on-spot); margin-left:8px; letter-spacing:0;}
   .cover-hint{margin-top:4px; font-weight:600;}
   .cover-hint[hidden], .cover-why[hidden], .cover-caution[hidden]{display:none;}
   .cover-numeral{display:flex; align-items:baseline; flex-wrap:nowrap; gap:0 6px; margin-top:6px; color:var(--cover-figure, var(--text)); font-family:var(--font-display); font-variant-numeric:tabular-nums lining-nums;}
@@ -6599,6 +6602,8 @@
       <span class="cover-of" id="upNextLabel"></span>
     </div>
     <p class="cover-rx" id="upNextTarget"></p>
+    <!-- v3.648 (MKT-23): the cheer, only when the app raised this lift's weight. -->
+    <p class="cover-cheer" id="upNextCheer" hidden></p>
     <!-- v3.606 (UX-25): a rest day's note and its one action, written by renderWorkout's rest branch. -->
     <div class="cover-rest-day" id="coverRestDay" hidden></div>
     <p class="cover-hint" id="upNextHint" hidden></p>
@@ -8550,7 +8555,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.647';
+const APP_VERSION = '3.648';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10333,6 +10338,9 @@ const WHATS_NEW = {
   ]},
   '3.647': { headline: 'Your year ends on our line', points: [
     'From 1 December, your Year in Lifting cards end on one more: That\'s your year. Plate by plate, step by step.',
+  ]},
+  '3.648': { headline: 'Step up a plate!', points: [
+    'When the app adds weight to a lift, Today and your bib say so: Step up a plate! When it holds or drops, they don\'t.',
   ]},
 };
 
@@ -30735,6 +30743,17 @@ function suggestRepProgression(log, ex, program){
   return {value: next, unit: hold ? 's' : 'reps'};
 }
 
+// v3.648 (MKT-23, owner 2026-11-24, slogan.md §10): the cheer. It shows only
+// when computeSuggestedSet really raised the weight above the basis: reason
+// 'increase' and a heavier number. Hold (null), decrease, deload and RPE loads
+// never qualify, nor an increase that snapped back to the same weight, nor a
+// lift with no earlier session (no basis). suggested.weight is in display units.
+const STEP_UP_CHEER = 'Step up a plate!';
+function isStepUp(suggested, basisWeightLb){
+  return !!suggested && suggested.reason === 'increase' && basisWeightLb != null
+    && suggested.weight != null && Number(suggested.weight) > toDisplayWeight(basisWeightLb);
+}
+
 function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx, prior){
   if(!priorSet || priorSet.weight == null) return null;
 
@@ -31723,6 +31742,7 @@ async function renderWorkout(){
     let summaryHtml = '';
     let badge = '';
     let noPrior = false; // v3.579 (BIZ-05)
+    let stepUp = null; // v3.648 (MKT-23): the cheer's step, set below
     {
       const log = logs[i];
       // Own-slot history first; if there's genuinely none, fall back to the
@@ -31808,6 +31828,15 @@ async function renderWorkout(){
       // handover AFTER it is rest-free.
       const warmupEligible = !isSupersetBottom && (warmupEligiblePosition || isHeavySet);
       const isEligibleCategory = WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory);
+      // v3.648 (MKT-23): set 1's suggestion, hoisted out of the warm-up branch so
+      // the ramp (below) and the cheer read one value; v3.395: from the same slot
+      // basis the fields use (from another program, its fallback is that basis too).
+      const firstBasis = priorSetForSlot(prior, 0, ex, priorIsCrossProgram);
+      const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx, prior);
+      // The cheer's step, in display units, when the weight really goes up; never on a clinical program.
+      // Only on the lift's own history: "on last time" never means another program's session (as the bib).
+      stepUp = (activeProgram !== 'medical' && !MEDICAL_STYLES[activeProgram] && !priorIsCrossProgram && isStepUp(suggestedFirst, firstBasis && firstBasis.weight))
+        ? Math.round((Number(suggestedFirst.weight) - toDisplayWeight(firstBasis.weight)) * 10) / 10 : null;
       if(warmupEligible && isEligibleCategory && showWeight){
         // Below: either a numeric ramp, or the nudge saying why not. Never
         // neither.
@@ -31843,10 +31872,7 @@ async function renderWorkout(){
         // placeholder; the ramp builders take lb. toCanonicalLb is the inverse
         // and skipping it silently ramps a kg user off a number 2.2x too big.
         const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
-        // v3.395: from the same slot basis the fields use; from another
-        // program, its fallback is that basis too, not that program's top set.
-        const firstBasis = priorSetForSlot(prior, 0, ex, priorIsCrossProgram);
-        const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx, prior);
+        // v3.648 (MKT-23): firstBasis and suggestedFirst are computed above.
         const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           // The name goes in so the steps can be snapped to what this person can
@@ -32059,7 +32085,7 @@ async function renderWorkout(){
       headerInnerHtml, sameAsLastHtml, warmupHtml, setRowHtmlArr, summaryHtml, badge,
       cautionHtml, detailsHtml: buildDetailsHtml(ex),
       fallbackEntry: fallbackPriorEntries[i],
-      noPrior,
+      noPrior, stepUp,
     };
   });
 
@@ -32082,6 +32108,7 @@ async function renderWorkout(){
     const row = document.createElement('div');
     row.className = 'exercise-block';
     if(piece.noPrior) row.dataset.firstTime = '1'; // v3.579 (BIZ-05): read by openSetSheet
+    if(piece.stepUp != null) row.dataset.stepUp = String(piece.stepUp); // v3.648 (MKT-23): read by renderUpNext
     const trackingHtml = `
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
           <div class="set-actions" data-ex-idx="${i}">${piece.sameAsLastHtml}</div>
@@ -32121,7 +32148,7 @@ async function renderWorkout(){
     // actions (Same as Last Time, History, Edit) live in the panel like any
     // exercise's, each labelled with its exercise.
     const memberHtml = (piece)=> `
-      <div class="superset-member" data-ex-idx="${piece.i}">
+      <div class="superset-member" data-ex-idx="${piece.i}"${piece.stepUp != null ? ` data-step-up="${piece.stepUp}"` : ''}>
         <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${t}">
           ${piece.headerInnerHtml}
         </div>
@@ -32587,7 +32614,11 @@ async function finishSheetModel(listEl, dateKey, program){
     if(lead){
       const unit = weightUnit, disp = toDisplayWeight(lead.topLb);
       const nxt = next.find(n => n.name === lead.name);
-      leadOut = {name: lead.name, reps: lead.reps, weightLabel: fmtWeight(lead.topLb), unit, note: nxt ? nxt.words : '',
+      // v3.648 (MKT-23): the cheer, only when next time really goes up and there was a last time.
+      const leadInp = ((listEl && listEl._finishInputs) || []).find(i => i.ex.name === lead.name);
+      const before = !!leadInp && (leadInp.log || []).some(e => e && e.date < dateKey && entryHasLoggedSet(e));
+      const stepUp = before && isStepUp(nxt, lead.topLb) ? {next: `${trimUnitNum(nxt.weight)} ${weightUnit}`} : null;
+      leadOut = {name: lead.name, reps: lead.reps, weightLabel: fmtWeight(lead.topLb), unit, note: nxt ? nxt.words : '', stepUp,
         plates: isBarbellExercise(lead.name) ? platesPerSide(disp, getEquipment()).plates : []};
     }
     // milestone: 0 until checkNumberMilestone stamps it (once, and only when it may).
@@ -33069,7 +33100,25 @@ function drawBibCard(ctx, card, W, H){
     fit(setsLine, 500, 38, 24);
     ctx.fillText(setsLine, x0 + 60, y + 95);
     // The note: at most two lines, so it always clears the tear-off tabs (the second ends in … if it runs on).
-    if(b.lead.note){ ctx.fillStyle = mute; ctx.font = '500 30px Geist, sans-serif'; wrapCanvasText(ctx, b.lead.note, x0 + 60, y + 145, bw - 120, 38, true, 2); }
+    if(b.lead.stepUp){
+      // v3.648 (MKT-23, option A): the cheer in the note's place, in the day's ink
+      // where it holds 3:1 on the paper (red, blue, green, off), else the bib's black.
+      const inkOnPaper = (ink === 'yellow' || ink === 'white') ? inkText : spot;
+      ctx.save(); ctx.textBaseline = 'middle'; ctx.fillStyle = inkOnPaper;
+      // With the milestone stamp beside it, the cheer stops short of the stamp, as the name and sets do.
+      // The cheer and "Next time …" share one line: both shrink together until they fit
+      // the bib's text width (beside the milestone stamp, the cheer alone stops short of it).
+      const nextTxt = `Next time ${b.lead.stepUp.next}`;
+      let cpx = 64, npx = 32;
+      const widths = () => { display(cpx); const cw = ctx.measureText(STEP_UP_CHEER).width; ctx.font = `600 ${npx}px Geist, sans-serif`; return [cw, ctx.measureText(nextTxt).width]; };
+      let [cw, nw] = widths();
+      while(cpx > 40 && ((b.milestone && cw > lineW) || cw + 22 + nw > bw - 120)){ cpx -= 2; npx = Math.max(22, Math.round(cpx / 2)); [cw, nw] = widths(); }
+      display(cpx); ctx.fillStyle = inkOnPaper;
+      ctx.fillText(STEP_UP_CHEER, x0 + 60, y + 158);
+      ctx.font = `600 ${npx}px Geist, sans-serif`; ctx.fillStyle = mute;
+      ctx.fillText(nextTxt, x0 + 60 + cw + 22, y + 162);
+      ctx.restore();
+    }else if(b.lead.note){ ctx.fillStyle = mute; ctx.font = '500 30px Geist, sans-serif'; wrapCanvasText(ctx, b.lead.note, x0 + 60, y + 145, bw - 120, 38, true, 2); }
   }
   // v3.619 (MKT-17): on the day a milestone is reached, a rubber stamp.
   // It sits beside the lead lift's name and sets (y is where that block starts), clear of the note below.
@@ -34316,6 +34365,13 @@ function renderUpNext(){
   const nowBlock = n.row && n.row.closest('.exercise-block');
   const nowRow = nowBlock && (nowBlock.querySelector(`.superset-member[data-ex-idx="${n.row.dataset.exIdx}"]`) || nowBlock);
   if(nowRow) nowRow.classList.add('is-now');
+  // v3.648 (MKT-23): the cheer reads the stamp renderWorkout left (isStepUp); none otherwise.
+  const cheer = document.getElementById('upNextCheer');
+  if(cheer){
+    const step = nowRow && nowRow.dataset.stepUp;
+    cheer.hidden = !step;
+    cheer.innerHTML = step ? `${escapeHtml(STEP_UP_CHEER)}<small>+${escapeHtml(step)} ${escapeHtml(weightUnit)} on last time</small>` : '';
+  }
   if(n.total === 0){
     card.classList.remove('is-done');
     document.getElementById('upNextLabel').textContent = '';
