@@ -32,8 +32,8 @@ Searches the page is written to answer (proposed in `marketing.md` §4.4, not me
 ### 2.1 Hero
 
 - **Eyebrow:** the Sash mark and "Platestep".
-- **H1:** Tells you what to lift next.
-- **Sub (one sentence):** Pick a program and Platestep gives you the weight and reps for every set, logs it in one tap, and adds weight when you've earned it.
+- **H1:** Plate by plate, step by step. *(The slogan, owner 2026-11-24, `slogan.md` §10. Search loses nothing: the `<title>` above keeps "what to lift next", and the sub says it first.)*
+- **Sub (one sentence):** Platestep tells you what to lift next. Pick a program and it gives you the weight and reps for every set, logs it in one tap, and adds weight when you've earned it.
 - **Facts line (small, under the sub):** No ads · No account · Your log stays on your phone
 - **Primary button:** `Open Platestep` → the app's current address (`{APP_URL}`; never a new origin, see precondition 2).
 - **Secondary link:** `How to put it on your home screen` → `#install`.

@@ -4,17 +4,25 @@ Owner: marketing-manager. Written 2026-11-23 against live **v3.645** (`APP_NAME 
 
 **Nothing here is a legal clearance.** Every screen below is a web search, plus Apple's iTunes Search API for the exact phrase in app titles and descriptions (US store, 25 results). No USPTO, EUIPO or WIPO search was run. Counsel should knock out the chosen line before it's printed on anything paid for.
 
-**No backlog items yet.** The owner picks first; §7 sketches the items. **Round 2 (§9)** adds the Plate + Step lines the owner asked for and changes the recommendation to **"Plate by plate, step by step."**
+**Decided (§10, 2026-11-24).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"**. The items are MKT-21, MKT-22 and MKT-23 in `backlog.md`. §1 to §9 are kept as the record of how the lines were chosen; where they still say "Earn the next plate.", §10 wins.
 
 ---
 
 ## 0. The short answer
 
-- **Yes, add one, and keep it separate from the subtitle.** The subtitle "Tells you what to lift next" says what the app *does*; it carries search words and stays. A slogan says what *you* do with it, and goes where a person reads the brand rather than searches for it: the landing hero, social bios, the last Year in Lifting card, the footer, the email signature.
-- **Pick: "Earn the next plate."** (20 characters, 4 words.) It's the product's real rule in four words: Platestep adds weight only when you've hit the top of your rep range (`store/app-store.md` §3, the "earned" thresholds in the code). It carries the brand word "plate" and the name's story (the next step up the bar, naming.md §3.1), and makes no promise about results. No exact-phrase use found in fitness branding, trademarks or the App Store.
-- **Runner-up: "A plan for every lifter."** (24 characters, 5 words.) It says the mission, guidance for people who need it, more directly, and it's clean too. It's less ownable: it could be any program's tagline.
-- **Not the slogan: "One plate at a time."** Keep it as the story line it already is (the rename's What's New note, `index.html:9915`; the store description's last sentence). As a slogan it is generic, unownable, and used by food apps and restaurants ("Plate: Meal Recipes for One", restaurant slogan lists), which feeds the "plate reads as food" risk naming.md §3.1 already names.
-- **Placement:** copy-only for the landing hero, social bios and email signature (do these now); an app build for the Year in Lifting end card and the Settings footer; **no** on the store subtitle (keep it), the bib (no room), and the launch animation (stays wordless).
+**Owner's decision, 2026-11-24 (§10):** "I love what you came up with there! The main slogan and the cheer! Let's implement that."
+
+- **The slogan: "Plate by plate, step by step."** (28 characters). It's kept separate from the store subtitle, which stays "Tells you what to lift next" because that's what search reads. The slogan goes where a person reads the brand:
+  - the landing hero (H1);
+  - the social bio;
+  - a new line in the footer under Settings, above the version line (MKT-21);
+  - the last card of Year in Lifting (MKT-22);
+  - the store promotional text.
+- **The brand hashtag: `#PlateByPlate`.**
+- **The cheer: "Step up a plate!"** It shows only when the app has really raised a lift's weight above last time (MKT-23). When the weight holds, drops or deloads, nothing is said, so the line is always true.
+- **The progression sign-off: `#StepUpAPlate`.** It replaces `#EarnTheNextPlate` on progression posts.
+- **Where the cheer goes on the bib and on Today** waits on the owner's pick from the renders in §10.3 (bib options A, B and C; Today options T1 and T2).
+- **Not changed:** the store subtitle; the launch animation (still wordless); and the bib's event band, which is full.
 
 ---
 
@@ -356,6 +364,71 @@ Line 8 ranks third by score but is line 16 with its halves swapped, so a render 
 ### 9.5 Proposed items, updated
 
 MKT-21 (the footer line) and MKT-22 (the Year in Lifting end card) in §7 are unchanged; only the text of `APP_SLOGAN` changes. They still wait for the owner's pick.
+
+---
+
+## 10. Owner's decision (2026-11-24)
+
+The owner wrote: "I love what you came up with there! The main slogan and the cheer! Let's implement that, I'll need renderings of what the bib concept would look like". The coordinator passed this on, and it is recorded here as the decision.
+
+### 10.1 The two lines
+
+| | Line | Job | Where | Hashtag |
+|---|---|---|---|---|
+| **Slogan** | **Plate by plate, step by step.** | Says the brand: patience, both halves of the name, plate first (§9.3) | The landing hero H1; the social bio; a footer line in Settings, above the version line (MKT-21); the last card of Year in Lifting (MKT-22); the store promotional text | `#PlateByPlate` (the brand tag and the series) |
+| **Cheer** | **Step up a plate!** | Celebrates the one moment the app adds weight | The bib and Today, only on a raised lift (MKT-23) | `#StepUpAPlate` (the sign-off on progression posts; it replaces `#EarnTheNextPlate`) |
+
+**The cheer's honesty rule.** "Step up a plate!" shows only when the app's own progression has raised a lift's weight above last time. That means the suggestion from `computeSuggestedSet` (`index.html:30718`) has reason `'increase'`, and its weight is heavier than the session it's compared with. It never shows when the weight holds, drops or deloads. It never shows on the first-ever session of a lift, since there's no "last time". It never shows on the clinical programs, where Share is hidden. So the line is always true. It reuses the decision the set fields, the badge and the finish sheet already make; there is no second rule.
+
+**About §9.1's note on "Step up a plate."** Round 2 marked it down as a slogan, because on its own it reads as an exercise (a step-up) or as rack hardware. As the cheer, it always sits next to a lift and a heavier weight ("Bench Press · 185 lb × 6 · Step up a plate! Next time 190 lb"), and that context makes it read as the bar. The exclamation mark is the cheer's; the slogan keeps its full stop.
+
+### 10.2 Copy, ready to use
+
+- **Social bio (Instagram, Threads, X; 145 of 150 characters):** unchanged from §9.3. It already leads with "Plate by plate, step by step."
+- **TikTok (78 of 80):** unchanged from §9.3.
+- **Landing hero:** H1 "Plate by plate, step by step."; the sub is the promise ("A free strength tracker that tells you what to lift next."). The `<title>` and meta description keep "tells you what to lift next" (§4).
+- **Store promotional text (165 of 170).** The December seasonal swap in `store/app-store.md` §3 is unchanged.
+  ```text
+  Plate by plate, step by step. Platestep tells you what to lift next: weight and reps for every set, and when you've earned more. One tap logs it. No ads. No account.
+  ```
+- **Email signature:** `Platestep · Plate by plate, step by step.`
+- **Progression post caption, the pattern:** "+5 lb on bench. Step up a plate! #StepUpAPlate #PlateByPlate". Post it only when the app really added weight, the same rule the app follows.
+- **Hashtag check:** before launch, check `#PlateByPlate` and `#StepUpAPlate` in the Instagram and TikTok apps themselves, because web search doesn't index hashtags (§9.3).
+
+### 10.3 The cheer on the bib and on Today: renders
+
+- **Contact sheet:** `tools/design/cheer/renders/contact-sheet.png` (DPR 2). The single renders sit beside it.
+- **Re-render:** `node tools/design/cheer/render.js` from the repo root.
+- **How it's drawn:** the script runs the app's real `finishSheetModel`, `buildShareCardBlob` and `drawBibCard` in Playwright Chromium, with the harness's fixture and frozen clock. A prototype patch is applied in memory to the served `index.html` (three anchors, each asserted to match once). The repo's `index.html` is never changed.
+- **The seed:** today's Bench Press is 185 lb × 6 on every set, which is the top of 4-6, so the real engine raises it to 190 lb for next time. For "before", the harness's own fixture is used (185 × 5, 5), where next time holds and the patched code draws no cheer. The script fails if the cheer shows on the hold, or doesn't show on the raise.
+
+**Bib placements:**
+
+| Option | What it is | For | Against |
+|---|---|---|---|
+| **A: the next line** | "Step up a plate!" goes in the place of the lead lift's note, set in the display face, with "Next time 190 lb" after it in the note's grey. It uses the day's ink where that ink holds 3:1 on the bib's paper (red, blue, green); otherwise (yellow, white) it uses the bib's black | It *is* the honest next-time line, said as a cheer. Nothing moves when it's absent. It sits clear of the milestone stamp (rendered). It reads on every ink and on the photo bib | It's the quietest of the three at thumbnail size |
+| **B: the stamp** | A second rubber stamp beside the big number ("STEP UP A PLATE!", "NEXT · 190 LB"), in the same ink rule. The note is kept | The most "race bib" of the three | On a milestone day there are two stamps (rendered), and they compete. A three-digit number (No. 212) would collide with the stamp unless the number shrinks |
+| **C: the second band** | A band in the day's ink above the tear-off tabs, the event band's twin, with "STEP UP A PLATE!" and "NEXT · 190 LB" | The loudest of the three, and it reads from across a feed | It breaks the bib's "one event band" rule (marketing.md §3.4) and drops the note. A raised day and a hold day then look like different cards |
+
+**Recommendation: A.** It turns the line the bib already carries into the cheer, exactly when that line says "up a step", so the card stays one honest object and nothing else moves. It is the only option that coexists cleanly with the No. 50 stamp, and it holds contrast on all five inks.
+
+**Today placements (402 px, dark and light):**
+- **T1, the cover:** under the lift name and prescription, in the cover's display face: "Step up a plate! +7.5 lb on last time". It shows only while the cover shows the raised lift.
+- **T2, the list row:** under the exercise name in "Then", where the "+1 set" note sits: "Step up a plate! 155 lb, +5 on last time". It shows for raised lifts that aren't on the cover.
+
+**Recommendation: T1 alone.** The cover is where the eye is while you load the bar, and one line there is the moment. T2 repeats the line down the list on a day when several lifts go up. That adds noise to the list UX-36 just made compact, and the up arrows on the chips already mark those sets.
+
+**Checked in the renders:** no clipping or overlap on red, yellow, white or the photo bib. On the bib, the cheer stays inside the y 250–1620 text band. On Today, the cover line fits on one line at 402 px, in dark and light.
+
+**Seen while rendering, flagged and not changed:**
+- The bib's event band reads "WK 9", while Today's header in the same fixture reads "Week 4 of 5". The bib counts weeks since the program started; Today counts the week of the block. That may be intended, but it's worth a look.
+- The footer's grey (`#4A5057` on the dark ground) is under 4.5:1. MKT-21 gives its own new line a passing colour and leaves the version line alone.
+
+### 10.4 Items
+
+- **MKT-21:** `APP_SLOGAN` beside `APP_NAME`, and the footer line. `ready`.
+- **MKT-22:** the Year in Lifting end card. `ready`. Slotted ahead of the tab audit, because the window opens 1 December.
+- **MKT-23:** the "Step up a plate!" cheer. It stays `needs-owner` until the owner picks a bib option (A, B or C) and a Today option (T1, T2, or both). The recommendation is A + T1.
 
 ---
 
