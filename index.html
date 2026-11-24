@@ -8556,7 +8556,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.649';
+const APP_VERSION = '3.650';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10345,6 +10345,9 @@ const WHATS_NEW = {
   ]},
   '3.649': { headline: 'A readable footer', points: [
     'The version line at the foot of each page now passes the contrast check in both themes (it was too faint in dark mode).',
+  ]},
+  '3.650': { headline: 'One week, two places', points: [
+    'Your bib now shows the week of your block, WK 4/5, the same week Today\'s header names.',
   ]},
 };
 
@@ -32626,7 +32629,8 @@ async function finishSheetModel(listEl, dateKey, program){
         plates: isBarbellExercise(lead.name) ? platesPerSide(disp, getEquipment()).plates : []};
     }
     // milestone: 0 until checkNumberMilestone stamps it (once, and only when it may).
-    share.bib = {number, milestone: 0, program: (programs[program] || {}).label || '', week: typeof week === 'number' ? week : null,
+    // v3.650 (BL-78, owner 2026-11-24 (a)): the bib's week is the block week, as Today's header (WK 4/5).
+    share.bib = {number, milestone: 0, program: (programs[program] || {}).label || '', week: typeof week === 'number' ? cycleWeekOf(week) : null, weeks: DELOAD_CYCLE_WEEKS,
       dateLabel: fmtDayLabel(dateKey), sets: stat('SETS'), lifts: stat('LIFTS'), minutes: stat('MIN'), lead: leadOut};
   }
   const dayTitle = document.getElementById('dayTitle');
@@ -33055,12 +33059,20 @@ function drawBibCard(ctx, card, W, H){
   ctx.fillRect(x0, bandY, bw, bandH);
   drawSashMark(ctx, x0 + 40, bandY + 40, 60);
   ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.fillStyle = bandOn;
-  const event = [APP_NAME.toUpperCase(), (b.program || '').toUpperCase(), b.week ? 'WK ' + b.week : ''].filter(Boolean).join(' · ');
+  const event = [APP_NAME.toUpperCase(), (b.program || '').toUpperCase(), b.week ? 'WK ' + b.week + (b.weeks ? '/' + b.weeks : '') : ''].filter(Boolean).join(' · ');
   const evW = bw - 164;
   let es = 34; ctx.font = `700 ${es}px Geist, sans-serif`;
-  while(es > 24 && ctx.measureText(event).width > evW){ es -= 2; ctx.font = `700 ${es}px Geist, sans-serif`; }
+  // v3.650 (BL-78): down to 22 px (was 24), so "WK n/5" fits beside the longest program label without a cut.
+  while(es > 22 && ctx.measureText(event).width > evW){ es -= 2; ctx.font = `700 ${es}px Geist, sans-serif`; }
+  // v3.650 (BL-78): a cut shortens the program's name and keeps the week whole (it's the point of the band).
+  const weekPart = b.week ? ' · WK ' + b.week + (b.weeks ? '/' + b.weeks : '') : '';
   let ev = event;
-  while(ev.length > 4 && ctx.measureText(ev).width > evW) ev = ev.slice(0, -2) + '…';
+  if(ctx.measureText(ev).width > evW){
+    let head = event.slice(0, event.length - weekPart.length);
+    while(head.length > 4 && ctx.measureText(head + '…' + weekPart).width > evW) head = head.slice(0, -1);
+    ev = head.replace(/[\s·]+$/, '') + '…' + weekPart;
+    while(ev.length > 4 && ctx.measureText(ev).width > evW) ev = ev.slice(0, -2) + '…';
+  }
   ctx.fillText(ev, x0 + 124, bandY + 50);
   if(b.dateLabel){ ctx.font = '600 26px Geist, sans-serif'; ctx.fillText(b.dateLabel.toUpperCase(), x0 + 124, bandY + 100); }
   // The number.
