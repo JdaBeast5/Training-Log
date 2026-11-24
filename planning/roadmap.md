@@ -198,6 +198,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80n. **MKT-21:** `APP_SLOGAN` and the footer line, "Plate by plate, step by step." *(ready; one const and one line. It goes first because MKT-22 reads the const.)*
    - 80o. **MKT-22:** Year in Lifting ends on the slogan *(ready, after MKT-21; it has to land before the recap's season opens on 1 December.)*
    - 80p. **MKT-23:** "Step up a plate!" on Today's cover and the bib, only when `computeSuggestedSet` really raised the weight *(owner picked bib A + Today T1 on 2026-11-24, from `tools/design/cheer/renders/contact-sheet.png`. It's slotted here because it builds on MKT-16 to MKT-18 and the finished cover, and is independent of the tab audit.)*
+   - 80q. **UX-51:** the footer's version line passes contrast *(ready, after MKT-21: it edits the same footer rule.)*
+   - 80r. **BL-78:** the bib's week and Today's week say the same thing *(needs-owner: (a) the block week on the bib, or (b) the program week in both places. A run skips it until he answers.)*
    - *The tab audit (owner 2026-11-23; specs in `backlog.md` → "Design (UX): the tab audit"). TOOL-02 (the harness shoots every tab) goes first, outside the loop.*
    - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
    - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
