@@ -428,7 +428,7 @@ The owner wrote: "I love what you came up with there! The main slogan and the ch
 
 - **MKT-21:** `APP_SLOGAN` beside `APP_NAME`, and the footer line. `ready`.
 - **MKT-22:** the Year in Lifting end card. `ready`. Slotted ahead of the tab audit, because the window opens 1 December.
-- **MKT-23:** the "Step up a plate!" cheer. It stays `needs-owner` until the owner picks a bib option (A, B or C) and a Today option (T1, T2, or both). The recommendation is A + T1.
+- **MKT-23:** the "Step up a plate!" cheer. The owner picked bib **A** (the next line) and Today **T1** (the cover) on 2026-11-24 ("Go with your recommendations"). It's `ready` after MKT-21.
 
 ---
 

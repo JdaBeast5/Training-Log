@@ -1,6 +1,6 @@
 # Backlog
 
-**Slogan and cheer decided (2026-11-24, against v3.645, `origin/Branch-1` 85eca06, marketing-manager).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"** (`planning/slogan.md` §10). There are three new items at the end of the Marketing section: **MKT-21** (`APP_SLOGAN` and the footer line, `ready`), **MKT-22** (Year in Lifting's end card, `ready`) and **MKT-23** (the cheer). MKT-23 is `needs-owner` until he picks a placement from the renders (`tools/design/cheer/renders/contact-sheet.png`: bib options A, B, C; Today options T1, T2; the recommendation is A + T1). All three are slotted at roadmap 80n–80p, ahead of the tab audit, because the Year in Lifting window opens 1 December. Baseline green: `check.sh` passed.
+**Slogan and cheer decided (2026-11-24, against v3.645, `origin/Branch-1` 85eca06, marketing-manager).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"** (`planning/slogan.md` §10). There are three new items at the end of the Marketing section: **MKT-21** (`APP_SLOGAN` and the footer line, `ready`), **MKT-22** (Year in Lifting's end card, `ready`) and **MKT-23** (the cheer). MKT-23 is `ready` after MKT-21: the owner picked bib A + Today T1 from the renders (`tools/design/cheer/renders/contact-sheet.png`) on 2026-11-24. All three are slotted at roadmap 80n–80p, ahead of the tab audit, because the Year in Lifting window opens 1 December. Baseline green: `check.sh` passed.
 
 **Money model answered (2026-11-23, against v3.632, business-manager).** The owner answered "1-6 yes" to BIZ-27 to BIZ-32 (`planning/monetization-2026-11.md`, `pitch.md` "Owner's answers"), and named the paid tier **Platestep Plus** ("Call it Plus"). Buildable now, behind their gates: **BIZ-28** (roadmap slot 92a, Phase 5) and **BIZ-29** (slot 99, after the launch builds, no sooner than 2027-02-01). BIZ-27, BIZ-30, BIZ-31 and BIZ-32 are `answered`; BIZ-32 is the owner's action O7 in `pitch.md`. BIZ-18's hold is lifted, and it now ships the BIZ-27 paragraph.
 
@@ -3602,7 +3602,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
     - `Number(suggested.weight) > toDisplayWeight(basisWeightLb)`.
   - So 'hold' (null), 'decrease', 'deload' and 'rpe' never qualify, and an increase that snapped back to the same weight doesn't either. A lift with no earlier session has no basis, so it never qualifies.
   - The cheer's text lives in one const: `STEP_UP_CHEER = 'Step up a plate!'`.
-- **Change (written for the recommended pick, bib A + Today T1; the alternatives are noted where they differ):**
+- **Change (bib A + Today T1, as the owner picked on 2026-11-24; the lines marked "If B", "If C" and "If the owner picks T2" are not built):**
   - **Today (T1, the cover):**
     - In `renderWorkout`, hoist the existing `suggestedFirst` call (31829) out of the warm-up branch, so the ramp and the cheer read one value. Consolidation: there's no second `computeSuggestedSet` call.
     - When `isStepUp(suggestedFirst, firstBasis.weight)` and the program isn't clinical (`'medical'` or `MEDICAL_STYLES`, 12955, the programs where Share is hidden), stamp the `.exercise-block` with `data-step-up="<step>"`. The step is the display-unit difference, for example `7.5`.
@@ -3679,7 +3679,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - A cheer on a lift the person then chooses to hold is still true: it describes the app's target, not what was lifted.
   - In RPE mode the cheer never shows, even when the RPE load is heavier than last time, because that number comes from effort, not from the progression rule. If the owner wants the cheer there too, that's a one-line change to `isStepUp`, and it should be his call.
 - **Tools:** `Skill: impeccable` (`critique`, then `polish`) on the renders; `Skill: apple-hig` (Dynamic Type on the cover line at the largest size); TOOL-01's harness.
-- **Status:** needs-owner. **Question:** "Where does the cheer go? On the bib: **A** (the next line), **B** (the stamp) or **C** (the second band). On Today: **T1** (the cover), **T2** (the list row), or both." The renders are in `tools/design/cheer/renders/contact-sheet.png`. **Recommendation: A + T1.** A turns the bib's existing honest next-time line into the cheer, moves nothing else, and sits clear of the milestone stamp. T1 puts the cheer where the eye is while you load the bar, without repeating it down the list. Becomes `ready` (after MKT-21) once he picks.
+- **Status:** ready (after MKT-21). **Owner's answer (2026-11-24):** "Go with your recommendations": bib **A** (the next line) and Today **T1** (the cover). B, C and T2 are not built; their notes above stay only as the record of the options.
 
 ---
 
