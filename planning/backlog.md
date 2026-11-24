@@ -3820,7 +3820,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - A cheer on a lift the person then chooses to hold is still true: it describes the app's target, not what was lifted.
   - In RPE mode the cheer never shows, even when the RPE load is heavier than last time, because that number comes from effort, not from the progression rule. If the owner wants the cheer there too, that's a one-line change to `isStepUp`, and it should be his call.
 - **Tools:** `Skill: impeccable` (`critique`, then `polish`) on the renders; `Skill: apple-hig` (Dynamic Type on the cover line at the largest size); TOOL-01's harness.
-- **Status:** ready (after MKT-21). **Owner's answer (2026-11-24):** "Go with your recommendations": bib **A** (the next line) and Today **T1** (the cover). B, C and T2 are not built; their notes above stay only as the record of the options.
+- **Status:** done (v3.648, PR #243, 2026-11-24). Cover cheer only on the lift's own history (not a cross-program basis); bib cheer and "Next time" shrink together to fit. **Owner's answer (2026-11-24):** "Go with your recommendations": bib **A** (the next line) and Today **T1** (the cover). B, C and T2 are not built; their notes above stay only as the record of the options.
 
 ---
 
