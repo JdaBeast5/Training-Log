@@ -72,7 +72,7 @@ test('REAL CSSOM: every bottom-floating element, and the page padding, clears th
   // the safe area; adding it again would leave a gap.
   assert.doesNotMatch(root, /safe-area-inset-bottom/);
   // 2026-11-16 (v3.586, UX-16): the coach button moved into the header, so it no longer floats over the bar.
-  for(const sel of ['.rest-timer', '.undo-toast', '.today-fab', '.gym-offer']){
+  for(const sel of ['.rest-timer', '.undo-toast', '.today-fab']){ // 2026-11-24 (v3.654, UX-17c): .gym-offer went with Gym mode's CSS
     // The rule that positions it (a selector can also have media/state variants).
     const pos = allRules().filter(r => r.selectorText === sel && r.style.getPropertyValue('bottom'));
     assert.strictEqual(pos.length, 1, `${sel}: one positioning rule`);
@@ -81,10 +81,7 @@ test('REAL CSSOM: every bottom-floating element, and the page padding, clears th
   assert.match(rule('body').getPropertyValue('padding-bottom'), /var\(--above-bar\)/, 'the last card must scroll clear of the bar');
 });
 
-test('REAL CSSOM: gym mode still hides the bar', (assert)=>{
-  const hides = allRules().some(r => /body\.gym-mode \.nav-pills\b/.test(r.selectorText) && r.style.getPropertyValue('display') === 'none');
-  assert.ok(hides);
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. There is no gym mode to hide the bar.
 
 // ---- v3.585 (UX-04): the labels changed on purpose, Log to Food and Analysis
 // to Progress; the IDs, their order and the showView wiring did not.
@@ -106,6 +103,7 @@ function drive(views){
          current: [...document.querySelectorAll('#navPillsScroll > button[aria-current="page"]')].map(b => b.id)});`).join('\n')]);
   return window;
 }
+
 
 test('UX-04 criterion 2: each tab\'s accessible name is its new label, and only the active view\'s tab carries aria-current="page" (real switchView, all five)', (assert)=>{
   const names = Object.fromEntries([...document.querySelectorAll('#navPillsScroll > button')].map(b => [b.id, b.textContent.trim()]));

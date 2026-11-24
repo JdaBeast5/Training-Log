@@ -136,26 +136,16 @@ test('the coach button sits in the header like its neighbours, not fixed to a sc
   assert.throws(() => decl(ruleBlock('.coach-fab'), 'margin'), /no margin declaration/);
 });
 
-test('today FAB, sticky day header and gym dock clear the side insets', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): the gym dock's half retired with Gym mode's CSS.
+test('today FAB and sticky day header clear the side insets', (assert)=>{
   const env = {left:40, right:24};
   // 2026-11-16 (v3.586, UX-16): .today-fab has its own will-change rule now (the coach button left the shared one).
   assert.equal(resolve(decl(ruleBlock('.today-fab', 'position:fixed'), 'left'), env, {}), 58);
-  const dock = ruleBlock('.gym-dock', 'position:fixed');
-  assert.equal(resolve(decl(dock, 'left'), env, {}), 50);
-  assert.equal(resolve(decl(dock, 'right'), env, {}), 34);
   const pad = parts(decl(ruleBlock('.sticky-day-header', 'position:fixed'), 'padding'));
   assert.equal(resolve(pad[1], env, {}), 24); assert.equal(resolve(pad[3], env, {}), 40);
   assert.equal(resolve(pad[1], {}, {}), 16, 'unchanged 16px with no inset');
 });
 
-test('gym mode keeps its tighter 10px sides, but still clears a side inset', (assert)=>{
-  const b = ruleBlock('body.gym-mode .wrap', 'padding-top');
-  const env = {vw:430, left:40, right:24};
-  const g = gutters(env);
-  assert.equal(resolve(decl(b, 'padding-left'), env, g.vars), 40);
-  assert.equal(resolve(decl(b, 'padding-right'), env, g.vars), 24);
-  const portrait = {vw:402, left:0, right:0};
-  assert.equal(resolve(decl(b, 'padding-left'), portrait, gutters(portrait).vars), 10);
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's .wrap rule is gone.
 
 run();

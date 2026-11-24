@@ -86,15 +86,9 @@ function extractCustomProp(cssText, name){
 // "[PRINT REPORT]" section that follows it) — a name-based lookup, not a
 // hardcoded line range, so it survives drift the same way the rest of this
 // project's tests do.
-function extractGymModeBlock(source){
-  const start = source.indexOf('── GYM MODE');
-  const end = source.indexOf('[PRINT REPORT]', start);
-  if(start === -1 || end === -1) throw new Error('extractGymModeBlock: markers not found');
-  return source.slice(start, end);
-}
+// 2026-11-24 (v3.654, UX-17c): the Gym Mode block is gone, so there is no exception left.
 
 const rootBlock = extractRoot(src);
-const gymBlock = extractGymModeBlock(src);
 
 // ── The two new companions ──────────────────────────────────────────────
 test('sabotage-relevant: --plate-teal-rgb is declared exactly once in :root', (assert)=>{
@@ -172,8 +166,9 @@ test('REAL CASCADE: .warmup-box background+border (orange) resolve to the exact 
   // 2026-10-26 (v3.401): plus a third, visibility-only rule that hides the
   // ramp outside gym mode. It may set display:none and nothing else, so the
   // colour accounting below is unaffected.
-  assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 3, '.warmup-box: base rule, Gym Mode override, v3.401 visibility rule');
-  assert.match(src, /body:not\(\.gym-mode\) #exerciseList \.warmup-box\{display:none;\}/, 'the third rule is visibility only');
+  // 2026-11-24 (v3.654, UX-17c): 3 -> 2, the Gym Mode override went with Gym mode's CSS.
+  assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 2, '.warmup-box: base rule, v3.401 visibility rule');
+  assert.match(src, /:root body #exerciseList \.warmup-box\{display:none;\}/, 'the third rule is visibility only');
   const block = extractRuleBlock(src, '.warmup-box');
   assert.doesNotMatch(block, /rgba\(255,\s*122,\s*51,/, 'the literal orange rgba() must be gone');
   const resolved = resolveVars(block);
@@ -234,37 +229,24 @@ test('REAL CASCADE: .care-banner-urgent (red) resolves to the exact pre-conversi
   assert.match(src, /\.app-banner-urgent::before\{[^}]*width:4px; background:var\(--plate-red\)/);
 });
 
-// ── Gym Mode must stay untouched ────────────────────────────────────────
 // 2026-10-26 (v3.316): Gym Mode's literal teal sites were all on its drop-set
 // rows, removed with the rest of the gym-mode set-row styling (gym mode hides
 // set rows; see test-gym-mode-audit-fixes.js), so the teal-literal floor is
 // gone. Neither colour may be converted to var() inside Gym Mode, still.
-test('regression guard: Gym Mode keeps its own literal orange rgba() values, and neither orange nor teal is converted to var() there', (assert)=>{
-  const orangeLiterals = (gymBlock.match(/rgba\(255,\s*122,\s*51,/g) || []).length;
-  const tealLiterals = (gymBlock.match(/rgba\(47,\s*184,\s*196,/g) || []).length;
-  assert.ok(orangeLiterals >= 3, `Gym Mode should still hold real literal orange rgba() sites, found ${orangeLiterals}`);
-  assert.strictEqual(tealLiterals, 0, `the gym-mode drop rows (the only teal literal sites) were removed in v3.316, found ${tealLiterals}`);
-  const orangeVarUse = (gymBlock.match(/rgba\(var\(--plate-orange-rgb\)/g) || []).length;
-  const tealVarUse = (gymBlock.match(/rgba\(var\(--plate-teal-rgb\)/g) || []).length;
-  assert.strictEqual(orangeVarUse, 0, 'this pass must not have touched Gym Mode\'s orange literals');
-  assert.strictEqual(tealVarUse, 0, 'this pass must not have touched Gym Mode\'s teal literals');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. The Gym Mode block is gone; the three orange literals it allowed (the warm-up chips) are the token now.
 
-// ── Full accounting: every targeted literal outside Gym Mode is gone ─────
-test('sabotage-relevant: zero literal rgba(R,G,B,...) remain OUTSIDE Gym Mode for all 5 converted colors', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): the whole stylesheet now (the Gym Mode exception went with it).
+test('sabotage-relevant: zero literal rgba(R,G,B,...) remain anywhere in the stylesheet for all 5 converted colors', (assert)=>{
   const styleStart = src.indexOf('<style>');
   const styleEnd = src.indexOf('</style>');
-  const gymStart = src.indexOf('── GYM MODE', styleStart);
-  const gymEnd = src.indexOf('[PRINT REPORT]', gymStart);
-  const before = src.slice(styleStart, gymStart);
-  const after = src.slice(gymEnd, styleEnd);
+  const before = src.slice(styleStart, styleEnd); // the whole stylesheet
   const targets = {
     red: [255,69,58], green: [50,215,75], orange: [255,122,51],
     teal: [47,184,196], purple: [178,107,255],
   };
   for(const [name, [r,g,b]] of Object.entries(targets)){
     const re = new RegExp(`rgba\\(\\s*${r}\\s*,\\s*${g}\\s*,\\s*${b}\\s*,`, 'g');
-    const remaining = (before.match(re) || []).length + (after.match(re) || []).length;
+    const remaining = (before.match(re) || []).length;
     assert.strictEqual(remaining, 0, `expected zero remaining literal ${name} rgba() outside Gym Mode, found ${remaining}`);
   }
 });

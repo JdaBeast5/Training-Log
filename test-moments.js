@@ -97,8 +97,7 @@ test('criterion 3: CSSOM: the moment sits above the tab bar (bottom from --above
     assert.ok(!/rotate|celebrate-icon-pop/.test(r.style.getPropertyValue('animation') + r.style.getPropertyValue('animation-name')), 'no icon spin');
   }
   assert.ok(!/@keyframes\s+celebrate-icon-pop/.test(CSS), 'the pop keyframes are gone');
-  // Gym mode has no tab bar: the moment sits above the gym dock (the dock's Log is its Log), as the rest pill does there.
-  assert.match(rule('body.gym-mode .celebrate-banner').getPropertyValue('bottom'), /^calc\(108px/);
+  // 2026-11-24 (v3.654, UX-17c): the gym-dock placement retired with Gym mode's CSS.
   // The motion: 220 ms in, 160 ms out, opacity and transform only.
   assert.match(rule('.celebrate-banner.active').getPropertyValue('transition'), /opacity 220ms .*transform 220ms/);
   assert.match(b.getPropertyValue('transition'), /opacity 160ms/);

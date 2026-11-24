@@ -73,15 +73,9 @@ function extractCustomProp(cssText, name){
 // The Gym Mode CSS block boundary, by the same text markers H2.1/H2.2 used
 // (the "── GYM MODE" header through the "[PRINT REPORT]" section after it) —
 // a name-based lookup, not a hardcoded line range, so it survives drift.
-function extractGymModeBlock(source){
-  const start = source.indexOf('── GYM MODE');
-  const end = source.indexOf('[PRINT REPORT]', start);
-  if(start === -1 || end === -1) throw new Error('extractGymModeBlock: markers not found');
-  return source.slice(start, end);
-}
+// 2026-11-24 (v3.654, UX-17c): the Gym Mode block is gone, so there is no exception left.
 
 const rootBlock = extractRoot(src);
-const gymBlock = extractGymModeBlock(src);
 
 // ── Both companions already existed before this pass (H2.1) ────────────────
 test('sabotage-relevant: --plate-blue-rgb and --plate-yellow-rgb are each declared exactly once in :root (this pass adds no new companions)', (assert)=>{
@@ -149,7 +143,7 @@ test('REAL CASCADE: ::selection and ::-moz-selection (blue) resolve to the exact
 // background-attachment:fixed). The token rule this test exists for still
 // holds: every aura stop goes through a plate token, never a literal.
 test('REAL CASCADE: the background light (--aura, on body::before) is built from plate tokens, not literals', (assert)=>{
-  const body = extractRuleBlock(src, 'body');
+  const body = extractRuleBlock(src, '\n  body'); // the page rule (the flat-ground token block is :root body)
   assert.doesNotMatch(body, /rgba\(91,\s*124,\s*255,|rgba\(245,\s*197,\s*24,/, 'no literal blue/yellow in body{}');
   assert.match(body, /background:var\(--bg\);/);
   // 2026-11-16 (v3.580, UX-03, flat ground): the aura is retired: --aura is none
@@ -185,11 +179,8 @@ test('REAL CASCADE: .day-insight background+border (blue) resolve to the exact p
 // yellow tint's resolved literal; it now pins that the tint is gone.
 test('REMOVED (v3.304): .exercise-block.superset-pair carries no yellow tint or edge — was: REAL CASCADE: .exercise-block.superset-pair (yellow) resolves to the exact pre-conversion literal — a superset pair is now ONE physical block (its rows woven together, see renderWorkout) rather than two blocks joined by a connector strip, so this is one rule instead of two, and the connector\'s own former background is gone along with the connector element itself (the pair\'s replacement, .superset-banner, is a plain label with no fill of its own)', (assert)=>{
   const pairBlock = extractRuleBlock(src, '.exercise-block.superset-pair');
-  // Declared twice by design: the base rule here plus one Gym Mode override
-  // rule (re-seating the accent inside the pop-out panel — verified
-  // separately below as untouched). extractRuleBlock always returns the
-  // FIRST match in source order, which is this base (non-Gym-Mode) rule.
-  assert.strictEqual(countRuleOpenings(src, '.exercise-block.superset-pair'), 2, '.superset-pair must be declared exactly twice: the base rule plus the one Gym Mode override');
+  // 2026-11-24 (v3.654, UX-17c): 2 -> 1, the Gym Mode override went with Gym mode's CSS.
+  assert.strictEqual(countRuleOpenings(src, '.exercise-block.superset-pair'), 1, '.superset-pair is declared once, the base rule');
   assert.doesNotMatch(pairBlock, /plate-yellow|background|border-left/, 'no yellow, no tint, no coloured edge');
 });
 
@@ -255,26 +246,13 @@ test('UX-37: .app-banner-info has no rule of its own any more (no blue tint); th
   assert.match(src, /class="app-banner app-banner-info"/, 'anchor: the markup still names it');
 });
 
-// ── Gym Mode must stay untouched ────────────────────────────────────────
-test('regression guard: Gym Mode keeps its own literal blue/yellow rgba() values, not converted to var() by this pass', (assert)=>{
-  const blueLiterals = (gymBlock.match(/rgba\(91,\s*124,\s*255,/g) || []).length;
-  const yellowLiterals = (gymBlock.match(/rgba\(245,\s*197,\s*24,/g) || []).length;
-  assert.ok(blueLiterals >= 10, `Gym Mode should still hold real literal blue rgba() sites, found ${blueLiterals}`);
-  assert.ok(yellowLiterals >= 4, `Gym Mode should still hold real literal yellow rgba() sites, found ${yellowLiterals}`);
-  const blueVarUse = (gymBlock.match(/rgba\(var\(--plate-blue-rgb\)/g) || []).length;
-  const yellowVarUse = (gymBlock.match(/rgba\(var\(--plate-yellow-rgb\)/g) || []).length;
-  assert.strictEqual(blueVarUse, 0, 'this pass must not have touched Gym Mode\'s blue literals');
-  assert.strictEqual(yellowVarUse, 0, 'this pass must not have touched Gym Mode\'s yellow literals');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. The Gym Mode block is gone.
 
-// ── Full accounting: every targeted literal DECLARATION outside Gym Mode is gone ─
-test('sabotage-relevant: zero literal rgba(R,G,B,...) DECLARATIONS remain OUTSIDE Gym Mode for blue and yellow', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): the whole stylesheet now (the Gym Mode exception went with it).
+test('sabotage-relevant: zero literal rgba(R,G,B,...) DECLARATIONS remain anywhere in the stylesheet for blue and yellow', (assert)=>{
   const styleStart = src.indexOf('<style>');
   const styleEnd = src.indexOf('</style>');
-  const gymStart = src.indexOf('── GYM MODE', styleStart);
-  const gymEnd = src.indexOf('[PRINT REPORT]', gymStart);
-  let before = src.slice(styleStart, gymStart);
-  const after = src.slice(gymEnd, styleEnd);
+  let before = src.slice(styleStart, styleEnd); // the whole stylesheet
   // The [STABILIZATION PHASE E] comment near the top of <style> quotes the
   // blue triplet in prose as a worked example ("e.g. every rgba(91,124,255,X)
   // is --plate-blue at some opacity...") — it is documentation, not a
@@ -289,7 +267,7 @@ test('sabotage-relevant: zero literal rgba(R,G,B,...) DECLARATIONS remain OUTSID
   const targets = { blue: [91,124,255], yellow: [245,197,24] };
   for(const [name, [r,g,b]] of Object.entries(targets)){
     const re = new RegExp(`rgba\\(\\s*${r}\\s*,\\s*${g}\\s*,\\s*${b}\\s*,`, 'g');
-    const remaining = (before.match(re) || []).length + (after.match(re) || []).length;
+    const remaining = (before.match(re) || []).length;
     assert.strictEqual(remaining, 0, `expected zero remaining literal ${name} rgba() outside Gym Mode, found ${remaining}`);
   }
 });

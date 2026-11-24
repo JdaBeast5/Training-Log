@@ -62,10 +62,10 @@
 const { readIndexSource, makeRunner } = require('./testHelpers.js');
 
 // 2026-10-28 (v3.477): the light appearance redefines some of these tokens
-// inside @media (prefers-color-scheme: light){ body:not(.gym-mode){…} }. Every check here is
+// inside @media (prefers-color-scheme: light){ :root body{…} }. Every check here is
 // about the dark design of record, so that one block is left out of the text
 // this suite counts in (test-light-mode.js covers it).
-const LIGHT_BLOCK = /  @media \(prefers-color-scheme: light\)\{\n[\s\S]*?    body:not\(\.gym-mode\)\{[\s\S]*?\n    \}\n  \}\n/; // v3.480: on body
+const LIGHT_BLOCK = /  @media \(prefers-color-scheme: light\)\{\n[\s\S]*?    :root body\{[\s\S]*?\n    \}\n  \}\n/; // v3.480: on body
 const rawSrc = readIndexSource();
 if(!LIGHT_BLOCK.test(rawSrc)) throw new Error('anchor: the light token block was not found');
 const src = rawSrc.replace(LIGHT_BLOCK, '');
@@ -116,11 +116,11 @@ function resolveToken(ruleText, tokenName, tokenValue){
 }
 
 // ── Tokens exist exactly once, defined in :root ─────────────────────────
-test('sabotage-relevant: --focus-ring-glow and --gym-panel-gradient are each declared exactly once, in :root', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): --gym-panel-gradient went with its last call site (gym mode's warm-up box).
+test('sabotage-relevant: --focus-ring-glow is declared exactly once, in :root; --gym-panel-gradient is gone', (assert)=>{
   assert.strictEqual((src.match(/--focus-ring-glow:/g) || []).length, 1);
-  assert.strictEqual((src.match(/--gym-panel-gradient:/g) || []).length, 1);
+  assert.strictEqual((src.match(/--gym-panel-gradient/g) || []).length, 0);
   assert.ok(rootBlock.includes('--focus-ring-glow:'), 'must live in :root');
-  assert.ok(rootBlock.includes('--gym-panel-gradient:'), 'must live in :root');
 });
 
 // ── Focus-ring glow: 4 real call sites ──────────────────────────────────
@@ -160,25 +160,10 @@ test('REAL CASCADE: .ex-input:focus, .program-select:focus, .care-input:focus ea
 // removed with the rest of the gym-mode set-row styling (gym mode hides those
 // rows behind the set chips; see test-gym-mode-audit-fixes.js). The warm-up
 // box is the token's one remaining call site.
-test('sabotage-relevant: var(--gym-panel-gradient) appears at exactly 1 real call site', (assert)=>{
-  const count = (src.match(/var\(--gym-panel-gradient\)/g) || []).length;
-  assert.strictEqual(count, 1, `expected 1 usage site, found ${count}`);
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. --gym-panel-gradient had one call site, body.gym-mode .warmup-box.
 
-test('REAL CASCADE: body.gym-mode .warmup-box resolves to the exact pre-conversion gradient literal (the set-row well and note field were removed in v3.316)', (assert)=>{
-  const grad = extractCustomProp(rootBlock, 'gym-panel-gradient');
-  assert.strictEqual(grad, 'linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%)', 'sanity: token holds the known pre-conversion literal');
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. body.gym-mode .warmup-box is gone.
 
-  for(const selector of ['body.gym-mode .warmup-box']){
-    const block = extractRuleBlock(src, selector);
-    const resolved = resolveToken(block, 'gym-panel-gradient', grad);
-    assert.ok(resolved.includes(`background:${grad};`), `${selector} must resolve to the exact pre-conversion gradient, got: ${resolved}`);
-    assert.doesNotMatch(resolved, /var\(--gym-panel-gradient\)/, `${selector} must have no unresolved var() left after substitution`);
-  }
-});
-
-// ── .vol-bar-fill: swapped to the already-existing --cta-gradient-blue ──
-// 2026-11-16 (v3.580, UX-03, flat ground): --cta-gradient-* are retired; the bar is the flat blue spot ink.
 test('REAL source (v3.580, UX-03): .vol-bar-fill is the flat --spot-blue, and no --cta-gradient token remains', (assert)=>{
   assert.strictEqual(countRuleOpenings(src, '.vol-bar-fill'), 1);
   assert.match(extractRuleBlock(src, '.vol-bar-fill'), /background:var\(--spot-blue\)/);

@@ -69,7 +69,7 @@ test('REAL CSSOM (v3.580, UX-03): the primary .save-btn is a flat ink pill — n
   assert.strictEqual(b.getPropertyValue('background'), 'var(--text)');
   assert.strictEqual(b.getPropertyValue('color'), 'var(--ground)');
   assert.strictEqual(b.getPropertyValue('border-radius'), 'var(--radius-pill)');
-  const flat = allRules().find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+  const flat = allRules().find(r => r.selectorText === ':root body' && !r.parentRule);
   assert.strictEqual(flat.style.getPropertyValue('--cta-glow').trim(), 'none', 'the glow is off outside Gym mode');
   assert.strictEqual(allRules().filter(r => r.selectorText === '.save-btn::after').length, 0);
   assert.strictEqual(root().getPropertyValue('--shine-gloss').trim(), 'none');

@@ -84,16 +84,7 @@ test('REAL formulas (v3.496): an off-centre fold with a physical gap is respecte
   assert.ok(g.col2Left > 530 && g.col1Right < 500, 'nothing is laid across the gap');
 });
 
-test('REAL formulas (v3.496): gym mode\'s list | exercise split and its dock follow the fold', (assert)=>{
-  const v = { foldL:500, foldR:530, vw:904 };
-  const hl = 'env(viewport-segment-right 0 0, 50vw)';
-  const gymCols = decl(rule(HINGE, 'body.gym-mode #exerciseList'), 'grid-template-columns');
-  const col1 = px(gymCols.split(' minmax')[0].replace('var(--hinge-l)', hl), v);
-  assert.equal(10 + col1, 488, 'the list ends 12px before the fold (10px gym-mode side)');
-  const gymRoot = rule(HINGE, 'body.gym-mode');
-  assert.equal(px(decl(gymRoot, '--gym-col-w').replace('var(--hinge-l)', hl), v), col1, 'the dock and rest timer measure the same column');
-  assert.equal(decl(gymRoot, '--gym-wrap-left'), '0px');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's split and dock are gone.
 
 test('REAL formulas (v3.496): the sticky day header spans the session pane up to the fold', (assert)=>{
   const h = rule(HINGE, '.sticky-day-header');

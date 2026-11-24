@@ -109,10 +109,10 @@ test('criterion 1: #workoutCard (not in gym mode) is on the ground: transparent,
   assert.ok(['transparent', 'rgba(0, 0, 0, 0)'].includes(card.backgroundColor), 'transparent: ' + card.backgroundColor);
   const cb = cascade(ui.$('workoutCard'), ['border-top-style', 'border-style']);
   assert.strictEqual(cb.value, 'none', 'no border');
-  assert.match(cb.sel, /^body:not\(\.gym-mode\) #workoutCard$/, 'from the flat card rule');
+  assert.match(cb.sel, /^:root body #workoutCard$/, 'from the flat card rule');
   assert.strictEqual(card.borderRadius, '0px');
   assert.strictEqual(card.boxShadow, 'none');
-  assert.strictEqual(pseudo('body:not(.gym-mode) #workoutCard::before').getPropertyValue('display'), 'none');
+  assert.strictEqual(pseudo(':root body #workoutCard::before').getPropertyValue('display'), 'none');
   // Every element of the head and the list, as the cascade resolves it. Not
   // the hero (not displayed while the cover shows), and not what UX-24 owns:
   // the open exercise's logger (.expand-wrap) and the extras under the list
@@ -133,12 +133,10 @@ test('criterion 1: #workoutCard (not in gym mode) is on the ground: transparent,
     if(sh && sh !== 'none' && /(\d+(\.\d+)?px\s+){2}[1-9]/.test(sh.replace(/var\([^)]*\)/g, ''))) bad.push((el.id || el.className) + ' blurred shadow ' + sh);
   }
   assert.deepStrictEqual(bad, [], 'no glass, gradient or blur under #workoutCard');
-  // Gym mode keeps its own card rule (UX-17 decides it): ours don't reach it.
-  const gym = page('day-red has-cover gym-mode');
-  assert.ok(!/not\(\.gym-mode\)/.test(cascade(gym.$('workoutCard'), ['background', 'background-color']).sel), 'gym mode\'s card is its own rule');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
-test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the IDs stay in the DOM); with the cover hidden it is; in gym mode it is hidden as at v3.599', (assert)=>{
+test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the IDs stay in the DOM); with the cover hidden it is', (assert)=>{
   // Through the real syncTodayChrome: it sets has-cover from the cover's hidden.
   const { window } = runJsdom(BODY, `
     window.matchMedia = () => ({ matches: false });`, [extractConst(src, 'TODAY_CHROME_MOVES'), extractFunction(src, 'syncTodayChrome')]);
@@ -147,8 +145,6 @@ test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the ID
   assert.ok(window.document.body.classList.contains('has-cover'), 'the cover shows: has-cover');
   cover.hidden = true; window.syncTodayChrome();
   assert.ok(!window.document.body.classList.contains('has-cover'), 'the cover hidden: no has-cover');
-  window.document.body.classList.add('gym-mode'); cover.hidden = false; window.syncTodayChrome();
-  assert.ok(window.document.body.classList.contains('has-cover'), 'gym mode too (the CSS decides)');
 
   const shown = page('day-red has-cover');
   assert.strictEqual(shown.cs(shown.doc.querySelector('#workoutCard .workout-hero')).display, 'none', 'the cover names the day');
@@ -158,9 +154,7 @@ test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the ID
   const none = page('day-red');
   assert.strictEqual(none.cs(none.doc.querySelector('#workoutCard .workout-hero')).display, 'flex', 'no cover: the hero names the day, as before');
   assert.strictEqual(none.cs(none.doc.querySelector('.then-title')).display, 'none');
-  const gym = page('day-red has-cover gym-mode');
-  assert.strictEqual(gym.cs(gym.doc.querySelector('#workoutCard .workout-hero')).display, 'none', 'gym mode: hidden, as at v3.599 (its own rule)');
-  assert.strictEqual(gym.cs(gym.doc.querySelector('.then-title')).display, 'none', 'no "Then" in gym mode');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
 test('criterion 3: the head line holds the phase, the length and the calories as renderWorkout writes them, joined with " · " (no wording change)', (assert)=>{
@@ -181,7 +175,7 @@ test('criterion 3: the head line holds the phase, the length and the calories as
   assert.strictEqual(ui.cs(ui.$('mesocyclePhaseTag')).display, 'inline');
   assert.strictEqual(ui.cs(ui.$('dayDuration')).display, 'inline');
   // The separator opens every shown part after the first shown one.
-  const sepSel = 'body:not(.gym-mode) #workoutCard .duration-row > :not(:empty) ~ :not(:empty)';
+  const sepSel = ':root body #workoutCard .duration-row > :not(:empty) ~ :not(:empty)';
   assert.match(pseudo(sepSel + '::before').getPropertyValue('content'), /^["'] · ["']$/, '" · " between parts');
   assert.ok(!ui.$('mesocyclePhaseTag').matches(sepSel), 'nothing before the first part');
   assert.ok(ui.$('dayDuration').matches(sepSel), 'the second part opens with " · "');
@@ -227,11 +221,7 @@ test('criterion 5: chips in the cover\'s grammar: done = --text fill with a chec
   }
   const nextChip = ui.doc.querySelector('#exerciseList .set-chip.is-ready'); nextChip.classList.add('is-next');
   assert.ok(!/spot-blue|plate-blue/.test(ui.cs(nextChip).getPropertyValue('background') + cascade(nextChip, BORDER).value), 'the session\'s next chip too');
-  // Gym mode keeps its chips (UX-17): no check, its own fills.
-  const gym = page('day-red has-cover gym-mode');
-  gym.doc.getElementById('exerciseList').innerHTML = window.document.getElementById('exerciseList').innerHTML;
-  assert.strictEqual(gym.cs(gym.doc.querySelector('.set-chip.is-done .set-chip-check')).display, 'none', 'no check in gym mode');
-  assert.notStrictEqual(gym.cs(gym.doc.querySelector('.set-chip.is-done')).getPropertyValue('background'), 'var(--text)', 'gym mode\'s done chip is its own');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
 // 2026-11-24 (v3.653, UX-17b): the Gym mode half of this criterion retired with
@@ -274,14 +264,12 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
   // The rule: 4 px in the day's ink along the left edge, outside gym mode.
   const ui = page('day-red has-cover');
   const b = ui.doc.querySelector('#exerciseList .exercise-block'); b.classList.add('is-now');
-  const sel = 'body:not(.gym-mode) #exerciseList .is-now';
+  const sel = ':root body #exerciseList .is-now';
   const a = pseudo(sel + '::after');
   assert.strictEqual(a.getPropertyValue('width'), '4px');
   assert.strictEqual(a.getPropertyValue('background'), 'var(--spot)');
   assert.ok(b.matches(sel), 'the marked row takes the rule');
-  const gym = page('day-red has-cover gym-mode');
-  const g = gym.doc.querySelector('#exerciseList .exercise-block'); g.classList.add('is-now');
-  assert.ok(!g.matches(sel), 'not in gym mode');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
   assert.strictEqual(ui.cs(b).position, 'relative');
 });
 
@@ -361,9 +349,7 @@ test('UX-24 criterion 1: the open logger, its actions, the extras, the notes and
   assert.ok(['transparent', 'rgba(0, 0, 0, 0)'].includes(ui.cs(t.onboarding).backgroundColor), 'Getting Started: no card');
   assert.strictEqual(cascade(t.onboardingCheck, ['border-color', 'border-top-color']).value, 'var(--rule-strong)', 'an open step: a circle in --rule-strong');
   assert.strictEqual(cascade(ui.doc.querySelector('#onboardingCard .onboarding-row.done .onboarding-check'), ['background', 'background-color']).value, 'var(--text)', 'a done step: ink, not plate green');
-  // Gym mode is untouched (UX-17): the extras keep their own rules.
-  const gym = openPage('day-red has-cover gym-mode');
-  assert.ok(!/not\(\.gym-mode\)/.test((cascade(gym.doc.querySelector('#exerciseList .same-as-last-btn'), ['background', 'background-color']) || {sel: ''}).sel), 'gym mode keeps its own Same as Last Time');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
 test('UX-24 criterion 2: every one of those controls is at least 44 px tall and has an accessible name (the real markup)', (assert)=>{
@@ -450,15 +436,13 @@ test('UX-34: "Technique & focus" outside gym mode: the summary, the form-video l
   const sum = block.querySelector('.ex-details summary');
   assert.strictEqual(ui.cs(sum).color, 'var(--text)');
   assert.ok(parseFloat(ui.cs(sum).minHeight) >= 44, '44 pt');
-  assert.strictEqual(pseudo('body:not(.gym-mode) #exerciseList .ex-details summary::before').getPropertyValue('border-color'), 'var(--text-2)', 'the chevron');
+  assert.strictEqual(pseudo(':root body #exerciseList .ex-details summary::before').getPropertyValue('border-color'), 'var(--text-2)', 'the chevron');
   const link = block.querySelector('.ex-video-link');
   if(link) assert.strictEqual(ui.cs(link).color, 'var(--text)', 'the form-video link');
   const ico = block.querySelector('.ex-icon');
   if(ico) assert.strictEqual(ui.cs(ico).color, 'var(--text-2)');
   for(const el of [sum, link, ico].filter(Boolean)) assert.ok(!/plate-blue|#7A93FF/i.test(ui.cs(el).color), 'no blue');
-  const gym = page('day-red has-cover gym-mode');
-  const gb = gym.doc.querySelector('#exerciseList .exercise-block'); gb.insertAdjacentHTML('beforeend', details);
-  assert.notStrictEqual(gym.cs(gb.querySelector('.ex-details summary')).color, 'var(--text)', 'gym mode keeps its own');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
 run();

@@ -106,16 +106,7 @@ test('criterion 2: after the cover\'s last set is logged, "now" moves to the nex
   assert.strictEqual(visibleChips(ui, b1), 0, 'the new "now" row is compact');
 });
 
-test('outside the cover: no compact row in gym mode (its own look)', (assert)=>{
-  const gym = page('day-red has-cover gym-mode');
-  gym.window.renderAllSetChips(); gym.window.renderUpNext();
-  const b = gym.doc.querySelector('#exerciseList .is-now');
-  assert.ok(b, 'anchor: the marker is set');
-  const other = blocks(gym).find(x => x !== b);
-  assert.strictEqual(gym.shown(b.querySelector('.set-chips')), gym.shown(other.querySelector('.set-chips')), 'gym mode treats the "now" row\'s chips as any other row\'s');
-  assert.ok(gym.shown(b.querySelector('.ex-sets')) === gym.shown(other.querySelector('.ex-sets')), 'and its prescription line');
-  assert.ok(!gym.shown(b.querySelector('.ex-now-meta')), 'and shows no meta line');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's own list look is gone.
 
 const arrowColour = (bodyClass, css) => {
   const ui = page(bodyClass, css);
@@ -124,9 +115,10 @@ const arrowColour = (bodyClass, css) => {
   chip.insertAdjacentHTML('beforeend', '<span class="set-chip-trend is-up">↑</span>');
   return ui.cs(chip.querySelector('.set-chip-trend')).color;
 };
+
 test('criterion 4: outside gym mode no list chip\'s ↑ computes to the green ink (it is --text-2); in gym mode it is unchanged', (assert)=>{
   assert.strictEqual(arrowColour('day-red has-cover'), 'var(--text-2)');
-  assert.strictEqual(arrowColour('day-red has-cover gym-mode'), 'var(--plate-green)');
+  // 2026-11-24 (v3.654, UX-17c): "in gym mode it is unchanged" retired with Gym mode's CSS.
 });
 
 test('criterion 5: with the cover showing, "Then" carries no "Week" or "Accumulation", still the time; without the cover the phase line shows', (assert)=>{
@@ -163,7 +155,7 @@ test('criterion 5: with the cover showing, "Then" carries no "Week" or "Accumula
   assert.match(extractFunction(src, 'renderUpNext'), /textOf\('mesocyclePhaseTag'\)/);
   // No leading " · " before the time once the phase is hidden.
   const rules = (()=>{ const { window } = new JSDOM(`<style>${CSS}</style>`); const out = []; const walk = l => { for(const r of l){ if(r.selectorText) out.push(r); else if(r.cssRules) walk(r.cssRules); } }; walk(window.document.styleSheets[0].cssRules); return out; })();
-  const r = rules.find(x => x.selectorText.includes('body.has-cover:not(.gym-mode) #workoutCard #mesocyclePhaseTag + :not(:empty)::before'));
+  const r = rules.find(x => x.selectorText.includes(':root body.has-cover #workoutCard #mesocyclePhaseTag + :not(:empty)::before'));
   assert.ok(r && r.style.getPropertyValue('content') === 'none');
 });
 
