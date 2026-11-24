@@ -62,7 +62,7 @@ test('REAL CSSOM: no .workout-hero-glow rule survives, and the plate\'s own rule
 // pills now. What this test still guards from v3.275: neither glows (glow is
 // reserved for the primary button and the coach button), borders are kept.
 test('REAL CSSOM: Adapt and Gym mode are glass pills (glass fill, border kept) with no glow', (assert)=>{
-  for(const sel of ['.adapt-workout-toggle', '.gym-enter-btn']){
+  for(const sel of ['.adapt-workout-toggle']){ // 2026-11-24 (v3.654, UX-17c): .gym-enter-btn went with Gym mode's CSS
     const st = only(sel);
     assert.strictEqual(st.getPropertyValue('background'), 'var(--glass-fill)', `${sel} is glass`);
     assert.match(st.getPropertyValue('border'), /1px solid/, `${sel} keeps its border`);

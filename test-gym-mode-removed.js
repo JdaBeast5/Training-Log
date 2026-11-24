@@ -85,4 +85,24 @@ test('criterions 3 and 4: with a live gym-session and gym-auto stored, ?view=gym
   assert.strictEqual(w.__store['gym-session'].length > 0 && w.__store['gym-auto'], '1', 'and are left as they were (no migration)');
 });
 
+// v3.654 (UX-17c): Gym mode's CSS goes too. The Today rules that were scoped
+// body:not(.gym-mode) keep their specificity as ":root body" (see the comment
+// at the flat-ground token block), so no rule loses to one it used to beat.
+// Sabotage: put one body.gym-mode rule back and this fails.
+test('UX-17c criterion 7: no CSS rule, token or keyframes names gym mode (CSSOM count 0); the old scope became :root body', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { window } = new JSDOM(`<style>${CSS}</style>`);
+  const sels = [], names = [];
+  const walk = l => { for(const r of l){ if(r.selectorText) sels.push(r.selectorText); if(r.name) names.push(r.name); if(r.style) for(let i = 0; i < r.style.length; i++) names.push(r.style[i]); if(r.cssRules) walk(r.cssRules); } };
+  walk(window.document.styleSheets[0].cssRules);
+  assert.ok(sels.length > 1500, 'anchor: the whole stylesheet parsed (' + sels.length + ' rules)');
+  const gym = sels.filter(x => /gym-mode|gym-leaving|gym-finishing|\.gym-dock|\.gym-offer|\.gym-enter|#gym[A-Z]|\.gym-/.test(x));
+  assert.deepStrictEqual(gym, [], 'no gym selector');
+  assert.deepStrictEqual(names.filter(n => /gym/i.test(n)), [], 'no gym keyframes or custom properties');
+  const noComments = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/gym/i.test(noComments), 'the word is gone from the CSS itself (comments aside)');
+  assert.ok(sels.includes(':root body'), 'the flat-ground token block keeps its (0,1,1) specificity as :root body');
+  assert.ok(sels.some(x => x === ':root body .rest-timer .rest-timer-ring-progress'), 'anchor: a scoped Today rule, as :root body');
+});
+
 run();

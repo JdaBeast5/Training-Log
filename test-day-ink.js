@@ -145,7 +145,7 @@ test('UX-05 criterion 4: the .p-red ... .p-white discs read var(--spot-...); eve
   for(const ink of ['red', 'blue', 'yellow', 'green', 'white']) assert.strictEqual(ruleOf('.p-' + ink).getPropertyValue('background').trim(), `var(--spot-${ink})`);
   for(const gone of ['.p-purple', '.p-orange', '.p-teal']) assert.strictEqual(RULES.filter(r => r.selectorText === gone).length, 0, gone);
   const root = RULES.find(r => r.selectorText === ':root');
-  const light = RULES.find(r => r.selectorText === 'body:not(.gym-mode)' && r.parentRule && r.parentRule.media && /light/.test(r.parentRule.media.mediaText));
+  const light = RULES.find(r => r.selectorText === ':root body' && r.parentRule && r.parentRule.media && /light/.test(r.parentRule.media.mediaText));
   for(const [k, v] of Object.entries(PLATE_SNAPSHOT.dark)) assert.strictEqual(root.style.getPropertyValue(k).trim(), v, 'dark ' + k);
   for(const [k, v] of Object.entries(PLATE_SNAPSHOT.light)) assert.strictEqual(light.style.getPropertyValue(k).trim(), v, 'light ' + k);
 });

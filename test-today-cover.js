@@ -418,7 +418,7 @@ test('placement: the cover leads Today, outside the workout card, and gym mode h
   const view = document.getElementById('todayView');
   assert.strictEqual(view.firstElementChild, document.getElementById('upNext'));
   assert.strictEqual(document.getElementById('upNext').closest('#workoutCard'), null);
-  assert.strictEqual(one('body.gym-mode .cover').getPropertyValue('display'), 'none');
+  // 2026-11-24 (v3.654, UX-17c): "gym mode hides it" retired with Gym mode's CSS.
 });
 
 // ---- v3.594 (owner request, 2026-11-17): Settings > Today cover > Quiet ----

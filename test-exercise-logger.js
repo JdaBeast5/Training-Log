@@ -134,9 +134,9 @@ function declared(selector, prop){
   return val;
 }
 
-test('REAL CSSOM: raw rows hidden on Today; the logger is gone in gym mode; no 76px indent left; the rep-range hint fits', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): "the logger is gone in gym mode" retired with Gym mode's CSS.
+test('REAL CSSOM: raw rows hidden on Today; no 76px indent left; the rep-range hint fits', (assert)=>{
   assert.strictEqual(declared('#exerciseList .sets-block > .set-row', 'display'), 'none');
-  assert.strictEqual(declared('body.gym-mode .up-next', 'display'), 'none', 'the logger carries .up-next, so gym mode drops it with the card');
   assert.strictEqual(declared('.sets-block', 'padding'), '4px 0px');
   assert.strictEqual(declared('.ex-details', 'margin'), '6px 0px 2px');
   assert.strictEqual(declared('.up-next .up-next-field input::placeholder', 'font-size'), '17px', '"10-12" in a third of a 390px card');

@@ -155,12 +155,11 @@ function declared(selector, prop){
   return val;
 }
 
-test('REAL CSSOM: an open exercise shows the chips, on Today (v3.652) and in gym mode; the rows hide behind them unless editing; chips are at least 44px', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): its gym-mode rules are gone with Gym mode's CSS.
+test('REAL CSSOM: an open exercise on Today shows the chips (v3.652); chips are at least 44px', (assert)=>{
   assert.strictEqual(declared('.warmup-chips', 'display'), 'none');
-  assert.strictEqual(declared('body.gym-mode .exercise-block.open > .warmup-chips', 'display'), 'block');
-  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .exercise-block.open > .warmup-chips', 'display'), 'block');
-  assert.ok(parseInt(declared('body:not(.gym-mode) #exerciseList .warmup-chips .set-chip', 'min-height'), 10) >= 44);
-  assert.strictEqual(declared('body.gym-mode .exercise-block:not(.warmup-editing) .warmup-strip', 'display'), 'none');
+  assert.strictEqual(declared(':root body #exerciseList .exercise-block.open > .warmup-chips', 'display'), 'block');
+  assert.ok(parseInt(declared(':root body #exerciseList .warmup-chips .set-chip', 'min-height'), 10) >= 44);
   assert.ok(parseInt(declared('.warmup-chips .set-chip', 'min-height'), 10) >= 44);
   assert.ok(parseInt(declared('.warmup-chips-head .link-btn', 'min-height'), 10) >= 44);
 });
@@ -168,33 +167,9 @@ test('REAL CSSOM: an open exercise shows the chips, on Today (v3.652) and in gym
 // v3.394: "Same as Last Time" is a quiet link in gym mode. Checked on the
 // COMPUTED style of the real button inside .set-actions in body.gym-mode, so a
 // later or more specific rule overriding it would fail this.
-test('REAL computed style (v3.394): in gym mode Same as Last Time is a link (no fill, no border, 44px), outside it a button', (assert)=>{
-  const at = gym => {
-    const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${gym ? 'gym-mode' : ''}"><div class="set-actions"><button class="same-as-last-btn">↻ Same as Last Time</button></div></body>`);
-    return window.getComputedStyle(window.document.querySelector('.same-as-last-btn'));
-  };
-  const g = at(true);
-  assert.strictEqual(g.borderTopWidth, '0px');
-  assert.match(g.backgroundColor + ' ' + g.backgroundImage, /transparent|rgba\(0, 0, 0, 0\)|none/);
-  assert.strictEqual(g.minHeight, '44px');
-  assert.strictEqual(g.width, 'auto');
-  const n = at(false);
-  assert.strictEqual(g.paddingTop, '0px');
-  // Anchor on padding: jsdom cannot resolve the base rule's border shorthand
-  // (it holds var()), so a border check here would test jsdom, not the app.
-  assert.strictEqual(n.paddingTop, '7px', 'anchor: the normal Today button keeps its button padding');
-  assert.notStrictEqual(n.minHeight, '44px');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's Same as Last Time link style is gone.
 
-// v3.401 (owner: "the warm up ramp is still in the regular work out, didn't
-// we say to only keep the ramp in the gym mode?"). v3.392 changed how gym mode
-// shows the ramp and left Today's list as it was; the owner meant the ramp
-// belongs to gym mode only. Outside gym mode no ramp shows — loggable rows,
-// read-only table or nudge. Checked on COMPUTED style of real markup.
-// v3.652 (UX-17a): Gym mode is going, so the loggable ramp's chips come to
-// Today's open exercise (next test). The rows and the read-only ramp stay
-// hidden on Today, except that Edit shows the rows.
-test('REAL computed style (v3.401, v3.652): the ramp\'s rows stay hidden on Today unless editing; gym mode still shows it', (assert)=>{
+test('REAL computed style (v3.401, v3.652): the ramp\'s rows stay hidden on Today unless editing', (assert)=>{
   const at = (bodyClass, blockClass = 'exercise-block open') => {
     const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${bodyClass}"><div id="exerciseList"><div class="${blockClass}">
       <div class="sets-block"><div class="warmup-strip" id="s">rows</div><div class="warmup-box" id="b">Warm up first</div></div></div></div></body>`);
@@ -203,10 +178,7 @@ test('REAL computed style (v3.401, v3.652): the ramp\'s rows stay hidden on Toda
   };
   assert.deepStrictEqual(at(''), { strip: 'none', box: 'none' }, 'regular Today list');
   assert.notStrictEqual(at('', 'exercise-block open warmup-editing').strip, 'none', 'v3.652: Edit shows the rows on Today too');
-  const gym = at('gym-mode');
-  assert.strictEqual(gym.strip, 'none', 'gym mode: the rows sit behind the chips…');
-  assert.notStrictEqual(gym.box, 'none', '…and a read-only ramp or nudge still shows');
-  assert.notStrictEqual(at('gym-mode', 'exercise-block open warmup-editing').strip, 'none', '…and Edit brings the rows back');
+  // 2026-11-24 (v3.654, UX-17c): the gym-mode half retired with Gym mode's CSS.
 });
 
 // v3.652 (UX-17a criterion 1): the chips' computed display on Today, on the
@@ -225,11 +197,10 @@ test('UX-17a criterion 1 (REAL computed style): outside gym mode an open exercis
   assert.ok(!/255, 122, 51/.test(open.chipBg), 'not gym mode\'s orange fill: ' + open.chipBg);
   // jsdom can't resolve the ink fill's var(), so the computed background can't
   // tell the two apart: the override is checked as declared on the real sheet.
-  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .warmup-chips .set-chip.is-done', 'background'), 'none', 'a done step is not the logged set\'s ink fill');
-  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .set-chip.is-done', 'background'), 'var(--text)', 'anchor: the logged set\'s fill it overrides');
+  assert.strictEqual(declared(':root body #exerciseList .warmup-chips .set-chip.is-done', 'background'), 'none', 'a done step is not the logged set\'s ink fill');
+  assert.strictEqual(declared(':root body #exerciseList .set-chip.is-done', 'background'), 'var(--text)', 'anchor: the logged set\'s fill it overrides');
   assert.match(open.doneLine, /line-through/, 'and is struck through (not counted)');
   assert.strictEqual(at('', 'exercise-block').display, 'none', 'a closed exercise');
-  assert.strictEqual(at('gym-mode', 'exercise-block open').display, 'block', 'gym mode keeps them');
 });
 
 run();

@@ -102,7 +102,7 @@ test('criterion 3: the urgent banner keeps a 4 px warning bar, and its title in 
   assert.strictEqual(ui.cs(b).overflow, 'hidden');
   assert.strictEqual(ui.cs(b.querySelector('.app-banner-title')).color, 'var(--text)');
   const get = (sel, prop, light) => { let v = null; for(const {r, media} of RULES){ if(r.selectorText === sel && (!media || (light && /prefers-color-scheme:\s*light/.test(media) && !/contrast/.test(media)))){ const x = r.style.getPropertyValue(prop).trim(); if(x) v = x; } } return v; };
-  const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && (get('body:not(.gym-mode)', n, true) || get(':root:not([data-theme="dark"])', n, true) || get(':root', n, true))) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
+  const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && (get(':root body', n, true) || get(':root:not([data-theme="dark"])', n, true) || get(':root', n, true))) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
   const lum = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0); };
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
   for(const light of [false, true]){
@@ -123,11 +123,11 @@ test('the entrance is opacity and transform only, and instant under Reduce Motio
   assert.strictEqual(rm.r.style.getPropertyValue('opacity'), '1');
 });
 
-test('placement: the rail stays in the page flow (never over the cover\'s Log button) and is hidden in gym mode', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): "hidden in gym mode" retired with Gym mode's CSS.
+test('placement: the rail stays in the page flow (never over the cover\'s Log button)', (assert)=>{
   const rail = RULES.filter(({r}) => r.selectorText.split(',').map(x => x.trim()).includes('.app-banner-rail'));
   assert.ok(rail.length >= 1);
   for(const {r} of rail) assert.ok(!/fixed|absolute|sticky/.test(r.style.getPropertyValue('position')), 'not overlaid');
-  assert.ok(RULES.some(({r}) => r.selectorText.split(',').map(x => x.trim()).includes('body.gym-mode .app-banner-rail') && /none/.test(r.style.getPropertyValue('display'))), 'hidden in gym mode');
   // The rail comes before Today's cover in the document.
   assert.ok(html.indexOf('id="appBannerRail"') < html.indexOf('id="upNext"'), 'above the cover');
 });

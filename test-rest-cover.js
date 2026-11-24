@@ -180,7 +180,7 @@ const rules = (() => { const out = []; const { window } = new JSDOM(`<style>${CS
   walk(window.document.styleSheets[0].cssRules, ''); return out; })();
 // 2026-11-17 (v3.599, UX-09b): a selector may sit in a group (the --spot-ink rules now also serve .finish-flood).
 const get = (sel, prop, light) => { let v = null; for(const {r, media} of rules){ if(r.selectorText.split(',').map(t => t.trim()).includes(sel) && (!media || (light && /prefers-color-scheme:\s*light/.test(media) && !/contrast/.test(media)))){ const x = r.style.getPropertyValue(prop).trim(); if(x) v = x; } } return v; };
-const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && get('body:not(.gym-mode)', n, true)) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
+const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && get(':root body', n, true)) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
 const lum = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0); };
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 
@@ -217,9 +217,9 @@ test('a timer restored on reopening takes the cover over as soon as the cover sh
 // the real stylesheet; the real startRestTimer and tickRestTimer driven with a
 // fake clock for the end; the CSSOM for the flat look.
 const PAGE_CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-function pillPage({io = true, gym = false} = {}){
+function pillPage({io = true} = {}){
   const { window } = runJsdom(`<style>${PAGE_CSS}</style>` + extractElementById(src, 'upNext').replace(' hidden>', '>') + extractElementById(src, 'restTimer'), `
-    document.body.className = 'day-red${gym ? ' gym-mode' : ''}';
+    document.body.className = 'day-red';
     window.__io = null;
     ${io ? `window.IntersectionObserver = class { constructor(cb, opts){ this.cb = cb; this.opts = opts; window.__io = this; } observe(t){ this.t = t; } disconnect(){} };` : 'delete window.IntersectionObserver;'}`,
     [iife('(function watchCoverInView(){')]);
@@ -230,7 +230,7 @@ function pillPage({io = true, gym = false} = {}){
   return { window, doc, pill, fire, shown };
 }
 
-test('UX-29 criterion 1: cover in view, the pill isn\'t shown; scrolled away, it is; in gym mode it is regardless', (assert)=>{
+test('UX-29 criterion 1: cover in view, the pill isn\'t shown; scrolled away, it is', (assert)=>{
   const ui = pillPage();
   assert.ok(ui.window.__io && ui.window.__io.t && ui.window.__io.t.id === 'upNext', 'anchor: the observer watches the cover');
   assert.ok([].concat(ui.window.__io.opts.threshold).includes(0.25), 'threshold 0.25');
@@ -243,9 +243,7 @@ test('UX-29 criterion 1: cover in view, the pill isn\'t shown; scrolled away, it
   assert.ok(ui.shown(), 'only a sliver of the cover: shown');
   ui.fire(false, 0);
   assert.ok(ui.shown(), 'cover scrolled away (or another tab, where it is display:none): shown');
-  const gym = pillPage({gym: true});
-  gym.fire(true, 1);
-  assert.ok(gym.shown(), 'gym mode: shown regardless');
+  // 2026-11-24 (v3.654, UX-17c): "in gym mode it is shown regardless" retired with Gym mode's CSS.
 });
 
 test('UX-29 criterion 2: the rest runs and ends identically: the real timer\'s end fires once whether the pill is shown or stepped aside (fake clock)', (assert)=>{
@@ -269,7 +267,7 @@ test('UX-29 criterion 2: the rest runs and ends identically: the real timer\'s e
   }
 });
 
-test('UX-29 criterion 3: CSSOM: outside gym mode, .rest-timer and .rest-timer.urgent take no plate-blue or plate-red border or shadow and no blurred coloured shadow; the ring is the day\'s ink', (assert)=>{
+test('UX-29 criterion 3: CSSOM: .rest-timer and .rest-timer.urgent take no plate-blue or plate-red border or shadow and no blurred coloured shadow; the ring is the day\'s ink', (assert)=>{
   const { window } = new JSDOM(`<style>${PAGE_CSS}</style><body class="day-red">${extractElementById(src, 'restTimer')}</body>`);
   const rules = [];
   const walk = l => { for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
@@ -296,9 +294,7 @@ test('UX-29 criterion 3: CSSOM: outside gym mode, .rest-timer and .rest-timer.ur
   assert.strictEqual(winning(pill, ['background', 'background-color']).v, 'var(--surface-2)');
   assert.strictEqual(winning(pill, ['border']).v.replace(/\s+/g, ' '), '1px solid var(--rule-strong)');
   assert.strictEqual(winning(pill.querySelector('.rest-timer-time'), ['font-family']).v, 'var(--font-sans)', 'the time in Geist');
-  // Gym mode keeps its own (UX-17): none of the flat rules reach it.
-  window.document.body.className = 'day-red gym-mode';
-  assert.ok(!/not\(\.gym-mode\)/.test(winning(pill, ['box-shadow']).sel), 'gym mode keeps its pill');
+  // 2026-11-24 (v3.654, UX-17c): "gym mode keeps its pill" retired with Gym mode's CSS.
 });
 
 test('UX-29 criterion 4: with no IntersectionObserver (old WebKit), the pill shows as now', (assert)=>{
@@ -308,7 +304,7 @@ test('UX-29 criterion 4: with no IntersectionObserver (old WebKit), the pill sho
   assert.ok(ui.shown(), 'shown');
 });
 
-test('UX-33: outside gym mode the pill\'s +15s and × are in the ink (no green or red), 44 pt, and named; gym mode keeps its own', (assert)=>{
+test('UX-33: the pill\'s +15s and × are in the ink (no green or red), 44 pt, and named', (assert)=>{
   const { window } = new JSDOM(`<style>${PAGE_CSS}</style><body class="day-red">${extractElementById(src, 'restTimer')}</body>`);
   const doc = window.document, cs = el => window.getComputedStyle(el);
   for(const id of ['restTimerAdd', 'restTimerClose']){
@@ -317,8 +313,7 @@ test('UX-33: outside gym mode the pill\'s +15s and × are in the ink (no green o
     assert.ok(parseFloat(c.minWidth) >= 44 && parseFloat(c.minHeight) >= 44, id + ': 44 pt');
     assert.ok(b.getAttribute('aria-label'), id + ': named');
   }
-  doc.body.className = 'day-red gym-mode';
-  assert.strictEqual(cs(doc.getElementById('restTimerAdd')).color, 'var(--plate-green)', 'gym mode keeps its green +15s');
+  // 2026-11-24 (v3.654, UX-17c): "gym mode keeps its green +15s" retired with Gym mode's CSS.
 });
 
 run();

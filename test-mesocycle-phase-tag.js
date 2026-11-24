@@ -71,15 +71,8 @@ test('never says "Deload" while inDeloadWeek is false, regardless of cyclePos', 
 // own dock only has a clock/progress/exit button), so hiding the tag there
 // — not mirroring it into the dock — matches the mode's own established
 // minimalism, same as .workout-hero and .duration-row already do.
-test('sabotage-relevant: .mesocycle-phase-tag is hidden in Gym Mode, in the same rule block as .workout-hero and .duration-row', (assert)=>{
-  const hideListRe = /body\.gym-mode #workoutCard \.workout-hero,[\s\S]*?display:none !important;\s*\}/;
-  const m = hideListRe.exec(src);
-  assert.ok(m, 'the gym-mode #workoutCard hide-list block must exist');
-  assert.match(m[0], /body\.gym-mode #workoutCard \.mesocycle-phase-tag/, '.mesocycle-phase-tag must be in the hide list — without it, it renders as an orphaned pill with no surrounding context once .workout-hero and .duration-row are hidden');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's #workoutCard hide list is gone.
 
-// ---- v3.543 (BL-66): the phase tag stops saying "Accumulation" where no
-// block sets are added.
 test('BL-66 criterion 1: (3, false, medical) → "Week 3 of 5", neutral class', (assert)=>{
   const t = tagFor(3, false, 'medical');
   assert.strictEqual(t.text, 'Week 3 of 5');

@@ -22,7 +22,7 @@ const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).joi
 const { window } = new JSDOM(`<style>${CSS}</style>`);
 const rules = [...window.document.styleSheets[0].cssRules];
 const lightRoots = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText))
-  .flatMap(r => [...r.cssRules]).filter(r => r.selectorText === 'body:not(.gym-mode)'); // v3.480: on body, not :root
+  .flatMap(r => [...r.cssRules]).filter(r => r.selectorText === ':root body'); // v3.480: on body, not :root
 const darkRoot = rules.find(r => r.selectorText === ':root');
 const tok = (rule, name) => rule.style.getPropertyValue(name).trim();
 // 2026-11-16 (v3.580, UX-03, flat ground): light tokens now point at the v2 aliases (--bg: var(--ground)), whose
@@ -96,29 +96,12 @@ test('REAL CSSOM (v3.479): every accent reads at 4.5:1 on the light page and on 
   }
 });
 
-// v3.480 — Gym mode stays dark. It is a hand-tuned black screen (its own
-// background, glows and literal shadows), and with light tokens inside it came
-// out half white. The light block applies to body:not(.gym-mode), so gym mode
-// inherits the dark tokens from :root whatever the phone is set to.
-test('REAL CSSOM (v3.480): the light tokens apply to everything but gym mode, which keeps the dark :root values', (assert)=>{
-  const blocks = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText)).flatMap(r => [...r.cssRules]);
-  assert.deepStrictEqual(blocks.filter(r => /--bg/.test(r.cssText)).map(r => r.selectorText), ['body:not(.gym-mode)']);
-  const { window: w } = new JSDOM('<body class="gym-mode"></body>');
-  assert.strictEqual(w.document.body.matches('body:not(.gym-mode)'), false, 'a gym-mode body does not take the light tokens');
-  w.document.body.className = '';
-  assert.strictEqual(w.document.body.matches('body:not(.gym-mode)'), true);
-  assert.match(CSS, /body\.gym-mode\{\s*background:#000;/, 'anchor: gym mode\'s own black ground');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. The light tokens now apply to every body (there is no dark gym screen left).
 
-// v3.481 — Floating panels and wells. The rest timer and the gym-mode offer
-// were literal dark gradients (dark text on a dark panel in light mode); the
-// Up next fields' wells were a black tint (grey slabs on white). All three
-// are tokens: the dark :root holds the values those rules held, light lifts
-// them to white panels and an ink-tint well.
-test('REAL CSSOM (v3.481): the rest timer, the gym offer and the Up next wells read their fill from tokens, light in light mode', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): the gym offer's rule went with Gym mode's CSS; the timer and wells stay.
+test('REAL CSSOM (v3.481): the rest timer and the Up next wells read their fill from tokens, light in light mode', (assert)=>{
   const decl = (sel, prop) => rules.filter(r => r.selectorText === sel).map(r => r.style.getPropertyValue(prop)).find(Boolean) || '';
   assert.strictEqual(decl('.rest-timer', 'background'), 'var(--rest-timer-fill)');
-  assert.strictEqual(decl('.gym-offer', 'background'), 'var(--float-panel-fill)');
   assert.strictEqual(decl('.up-next-field', 'background'), 'var(--well-fill)');
   assert.match(tok(darkRoot, '--rest-timer-fill'), /rgba\(45,\s*49,\s*55,\s*0\.86\)/, 'dark: the value the rule held');
   assert.match(tok(darkRoot, '--float-panel-fill'), /rgba\(38,\s*42,\s*49,\s*0\.94\)/);
@@ -128,8 +111,7 @@ test('REAL CSSOM (v3.481): the rest timer, the gym offer and the Up next wells r
   for(const t of ['--rest-timer-fill', '--float-panel-fill']) assert.strictEqual(res(light, t), '#FFFFFF', `${t} is white in light`);
   assert.match(tok(light, '--well-fill'), /var\(--surface-white-rgb\)/, 'the well is an ink tint in light');
   const all = []; const walk = list => { for(const r of list){ if(r.type === 1) all.push(r); else if(r.cssRules) walk(r.cssRules); } }; walk(rules);
-  // .gym-dock only exists in gym mode, which keeps the dark design (v3.480).
-  const leftovers = all.filter(r => r.selectorText !== ':root' && r.selectorText !== 'body:not(.gym-mode)' && r.selectorText !== '.gym-dock' && /rgba\((45, ?49, ?55|38, ?42, ?49)/.test(r.cssText)).map(r => r.selectorText);
+  const leftovers = all.filter(r => r.selectorText !== ':root' && r.selectorText !== ':root body' && /rgba\((45, ?49, ?55|38, ?42, ?49)/.test(r.cssText)).map(r => r.selectorText);
   assert.deepStrictEqual(leftovers, [], 'no literal panel colour left in a rule');
 });
 

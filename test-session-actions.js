@@ -57,11 +57,6 @@ test('REAL CSSOM: the session length is a full touch target at 16px; the select 
   assert.strictEqual(rule('.session-length-chevron').getPropertyValue('pointer-events'), 'none', 'taps fall through to the select');
 });
 
-test('REAL CSSOM: gym mode hides the actions row (and so the select) alongside the meta line', (assert)=>{
-  const hide = allRules().find(r => /body\.gym-mode #workoutCard \.session-actions/.test(r.selectorText));
-  assert.ok(hide, 'in the gym-mode hide list');
-  assert.strictEqual(hide.style.getPropertyValue('display'), 'none');
-  assert.match(hide.selectorText, /body\.gym-mode #workoutCard \.duration-row/, 'same rule as the meta line');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's hide list is gone.
 
 run();

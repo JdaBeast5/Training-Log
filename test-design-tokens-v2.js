@@ -2,7 +2,7 @@
 // v3.539 (UX-01): design tokens v2, introduced as aliases (no visual change).
 // The vocabulary every later UX item switches to (ground, surfaces, rules,
 // text levels, spot inks and their on-colours, deep inks, type scale, radii,
-// motion) is declared in BOTH the dark :root and the light body:not(.gym-mode)
+// motion) is declared in BOTH the dark :root and the light :root body
 // rule. Each points at today's value; a comment records its target.
 //
 // Real invocation: the real <style> is parsed by jsdom's CSSOM (as
@@ -24,7 +24,7 @@ const { window } = new JSDOM(`<style>${CSS}</style>`);
 const rules = [...window.document.styleSheets[0].cssRules];
 const darkRoot = rules.find(r => r.selectorText === ':root');
 const lightRule = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText))
-  .flatMap(r => [...r.cssRules]).find(r => r.selectorText === 'body:not(.gym-mode)');
+  .flatMap(r => [...r.cssRules]).find(r => r.selectorText === ':root body');
 
 const INKS = ['red', 'blue', 'yellow', 'green', 'white', 'off'];
 const TOKENS = ['--ground', '--surface-1', '--surface-2', '--rule', '--rule-strong', '--text-2', '--text-3',
@@ -44,7 +44,7 @@ function blockSource(startMarker){
   if(a === -1) throw new Error('token section not found after ' + startMarker);
   return CSS.slice(a, CSS.indexOf('--ease-drawer', a));
 }
-const SRC = {dark: blockSource(':root{'), light: blockSource('body:not(.gym-mode){\n      color-scheme:light;')};
+const SRC = {dark: blockSource(':root{'), light: blockSource(':root body{\n      color-scheme:light;')};
 function targets(theme){
   const t = {};
   for(const m of SRC[theme].matchAll(/(--[a-z0-9-]+):[^;]*;\s*\/\*\s*target (#[0-9A-Fa-f]{6})\s*\*\//g)) t[m[1]] = m[2].toUpperCase();
@@ -53,7 +53,7 @@ function targets(theme){
   return t;
 }
 
-test('criterion 1: every new token is defined in the dark :root and in the light body:not(.gym-mode) rule (real CSSOM)', (assert)=>{
+test('criterion 1: every new token is defined in the dark :root and in the light :root body rule (real CSSOM)', (assert)=>{
   assert.ok(darkRoot && lightRule, 'both rules found');
   const missDark = TOKENS.filter(t => !darkRoot.style.getPropertyValue(t).trim());
   const missLight = TOKENS.filter(t => !lightRule.style.getPropertyValue(t).trim());
@@ -179,8 +179,8 @@ test('UX-03 criterion 7: manifest.json\'s colours and both theme-color metas equ
   assert.deepStrictEqual(metas, {'(prefers-color-scheme: dark)': targets('dark')['--ground'], '(prefers-color-scheme: light)': targets('light')['--ground']});
 });
 
-test('UX-03: every screen but Gym mode reads the targets: body:not(.gym-mode) points today\'s names at the aliases; :root keeps Gym mode\'s values', (assert)=>{
-  const flat = rules.find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+test('UX-03: every screen but Gym mode reads the targets: :root body points today\'s names at the aliases; :root keeps Gym mode\'s values', (assert)=>{
+  const flat = rules.find(r => r.selectorText === ':root body' && !r.parentRule);
   assert.ok(flat, 'the dark flat-ground rule');
   const want = {'--bg': 'var(--ground)', '--surface': 'var(--surface-1)', '--surface2': 'var(--surface-2)', '--line': 'var(--rule)', '--line-bright': 'var(--rule-strong)', '--text-muted': 'var(--text-2)', '--glass-fill': 'var(--surface-1)', '--glass-hair': 'var(--rule)'};
   for(const [k, v] of Object.entries(want)) assert.strictEqual(flat.style.getPropertyValue(k).trim(), v, k);
@@ -191,7 +191,7 @@ test('UX-03: every screen but Gym mode reads the targets: body:not(.gym-mode) po
 // next-set chip, now flat spot blue, put white on the dark --plate-blue (#5B7CFF) at 3.6:1;
 // Gym mode shows the same chip, so the fix lives in :root.
 test('UX-03 criterion 4: the dark spot blue is its target (Gym mode included), so on-blue text on it clears 4.5:1', (assert)=>{
-  const flat = rules.find(r => r.selectorText === 'body:not(.gym-mode)' && !r.parentRule);
+  const flat = rules.find(r => r.selectorText === ':root body' && !r.parentRule);
   assert.strictEqual(flat.style.getPropertyValue('--spot-blue'), '', 'no override outside Gym mode: one value for every screen');
   const blue = darkRoot.style.getPropertyValue('--spot-blue').trim().toUpperCase();
   assert.strictEqual(blue, targets('dark')['--spot-blue']);
@@ -218,7 +218,7 @@ test('UX-12: the day-block text tokens clear 4.5:1 on their fills in both themes
 // Sabotage: put --spot-red back to var(--plate-red) and criterion 1 fails (and
 // test-today-cover.js's criterion 2: white on #FF453A is 3.41:1).
 test('UX-19 criterion 1: in both themes the red, yellow, green, white and off spot inks are literal hexes equal to the target on their own line', (assert)=>{
-  for(const [theme, marker] of [['dark', ':root{'], ['light', 'body:not(.gym-mode){\n      color-scheme:light;']]){
+  for(const [theme, marker] of [['dark', ':root{'], ['light', ':root body{\n      color-scheme:light;']]){
     const block = CSS.slice(CSS.indexOf(marker));
     for(const ink of ['red', 'yellow', 'green', 'white', 'off']){
       const m = new RegExp(`--spot-${ink}:([^;]+); \\/\\* target (#[0-9A-Fa-f]{6}) \\*\\/`).exec(block);

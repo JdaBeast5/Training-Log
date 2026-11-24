@@ -69,12 +69,12 @@ test('REAL formulas (v3.498): the tab bar spans exactly the left pane, ending be
   }
 });
 
-test('REAL formulas (v3.498): the date bar, rest timer, undo toast and gym offer centre on the left pane', (assert)=>{
+// 2026-11-24 (v3.654, UX-17c): the gym offer left the list with Gym mode's CSS.
+test('REAL formulas (v3.498): the date bar, rest timer and undo toast centre on the left pane', (assert)=>{
   const v = openVars(904);
   assert.equal(px(decl('.log-date-bar', 'max-width'), v), 904 / 2 - 12 - 18);
-  const sel = 'body:not(.gym-mode) .rest-timer, .undo-toast, .gym-offer';
+  const sel = ':root body .rest-timer, .undo-toast';
   assert.equal(px(decl(sel, 'left'), v), 18 + (904 / 2 - 30) / 2, 'centre of the left pane');
-  assert.ok(!/body\.gym-mode \.rest-timer/.test(sel), 'gym mode keeps positioning its own timer');
 });
 
 test('REAL formulas (v3.498): with a reported fold, the pane is measured from the fold', (assert)=>{
@@ -348,10 +348,7 @@ test('REAL source (v3.505): sheets are panels in a pane, never across the fold',
   assert.equal(decl('.set-sheet', 'width'), 'var(--open-col2-w)');
   assert.equal(decl('.set-sheet', 'right'), 'auto');
   assert.equal(decl('.set-sheet', 'border-radius'), '28px');
-  const gym = 'body.gym-mode:has(#exerciseList > .exercise-block.open) .set-sheet';
-  assert.equal(decl(gym, 'left'), 'calc(var(--gym-wrap-left) + 10px)', 'gym mode: the left pane');
-  assert.equal(decl(gym, 'width'), 'var(--gym-col-w)');
-  assert.equal(decl('body.gym-mode #exerciseList > .exercise-block.open', 'grid-column'), '2', 'which is opposite the pinned exercise');
+  // 2026-11-24 (v3.654, UX-17c): gym mode's own set-sheet pane retired with Gym mode's CSS.
   const outside = src.replace(RAW[OPEN], '').replace(RAW[HINGE], '').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.ok(!/--open-col2/.test(outside), 'phones keep the bottom sheets');
 });
@@ -363,32 +360,8 @@ test('REAL source (v3.505): sheets are panels in a pane, never across the fold',
 // Real-browser result (Chromium, 904x678): timer 22..428 above the dock (12px
 // clear), ring 128px, clock 34px; at 402x874 the timer is the 168px pill with
 // a 56px ring and 15px clock, unchanged. No errors.
-const GYM_OPEN = 'body.gym-mode:has(#exerciseList > .exercise-block.open)';
-test('REAL formulas (v3.506): the timer fills the left pane less a 12px margin each side, 12px clear of the dock', (assert)=>{
-  const v = { vw:904, '--wrap-max':decl(':root', '--wrap-max'), '--pane-gap':decl(':root', '--pane-gap') };
-  v['--gym-wrap-left'] = decl('body.gym-mode', '--gym-wrap-left');
-  v['--gym-col-w'] = decl('body.gym-mode', '--gym-col-w');
-  const colW = px('var(--gym-col-w)', v), w = px(decl(GYM_OPEN + ' .rest-timer', 'width'), v);
-  assert.equal(colW - w, 24);
-  assert.equal(decl(GYM_OPEN + ' .rest-timer', 'left'), 'calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2)', 'still centred on the pane');
-  const lifted = /^calc\((\d+)px \+ env\(safe-area-inset-bottom, 0px\)\)$/.exec(decl(GYM_OPEN + ' .rest-timer', 'bottom'))[1];
-  const phone = /body\.gym-mode \.rest-timer\{bottom:calc\((\d+)px \+ env/.exec(src)[1];
-  assert.equal(lifted - phone, 8, 'the phone gym timer\'s 4px gap above the dock becomes 12px');
-});
 
-test('REAL source (v3.506): a 128px ring, 34px clock and broad +15s, only in the open gym layout', (assert)=>{
-  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'width'), '128px');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'height'), '128px');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'overflow'), 'visible', 'its glow is not clipped square');
-  assert.ok(OPEN.includes(GYM_OPEN + ' .rest-timer-ring-wrap,\n    ' + GYM_OPEN + ' .rest-timer-ring{ width:128px; height:128px; }'), 'the ring\'s button grows with it');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer.expanded .rest-timer-ring-wrap', 'transform'), 'none', 'no 1.18x on top when expanded');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer-time', 'font-size'), '34px');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer .rt-add', 'min-height'), '64px');
-  assert.equal(decl(GYM_OPEN + ' .rest-timer .rt-close', 'min-height'), '56px');
-  const outside = src.replace(RAW[OPEN], '').replace(/\/\*[\s\S]*?\*\//g, '');
-  assert.match(outside, /\.rest-timer-ring\{position:absolute; inset:0; width:56px; height:56px;/, 'the phone ring stays 56px');
-  assert.ok(!/rest-timer-ring\{ width:128px/.test(outside), 'nothing outside the open block grows it');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's open-layout timer is gone.
 
 // v3.509 — Two panes that scroll on their own (owner on the Duo: "I want the
 // two sides to be able to be scrolled through separately on each tab, right
@@ -399,12 +372,12 @@ test('REAL source (v3.506): a 128px ring, 34px clock and broad +15s, only in the
 // Coach and Learn the page's scroll range is 0; scrolling the tab leaves the
 // left pane where it was, and scrolling the pane leaves the tab where it was;
 // every left pane ends at 603, 12px above the tab bar at 615; scrolled to the
-// end, the pinned pane stays put. Analysis still scrolls the page; gym mode
-// and a 402x874 phone are unchanged (body padding 149px, views not scrollers).
-const SPLIT = 'body:not(.gym-mode) .wrap > .posture-split';
-const PANE = 'body:not(.gym-mode) .posture-split > .split-primary';
-const SHOWING = 'body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"]))';
-test('REAL source (v3.509): the page is held to the screen only while a split tab shows, and never in gym mode', (assert)=>{
+// end, the pinned pane stays put. Analysis still scrolls the page; a 402x874
+// phone is unchanged (body padding 149px, views not scrollers).
+const SPLIT = ':root body .wrap > .posture-split';
+const PANE = ':root body .posture-split > .split-primary';
+const SHOWING = ':root body:has(.wrap > .posture-split:not([style*="none"]))';
+test('REAL source (v3.509): the page is held to the screen only while a split tab shows', (assert)=>{
   assert.equal(decl(SHOWING, 'padding-bottom'), '0');
   assert.equal(decl(SHOWING + ' .wrap', 'height'), '100dvh');
   assert.equal(decl(SHOWING + ' .wrap', 'flex-direction'), 'column');

@@ -5,7 +5,7 @@
 // support replies read the stamp).
 //
 // Real invocation: the real stylesheet's CSSOM and its theme tokens, resolved
-// as the page does (body:not(.gym-mode) and its light block over :root); the
+// as the page does (:root body and its light block over :root); the
 // real renderAppFooter with the real consts.
 //
 // Sabotage: restore color:#4A5057 and criterion 1 fails.
@@ -26,7 +26,7 @@ const RULES = (()=>{
   return out;
 })();
 const get = (sel, prop, light) => { let v = null; for(const {r, media} of RULES){ if(r.selectorText === sel && (!media || (light && /prefers-color-scheme:\s*light/.test(media) && !/contrast/.test(media)))){ const x = r.style.getPropertyValue(prop).trim(); if(x) v = x; } } return v; };
-const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && get('body:not(.gym-mode)', n, true)) || get('body:not(.gym-mode)', n, false) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
+const resolve = (v, light, d = 0) => v.replace(/var\((--[a-z0-9-]+)\)/g, (m, n) => { const x = (light && get(':root body', n, true)) || get(':root body', n, false) || get(':root', n, false); if(!x || d > 10) throw new Error('unresolved ' + n); return resolve(x, light, d + 1); });
 const lum = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0); };
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 
@@ -59,10 +59,6 @@ test('criterion 2: the footer\'s text is unchanged: two lines, the slogan then t
   assert.strictEqual(f.textContent, 'Plate by plate, step by step.' + f.children[1].textContent);
 });
 
-test('gym mode: the stamp keeps 4.5:1 there too (:root\'s --text-3 on the black gym ground)', (assert)=>{
-  const fg = resolve('var(--text-3)', false), gymBg = '#000000';
-  assert.match(CSS, /\n  body\.gym-mode\{\n\s*background:#000;/, 'anchor: the gym ground is black (read from the source; jsdom garbles this shorthand)');
-  assert.ok(ratio(fg, gymBg) >= 4.5, ratio(fg, gymBg).toFixed(2));
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. There is no black gym ground any more.
 
 run();

@@ -181,9 +181,7 @@ test('sticky day header spans the session pane, ending at the crease gutter (Duo
   }
 });
 
-test('gym mode does not use Today\'s split (it splits its exercise list instead — test-duo-gym-mode-open-split.js)', (assert)=>{
-  assert.equal(decl(wideRule('body.gym-mode #todayView'), 'display'), 'block');
-});
+// 2026-11-24 (v3.654, UX-17c): retired with Gym mode's CSS. Gym mode's own split is gone.
 
 test('every tab is either a split view or held to the phone column when open — a new tab cannot silently go 854pt wide', (assert)=>{
   const vm = require('vm');
