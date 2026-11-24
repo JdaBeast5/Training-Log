@@ -1689,14 +1689,14 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Owner's question:** which week does the bib show?
   - **(a)** the block week, as Today does: `WK 4/5`.
   - **(b)** keep the program week, `WK 9`, and add the same count to Today's header, so both places show it.
-- **Change (once answered):** a read-time change to one label. No stored data changes. For (a), `finishSheetModel` passes `cycleWeekOf(week)` plus `DELOAD_CYCLE_WEEKS`, and `drawBibCard` draws `WK n/5`.
+- **Change (a, as the owner picked):** a read-time change to one label. No stored data changes. `finishSheetModel` passes `cycleWeekOf(week)` plus `DELOAD_CYCLE_WEEKS`, and `drawBibCard` draws `WK n/5`.
 - **Acceptance criteria:**
   1. The real `finishSheetModel` for a week-9 fixture gives a bib week that matches what the real `mesocyclePhaseTag` shows for the same day, under the chosen meaning.
   2. The event band still fits its 734 px of text room with the longest program label (measure it with the real `drawBibCard` in Chromium, as `tools/design/slogan/render.js` does).
   3. Weeks 1, 5 (deload) and 6 are covered.
 - **Test plan:** extend the bib test (MKT-16's suite). Sabotage: restore the raw `week`, and criterion 1 fails.
 - **Files:** `index.html` (~32574, ~33003), `sw.js`, the bib test.
-- **Status:** needs-owner (a or b).
+- **Status:** ready. **Owner's answer (2026-11-24): (a)**, the block week on the bib, `WK n/5`, to match Today. Option (b) is not built.
 
 ### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
 - **Why:** the same lift under two names splits grouping:
