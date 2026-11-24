@@ -1750,3 +1750,15 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **`?view=gym`:** `launchViewFromUrl` maps it to `today`; there's no flag.
 - **The harness:** the gym states are gone, and store frame 2 is `store-cover`.
 - **Next:** UX-17c. It removes the gym CSS, including the `#gymEnterBtn` selectors and the `.exercise-block.open` literal, and makes the CLAUDE.md `--rim` note edit.
+
+## Addendum 174: UX-17c (v3.654, PR #251)
+- **The removal:** every gym rule, keyframes, `@media` block and the `--gym-panel-gradient` token went, through a brace-aware transform. The transform also dropped each removed rule's own comments.
+- **`:root body`:** the 116 `body:not(.gym-mode)` scopes are now `:root body`, which has the same specificity (0,1,1). **Don't simplify them to `body`:** that loses cascades, as `test-rest-cover.js`'s strength ring shows. The comment at the flat-ground token block explains this.
+- **Orange:** the warm-up chip orange literals now use `--plate-orange-rgb`.
+- **CLAUDE.md:** the `--rim` note was trimmed, as the owner approved.
+- **Proof:** a computed-style diff of every element against base came out at 0, and the harness shows only the version stamp.
+- **Flagged:**
+  - `tday-firstrun` times out on Branch-1 too;
+  - `--float-panel-fill` is unused;
+  - historical comments still mention Gym mode.
+- **Next:** UX-65 (80u1), then UX-62 (80v).
