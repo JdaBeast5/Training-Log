@@ -4132,7 +4132,7 @@ Ready items are listed in build order, then needs-owner items.
   - **`test-tap-counts.js`:** exists and passes (6 of 6).
     - One of its cases, "UX-23: entering Gym mode from the Then head takes one tap on #gymEnterBtn", tests the entry point this item removes. So "passes unchanged" can't hold literally.
     - That case retires with a dated note, and the five tap-parity cases (log the ready set, log a recent food, UX-20, UX-25, UX-28) must pass unchanged.
-  - **14 days after UX-06a's merge: not met.** UX-06a merged on 2026-11-17 (PR #171, 06:13 UTC), so the earliest date is **2026-12-01**. The owner's verdict above is the reason the wait existed, but only he can waive it. Until he does, the builder skips UX-17a to UX-17c until 2026-12-01.
+  - **14 days after UX-06a's merge: waived by the owner.** UX-06a merged on 2026-11-17 (PR #171), so the wait would have run to 2026-12-01. Owner, 2026-11-24: "Skip the wait". UX-17a to UX-17c are buildable now.
 - **What Gym mode does that Today doesn't (audit, 2026-11-24, v3.646):**
 
 | Gym mode feature | Where | Decision |
@@ -4177,7 +4177,7 @@ Ready items are listed in build order, then needs-owner items.
       - The store frame needs a marketing call: re-shoot frame 2 as Today's cover instead. Flagged to the owner (below).
   - **UX-17c: gym-only CSS goes.**
     - Every `body.gym-mode`, `.gym-*`, `gym-leaving` and `gym-finishing` rule and keyframe is removed (1118–6386), including `body.gym-mode .exercise-block.open` (5260), the hand-tuned literal `box-shadow`.
-    - That literal's protection in `CLAUDE.md` ("Known fragile areas", the `--rim` bullet) exists only because Gym mode exists, so it becomes obsolete. **CLAUDE.md is not edited here.** The PR flags the stale sentence for an owner-approved CLAUDE.md edit.
+    - That literal's protection in `CLAUDE.md` ("Known fragile areas", the `--rim` bullet) exists only because Gym mode exists, so it becomes obsolete. **UX-17c edits CLAUDE.md** (owner, 2026-11-24: "yes to instructions update"): keep the bullet's first sentence (the `--rim` cycle fix) and replace the Gym mode literal's explanation with one dated line saying the literal and Gym mode were removed in UX-17c. Nothing else in CLAUDE.md changes.
     - CSS only, so the harness proves it: every remaining state is pixel-identical to UX-17b's.
 - **Acceptance criteria:**
   1. (a) Real `renderWorkout` in jsdom: Bench's open block shows `.warmup-chips` outside gym mode.
@@ -4204,7 +4204,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Re-slotted (2026-11-24):** UX-17a to UX-17c move to roadmap 80s–80u, ahead of the tab audit, so no audit or unify item has to style or carve out Gym mode.
   - If an audit item is built while UX-17b hasn't merged (the 14-day gate), it keeps its `body:not(.gym-mode)` scoping so gym mode stays untouched.
   - Once UX-17b has merged, the scoping is unnecessary and is written without it.
-- **Status:** ready, from 2026-12-01 (14 days after UX-06a's merge), or sooner if the owner waives the wait. Tap parity was confirmed on device by the owner (2026-11-24, quoted above). Owner yes 2026-11-07, D2. It ships before any Phase 5 public step. *Original question:* "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?"
+- **Status:** ready now: the owner waived the 14-day wait on 2026-11-24 ("Skip the wait") and approved UX-17c's CLAUDE.md edit ("yes to instructions update"). Tap parity was confirmed on device by the owner (2026-11-24, quoted above). Owner yes 2026-11-07, D2. It ships before any Phase 5 public step. *Original question:* "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?"
 
 ### UX-18: Launch animation, from bar to Sash
 - **Why:** the owner, 2026-11-17: "start off like one side of the weight plates on an Olympic weight bar floating into the frame, then turn to an angle and then have the lines extend to the opposite corners of the screen before entering the app, 1-2 second little animation. The logo is great, now let's connect the vision." He refined it the same day: "Just make it smooth then have it open to the screen, like Netflix does with their opening animation." Today's launch (v3.516) only builds the icon in a 112 px tile. This one tells where the mark comes from: a loaded bar end (Option A, "Sleeve", `tools/design/icon/option-a.svg`) turns, and its plates become the Sash (`icon.svg`). It is seen once per cold launch, so it is the delight-budget tier (`design-vision.md` §3.8, "Rare"). The open is a push into the mark, not a copy of anyone's animation, logo or sound.
