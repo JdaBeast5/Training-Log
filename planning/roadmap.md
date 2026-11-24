@@ -205,6 +205,10 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80s. **UX-17a:** warm-up chips on Today's open exercise (moved from Gym mode)
    - 80t. **UX-17b:** Gym mode goes: entry button, dock, offer, restore and auto-enter; `?view=gym` opens Today; session minutes from the logged-time window. The harness drops its `gym-*` and `store-gym` states in the same PR.
    - 80u. **UX-17c:** gym-only CSS removed, including the `.exercise-block.open` literal, plus the matching CLAUDE.md `--rim` note update *(owner yes 2026-11-24)*.
+   - *The session flow on the cover (owner 2026-11-24: "make renderings of how they can all look and if they should be at the colorful top tile or not"; specs in `backlog.md` → "the session flow", renders in `tools/design/flow/renders/`). They're needs-owner, so the builder skips them until he picks. They follow Gym mode's removal because they finish its job on Today.*
+   - 80v. **UX-62:** the warm-up ramp as one line above the cover's Log *(needs-owner: A, B, C or C+; recommend C)*
+   - 80w. **UX-63:** supersets alternate on the cover and name the next station *(needs-owner: A, B or C, plus the pair's rest; recommend C)*
+   - 80x. **UX-64:** a drop set offered on the cover after the last set, with rest held for it *(needs-owner: A, B or C; recommend C)*
    - *The tab audit (owner 2026-11-23; specs in `backlog.md` → "Design (UX): the tab audit"). TOOL-02 (the harness shoots every tab) goes first, outside the loop.*
    - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
    - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
