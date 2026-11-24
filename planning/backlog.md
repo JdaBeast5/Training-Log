@@ -1680,6 +1680,24 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Tools:** `code-review` at high (PR history).
 - **Status:** done (v3.537, PR #112). Beyond the spec (review, high): `sessionTopOf` keeps an all-miss session readable as a failed session for the signal, clinical cap, warm-up ramp and Analysis; `isMissedSet` is the one rule. Earlier: ready (owner yes 2026-11-09). Slot 9c.
 
+### BL-78: The bib's week and Today's week say the same thing
+- **Why:** found while rendering MKT-23 (2026-11-24, v3.645). For the same session, the bib's event band reads `WK 9` while Today's header reads `Week 4 of 5 · Accumulation`. Both numbers are right, but they count different things:
+  - the bib uses the program week (`share.bib.week`, set in `finishSheetModel` ~32574 and drawn in `drawBibCard` ~33003);
+  - Today uses the week inside the 5-week block (`cycleWeekOf`, 28952; `mesocyclePhaseTag`, 28971).
+  
+  To someone looking at their own bib, it reads as a mistake. This is flagged from §10 of `slogan.md`; it was not fixed there.
+- **Owner's question:** which week does the bib show?
+  - **(a)** the block week, as Today does: `WK 4/5`.
+  - **(b)** keep the program week, `WK 9`, and add the same count to Today's header, so both places show it.
+- **Change (a, as the owner picked):** a read-time change to one label. No stored data changes. `finishSheetModel` passes `cycleWeekOf(week)` plus `DELOAD_CYCLE_WEEKS`, and `drawBibCard` draws `WK n/5`.
+- **Acceptance criteria:**
+  1. The real `finishSheetModel` for a week-9 fixture gives a bib week that matches what the real `mesocyclePhaseTag` shows for the same day, under the chosen meaning.
+  2. The event band still fits its 734 px of text room with the longest program label (measure it with the real `drawBibCard` in Chromium, as `tools/design/slogan/render.js` does).
+  3. Weeks 1, 5 (deload) and 6 are covered.
+- **Test plan:** extend the bib test (MKT-16's suite). Sabotage: restore the raw `week`, and criterion 1 fails.
+- **Files:** `index.html` (~32574, ~33003), `sw.js`, the bib test.
+- **Status:** ready. **Owner's answer (2026-11-24): (a)**, the block week on the bib, `WK n/5`, to match Today. Option (b) is not built.
+
 ### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
 - **Why:** the same lift under two names splits grouping:
 
@@ -4726,6 +4744,16 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Files:** `index.html` (`.card` 1171, `--rim` 288 and the non-gym block, `APP_VERSION`, `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** medium-high visually (every tab at once), but it's one rule and reverts cleanly. Ship it after UX-39 to UX-49, so only the frame changes in this version.
 - **Status:** ready (owner 2026-11-23: ruled sections, not cards). Ships after UX-38 to UX-49.
+
+### UX-51: The footer's version line passes contrast
+- **Why:** found while specifying MKT-21 (2026-11-24, v3.645). `.app-footer` (3811) sets `color:#4A5057`. On the dark ground that's under 4.5:1 at 11 px, which breaks the rule every UX item keeps. MKT-21's new slogan line already uses `--text-2`; this item brings the version line up to match.
+- **Change:** `.app-footer` uses a text token that passes 4.5:1 in both themes. The Duo-unfolded override (~6158) keeps its layout and is only re-checked. The footer's text doesn't change, because Diagnostics and support read it.
+- **Acceptance criteria:**
+  1. In Chromium, the computed colour of `#appFooter`'s version line against its computed background is at least 4.5:1, in dark and in light.
+  2. `#appFooter`'s text is byte-identical to v3.645's.
+- **Test plan:** new `test-footer-contrast.js` (the real CSS and the real init line in jsdom for criterion 2; a contrast ratio computed from the real stylesheet's resolved token). Sabotage: restore `#4A5057`, and criterion 1 fails.
+- **Files:** `index.html` (~3811), `sw.js`, the new test.
+- **Status:** ready, after MKT-21 (same rule; it lands second so the two don't conflict).
 
 ---
 
