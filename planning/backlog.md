@@ -2498,6 +2498,127 @@ All four are now ready after Phase 3. The owner answered "41a, 42a, 45a" on PR #
 - **Owner answer (2026-11-09, PR #99, "45a"):** (a), both optional fields: `jump` (cm) on Broad Jump sets and `secs` (hand-timed) on sprint reps. They're additive like `distance` and `note`, so no migration is needed.
 - **Status:** ready (after Phase 3; after BL-55 and BL-61). Slot 88d.
 
+### BL-79: Drop set adds a set at a challenging lower weight
+- **Why:**
+  - **Owner, 2026-11-24:** "take a look at the drop set button, I'm not sure it's functional anymore ... when drop set is pressed it should add a set at a lower weight that is an appropriate drop to challenge."
+  - **It is broken today: you can't log a drop set.** Checked in Playwright Chromium at 402×874 against v3.646, with the harness fixture (Strength & Size, Day 1, Bench Press sets 1–2 logged):
+    - None of the 40 `.set-drop-btn` buttons is visible. The raw set rows they sit on are `display:none` outside gym mode (`#exerciseList .sets-block > .set-row`, 1159) and in gym mode (5547). Both rules date from v3.609 (UX-29), and the chips and the set sheet now do the logging.
+    - The only reachable control is the set sheet's **Drop set** (8139), opened from a cover chip or a Then chip. Tapping it closes the sheet, opens the exercise and clicks the hidden row button (35092–35100). That appends an empty drop row inside the hidden set row: its height is 0, focus doesn't move to it, and nothing on screen changes. Repeated taps stack more invisible empty rows.
+    - The rows carry no suggestion: `buildDropRowsHtml([{}])` (30913) gives a blank weight and blank reps.
+    - The save path still works underneath. Filling the hidden row's inputs by script stored `drops:[{weight:145,reps:8}]` under Bench set 2 (`saveExDropSet`, 31144). It survived a reload, but no chip, sheet or cover shows it. So since v3.609, drops are counted in volume (`dropVolumeOf`, 29680) and in the CSV (38488), but nowhere in the UI.
+    - Screenshots (session scratchpad): `dropset-02-set-sheet-from-cover.png`, `dropset-03-after-drop-tap.png`.
+  - **Evidence for the rule:**
+    - Sødal et al. 2023 (*Sports Med Open* 9:66; meta-analysis of 6 studies): drop sets build muscle about as well as traditional sets, in about a half to a third of the time. The usual method is to take the set to failure, then cut the load by "around 20–25%" with no rest.
+    - The included studies used 20% per drop (Angleri 2017, Fink 2018, Fisher 2016's two-drop arm), 30% (Fisher's single drop), and 20% then 10–15% (Varović 2021). Most used 1–2 drops; Fink used 3.
+    - Schoenfeld & Grgic 2018 (*Strength Cond J* 40(6)) describe the same thing: a 20–25% drop, to or near failure, as a hypertrophy technique, not a strength one.
+- **The rule:**
+  1. **Drop 1 is 25% lighter than the parent set**, the middle of the 20–30% the studies used. **Drop 2 is 20% lighter than drop 1** (about 60% of the parent), as in Varović's smaller second drop and Fisher's 20% drops. There are at most 2 drops per set.
+  2. **What a drop is taken from:**
+     - If the parent set is logged, the drop comes from its logged weight.
+     - If not, it comes from the weight the set sheet shows, which is the chip's own suggestion or prescription. The sheet opens on that value.
+     - Drop 2 comes from drop 1's weight as entered. If the person changed drop 1, drop 2 follows their number.
+  3. **Rounding is the same path every other suggestion takes, with no new rule.** `computeSuggestedSet` gets a `{type:'drop', n}` signal, handled as its first branch after the null check. It must sit before the RPE-mode short-circuit, or RPE mode would swallow it. It returns `{weight: snap(scale(priorSet.weight, n === 1 ? 0.75 : 0.80), 'down'), reps: null, reason: 'drop'}`.
+     - That is the function's own `scale`: round to 2.5 kg or 5 lb, never above the starting weight. Then its own `snap`, which is `snapToLoadable(…, 'down')` and reads the person's bar, plates and dumbbell step from `getEquipment()`.
+     - The snap goes down because a drop rounded up would not be a drop. A barbell drop then lands where `platesPerSide` can load it.
+     - Units work as they do for every other suggestion. The input is canonical lb, the output is display units, and the save goes through `toCanonicalLb`, as `saveDrop` already does (36299).
+  4. **The lightest-load floor.** If the snapped drop is not lighter than the parent, it goes one loadable step lower instead (`setSheetWeightStep`: twice the smallest plate on a barbell, the dumbbell increment, else 5 lb or 2.5 kg). On a barbell that step can't go under the bar. If nothing lighter is loadable, there's no number, and the drop line says "Already at the lightest load".
+     - Worked examples (lb unless noted, default equipment):
+       - Bench 185 → 140 → 110;
+       - a 100 kg squat → 75 → 60 kg;
+       - a 15 lb dumbbell → 10;
+       - a 10 lb dumbbell → 5, through the floor;
+       - an empty 45 lb bar → no number.
+  5. **The effort cue reuses the existing RIR words, with no new vocabulary.**
+     - Compound categories (`COMPOUND_CATEGORIES`) get `RIR_TARGETS.compound.words`, "Stop 1–3 reps short".
+     - Everything else gets `RIR_TARGETS.isolation.words`, "Stop 0–2 reps short".
+     - The line reads, for example: "Drop 1 · 25% lighter, no rest · Stop 0–2 reps short".
+     - Reps are not suggested. After a set near failure, reps at the lighter load are the result, not the target (none of the six studies prescribed a number). The reps field shows "reps" and stays empty.
+  6. **Where Drop set doesn't appear.** One predicate, `dropSetEligible(ex, program, inDeload)`, decides. It builds on `targetRirLabel` (30452), so it already knows cardio, core, mobility, AMRAP, timed and unit prescriptions. It returns false for:
+     - `noWeight` rows (push-ups, pull-ups, planks): there's no load to drop;
+     - distance rows (`isDistanceExercise`) and timed rows (`getSetFieldUnit(sets) !== 'reps'`);
+     - rows where `targetRirLabel` returns `null` (cardio, core, mobility, stretches, AMRAP);
+     - rows where `targetRirLabel` returns `RIR_TARGETS.speed` (oly, jumps, throws, strikes), and technique work (`exerciseInfo[name].technique`): a drop set to failure is the opposite of speed work;
+     - rows where it returns `RIR_TARGETS.clinical`: the Medical styles (`MEDICAL_STYLES`, including prenatal) and Senior. Their RPE is capped at 7 (BL-02), and work to failure doesn't belong there;
+     - rows where it returns `RIR_TARGETS.deload`: a deload week asks for 3–4 RIR;
+     - warm-ups, which never get the control: they live in `entry.warmups` and their chips don't open the set sheet.
+  7. **It never counts as progression or a PR. All of this is unchanged:**
+     - drops live in `set.drops`, nested under their parent;
+     - `topSetOf`, `sessionTopOf`, `isMissedSet`, `maxWeightEver`, `saveExSet`'s `priorMax`/`isPR`, `buildPastSessions`, the progression signal and the muscle ledger all read `entry.sets` only;
+     - `volumeOf` already adds drop tonnage, which stays;
+     - saving a drop doesn't start the rest timer: `saveExDropSet` never calls `noteRestAchieved`, and there's no rest between drops.
+     
+     No stored shape changes, so no migration is needed.
+- **Change** (`index.html`; set sheet only, see owner Q2):
+  1. **`computeSuggestedSet`** (30728) gets the `drop` branch, as in rule 3, ahead of the RPE short-circuit. Everything else in it stays as it is.
+  2. **`dropSetEligible`** goes beside `targetRirLabel`, as in rule 6. `renderWorkout` renders `.set-drop-btn` (31971, and the add-set path at 36430) only when it returns true. A row that already has drops keeps its `.set-drop-wrap` (31975), so old data still renders. `openSetSheet`'s existing check (35011) then hides **Drop set** on its own.
+  3. **The set sheet gets inline drop lines** (markup after `.set-sheet-note`, 8107–8139). This replaces the hand-off in 35092–35100.
+     - Tapping **Drop set** adds a line: "Drop n", a weight field filled with the suggestion (or empty, with the lightest-load note), × reps (empty), and the cue line from rule 5.
+     - Each line is a ruled row in the sheet's ink. No pills and no tinted fills, matching the Today design.
+     - The button hides once 2 drops are shown. Opening the sheet on a set that already has drops lists them, filled in.
+     - The weight field steps with `setSheetWeightStep` (the same −/+ as the parent).
+  4. **Saving goes through the row, one path.** Save first commits the parent (`commitSet`, as now). Then, for each drop line with reps, it writes the values into the real row's `.drop-set-row` inputs and fires `change`, exactly as `writeSetToRow` does for the set's own fields. The row's own `saveDrop` → `saveExDropSet` saves them.
+     - If the row has no `.drop-set-row` yet, one is appended with `buildDropRowsHtml` and wired with the row's existing `wireDropRow` (36304).
+     - A drop line left without reps is not saved.
+  5. **The chip shows drops.** A logged chip whose set has drops gets the drop-step glyph (the `.set-drop-btn` mask, drawn in `currentColor`), and its aria-label ends ", 1 drop: 140×9". The cover and Then chips share `renderSetChips` (34705), so both get it.
+  6. **What's New:** "Drop set works again. Tap a logged set, then Drop set: it adds a set about 25% lighter, rounded to weights you can load, to take close to failure with no rest."
+- **Acceptance criteria** (real invocations of the extracted functions, and the real sheet in jsdom):
+  1. Real `computeSuggestedSet({weight:185}, {type:'drop', n:1}, false, 'push', {name:'Bench Press', sets:'7×4-6'})`, with lb units and default equipment, returns `{weight:140, reason:'drop'}`. `n:2` from 140 returns 110. With kg and a 100 kg parent (stored in lb), it returns 75, then 60.
+  2. With `loadSuggestionMode = 'rpe'` and a valid `rpeCtx`, the same drop call still returns `reason:'drop'`, not `'rpe'`.
+  3. The floor:
+     - `Dumbbell Lateral Raise` at 10 lb gives 5;
+     - a barbell at 45 lb (the bar) gives `null`;
+     - with no 2.5 lb plates (`equipmentProfile.lb.plates = [45,25,10,5]`, a 10 lb jump), Bench 185 gives 135, not 145, and `platesPerSide(135, getEquipment()).remainder === 0`.
+  4. Real `dropSetEligible` is true for Bench Press (strength), Barbell Curl and Cable Fly (bodybuilding). It is false for Push-up (`noWeight`), Incline Walk, Plank (3×45s), Power Clean, any exercise in `medical` or `senior`, and Bench in a deload week.
+  5. **The real sheet (jsdom, real `openSetSheet` and `wireSetSheet` over a real rendered row)** on a logged 185×5 Bench set:
+     - tapping Drop set shows one drop line with weight `140` and the cue "Stop 1–3 reps short";
+     - typing 9 reps and Save stores `sets[1].drops` as `[{weight:140, reps:9}]` (canonical lb), and the parent set is byte-identical;
+     - a second Drop set suggests 110;
+     - a third tap isn't offered;
+     - in kg, the stored drop is the lb conversion.
+  6. **Non-effects:**
+     - real `topSetOf`, `maxWeightEver` and `buildPastSessions` give the same results for an entry with and without `drops`, even a corrupt drop heavier than the parent;
+     - real `saveExSet` over that entry returns the same `isPR`;
+     - real `volumeOf` still adds drop tonnage;
+     - saving a drop through the sheet does not start the rest timer (a stubbed `startRestTimer` is called 0 times).
+  7. Reopening the sheet on that set lists the saved drop, and the chip's aria-label ends ", 1 drop: 140×9".
+- **Test plan:** new `test-drop-set-suggestion.js`.
+  - **Sabotage checks:**
+    - move the drop branch below the RPE short-circuit, and criterion 2 fails;
+    - snap `'nearest'` instead of `'down'`, and criterion 3's no-2.5-plates case gives 145 instead of 135;
+    - make `dropSetEligible` ignore `RIR_TARGETS.clinical`, and criterion 4 fails;
+    - make the sheet save by calling `saveExDropSet` directly instead of through the row, and the `assert count == 1` on the row's `change` listener calls fails.
+  - **Re-pin:** `test-set-sheet.js`, whose header comment and fixture describe the old hand-off ("Drop set hands over to the row's drop rows").
+  - Then run `check.sh` and every `test-*.js`.
+- **Files:**
+  - `index.html`:
+    - `computeSuggestedSet` 30728;
+    - `targetRirLabel` 30452 (the new `dropSetEligible` goes beside it);
+    - the row markup at 31971 and 31975, and at 36430;
+    - drop wiring 36292–36322;
+    - the set-sheet markup 8107–8139, `openSetSheet` 34970 (35011) and `wireSetSheet` 35092–35100;
+    - `renderSetChips` 34705;
+    - `APP_VERSION` 8553 and `WHATS_NEW` 8577.
+  - `sw.js` and the new test.
+  - **Guards:** these suites extract `computeSuggestedSet` (an added branch must not need new sandbox globals beyond `snapToLoadable`/`toDisplayWeight`, which it already uses):
+    - `test-all-set-double-progression.js`, `test-bodyweight-progression.js`, `test-exercise-library-coverage.js`, `test-finish-sheet.js`, `test-history-name-stamp.js`;
+    - `test-progress-lead.js`, `test-readiness-hrv.js`, `test-rpe-adjusted-e1rm.js`, `test-rpe-safety-caps.js`.
+  - **Guards:** these suites touch the drop markup:
+    - `test-gym-mode-audit-fixes.js`, `test-tap-target-hit-areas.js`, `test-glyph-icons.js`, `test-fields-translucent.js`;
+    - `test-free-list-guard.js`, `test-stable-trailing-keys.js`, `test-rgba-background-border-consolidation.js`.
+  - The PR includes a harness contact sheet (`--today --base`) with the sheet open on a drop line.
+- **Risk:**
+  - **It's a visual change to the set sheet.** The contact sheet goes in the PR.
+  - **Hiding `.set-drop-btn` on ineligible rows** affects a control nobody can reach since v3.609, so no working behaviour is lost.
+  - **"Clear set" leaves a set's drops stored, as now.** The CSV already skips drops under an unlogged parent. Clearing them too is a follow-up, not part of this item.
+  - **No stored data changes and no migration.**
+- **Owner's questions** (the defaults are the recommendations; the item is buildable on them):
+  - **Q1, the percentages.** (a) 25%, then 20% *(recommended: the middle of the studies' range)*; (b) 20% each (Angleri, Fink); (c) 30%, then 20% (Fisher's single drop).
+  - **Q2, where it lives.** (a) the set sheet only, reached by tapping any chip on the cover, in Then or in gym mode *(recommended)*; (b) also a "Drop set" text action on the cover right after a set is logged.
+  - **Q3, bodyweight moves.** (a) hidden *(recommended)*; (b) a reps-only drop with a line such as "switch to an easier version" and no number.
+  - **Q4, deload weeks.** (a) hidden *(recommended: a deload asks for 3–4 RIR)*; (b) shown.
+  - **Q5, the most drops.** (a) 2 *(recommended: most studies)*; (b) 3 (Fink 2018).
+- **Status:** ready (owner request, 2026-11-24). Roadmap slot 80s, right after BL-78. The owner's questions don't block it; it builds on the recommended defaults.
+
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. They now ship with BL-59 (needs-owner). BL-03 and BL-04 cover the safety half.
 - **L-3:** closed into BL-58. At v3.518, "Squat (Speed)", "Bench Press (Speed)" and "Deadlift (Light/Technique)" have no `exerciseInfo` entries.

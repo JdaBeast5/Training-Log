@@ -200,6 +200,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80p. **MKT-23:** "Step up a plate!" on Today's cover and the bib, only when `computeSuggestedSet` really raised the weight *(owner picked bib A + Today T1 on 2026-11-24, from `tools/design/cheer/renders/contact-sheet.png`. It's slotted here because it builds on MKT-16 to MKT-18 and the finished cover, and is independent of the tab audit.)*
    - 80q. **UX-51:** the footer's version line passes contrast *(ready, after MKT-21: it edits the same footer rule.)*
    - 80r. **BL-78:** the bib's week and Today's week say the same thing *(ready; owner picked (a) on 2026-11-24: the bib shows the block week, `WK n/5`, as Today does.)*
+   - 80s. **BL-79:** Drop set adds a set at a challenging lower weight *(ready; the owner asked for it on 2026-11-24. The set sheet's Drop set is a dead end since v3.609: it adds an invisible empty row. It ships on the recommended defaults, a 25% then 20% drop rounded by `computeSuggestedSet`; the owner's Q1–Q5 can change them.)*
    - *The tab audit (owner 2026-11-23; specs in `backlog.md` → "Design (UX): the tab audit"). TOOL-02 (the harness shoots every tab) goes first, outside the loop.*
    - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
    - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
