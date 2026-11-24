@@ -26,7 +26,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
@@ -105,14 +105,14 @@ test('criteria 2 and 4: the rendered Food log, History, Up next and set sheet ca
     assert.strictEqual(window.document.getElementById('upNext').hidden, false, 'anchor: Up next rendered');
     out.upNext = window.document.getElementById('upNext'); }
   // Set sheet, as test-set-sheet.js drives it.
-  { const FNS = ['escapeHtml', 'trimUnitNum', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'commitSet', 'setSheetWeightStep', 'openSetSheet', 'closeSetSheet', 'saveSetSheet', 'stepSetSheet'].map(f => extractFunction(src, f));
+  { const FNS = ['escapeHtml', 'trimUnitNum', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'commitSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'openSetSheet', 'closeSetSheet', 'saveSetSheet', 'stepSetSheet', 'setSheetAddDrop', 'refreshSetSheetDropBtn', 'writeDropsToRow'].map(f => extractFunction(src, f)); // v3.651 (BL-79): the sheet's drop lines
     const start = src.indexOf('(function wireSetSheet(){'); const WIRE = src.slice(start, src.indexOf('\n})();', start) + 6);
     const rowHtml = `<div class="exercise-block"><div class="exercise"><input type="checkbox" data-idx="1"><div class="ex-name">Barbell Row</div><div class="ex-sets"><span>4×6-8</span></div></div><div class="sets-block"><div class="set-row" data-set-idx="1" data-ex-idx="1"><span class="set-row-owner">Barbell Row</span><input class="ex-input ex-weight" placeholder="lb"><input class="ex-input ex-reps" placeholder="reps"><input class="ex-input ex-rpe" placeholder="RPE"><button class="set-drop-btn"></button><div class="set-note-wrap"><input class="set-note-input"></div></div></div></div>`;
     const { window } = runJsdom(`<div id="exerciseList">${rowHtml}</div>${extractElementById(src, 'setSheetScrim')}${extractElementById(src, 'setSheet')}`, `
       var weightUnit = 'lb', distanceUnit = 'km'; window.requestAnimationFrame = fn => fn();
       function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; } function isBarbellExercise(n){ return n === 'Barbell Row'; } function isDumbbellExercise(){ return false; }
       function renderAllSetChips(){} function setExerciseBlockOpen(){} function showUndoToast(){}`,
-      ['const setSheetState = {row:null, chip:null};', ...FNS, WIRE, `openSetSheet(document.querySelector('.set-row'), {_values: {done:false, weight:'135', reps:'8'}, dataset: {exIdx:'1', setIdx:'1'}});`]);
+      ['const setSheetState = {row:null, chip:null};', extractConst(src, 'DROP_SET_MAX') /* v3.651 (BL-79) */, ...FNS, WIRE, `openSetSheet(document.querySelector('.set-row'), {_values: {done:false, weight:'135', reps:'8'}, dataset: {exIdx:'1', setIdx:'1'}});`]);
     assert.strictEqual(window.document.getElementById('setSheet').hidden, false, 'anchor: the sheet opened');
     out.sheet = window.document.getElementById('setSheet'); }
   for(const [name, root] of Object.entries(out)){

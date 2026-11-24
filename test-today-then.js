@@ -46,7 +46,7 @@ const LIST = `<div class="exercise-block">${HEAD(0, 'Bench Press')}<div class="s
     <div class="set-chips" role="group"></div><div class="expand-wrap"><div><div class="sets-block">${ROW(1, 0)}${ROW(2, 0)}${ROW(1, 1)}${ROW(2, 1)}</div></div></div></div>`;
 
 const CHIP_FNS = ['escapeHtml', 'numericPlaceholder', 'setChipValues', 'setChipLabel', 'setChipOwnerTag', 'renderSetChips', 'trimUnitNum', 'parseTopRep', 'parseBottomRep',
-  'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
+  'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */].map(n => extractFunction(src, n));
 CHIP_FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
 
 // The whole page under the real stylesheet; body classes as the app sets them.
@@ -252,7 +252,7 @@ test('criterion 4 (CSS part): Gym mode is a plain 44pt text button, no plate-blu
 test('criterion 6: the cover\'s exercise row carries the "now" marker, set by the real renderUpNext; exactly one row; a superset marks its member', (assert)=>{
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
     'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
-    'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
+    'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */,
     'renderUpNext', 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
   FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
@@ -391,7 +391,7 @@ test('UX-24 criterion 2: every one of those controls is at least 44 px tall and 
 test('UX-24 criterion 3: the sticky header prints "Set 3 of 6 · Bench Press" from the cover (the real renderUpNext), the day name with no next set; a flat rule, no blur', (assert)=>{
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
     'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
-    'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'syncStickyDayTitle',
+    'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'syncStickyDayTitle',
     'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
   FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
   const six = [0, 1, 2, 3, 4, 5].map(k => k < 2 ? ROW(0, k, '185', '5') : ROW(0, k)).join('');

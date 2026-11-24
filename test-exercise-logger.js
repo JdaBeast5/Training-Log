@@ -23,7 +23,7 @@ const { test, run } = makeRunner('test-exercise-logger.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet',
-  'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
+  'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */,
   'exLoggerHtml', 'fillSetLogger', 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger',
   // 2026-10-26 (v3.392): renderAllSetChips also draws gym mode's warm-up chips.
   'renderWarmupChips'].map(n => extractFunction(src, n));

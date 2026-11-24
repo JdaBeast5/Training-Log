@@ -251,7 +251,9 @@ test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes thro
   // toggleExerciseBlockFromHeader, which adds a call: closing the other open
   // exercise when gym mode on an open foldable switches its pane
   // (test-duo-gym-tap-to-switch.js).
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 11);
+  // v3.651 (BL-79): 11 -> 10. The sheet's Drop set adds drop lines in the
+  // sheet instead of opening the exercise (the v3.299 call above is gone).
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 10);
   assert.strictEqual(src.includes('setExerciseUnitOpen'), false, 'the old pairing wrapper must be gone entirely, not just uncalled');
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);
