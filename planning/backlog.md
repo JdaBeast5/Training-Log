@@ -5347,7 +5347,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-warmup.js`. Sabotage: render the line with the pref off, and criterion 5 must fail.
 - **Files:** `index.html` (cover markup 6625–6677; `renderUpNext` 34429; the warm-up helpers 34934 and 35047; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** low. The working path is untouched.
-- **Status:** needs-owner (A, B, C or C+; recommend C, and ask about C+).
+- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C+**: one line above Log, and the plate stack draws the warm-up step's load while the big number stays the working set. With UX-65 the ramp is loggable by default, so the line shows for everyone who hasn't turned it off. Restore `pendingWarmupChip`'s rule here if UX-17b removed it.
 
 ### UX-63: Supersets: alternate on the cover, and name the next station
 - **Why:**
@@ -5376,7 +5376,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-superset-then.js`. Sabotage: build the line from the same lift's next row, and criterion 1 must fail.
 - **Files:** `index.html` (6630, `renderUpNext` 34429, and for (i) 36474; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** low.
-- **Status:** needs-owner (A, B or C, plus (i); recommend C and yes to (i)).
+- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**, and **(i) yes**: after the pair, rest for the heavier lift.
 
 ### UX-64: Drop set offered on the cover after the last working set (BL-79's Q2 (b))
 - **Why:**
@@ -5406,7 +5406,24 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-drop-offer.js`. Sabotage: start the rest timer unconditionally at 36474, and criterion 1 must fail.
 - **Files:** `index.html` (cover markup 6660, the rest start 36474, `logUpNext` 34685; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** medium, because the rest timer's start moves. The hold is scoped to that one offered moment and always ends in a start.
-- **Status:** needs-owner (A, B or C; recommend C). It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
+- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**. It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
+
+### UX-65: The warm-up ramp is loggable by default
+- **Why:** owner, 2026-11-24: "warm ups on by default". "Build the ramp in as sets I can log" (`#warmupSetsToggle`, Settings) is off by default today (`let warmupSetsEnabled = false`, ~33868 at v3.652, with a comment saying it should be asked for rather than arrive in an update). The owner has now asked for it, so new lifters get a guided ramp, and UX-62's cover line shows for everyone.
+- **Change:**
+  - `warmupSetsEnabled` defaults to `true`. `loadWarmupSetsPref` keeps an explicit stored `'0'` as off: anyone who turned it off stays off. A stored `'1'` or no stored value means on.
+  - Update the comment above it to say why the default changed, with a date.
+  - No schema change and no migration: the key and its values are unchanged.
+  - The `WHATS_NEW` line, written for the user: "Warm-up sets now show as steps you can tick off. Prefer the old advice line? Turn off 'Build the ramp in as sets I can log' in Settings."
+- **Acceptance criteria** (real `loadWarmupSetsPref` and `applyWarmupSetsPrefToUI`, with stubbed `window.storage`):
+  1. With no stored value, `warmupSetsEnabled` is `true` and the toggle is checked.
+  2. A stored `'0'` gives `false` and an unchecked toggle.
+  3. A stored `'1'` gives `true`.
+  4. The real `renderWorkout` on a barbell day with no stored value renders the loggable ramp rows (DOM count > 0).
+- **Test plan:** a new `test-warmup-default-on.js`. Sabotage: restore `= false`, and criteria 1 and 4 must fail. Re-pin any existing test that assumed off-by-default, with a dated note.
+- **Files:** `index.html` (~33868; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the new test.
+- **Risk:** existing users who never touched the toggle see warm-up steps appear after this update. The What's New line tells them how to turn it off.
+- **Status:** ready (owner, 2026-11-24). It goes before UX-62, so UX-62's cover line has a ramp to show.
 
 ---
 
