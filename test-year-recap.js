@@ -215,7 +215,7 @@ test('review fixes: rest days marked done and weight-only days are not sessions;
 // weekTrainingCounts and computeWeekStreak, the real estimated1RM, mondayOf,
 // MUSCLE_GROUP_MAP and VOLUME_LANDMARKS, and the real fmtWeight.
 // Sabotage: drop the oly/jump/throw exclusion and criterion 6b fails.
-const B_CHUNKS = [...['MUSCLE_GROUP_MAP', 'VOLUME_LANDMARKS', 'YEAR_RECAP_NO_E1RM', 'STREAK_MILESTONES'].map(c => extractConst(src, c)),
+const B_CHUNKS = [...['MUSCLE_GROUP_MAP', 'VOLUME_LANDMARKS', 'YEAR_RECAP_NO_E1RM', 'STREAK_MILESTONES', 'APP_SLOGAN' /* v3.647 (MKT-22) */].map(c => extractConst(src, c)),
   ...['dateKeyMinusDays', 'mondayOf', 'estimated1RM', 'weekStreakNeed', 'weekTrainingCounts', 'computeWeekStreak', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight',
     'yearRecapDetailsFrom', 'yearRecapCards', 'computeYearRecapCards', 'renderYearRecapHistory', 'escapeHtml'].map(f => extractFunction(src, f))];
 const B_INFO = `var exerciseInfo = {'Back Squat': {category: 'squat'}, 'Bench Press': {category: 'push'}, 'Snatch': {category: 'oly'}, 'Box Jump': {category: 'jump'}, 'Barbell Row': {category: 'pull'}, 'Rowing Machine': {category: 'cardio'}};
@@ -253,17 +253,18 @@ test('MKT-06b: weeks trained, the most-trained muscle group (sets), and the card
   const w = mountB();
   const {recap, cards} = json(await w.computeYearRecapCards(2026));
   assert.strictEqual(recap.sessions, 53, 'anchor: 18 weeks x 3, less Friday 1 January 2027');
-  assert.deepStrictEqual(cards.map(c => c.stats[0].label), ['SETS', 'WEEKS TRAINED', 'BIGGEST E1RM GAIN', 'MOST-TRAINED', 'WEEKS IN A ROW']);
+  // 2026-11-24 (v3.647, MKT-22): the set now ends on a card with no stats (the slogan); the stat cards are unchanged.
+  assert.deepStrictEqual(cards.filter(c => c.stats).map(c => c.stats[0].label), ['SETS', 'WEEKS TRAINED', 'BIGGEST E1RM GAIN', 'MOST-TRAINED', 'WEEKS IN A ROW']);
   assert.deepStrictEqual(cards[1].stats, [{value: '18', label: 'WEEKS TRAINED'}, {value: '53', label: 'SESSIONS'}]);
   // Back 3 sets x 53 = 159 beats Legs 2 x 53 = 106; the rower's 4 x 53 are cardio, not a muscle group.
   assert.deepStrictEqual(cards[3].stats, [{value: 'BACK', label: 'MOST-TRAINED'}, {value: '159', label: 'SETS'}]);
-  assert.ok(cards.every(c => c.headline === '2026 IN LIFTING' && c.kind === 'year'));
+  assert.ok(cards.slice(0, -1).every(c => c.headline === '2026 IN LIFTING' && c.kind === 'year'));
 });
 
 test('MKT-06b criterion 6b: the e1RM card never names an oly, jump or throw exercise, even with a bigger Snatch gain', async (assert)=>{
   const w = mountB();
   const {cards} = json(await w.computeYearRecapCards(2026));
-  const lift = cards.find(c => c.stats[0].label === 'BIGGEST E1RM GAIN');
+  const lift = cards.find(c => c.stats && c.stats[0].label === 'BIGGEST E1RM GAIN');
   // Back Squat: first 225x5 = 263; the year's last session (index 52) 329x5 = 384. Gain 121 lb.
   assert.deepStrictEqual(lift.stats, [{value: '+121 lb', label: 'BIGGEST E1RM GAIN'}, {value: 'BACK SQUAT', label: 'LIFT'}]);
   assert.ok(!JSON.stringify(cards).match(/SNATCH|BOX JUMP/));
@@ -273,7 +274,7 @@ test('MKT-06b criterion 7b: the streak card equals the real computeWeekStreak\'s
   for(const pref of [null, 3]){
     const w = mountB({pref});
     const {cards} = json(await w.computeYearRecapCards(2026));
-    const streak = cards.find(c => c.stats[0].label === 'WEEKS IN A ROW');
+    const streak = cards.find(c => c.stats && c.stats[0].label === 'WEEKS IN A ROW');
     const live = await w.computeWeekStreak(); // today 31 December: the run ending this week
     assert.strictEqual(live, 13, 'anchor: the real streak at year end, preference ' + pref);
     assert.strictEqual(streak.stats[0].value, String(live));
@@ -303,7 +304,7 @@ test('MKT-06b History entry: in season it lists every card with its own Share; o
   assert.strictEqual(card.hidden, false);
   assert.strictEqual(w.document.getElementById('yearRecapHistoryTitle').textContent, 'Your 2026 in lifting');
   const btns = [...w.document.querySelectorAll('[data-year-recap-card]')];
-  assert.strictEqual(btns.length, 5);
+  assert.strictEqual(btns.length, 6, '2026-11-24 (v3.647, MKT-22): five stat cards and the slogan card');
   btns[2].click(); await tick();
   assert.strictEqual(w.__shared.btnId, 'yearRecapCardBtn2');
   assert.strictEqual(json(w.__shared.card).stats[0].label, 'BIGGEST E1RM GAIN');
@@ -313,7 +314,7 @@ test('MKT-06b History entry: in season it lists every card with its own Share; o
   const med = mountB({today: '2026-12-05', program: 'medical'}); await med.renderYearRecapHistory();
   assert.strictEqual(med.document.getElementById('yearRecapHistoryCard').hidden, false);
   assert.strictEqual(med.document.querySelectorAll('[data-year-recap-card]').length, 0);
-  assert.strictEqual(med.document.querySelectorAll('#yearRecapHistoryList .diag-row').length, 5, 'the numbers still show');
+  assert.strictEqual(med.document.querySelectorAll('#yearRecapHistoryList .diag-row').length, 6, 'the numbers still show (v3.647: six rows)');
 });
 
 test('MKT-06b criterion 7b: a 1-session week between two runs breaks the run, as it does for the real computeWeekStreak (10, not 5 + 1 + 10)', async (assert)=>{
@@ -323,6 +324,63 @@ test('MKT-06b criterion 7b: a 1-session week between two runs breaks the run, as
   const d = json(w.yearRecapDetailsFrom(2026, dates, f.corpus));
   assert.strictEqual(await w.computeWeekStreak(), 10, 'anchor: the real streak on the Sunday ending the second run');
   assert.strictEqual(d.longestStreak, 10);
+});
+
+// ---- v3.647 (MKT-22, owner 2026-11-24): the year ends on the slogan ----------
+// The set's last card: "THAT'S YOUR YEAR." over APP_SLOGAN, no stats, drawn by
+// drawStoryCard's headline-and-detail branch; History lists it as a row.
+// Sabotage: give the end card a stats row and criterion 4 fails; drop the
+// stats guard in renderYearRecapHistory and criterion 3 throws.
+const SLOGAN = require('vm').runInNewContext(extractConst(src, 'APP_SLOGAN').replace(/^const APP_SLOGAN\s*=\s*/, '').replace(/;\s*$/, ''));
+const drawWithStrokes = card => runSandbox([drawCardSetup().replace("if(k === 'measureText')", "if(k === 'stroke') return () => { __strokes++; }; if(k === 'measureText')").replace('var __text = []', 'var __strokes = 0, __text = []'), ...CARD_FNS],
+  `buildShareCardBlob(${JSON.stringify(card)}); __capture.push({text: __text, strokes: __strokes});`)[0];
+
+test('MKT-22 criterion 1: the real yearRecapCards ends on the slogan card (kind year-end, detail APP_SLOGAN, no stats); the cards before it are unchanged', async (assert)=>{
+  const w = mountB();
+  const {cards} = json(await w.computeYearRecapCards(2026));
+  const end = cards[cards.length - 1];
+  assert.strictEqual(SLOGAN, 'Plate by plate, step by step.', 'anchor: the const');
+  assert.strictEqual(end.kind, 'year-end');
+  assert.strictEqual(end.headline, "THAT'S YOUR YEAR.");
+  assert.strictEqual(end.detail, SLOGAN);
+  assert.strictEqual(end.stats, undefined);
+  assert.strictEqual(cards.filter(c => c.kind === 'year-end').length, 1, 'once, last');
+  assert.deepStrictEqual(cards.slice(0, -1).map(c => c.stats.map(s => s.label).join('/')), ['SETS/SESSIONS', 'WEEKS TRAINED/SESSIONS', 'BIGGEST E1RM GAIN/LIFT', 'MOST-TRAINED/SETS', 'WEEKS IN A ROW']);
+});
+
+test('MKT-22 criteria 2 and 4: the real buildShareCardBlob draws the slogan once and no digit at all; no stats rows (no rule lines)', async (assert)=>{
+  const w = mountB();
+  const {cards} = json(await w.computeYearRecapCards(2026));
+  const end = cards[cards.length - 1];
+  const r = drawWithStrokes(end);
+  const all = r.text.map(x => x.txt).join(' ');
+  assert.ok(r.text.length >= 2, 'anchor: text was drawn');
+  assert.strictEqual(all.split(SLOGAN).length - 1, 1, 'the slogan once: ' + all);
+  assert.ok(!/\d/.test(all), 'no digits: ' + all);
+  // No stats rows: the same strokes as another card with no stats (the PR card's
+  // headline-and-detail form); a stats card draws its n + 1 rule lines on top.
+  const plain = drawWithStrokes({icon: 'trophy', headline: 'NEW PR', detail: 'Bench Press', kind: 'pr', dayId: 'd2'});
+  assert.strictEqual(r.strokes, plain.strokes, 'no stats rule lines');
+  const stat = drawWithStrokes(cards[1]);
+  assert.strictEqual(stat.strokes, plain.strokes + cards[1].stats.length + 1, 'anchor: a stats card draws its rule lines');
+});
+
+test('MKT-22 criterion 3: History lists the slogan card last, with its own Share; under a medical program the rows show without Share', async (assert)=>{
+  const w = mountB({today: '2026-12-05'});
+  await w.renderYearRecapHistory();
+  const rows = [...w.document.querySelectorAll('#yearRecapHistoryList .diag-row')];
+  assert.strictEqual(rows.length, 6);
+  const last = rows[rows.length - 1];
+  assert.match(last.textContent, /That's your year\./);
+  assert.ok(last.textContent.includes(SLOGAN));
+  assert.strictEqual(last.querySelectorAll('button[data-year-recap-card]').length, 1);
+  last.querySelector('button').click(); await tick();
+  assert.strictEqual(json(w.__shared.card).kind, 'year-end');
+  const med = mountB({today: '2026-12-05', program: 'medical'}); await med.renderYearRecapHistory();
+  const medRows = [...med.document.querySelectorAll('#yearRecapHistoryList .diag-row')];
+  assert.strictEqual(medRows.length, 6);
+  assert.ok(medRows[5].textContent.includes(SLOGAN));
+  assert.strictEqual(med.document.querySelectorAll('[data-year-recap-card]').length, 0);
 });
 
 run();
