@@ -1,5 +1,7 @@
 # Backlog
 
+**Session flow (2026-11-24, against v3.652, `origin/Branch-1` 465afb5, design-engineer with the exercise-auditor).** The owner asked whether drop sets, supersets and the warm-up ramp belong on Today's cover. There are three new `needs-owner` items, UX-62 (the warm-up line), UX-63 (the superset's next station) and UX-64 (the drop offer), each rendered in `tools/design/flow/renders/flow-*.png`. BL-79 and UX-17a stand as shipped. Slots: 80v–80x.
+
 **One app, every screen like Today (2026-11-24, against v3.646, `origin/Branch-1` 67e4c0f, design-engineer).** After TOOL-02's before-sheets, the owner asked for every screen to match Today and for renders of each gap. There are ten new items, UX-52 to UX-61, in a new section after the tab audit. Each one's before and after is rendered from the real app in `tools/design/unify/renders/unify-1.png` to `unify-11.png`. All ten are `ready`. UX-52, UX-53 and UX-57 had one option. For the other seven the owner answered "All as recommended" (2026-11-24): UX-54 A, UX-55 B, UX-56 A, UX-58 C, UX-59 A, UX-60 A and UX-61 A. The same day he said Gym mode can go (UX-17, refreshed and moved to 80s–80u). Slots: 80h1–80h2 and 80m1–80m8.
 
 **Slogan and cheer decided (2026-11-24, against v3.645, `origin/Branch-1` 85eca06, marketing-manager).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"** (`planning/slogan.md` §10). There are three new items at the end of the Marketing section: **MKT-21** (`APP_SLOGAN` and the footer line, `ready`), **MKT-22** (Year in Lifting's end card, `ready`) and **MKT-23** (the cheer). MKT-23 is `ready` after MKT-21: the owner picked bib A + Today T1 from the renders (`tools/design/cheer/renders/contact-sheet.png`) on 2026-11-24. All three are slotted at roadmap 80n–80p, ahead of the tab audit, because the Year in Lifting window opens 1 December. Baseline green: `check.sh` passed.
@@ -2619,6 +2621,7 @@ All four are now ready after Phase 3. The owner answered "41a, 42a, 45a" on PR #
   - **Q3, bodyweight moves.** (a) hidden *(recommended)*; (b) a reps-only drop with a line such as "switch to an easier version" and no number.
   - **Q4, deload weeks.** (a) hidden *(recommended: a deload asks for 3–4 RIR)*; (b) shown.
   - **Q5, the most drops.** (a) 2 *(recommended: most studies)*; (b) 3 (Fink 2018).
+- **Placement note (2026-11-24):** the owner asked whether drop sets belong on Today's cover. UX-64 (needs-owner) would add Q2's option (b), a quiet cover offer after the last set, on top of this item. This item's logic, percentages and exclusions stand whatever he picks.
 - **Status:** done (v3.651, PR #246, 2026-11-24). Built on the recommended defaults (Q1 a: 25% then 20%; set sheet only). Review fixes: drop saves queue on the row (two drops in one Save both persist), an emptied saved drop is cleared, drops on a row without the control aren't editable, a blank middle drop keeps its index, no weight to drop from isn't "lightest", and an added set takes its name from the header.
 
 ## Parked or later (not yet itemised)
@@ -4325,6 +4328,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Re-slotted (2026-11-24):** UX-17a to UX-17c move to roadmap 80s–80u, ahead of the tab audit, so no audit or unify item has to style or carve out Gym mode.
   - If an audit item is built while UX-17b hasn't merged (the 14-day gate), it keeps its `body:not(.gym-mode)` scoping so gym mode stays untouched.
   - Once UX-17b has merged, the scoping is unnecessary and is written without it.
+- **Placement note (2026-11-24):** the owner asked whether the warm-up ramp belongs on Today's cover. UX-62 (needs-owner) would add a slim cover line on top of UX-17a's chips, reusing their handlers. UX-17a's logic stands. UX-17b (v3.653) removed `pendingWarmupChip` with the dock, so UX-62 re-adds it as a pure helper.
 - **Status:** UX-17a done (v3.652, PR #247, 2026-11-24); UX-17b done (v3.653, PR #249, 2026-11-24); UX-17c ready (also drop the dead `#gymEnterBtn` selectors, which its CSSOM patterns don't name). Ready now: the owner waived the 14-day wait on 2026-11-24 ("Skip the wait") and approved UX-17c's CLAUDE.md edit ("yes to instructions update"). Tap parity was confirmed on device by the owner (2026-11-24, quoted above). Owner yes 2026-11-07, D2. It ships before any Phase 5 public step. *Original question:* "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?"
 
 ### UX-18: Launch animation, from bar to Sash
@@ -5291,6 +5295,118 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
   - Re-pin with dated notes any suite pinning the rest pill's 36 px radius or the undo pill's blue (grep `test-*.js`).
 - **Risk:** low to medium. These are the most-seen surfaces mid-session, and the stacking changes positions, not behaviour. Before merge, check on the owner's iPhone that "Undo" is reachable above the pill.
 - **Status:** ready. Owner's answer (2026-11-24): all as recommended: **A, the rest field** (the day's deep rest colour). The stacking fix is a bug fix with either option. After UX-17b.
+
+## Design (UX): the session flow, warm-ups, supersets and drop sets (design-engineer with the exercise-auditor, 2026-11-24)
+
+**The owner, 2026-11-24:** "Something to consider is the look of drop sets, supersets, and the warm up ramp, now that the removal of gym mode is starting, make renderings of how they can all look and if they should be at the colorful top tile or not, plan with the team and let me know". "The colorful top tile" is Today's cover.
+
+- **Renders:** `tools/design/flow/render.js` renders the real app at v3.652, with real taps on the harness fixture's Day 1 ("Upper · Strength", Jordan, Mon 2 Nov 2026). Each option is a prototype applied in memory. The three sheets are in `tools/design/flow/renders/`: `flow-warmup.png`, `flow-superset.png` and `flow-drop.png`.
+  - Each sheet shows three live states (in progress, the hand-off, rest) in dark and light at 402.
+  - The columns are the current app (which is option B), then A, then C.
+  - Two app things are hidden in every frame: the "Switch to gym mode?" card (UX-17b removes it) and the "Heaviest weight yet" banner (the fixture's in-session weight bumps make every Lateral Raise set one).
+- **The team:** the exercise-auditor's training-flow view (checked against v3.652) is the recommended option in each item.
+- **What shipped is the base:** BL-79 (drop lines in the set sheet, v3.651) and UX-17a (warm-up chips in Today's open exercise, v3.652). Each item below is a change on top of them and keeps their logic.
+- **Line numbers** are against `origin/Branch-1` 465afb5 (v3.652). UX-17b is being built now and will move some of them; each item names its functions so they can be re-found.
+- **Tap counts:** no option raises the counts in `test-tap-counts.js`. The working set is still one tap on Log in every option.
+- **Status:** every item is `needs-owner`, with lettered options. None of them changes BL-79's or UX-17a's logic, percentages or exclusions.
+
+### UX-62: The warm-up ramp on the cover, as one line above Log
+- **Why:**
+  - UX-17a (v3.652) put the ramp's chips in Today's open exercise. That's in the list, under the cover, so on a barbell day the first thing you do (load the bar for the warm-up) isn't on the screen you're looking at.
+  - The cover's Log logs working sets only. The step-first logic (`pendingWarmupChip`, 35047) fed only Gym mode's Log, and UX-17b removes it with the dock.
+  - Render: `flow-warmup.png`, Bench Press with today not started and Settings > "Build the ramp in as sets I can log" on.
+- **Options (the owner picks):**
+  - **A, the ramp takes the cover:** while warm-ups remain, the big number, the plate stack and Log are the warm-up step ("Warm-up 1 of 4 · 45 lb ×8", "Log warm-up"). After the last step, the cover hands over to set 1.
+  - **B, as shipped:** the chips stay in the open exercise in Then, and the cover shows set 1 from the start.
+  - **C, one slim line above Log (recommended, with the exercise-auditor):** "Warm-up 2 of 4 · 75×5 · Done · Skip", in the cover's ink.
+    - The big number and Log stay the working set: the lifter sees the target from the first second, and Log is never a warm-up by surprise.
+    - Done ticks the step through the chip's own handler (with its Undo).
+    - Skip runs the ramp's own skip-all (`warmupStrip._skipAll`, 36612), which hides the whole ramp for today with one tap.
+    - The line goes away after the last step or a skip.
+    - No rest takeover between steps (30–60 s is the lifter's own pace).
+- **Why C over A:** A puts a 45 lb number where the lifter expects today's target and makes Log mean two things. Mis-logging a warm-up as a working set would corrupt progression, PRs and the ledger. C keeps one meaning per control.
+- **One thing the renders raise:** in C the plate stack shows the working weight while you load the warm-up. Option **C+**: while a warm-up step is next, the plate stack (UX-07) draws that step's load and its caption says "Warm-up 2 of 4". The big number stays the working set. That puts the loading help where it's needed and costs no tap. Worth asking alongside C.
+- **Change (C):**
+  - **Markup:** one `.cover-warmup` row before `.cover-log` (6660), hidden unless the exercise on the cover has a pending warm-up step.
+  - **Pending:** `pendingWarmupChip`'s rule: a ready step, and no working set of this exercise logged yet. Keep that helper when UX-17b removes Gym mode's dock, or re-add it as a 6-line pure function. Its test moves with it.
+  - **Done:** clicks the step's real chip (the `renderWarmupChips` handler, 34934). That gives the same save, the same Undo toast and the same `warmupsSkipped` path; nothing is copied.
+  - **Skip:** calls `warmupStrip._skipAll`.
+  - **Style:** 44 pt text buttons in the cover's ink ("Done" outlined, as `.cover-adjust`), and the step in the display face (24 px).
+  - **Settings:**
+    - With "Build the ramp in as sets I can log" **off** (the default), the cover shows nothing: the ramp stays the advice line in the open exercise, as now. Turning a read-only ramp into a cover control is a separate question for the owner.
+    - Clinical programs and any exercise without a ramp show nothing (the existing ramp eligibility, `test-superset-warmup-ramp-eligibility.js`).
+- **Acceptance criteria:**
+  1. Real `renderWorkout` and `renderUpNext` in jsdom, with the pref on and Bench not started: the cover shows `.cover-warmup` with "Warm-up 1 of 4 · 45×8". `#upNextNumeral` still reads Bench set 1's working weight, and `#upNextLog` is unchanged.
+  2. A click on the line's Done ticks step 1 (the real row's `.warmup-done` is checked, saved) and the line advances to "2 of 4". Undo unticks it.
+  3. Skip hides every step for today (the real `warmupsSkipped` list), and the line is gone.
+  4. After the last step, or once a working set of Bench is logged, the line is gone.
+  5. With the pref off, or on an exercise with no ramp, no `.cover-warmup` is rendered.
+  6. `test-tap-counts.js` is unchanged: "log the ready set" is still one tap on `#upNextLog`.
+  7. Each control is ≥ 44 × 44 and named ("Mark warm-up 75 lb × 5 done", "Skip the warm-up").
+- **Harness:** a `--today` state with the pref on and Bench not started (`tday-warmup-<theme>-402`, tooling, same PR).
+- **Test plan:** new `test-cover-warmup.js`. Sabotage: render the line with the pref off, and criterion 5 must fail.
+- **Files:** `index.html` (cover markup 6625–6677; `renderUpNext` 34429; the warm-up helpers 34934 and 35047; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
+- **Risk:** low. The working path is untouched.
+- **Status:** needs-owner (A, B, C or C+; recommend C, and ask about C+).
+
+### UX-63: Supersets: alternate on the cover, and name the next station
+- **Why:**
+  - The cover already does the right thing: `findNextSetRow` (34409) reads the pair's interleaved rows, so it goes A1 → B1 → A2. And the lead-in set starts no rest (`ex.superTag`, 36460), so you go straight to B.
+  - But the cover never says a superset is on. After logging A1, the cover just changes lift. The "Superset · no rest between" line (32251) is only in Then.
+  - Render: `flow-superset.png`, DB Curl + Triceps Pushdown.
+- **Options (the owner picks):**
+  - **A, the pair as one cover:** "Superset", with A's number big and B's smaller beneath.
+  - **B, as shipped:** one lift at a time, nothing about the pair on the cover.
+  - **C, alternate as now, plus one line (recommended, with the exercise-auditor):** under the prescription, "Then Triceps Pushdown · 60×12 · no rest between", so the lifter can set up the next station. On B's cover it names A's next set; during the pair's rest it names the next lift.
+- **Why C over A:** A halves the number (the lifter reads 35 at 64 px instead of 176) and makes "which one does Log log?" a question. C keeps one lift, one number and one tap, and adds only what the lifter needs to walk to the next station.
+- **Change (C):**
+  - One `.cover-then` line after `#upNextTarget` (6630). It is built from the next unlogged row of the pair that belongs to the other lift (the same rows `findNextSetRow` reads), with that row's own suggestion (its placeholders, as the chips use).
+  - Nothing changes in the order or in the no-rest rule.
+- **Also (the auditor):** after B, the pair rests for the **heavier lift's** rest, not B's. Today it is B's `getDefaultRestSeconds(ex)` (36474): in the render, 1:30 after Triceps Pushdown. Taking the larger of the pair's two rest targets is a one-line rule change, behind its own criterion. **Owner's call, sub-question (i):** yes, or keep B's.
+- **Acceptance criteria:**
+  1. Real `renderUpNext` on the fixture with DB Curl next:
+     - `.cover-then` reads "Then Triceps Pushdown · 60×12 · no rest between".
+     - After the real Log, the cover shows Triceps Pushdown set 1 and the line names DB Curl set 2.
+     - No rest timer starts between them (`test-superset-rest-timer-suppression.js` unchanged).
+  2. On a lift that isn't in a superset, no `.cover-then`.
+  3. On the pair's last set, no line (nothing comes next in the pair).
+  4. (If (i) is yes) after B, `restTimerTotal` equals the larger of the two lifts' `getDefaultRestSeconds`.
+  5. `test-tap-counts.js` unchanged.
+- **Harness:** a `--today` state with the superset next (tooling, same PR).
+- **Test plan:** new `test-cover-superset-then.js`. Sabotage: build the line from the same lift's next row, and criterion 1 must fail.
+- **Files:** `index.html` (6630, `renderUpNext` 34429, and for (i) 36474; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
+- **Risk:** low.
+- **Status:** needs-owner (A, B or C, plus (i); recommend C and yes to (i)).
+
+### UX-64: Drop set offered on the cover after the last working set (BL-79's Q2 (b))
+- **Why:**
+  - BL-79 (v3.651) made drop sets work: lines in the set sheet, 25% then 20% lighter, snapped by `computeSuggestedSet`'s drop branch. But reaching one after the last set takes three taps (the logged chip, then Drop set, then Save), and meanwhile the rest timer has already started for the next lift.
+  - A drop set is done right after the top set, with no rest.
+  - Render: `flow-drop.png`, Lateral Raise.
+- **Options (the owner picks):**
+  - **A, the drop takes the cover:** after the last working set, the cover becomes "Lateral Raise · Drop 1 of 2 · 35 lb" with "Log drop" and "Skip drop". Then rest, then the next lift.
+  - **B, as shipped:** set sheet only. Rest starts, and a drop is the logged chip, then Drop set, then Save.
+  - **C, a quiet line (recommended, with the exercise-auditor):** after the last working set of a drop-eligible lift, the cover moves on to the next lift as now, with one line above Log: "Drop set · 35 lb · Lateral Raise · 25% lighter, no rest · Log · Not now".
+    - **The new rule:** the rest timer doesn't start until the drop is logged or dismissed.
+    - The line goes as soon as rest starts or another set is logged.
+- **Why C over A:** most sets aren't followed by a drop, so A would put an optional technique in the cover's main slot after every eligible lift. C offers it for exactly the moment it fits (the last set, before any rest) and costs nothing when ignored. "Not now" is one tap, and logging another set dismisses it too.
+- **Change (C):**
+  - **Shown only when** `dropSetEligible(ex, program, inDeload)` (30538) is true and the set just logged was that exercise's **last** working set, not backdating.
+  - **The weight** comes from the shipped path: `suggestDropWeight(row, loggedWeight, 1)` (35211), with `dropSetCue(name, 1)` (35205) for the small line. If it returns null (nothing lighter is loadable), there's no line.
+  - **"Log"** writes drop 1 through the same row path BL-79 uses (`saveExDropSet` via the row's drop inputs, with reps from the cover's reps field or empty → it opens the set sheet on that set with the drop line focused when reps are needed). The open question for the build is whether one tap can log a drop without reps (after failure, reps are the result). The auditor's answer: open the sheet's drop line with the weight filled. That is 2 taps (Log, Save), still fewer than today's 3.
+  - **Rest hold:** at the rest start for a real set (36474), when the line is offered, the timer is held: `restHoldForDrop = {slot, seconds}`. It starts with the same seconds on Log or Not now, or when another set is logged. This is the auditor's rule, and it needs a test.
+- **Acceptance criteria:**
+  1. Real path in jsdom: logging Lateral Raise's last set through `#upNextLog` renders `.cover-drop` reading "Drop set · 35 lb" (from the real `suggestDropWeight`), and `restTimerEndsAt` stays null.
+  2. Not now: the line goes, and the rest timer starts with the exercise's own rest seconds.
+  3. Log: drop 1 is saved under set 5 (`set.drops[0].weight` = 35) through `saveExDropSet`, and the rest then starts. Never a PR, never in `entry.sets` (BL-79's rule 7 tests unchanged).
+  4. Logging any other set while the line shows: it goes, and the held rest starts.
+  5. No line on: a non-last set; an ineligible lift (`dropSetEligible` false, e.g. Bench in a deload week, a timed or bodyweight row); backdating; a null suggestion.
+  6. `test-tap-counts.js` unchanged; `test-drop-set-suggestion.js` unchanged.
+- **Harness:** a `--today` state after Lateral Raise's last set (tooling, same PR).
+- **Test plan:** new `test-cover-drop-offer.js`. Sabotage: start the rest timer unconditionally at 36474, and criterion 1 must fail.
+- **Files:** `index.html` (cover markup 6660, the rest start 36474, `logUpNext` 34685; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
+- **Risk:** medium, because the rest timer's start moves. The hold is scoped to that one offered moment and always ends in a start.
+- **Status:** needs-owner (A, B or C; recommend C). It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
 
 ---
 
