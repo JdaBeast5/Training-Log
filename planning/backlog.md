@@ -4950,7 +4950,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
   2. `#appFooter`'s text is byte-identical to v3.645's.
 - **Test plan:** new `test-footer-contrast.js` (the real CSS and the real init line in jsdom for criterion 2; a contrast ratio computed from the real stylesheet's resolved token). Sabotage: restore `#4A5057`, and criterion 1 fails.
 - **Files:** `index.html` (~3811), `sw.js`, the new test.
-- **Status:** ready, after MKT-21 (same rule; it lands second so the two don't conflict).
+- **Status:** done (v3.649, PR #244, 2026-11-24). `.app-footer` uses `--text-3`: 5.07:1 dark, 5.04:1 light (was 7.3:1 in light), and 5.2:1 on Gym mode's black.
 
 ## Design (UX): one app, every screen like Today (design-engineer, 2026-11-24)
 

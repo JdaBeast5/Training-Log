@@ -1702,3 +1702,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 168: MKT-23 (v3.648, PR #243)
 - `STEP_UP_CHEER` and `isStepUp` sit beside `computeSuggestedSet`. `renderWorkout` hoists `firstBasis` and `suggestedFirst`, and stamps `data-step-up` on the block or superset member. `renderUpNext` fills `#upNextCheer`. The bib model's `lead.stepUp` is drawn by `drawBibCard`.
 - **Next:** UX-51, BL-78, BL-79, then UX-17a–c, then UX-38 onward.
+
+## Addendum 169: UX-51 (v3.649, PR #244)
+- `.app-footer` color `var(--text-3)`.
+- **Next:** BL-78 (the block week on the bib), then BL-79, then UX-17a–c.
