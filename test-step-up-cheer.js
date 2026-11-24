@@ -100,7 +100,7 @@ function cover(){
     var exerciseInfo = {}; var COMPOUND_CATEGORIES = new Set(['chest']);
     function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
     function isBarbellExercise(n){ return /Bench/.test(n || ''); } function isDumbbellExercise(n){ return /DB/.test(n || ''); }
-    function renderCoverBar(){} function renderExerciseDetailBar(){} function refreshGymLogBtn(){}
+    function renderCoverBar(){} function renderExerciseDetailBar(){}
     ${COVER_FNS.join('\n')}
     window.renderAllSetChips = renderAllSetChips; window.renderUpNext = renderUpNext;`);
   return window;

@@ -10,7 +10,7 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 
 const { test, run } = makeRunner('test-session-share.js');
 const src = readIndexSource();
-const FNS = ['sessionShareStats', 'getWorkoutTimeWindow', 'gymElapsedMs'].map(n => extractFunction(src, n));
+const FNS = ['sessionShareStats', 'getWorkoutTimeWindow' /* v3.653 (UX-17b): no gym clock */].map(n => extractFunction(src, n));
 
 function block(reps){
   return `<div class="exercise-block"><div class="sets-block">` + reps.map((r, i) =>
@@ -19,10 +19,9 @@ function block(reps){
 // 18 rows with reps across 5 exercises, plus empty rows (and one exercise with none) that must not count.
 const LIST = block([5, 5, 5, 5]) + block([8, 8, 8, '']) + block([10, 10, 10, 10]) + block([12, 12, 12, 12]) + block([6, 6, 6, '']) + block(['', '']);
 
-async function build({program = 'ppl', store = {}, prs = [], gym = false, gymMs = 0} = {}){
+async function build({program = 'ppl', store = {}, prs = []} = {}){
   const { window } = runJsdom(`<div id="exerciseList">${LIST}</div>`, `
     var activeDay = 'd2';
-    var gymModeActive = ${gym}, gymAccumMs = ${gymMs}, gymStretchStart = 0;
     const MEDICAL_STYLES = {rehabAcl: {}, obesity: {}};
     const __store = ${JSON.stringify(store)};
     window.storage = { get: async k => (k in __store ? {value: __store[k]} : null) };
@@ -56,9 +55,14 @@ test('criterion 2: labels are exactly SETS, LIFTS (+ MIN with a workout-time win
   for(const d of [timed, withPr]) for(const s of d.stats) assert.ok(!/LOAD|VOLUME|LB|KG/.test(s.label), s.label);
 });
 
-test('MIN comes from the Gym clock when Gym mode ran (41.5 min rounds to 42)', async (assert)=>{
-  const d = await build({gym: true, gymMs: 41.5 * 60000, store: {'workout-time:2026-11-16': JSON.stringify({first: '17:05', last: '18:02'})}});
-  assert.deepStrictEqual(d.stats.find(s => s.label === 'MIN'), {value: '42', label: 'MIN'});
+// 2026-11-24 (v3.653, UX-17b): "MIN comes from the Gym clock" retired with Gym
+// mode. UX-17b criterion 5: MIN is the logged-time window, with no clock.
+test('UX-17b criterion 5: MIN is the logged-time window (first to last set logged), > 0, with no gym clock', async (assert)=>{
+  const d = await build({store: {'workout-time:2026-11-16': JSON.stringify({first: '17:05', last: '18:02'})}});
+  assert.deepStrictEqual(d.stats.find(s => s.label === 'MIN'), {value: '57', label: 'MIN'});
+  const code = extractFunction(src, 'sessionShareStats').split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+  assert.ok(/getWorkoutTimeWindow\(dateKey\)/.test(code), 'anchor: the window is read');
+  assert.ok(!/gym/i.test(code), 'no gym arm left in sessionShareStats (code, not comments)');
 });
 
 test('criterion 3: a clinical program (the medical program, or a MEDICAL_STYLES key) gets no share data', async (assert)=>{

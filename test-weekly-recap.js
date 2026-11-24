@@ -247,11 +247,9 @@ test('UX-11 review fixes: the title names a week only when known; a week that di
   assert.strictEqual(one.document.getElementById('recapTitle').textContent, 'Last week, done', 'one session: not a counted week');
 });
 
-test('UX-11 review fixes: never over gym mode, another overlay, or another view; a week with nothing to recap isn\'t rebuilt on every Today', async (assert)=>{
-  const gym = sheetWindow({extra: 'var gymModeActive = true;'});
-  gym.VIEW_RENDERERS.today(); await tick();
-  assert.ok(!gym.document.getElementById('recapSheet').classList.contains('active'), 'gym mode');
-  assert.ok(!('weekly-recap-seen' in gym.eval('__store')), 'and not marked: it shows on a later Today');
+// 2026-11-24 (v3.653, UX-17b): the "never over gym mode" case retired with Gym mode.
+test('UX-11 review fixes: never over another overlay, or another view; a week with nothing to recap isn\'t rebuilt on every Today', async (assert)=>{
+  assert.ok(!/gymModeActive/.test(extractFunction(src, 'recapMayOpen')), 'v3.653: recapMayOpen no longer reads gym mode');
   // What's New opens while the model is being built: the second check holds it back.
   const late = sheetWindow({extra: `document.body.insertAdjacentHTML('beforeend', '<div id="whatsNewOverlay"></div>'); var SCROLL_LOCK_OVERLAYS = ['whatsNewOverlay'];
     const __cws = computeWeekStats; window.computeWeekStats = async (k) => { document.getElementById('whatsNewOverlay').classList.add('active'); return __cws(k); };`});

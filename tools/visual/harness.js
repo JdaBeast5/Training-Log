@@ -122,7 +122,8 @@ function buildStoreStates(){
   const base = { group: 'store', theme: 'dark', size: 'store', viewport: STORE.viewport, dpr: STORE.dpr, motion: 'no-preference', fixture: 'store' };
   return [
     { ...base, n: 1, id: 'store-today', caption: 'Tells you what to lift next', view: 'today', step: 'today' },
-    { ...base, n: 2, id: 'store-gym', caption: 'One tap logs the set', view: 'today', gym: true },
+    // v3.653 (UX-17b): Gym mode is gone; frame 2 is Today's cover (its Log set is the one tap).
+    { ...base, n: 2, id: 'store-cover', caption: 'One tap logs the set', view: 'today' },
     { ...base, n: 3, id: 'store-progression', caption: 'Adds weight when you earn it', view: 'today', step: 'progression' },
     { ...base, n: 4, id: 'store-program', caption: 'Programs that show their sources', view: 'today', step: 'program' },
     { ...base, n: 5, id: 'store-progress', caption: 'Every record, every week', view: 'analysis', step: 'progress',
@@ -143,7 +144,6 @@ function buildStates(){
     }
   }
   for(const theme of ['dark', 'light']){
-    states.push({ id: `gym-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', gym: true });
     states.push({ id: `rest-${theme}-402`, group: 'extra', view: 'today', theme, size: 402, motion: 'no-preference', rest: true });
     states.push({ id: `firstrun-${theme}-402`, group: 'extra', theme, size: 402, motion: 'no-preference', firstRun: true });
     // v3.598 (UX-09a): the finish sheet, opened on the fixture's session the
@@ -169,7 +169,6 @@ function buildStates(){
   // The Reduce Motion pass: the states where motion matters most, with
   // prefers-reduced-motion: reduce emulated.
   states.push({ id: 'today-dark-402-rm', group: 'reduce', view: 'today', theme: 'dark', size: 402, motion: 'reduce' });
-  states.push({ id: 'gym-dark-402-rm', group: 'reduce', view: 'today', theme: 'dark', size: 402, motion: 'reduce', gym: true });
   states.push({ id: 'rest-dark-402-rm', group: 'reduce', view: 'today', theme: 'dark', size: 402, motion: 'reduce', rest: true });
   states.push({ id: 'firstrun-dark-402-rm', group: 'reduce', theme: 'dark', size: 402, motion: 'reduce', firstRun: true });
   return states;
@@ -213,7 +212,6 @@ function buildTodayStates(){
     t(`tday-warmup-${theme}-402`, 402, theme, { openFirst: true, storage: { ...SEEN_MILESTONE, 'warmup-sets-pref': '1' } });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
-    t(`tday-gym-${theme}-402`, 402, theme, { fullPage: true, gym: true });
     t(`tday-${theme}-904`, 904, theme, {});
     t(`tday-left-${theme}-904`, 904, theme, { scrollPane: ['.posture-split > .split-primary', 650] });
     t(`tday-right-${theme}-904`, 904, theme, { scrollPane: ['#todayView', 1000] });
@@ -394,10 +392,6 @@ function seedFor(state, fixture, appVersion){
   // v3.623 (UX-11): this week's recap sheet already seen, except in the recap states
   // (the fixture's today is Monday 2 November 2026), so it covers no other state.
   if(!state.recap) seed[ns + 'weekly-recap-seen'] = TODAY_KEY;
-  if(state.gym){
-    // In the gym for 23 minutes; restoreGymMode re-enters gym mode on boot.
-    seed[ns + 'gym-session'] = JSON.stringify({ date: TODAY_KEY, accumMs: 0, startedAt: FROZEN_NOW - 23 * 60 * 1000 });
-  }
   if(state.rest){
     // Resting after Bench set 2: 2:30 left of 4:00. restoreRestTimer resumes it.
     seed[ns + 'rest-timer-state'] = JSON.stringify({ endsAt: FROZEN_NOW + 150 * 1000, total: 240 });
@@ -575,7 +569,6 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
         }
       }else{
         await page.waitForFunction(() => typeof BOOT_MARKS !== 'undefined' && BOOT_MARKS.initEnd, null, { timeout: 30000 });
-        if(state.gym) await page.waitForSelector('body.gym-mode', { timeout: 10000 });
         // v3.609 (UX-29): the timer running, not the pill showing. With the
         // cover in view the pill steps aside (the cover shows the rest).
         if(state.rest) await page.waitForSelector('#restTimer.active', { state: 'attached', timeout: 10000 });

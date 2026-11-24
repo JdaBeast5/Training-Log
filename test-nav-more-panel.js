@@ -80,7 +80,6 @@ const viewsHtml = `
   <div id="learnView"></div>
   <div id="stickyDayHeader" class="visible"></div>
   <div id="logDateBar"></div>
-  <div class="gym-offer" id="gymOffer"></div>
 `;
 
 const viewKeysSrc = extractConst(src, 'VIEW_KEYS');
@@ -90,7 +89,7 @@ const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
 // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
 // 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
 const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView') + '\n' + extractConst(src, 'TODAY_CHROME_MOVES') + '\n' + extractFunction(src, 'syncTodayChrome') /* 2026-11-17 (v3.601, UX-20): switchView folds Today's chrome into the cover */;
-const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
+// 2026-11-24 (v3.653, UX-17b): hideGymOffer went with Gym mode.
 const closeNavMoreOverlaySrc = extractFunction(src, 'closeNavMoreOverlay');
 const showViewWiringSrc = extractStatement(src, 'VIEW_KEYS.forEach(key=>{');
 
@@ -130,7 +129,7 @@ function setup(){
   `;
   const { document, window } = runJsdom(bodyHtml, globalsSetup, [
     viewKeysSrc, movedToMoreSrc, staggerMaxSrc, staggerStepSrc,
-    hideGymOfferSrc, switchViewSrc, closeNavMoreOverlaySrc, showViewSrc,
+    switchViewSrc, closeNavMoreOverlaySrc, showViewSrc,
     showViewWiringSrc, navMoreWiringSrc,
   ]);
   return { document, window };

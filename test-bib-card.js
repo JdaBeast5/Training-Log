@@ -169,7 +169,7 @@ test('criterion 4: 160 lb on a 45 lb bar: the plates run 45, 10, 2.5 from the co
 });
 
 test('criterion 5: with a MEDICAL_STYLES program active, no share data is built (the real sessionShareStats)', async (assert)=>{
-  const { window } = runJsdom('<div id="exerciseList"></div>', `var gymModeActive = false;
+  const { window } = runJsdom('<div id="exerciseList"></div>', `
     var MEDICAL_STYLES = {postpartum: {label: 'Postpartum'}};`, [extractFunction(src, 'sessionShareStats')]);
   const list = window.document.getElementById('exerciseList');
   assert.strictEqual(await window.sessionShareStats(list, '2026-11-02', 'medical'), undefined);

@@ -15,6 +15,8 @@
 // Skip then Restore round-tripped with warmupsSkipped cleared; outside gym
 // mode the chips are display:none.
 //
+// v3.653 (UX-17b): Gym mode is gone; Today's open exercise is where the chips live.
+//
 // v3.652 (UX-17a, owner 2026-11-24: Gym mode goes, Today does its job): the
 // chips move to Today. An open exercise shows them in the ink; Edit shows the
 // rows. Marking a step done offers Undo ("Logged warm-up 45×8"), from the
@@ -97,30 +99,9 @@ test('UX-17a criterion 1: marking the ready step done shows the real undo toast 
   assert.ok(!toast.classList.contains('active'), 'a second tap (untick) shows no toast');
 });
 
-test('UX-17a: the gym dock\'s real Log button reuses the chip\'s handler: one tick, one toast', (assert)=>{
-  const i = src.indexOf("document.getElementById('gymLogBtn').addEventListener('click'");
-  assert.ok(i > 0, 'anchor: the dock handler');
-  const DOCK = src.slice(i, src.indexOf('\n});', i) + 4);
-  const { window } = runJsdom(`<div id="exerciseList"><div class="exercise-block open"><div class="exercise"></div><div class="set-chips"></div>
-    <div class="expand-wrap"><div><div class="sets-block"><div class="set-row" data-set-idx="0" data-ex-idx="0"><input class="ex-reps" value=""></div>
-    <div class="warmup-strip" id="strip"><div class="warmup-title">Ramp</div>__ROWS__</div></div></div></div></div></div><button id="gymLogBtn"></button>${TOAST}`,
-    `var weightUnit = 'lb'; let undoToastTimeout = null; var gymModeActive = true;
-     function findNextSetRow(list){ return {row: list.querySelector('.set-row')}; }
-     function openSetSheet(){ window.__sheet = (window.__sheet || 0) + 1; }
-     window.__toasts = 0;`,
-    [...FNS, extractFunction(src, 'pendingWarmupChip'), `
-     const realToast = showUndoToast; showUndoToast = function(m, f){ window.__toasts++; window.__msg = m; return realToast(m, f); };
-     const strip = document.getElementById('strip');
-     strip.innerHTML = strip.innerHTML.replace('__ROWS__', buildWarmupRampRowsHtml(${JSON.stringify(RAMP)}, []));
-     window.__changes = [];
-     strip.querySelectorAll('.warmup-done').forEach(cb => cb.addEventListener('change', () => window.__changes.push(cb.closest('.warmup-set-row').dataset.stepLabel + ':' + cb.checked)));
-     renderWarmupChips(document.querySelector('.exercise-block'));`, DOCK]);
-  window.document.getElementById('gymLogBtn').click();
-  assert.deepStrictEqual([...window.__changes], ['Bar:true'], 'one tick');
-  assert.strictEqual(window.__toasts, 1, 'one toast, from the chip\'s handler');
-  assert.strictEqual(window.__msg, 'Logged warm-up 45×8');
-  assert.strictEqual(window.__sheet, undefined, 'the warm-up, not the working set');
-});
+// 2026-11-24 (v3.653, UX-17b): the UX-17a dock test ("the gym dock's real Log
+// button reuses the chip's handler") retired with the dock. The chip's own
+// Undo is covered above.
 
 test('REAL invocation: saved progress shows on load (done steps struck through, the next one ready)', (assert)=>{
   const ui = mount({ saved: [{weight:45, reps:8, done:true}, {weight:80, reps:5, done:true}] });

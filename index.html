@@ -6705,9 +6705,8 @@
     <!-- v3.604 (UX-23): while the cover shows, the list under it is "Then". -->
     <h2 class="then-title">Then</h2>
     <!-- v3.291 (Impeccable layout pass): what the session is (phase, length,
-         calories) reads as one quiet line, then the two ways to change HOW
-         you run it — length and gym mode — sit together as one row of
-         matched pills, ahead of "Up next". -->
+         calories) reads as one quiet line, then the session length on its
+         own row (v3.653, UX-17b: Gym mode, its partner here, is gone). -->
     <div class="duration-row">
       <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
       <div class="duration-tag" id="dayDuration"></div>
@@ -6718,9 +6717,6 @@
         <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
         <svg class="session-length-chevron" aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4.5 6,7.5 9,4.5"/></svg>
       </span>
-      <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-        <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
-      </button>
     </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="exerciseList"></div>
@@ -8046,35 +8042,6 @@
   <button type="button" class="celebrate-share-btn" id="celebrateShareBtn" style="display:none">Share</button>
 </div>
 
-<!-- Gym mode chrome. Both elements exist at all times and are shown by
-     class, so nothing has to be constructed at the moment someone is mid-set. -->
-<div class="gym-dock" id="gymDock">
-  <div class="gym-dock-meta">
-    <!-- aria-live is off. The clock updates every second and a live region
-         would make a screen reader announce the time continuously, which is
-         the opposite of the point. It is read on demand like any other text. -->
-    <div class="gym-clock" id="gymClock" aria-label="Time in gym mode">00:00</div>
-    <div class="gym-progress" id="gymProgress"></div>
-  </div>
-  <!-- v3.301: the session's next set, always one thumb tap away (Apple HIG,
-       workouts: persistent controls, large targets). Mirrors the glowing chip. -->
-  <button type="button" class="save-btn gym-log-btn" id="gymLogBtn" hidden>Log set</button>
-  <button type="button" class="gym-exit-btn" id="gymExitBtn" aria-label="Exit gym mode">Exit</button>
-</div>
-
-<!-- role="status" rather than "dialog": this is an offer you are allowed to
-     ignore while you finish your set, not something that should trap focus.
-     aria-live is off by default on status only when hidden, so it announces
-     once when it appears and not again. -->
-<div class="gym-offer" id="gymOffer" role="status" aria-live="polite">
-  <div class="gym-offer-title">Switch to gym mode?</div>
-  <div class="gym-offer-body">Strips the screen to your sets and the rest timer. You can turn it on any time from the button on Today.</div>
-  <div class="gym-offer-actions">
-    <button type="button" class="gym-offer-no" id="gymOfferNo">No thanks</button>
-    <button type="button" class="gym-offer-yes" id="gymOfferYes">Use gym mode</button>
-  </div>
-</div>
-
 <div class="rest-timer" id="restTimer">
   <div class="rest-timer-row">
     <button class="rest-timer-ring-wrap" id="restTimerToggle" aria-label="Show rest details">
@@ -8583,7 +8550,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.652';
+const APP_VERSION = '3.653';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10381,6 +10348,9 @@ const WHATS_NEW = {
   ]},
   '3.652': { headline: 'Warm-ups on Today', points: [
     'With warm-up sets on, an open exercise shows its warm-up steps as chips above your sets. Tap one to mark it done (with Undo). They used to show only in Gym mode.',
+  ]},
+  '3.653': { headline: 'Gym mode is gone', points: [
+    'Gym mode is gone. Today does its job now: your next set, big, with one tap to log it and the rest timer on the cover. Warm-ups are in each exercise.',
   ]},
 };
 
@@ -31493,35 +31463,29 @@ function renderDayInsight(day){
 
 // The one place an exercise row opens or closes. Five separate sites used to
 // hand-write the same two-line class dance (header tap, auto-collapse on
-// check-off, auto-open the next one, gym mode's first-incomplete, and the
-// Enter-key handover between exercises) — which was survivable while the only
+// check-off, auto-open the next one, and the Enter-key handover between
+// exercises; v3.653 removed Gym mode's) — which was survivable while the only
 // state was a class, but `aria-expanded` has to agree with that class at every
 // one of them or a screen reader is told the row is shut while it is visibly
 // open. One function, so there is exactly one place that can be wrong.
 // v3.494 (from the Duo branch's 3.276): the open-posture condition the
 // stylesheet's [OPEN POSTURE] @media block uses, for the one place JS has to
-// know which layout is on screen. Kept as the exact same string (test-duo-gym-
-// tap-to-switch.js fails if the two drift apart) and read live through
+// know which layout is on screen. Kept as the exact same string
+// (test-exercise-header-toggle.js fails if the two drift apart) and read live through
 // matchMedia, so a fold or unfold is picked up the moment it happens.
 const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px)';
 function isOpenPosture(){
   return !!(window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY).matches);
 }
 
-// Tapping an exercise header. Everywhere else it toggles just that exercise,
-// as it always has. In gym mode on an open foldable the right pane shows ONE
-// exercise, so opening another is a switch: the current one closes and the
-// tapped one takes the pane. Without this the tapped exercise expanded inside
-// the list while the pane kept showing the old one.
+// Tapping an exercise header toggles just that exercise. (v3.653, UX-17b: Gym
+// mode's open-foldable switch, where opening one closed the other, went with it.)
 function toggleExerciseBlockFromHeader(blockEl){
   const opening = !blockEl.classList.contains('open');
   // v3.499: opening an exercise also shows it in the open-screen details pane.
   if(opening && typeof focusExerciseDetail === 'function'){
     const idxEl = blockEl.querySelector('[data-ex-idx]');
     if(idxEl) focusExerciseDetail(idxEl.dataset.exIdx, true);
-  }
-  if(opening && gymModeActive && isOpenPosture()){
-    document.querySelectorAll('#exerciseList > .exercise-block.open').forEach(b=> setExerciseBlockOpen(b, false));
   }
   setExerciseBlockOpen(blockEl, opening);
 }
@@ -32367,28 +32331,12 @@ async function renderWorkout(){
       // was already the last one unticked, not on every render of an
       // already-finished day (a plain page load/re-render never fires a
       // checkbox 'change' event, so this can't replay on its own).
-      refreshGymDock();
-
       if(cb.checked && dayNowComplete){
-        // `big` when finishing in gym mode: the larger banner and the heavier
-        // confetti burst are already built, and the one moment in the app that
-        // has genuinely earned them is the last set of a session logged on a
-        // screen stripped down to nothing but the work.
         // v3.598 (UX-09a): the finish sheet, in place of the "Session complete!" toast.
         const finishModel = await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram);
         openFinishSheet(finishModel);
         checkNumberMilestone(finishModel).catch(()=>{}); // v3.619 (MKT-17): once per milestone
         maybeShowTodayStandout();
-        // The second way out of gym mode. This branch is already gated to the
-        // actual completing click — a re-render never fires a checkbox 'change'
-        // — so it cannot fire again on a day that was already finished. Ordered
-        // after the celebration so the confetti plays over the stripped screen
-        // that earned it, then the app comes back.
-        // Was exitGymMode() on this tick, which dismantled the screen out from
-        // under the celebration. finishGymWorkout() plays the ending first and
-        // exits at the end of it; it falls straight through to exitGymMode()
-        // under reduced motion.
-        if(gymModeActive) finishGymWorkout();
       }
     });
 
@@ -32473,9 +32421,6 @@ async function renderWorkout(){
   updateSessionCalorieTotal(renderExercises, completed);
   renderAllSetChips(); // v3.298: the rows as chips (v3.303: first — they hold the set-to-set call)
   renderUpNext(); // v3.290: reads the rows this render just built, and the chips
-  // The gym bar counts checkboxes in the rendered list, so it can only be
-  // correct after that list exists. No-ops when gym mode is off.
-  refreshGymDock();
 }
 
 // --- Undo toast: generic, reusable — any destructive action (currently
@@ -32622,8 +32567,8 @@ function triggerCelebration(iconName, text, sub, big, shareData){
 // v3.581 (MKT-04): the share data for a finished session, read from what is
 // on the page and in storage, so it can be built for real outside
 // renderWorkout (and UX-09a's Share reuses it). SETS are set rows with reps,
-// LIFTS the exercise blocks holding one, MIN from the Gym clock when it ran,
-// else the logged-time window, PRS the PRs dated today. No total load by
+// LIFTS the exercise blocks holding one, MIN the logged-time window (the Gym
+// clock went with Gym mode in v3.653), PRS the PRs dated today. No total load by
 // default: tonnage rewards extra easy sets (alignment round, auditor N1).
 // Clinical programs get no share data.
 async function sessionShareStats(listEl, dateKey, program){
@@ -32633,13 +32578,12 @@ async function sessionShareStats(listEl, dateKey, program){
   const sets = rows.filter(hasReps).length;
   const lifts = listEl ? [...listEl.querySelectorAll('.exercise-block')].filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length : 0;
   const stats = [{value: String(sets), label: 'SETS'}, {value: String(lifts), label: 'LIFTS'}];
+  // v3.653 (UX-17b): the logged-time window, the first to the last set logged
+  // (Gym mode's session clock went with the mode).
   let minutes = 0;
-  if(gymModeActive) minutes = Math.round(gymElapsedMs() / 60000);
-  if(!minutes){
-    const w = await getWorkoutTimeWindow(dateKey);
-    const toMin = (t)=>{ const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
-    if(w && w.first && w.last) minutes = toMin(w.last) - toMin(w.first);
-  }
+  const w = await getWorkoutTimeWindow(dateKey);
+  const toMin = (t)=>{ const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+  if(w && w.first && w.last) minutes = toMin(w.last) - toMin(w.first);
   if(minutes > 0) stats.push({value: String(minutes), label: 'MIN'});
   let prs = 0;
   try{ prs = (await reconstructAllPRs()).filter(e=> e.date === dateKey && !e.imported).length; }catch(e){}
@@ -34113,193 +34057,6 @@ document.addEventListener('change', (e)=>{
   if(!wakeLockEnabled) releaseWakeLock();
 });
 
-// ── GYM MODE ────────────────────────────────────────────────────────────────
-// A MODE, not a view. It strips the Today tab in place rather than replacing
-// it, over the same set rows renderWorkout already built. See the CSS block for
-// the rule about what survives and the three things that must never be hidden.
-//
-// The consequence worth stating up front: 'gym' must never reach switchView.
-// That function iterates a fixed `views` map and hides every key that isn't the
-// active one — hand it a key the map doesn't contain and it hides ALL of them,
-// leaving a blank app with a working nav bar. It must never be written to
-// 'active-view' either, for the same reason one reload later. `VIEW_KEYS` stays
-// exactly what its comment says it is: the one list of VIEWS.
-
-let gymModeActive = false;
-
-// The remembered answer to the offer. null = never asked, '1' = auto-enter,
-// '0' = never auto-enter. Loaded once at boot.
-let gymAutoPref = null;
-
-// Guards both the auto-enter and the offer against firing again within the same
-// day. Without it, exiting gym mode and logging one more set would drop you
-// straight back in, which reads as the Exit button being broken rather than as
-// a feature working as designed.
-let gymAutoHandledDate = null;
-
-// ── The session clock ───────────────────────────────────────────────────────
-// WALL CLOCK, never a tick count. Same discipline the rest timer was rewritten
-// onto in v3.3, and for a sharper reason here: setInterval does not run while
-// the app is backgrounded, and the whole point of this number is to cover a
-// session in which the screen is off for most of every rest period. A clock
-// that counted its own ticks would undercount by exactly the time it is meant
-// to be measuring.
-//
-// Two fields rather than one, so leaving gym mode to look something up in
-// Analysis and coming back adds to the session instead of restarting it:
-// `gymAccumMs` is the stretches already finished, `gymStretchStart` is the
-// timestamp the current one began (0 when not in gym mode).
-let gymAccumMs = 0;
-let gymStretchStart = 0;
-let gymClockHandle = null;
-// The date the accumulator belongs to. An app left open across midnight must
-// not carry yesterday's minutes into today's session.
-let gymClockDate = null;
-
-const GYM_AUTO_KEY = 'gym-auto';
-const GYM_SESSION_KEY = 'gym-session';
-// A gym session longer than this is an app left open, not a workout. Restoring
-// one would drop someone back into gym mode with 9:42:15 on the clock, which is
-// worse than not restoring at all.
-const GYM_SESSION_MAX_MS = 6 * 60 * 60 * 1000;
-
-// How long the leave animation is given before the mode class comes off. Must
-// stay >= the longest transition in the `.gym-leaving` rules, or the dock is
-// cut off mid-slide.
-const GYM_TRANSITION_MS = 280;
-let gymLeaveTimer = null;
-
-// Motion is read at call time rather than cached, because the setting can be
-// changed while the app is open. Zero means the class comes off synchronously,
-// which is also what every test wants.
-function gymLeaveDuration(){
-  try{
-    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 0;
-  }catch(e){}
-  return GYM_TRANSITION_MS;
-}
-
-// Shared by enterGymMode (cancelling a leave already in flight) and by the end
-// of the leave itself.
-function finishGymLeave(){
-  if(gymLeaveTimer){ clearTimeout(gymLeaveTimer); gymLeaveTimer = null; }
-  document.body.classList.remove('gym-mode', 'gym-leaving');
-}
-
-async function loadGymPrefs(){
-  try{
-    const res = await window.storage.get(GYM_AUTO_KEY);
-    if(res && (res.value === '1' || res.value === '0')) gymAutoPref = res.value;
-  }catch(e){}
-}
-
-function gymElapsedMs(){
-  return gymAccumMs + (gymStretchStart ? Date.now() - gymStretchStart : 0);
-}
-
-// mm:ss under an hour, h:mm:ss over it. No leading hour on a 40-minute session:
-// "00:41:12" spends three characters telling you something you already know.
-function fmtGymClock(ms){
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  const pad = (n)=> String(n).padStart(2, '0');
-  return h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-}
-
-function paintGymClock(){
-  const el = document.getElementById('gymClock');
-  if(el) el.textContent = fmtGymClock(gymElapsedMs());
-}
-
-function startGymClock(){
-  stopGymClock();
-  paintGymClock();
-  gymClockHandle = setInterval(paintGymClock, 1000);
-}
-
-function stopGymClock(){
-  if(gymClockHandle){ clearInterval(gymClockHandle); gymClockHandle = null; }
-}
-
-// Scoped to a date, not a boolean. The rest timer already survives an app kill
-// (v3.23), so an app killed mid-session should reopen in gym mode — but opening
-// it the next morning should not, and a bare `true` here would mean gym mode
-// became permanent the first time someone force-quit during a workout.
-async function persistGymSession(){
-  try{
-    await window.storage.set(GYM_SESSION_KEY, JSON.stringify({
-      date: getTodayKey(), accumMs: gymAccumMs, startedAt: gymStretchStart
-    }));
-  }catch(e){}
-}
-
-async function clearGymSession(){
-  try{ await window.storage.set(GYM_SESSION_KEY, ''); }catch(e){}
-}
-
-async function restoreGymMode(){
-  try{
-    const res = await window.storage.get(GYM_SESSION_KEY);
-    if(!res || !res.value) return;
-    const saved = JSON.parse(res.value);
-    if(!saved || saved.date !== getTodayKey()){ await clearGymSession(); return; }
-    const accum = Number(saved.accumMs) || 0;
-    const started = Number(saved.startedAt) || 0;
-    // Computed from the SAVED timestamp, so the clock correctly includes the
-    // time the app spent killed — that time was still spent in the gym.
-    const elapsed = accum + (started ? Date.now() - started : 0);
-    if(elapsed < 0 || elapsed > GYM_SESSION_MAX_MS){ await clearGymSession(); return; }
-    gymAccumMs = accum;
-    gymStretchStart = started || Date.now();
-    gymClockDate = saved.date;
-    enterGymMode({scroll:false, persist:false});
-  }catch(e){ /* a malformed value is not a reason to fail boot */ }
-}
-
-function refreshGymDock(){
-  if(!gymModeActive) return;
-  paintGymClock();
-  const progEl = document.getElementById('gymProgress');
-  if(!progEl) return;
-  // Counted off the checkboxes in the DOM rather than off the `completed` map,
-  // which is scoped inside renderWorkout and reflects the full day — the list on
-  // screen may be shorter after session-length trimming, and a dock reading
-  // "4 of 8" over five visible exercises would be counting something the person
-  // cannot see.
-  const boxes = [...document.querySelectorAll('#exerciseList .exercise-block input[type=checkbox]')];
-  const done = boxes.filter(b=> b.checked).length;
-  progEl.textContent = boxes.length ? `${done}/${boxes.length} exercises` : '';
-}
-
-// Navigation, removed rather than simplified. Entering gym mode with everything
-// collapsed would mean the first thing you do one-handed is hunt for your place
-// in a list where every row is dimmed to 26%. The app already opens the next
-// exercise when you check one off, so this just applies the same rule at the
-// only other moment it matters.
-function openFirstIncompleteExercise(){
-  const blocks = [...document.querySelectorAll('#exerciseList .exercise-block')];
-  if(!blocks.length) return;
-  const openBlocks = blocks.filter(b=> b.classList.contains('open'));
-  // Gym Mode audit finding #2: normal use lets any number of exercises sit
-  // expanded at once (the header click handler only ever toggles the one
-  // clicked, never collapses the rest) — but gym mode's own rule, stated in
-  // the comment above this function, is exactly one open block at a time. A
-  // superset pair is now ONE physical block (its own two-checkbox unit, see
-  // allMemberCheckboxesChecked) rather than two blocks that had to be
-  // recognized as a matched partner pair, so any time more than one block is
-  // open, that's unambiguously the broken state this exists to fix.
-  if(openBlocks.length > 1){
-    openBlocks.forEach(b=> setExerciseBlockOpen(b, false));
-  } else if(openBlocks.length >= 1){
-    return;
-  }
-  const target = blocks.find(b=> !allMemberCheckboxesChecked(b));
-  if(!target) return;
-  setExerciseBlockOpen(target, true);
-}
-
 // ── Advancing through the fields ────────────────────────────────────────────
 // The forward key on the keyboard walks weight -> reps -> RPE -> the next set's
 // weight, and off the END of an exercise into the next one.
@@ -34971,10 +34728,8 @@ function renderWarmupChips(blockEl){
       cb.checked = !cb.checked;
       cb.dispatchEvent(new Event('change', {bubbles:true}));
       renderWarmupChips(blockEl);
-      if(typeof refreshGymLogBtn === 'function') refreshGymLogBtn(); // v3.393: the dock follows
-      // v3.652 (UX-17a): marking a step done offers Undo (the dock's toast, moved
-      // here so Today's chips and the dock share one handler). Undo taps the
-      // step's chip again, which unticks it through this same path.
+      // v3.652 (UX-17a): marking a step done offers Undo. Undo taps the step's
+      // chip again, which unticks it through this same path.
       if(cb.checked){
         const step = r.dataset.stepIdx, text = chip.textContent;
         showUndoToast(`Logged warm-up ${text}`, ()=>{
@@ -34996,76 +34751,7 @@ function renderAllSetChips(){
   if(!list) return;
   const glow = findNextSetRow(list).row;
   list.querySelectorAll(':scope > .exercise-block').forEach(b => { renderSetChips(b, glow); renderWarmupChips(b); renderExerciseLogger(b); });
-  refreshGymLogBtn();
 }
-
-// [GYM SET CHIPS, v3.301] The dock's Log button mirrors the glowing chip:
-// "Log 135×8" logs it in one tap (with Undo); with nothing to suggest it reads
-// "Log set" and opens the sheet on that set; with nothing left it hides.
-function refreshGymLogBtn(){
-  const btn = document.getElementById('gymLogBtn');
-  const list = document.getElementById('exerciseList');
-  if(!btn || !list) return;
-  const next = findNextSetRow(list).row;
-  let chip = list.querySelector('.set-chip.is-next');
-  btn.hidden = !next;
-  if(!next) return;
-  // In gym mode the open exercise follows the next set (one open at a time),
-  // so the big chips on screen are always the ones being logged — including
-  // when an exercise is finished but its box was unticked by hand.
-  if(gymModeActive){
-    const block = next.closest('.exercise-block');
-    if(block && !block.classList.contains('open')){
-      list.querySelectorAll(':scope > .exercise-block.open').forEach(b => setExerciseBlockOpen(b, false));
-      setExerciseBlockOpen(block, true);
-    }
-  }
-  // v3.393: warm-ups first. While this exercise has a warm-up step left and no
-  // working set logged yet, the button logs that step (orange), and the
-  // working chip waits to glow until the ramp is done or skipped.
-  const warm = gymModeActive ? pendingWarmupChip(next.closest('.exercise-block')) : null;
-  btn.classList.toggle('is-warmup', !!warm);
-  if(warm){
-    list.querySelectorAll('.set-chip.is-next').forEach(c => c.classList.remove('is-next'));
-    btn.textContent = `Log ${warm.textContent}`;
-    btn.setAttribute('aria-label', warm.getAttribute('aria-label').replace(', tap to mark done', '') + ', log it');
-    return;
-  }
-  // The ramp just finished: the glow comes back, on the chip renderSetChips
-  // would give it (the next set's, when it is loggable).
-  if(!chip){
-    const own = list.querySelector(`.set-chip[data-ex-idx="${next.dataset.exIdx}"][data-set-idx="${next.dataset.setIdx}"]`);
-    if(own && own.dataset.loggable){ own.classList.add('is-next'); chip = own; }
-  }
-  const label = chip ? (chip.querySelector('.set-chip-val') || {}).textContent : '';
-  btn.textContent = label ? `Log ${label}` : 'Log set';
-  btn.setAttribute('aria-label', chip ? chip.getAttribute('aria-label').replace(', tap to log', '') + ', log it' : 'Log the next set');
-}
-// The warm-up step the dock logs next: the ready chip, but only while none of
-// the exercise's working sets is logged (once you are into them, the ramp is
-// behind you whether or not every step was ticked).
-function pendingWarmupChip(block){
-  if(!block) return null;
-  const warm = block.querySelector(':scope > .warmup-chips .set-chip.is-ready');
-  if(!warm) return null;
-  const started = [...block.querySelectorAll('.sets-block .set-row[data-set-idx] .ex-reps')].some(r => r.value !== '');
-  return started ? null : warm;
-}
-
-document.getElementById('gymLogBtn').addEventListener('click', ()=>{
-  const list = document.getElementById('exerciseList');
-  const nextRow = list && findNextSetRow(list).row;
-  const block = nextRow && nextRow.closest('.exercise-block');
-  const warm = gymModeActive ? pendingWarmupChip(block) : null;
-  if(warm){
-    warm.click(); // v3.652 (UX-17a): the chip's own handler ticks it and offers Undo
-    return;
-  }
-  const chip = list && list.querySelector('.set-chip.is-next');
-  if(chip){ chip.click(); return; }
-  const next = list && findNextSetRow(list).row;
-  if(next) openSetSheet(next, list.querySelector(`.set-chip[data-ex-idx="${next.dataset.exIdx}"][data-set-idx="${next.dataset.setIdx}"]`));
-});
 
 // Commits a set into its row — from a one-tap chip or the set sheet — keeping
 // the row's values from before so Undo can put it back exactly as it was.
@@ -35454,188 +35140,6 @@ document.addEventListener('keydown', (e)=>{
   if(!t.closest || !t.closest('#exerciseList')) return;
   if(advanceSetField(t)) e.preventDefault();
 });
-
-// ── Finishing the workout ───────────────────────────────────────────────────
-// Holds gym mode open for a beat after the last box is ticked so the ending
-// has somewhere to happen. Before this, exitGymMode() ran on the same tick as
-// the celebration and the screen was already dismantling itself under the
-// confetti it had just earned.
-//
-// `gymModeActive` stays TRUE for the duration, and that is correct rather than
-// an oversight: the mode genuinely is still on screen. The rule in HANDOFF v11
-// §4 is about the LEAVING window, where the visuals lag a flag that has
-// already flipped; here nothing has flipped yet. exitGymMode() is still what
-// finally flips it, and it does so with its own leave animation after this.
-const GYM_FINISH_MS = 1250;
-let gymFinishTimer = null;
-
-// Shared by enterGymMode and exitGymMode, and the reason is the same race
-// finishGymLeave() exists for: a pending timeout that fires after the state it
-// was scheduled against has been replaced will strip the class off a mode that
-// is active again, or exit a mode that was already exited.
-function cancelGymFinish(){
-  if(gymFinishTimer){ clearTimeout(gymFinishTimer); gymFinishTimer = null; }
-  document.body.classList.remove('gym-finishing');
-}
-
-function finishGymWorkout(){
-  if(!gymModeActive) return;
-  // Reduced motion takes the direct route. The sequence is decoration with no
-  // information in it, and holding someone in a stripped screen for an extra
-  // 1.25s to play an animation their OS has asked not to see is the wrong
-  // trade in both directions.
-  if(gymLeaveDuration() === 0){ exitGymMode(); return; }
-  cancelGymFinish();
-  document.body.classList.add('gym-finishing');
-  gymFinishTimer = setTimeout(()=>{
-    gymFinishTimer = null;
-    document.body.classList.remove('gym-finishing');
-    exitGymMode();
-  }, GYM_FINISH_MS);
-}
-
-function enterGymMode(opts){
-  const o = opts || {};
-  if(gymModeActive) return;
-  gymModeActive = true;
-  gymAutoHandledDate = selectedLogDate;
-  hideGymOffer();
-  // Re-entering during the leave animation cancels it. Without this the
-  // pending timeout fires a moment later and strips the class off a mode that
-  // is now active again — gym mode would appear, then silently vanish.
-  finishGymLeave();
-  // Same race, one stage earlier: entering while the finish sequence is still
-  // running would otherwise leave a timeout in flight that exits the mode
-  // about a second after it was deliberately re-entered.
-  cancelGymFinish();
-  document.body.classList.add('gym-mode');
-
-  // A new day starts a new clock even if the app was never closed.
-  const today = getTodayKey();
-  if(gymClockDate !== today){ gymAccumMs = 0; gymStretchStart = 0; gymClockDate = today; }
-  if(!gymStretchStart) gymStretchStart = Date.now();
-  startGymClock();
-
-  // Gym mode strips Today specifically. Entering it from Analysis would show a
-  // stripped version of a tab it was never designed against, so the view is
-  // forced. scrollTop is suppressed because this function makes its own
-  // scrolling decision below.
-  showView('today', {scrollTop:false});
-  openFirstIncompleteExercise();
-  renderAllSetChips(); // v3.393: the Log button and glow know about warm-ups only in gym mode
-  refreshGymDock();
-
-  // The wake lock, one signal earlier than before. `noteWorkoutActivity` still
-  // owns the mechanism, the 15-minute idle release and — importantly — the
-  // `wakeLockEnabled` check: someone who turned the screen lock OFF in Settings
-  // has that honoured here too. Overriding an explicit off-switch would leave a
-  // control in Settings that visibly does nothing, with no way to discover why.
-  noteWorkoutActivity();
-
-  // Only on a deliberate press. Auto-entering scrolls nowhere, because the
-  // person is looking at a set they just logged and yanking the page to the top
-  // underneath them is worse than any amount of chrome.
-  if(o.scroll) scrollAppToTop('instant');
-
-  if(o.persist !== false) persistGymSession();
-}
-
-function exitGymMode(){
-  if(!gymModeActive) return;
-  // Covers Exit or Escape pressed DURING the finish sequence: the pending
-  // timeout would call this again a moment later, and the class would outlive
-  // the mode it decorates.
-  cancelGymFinish();
-  // The FLAG flips immediately and the CLASS lags. Nothing may keep behaving as
-  // though gym mode is on during the animation — `maybeOfferGymMode`, the
-  // clock and the completion hook all read `gymModeActive`, and leaving them
-  // true for 280ms would let a set logged in that window re-enter the mode
-  // being left.
-  gymModeActive = false;
-  renderAllSetChips(); // v3.393: give the working set back its glow (warm-ups are gym-only)
-  const leaveMs = gymLeaveDuration();
-  if(leaveMs === 0){
-    finishGymLeave();
-  } else {
-    document.body.classList.add('gym-leaving');
-    if(gymLeaveTimer) clearTimeout(gymLeaveTimer);
-    gymLeaveTimer = setTimeout(finishGymLeave, leaveMs);
-  }
-  // Bank the stretch before stopping, so re-entering today resumes the session
-  // rather than restarting it.
-  if(gymStretchStart){ gymAccumMs += Date.now() - gymStretchStart; gymStretchStart = 0; }
-  stopGymClock();
-  clearGymSession();
-  // The wake lock is deliberately NOT released. Leaving gym mode to check a
-  // number in Analysis mid-workout is a normal thing to do, and the 15-minute
-  // idle timer already handles the case where someone has genuinely finished.
-  // Releasing here would drop the screen the moment you stepped out to look
-  // something up.
-  const enterBtn = document.getElementById('gymEnterBtn');
-  if(enterBtn) enterBtn.focus();
-}
-
-function showGymOffer(){
-  const el = document.getElementById('gymOffer');
-  if(el) el.classList.add('active');
-}
-
-function hideGymOffer(){
-  const el = document.getElementById('gymOffer');
-  if(el) el.classList.remove('active');
-}
-
-// Called from the set-save path, on the same signal that starts the rest clock
-// and holds the wake lock.
-function maybeOfferGymMode(){
-  if(gymModeActive) return;
-  // Backdating is not training. Typing in Tuesday's session on Thursday should
-  // never strip the screen for a workout that is already over — the same
-  // position `rest achieved` takes, and for the same reason.
-  if(selectedLogDate !== getTodayKey()) return;
-  if(gymAutoHandledDate === selectedLogDate) return;
-  gymAutoHandledDate = selectedLogDate;
-
-  if(gymAutoPref === '1'){ enterGymMode({scroll:false}); return; }
-  if(gymAutoPref === '0') return;
-  showGymOffer();
-}
-
-async function answerGymOffer(useIt){
-  gymAutoPref = useIt ? '1' : '0';
-  try{ await window.storage.set(GYM_AUTO_KEY, gymAutoPref); }catch(e){}
-  hideGymOffer();
-  if(useIt) enterGymMode({scroll:false});
-}
-
-function wireGymMode(){
-  const enterBtn = document.getElementById('gymEnterBtn');
-  if(enterBtn) enterBtn.addEventListener('click', ()=> enterGymMode({scroll:true}));
-  const exitBtn = document.getElementById('gymExitBtn');
-  if(exitBtn) exitBtn.addEventListener('click', ()=> exitGymMode());
-  const yes = document.getElementById('gymOfferYes');
-  if(yes) yes.addEventListener('click', ()=> answerGymOffer(true));
-  const no = document.getElementById('gymOfferNo');
-  if(no) no.addEventListener('click', ()=> answerGymOffer(false));
-
-  // Repaint the moment the app comes back rather than up to a second later.
-  // The interval did not run while backgrounded, so without this the clock
-  // shows a stale time for exactly as long as someone is looking at it.
-  document.addEventListener('visibilitychange', ()=>{
-    if(!document.hidden && gymModeActive) paintGymClock();
-  });
-
-  // Escape leaves gym mode. It is NOT registered in OVERLAY_CLOSERS, which is
-  // for modal overlays and is checked against whichever overlay is currently
-  // open — gym mode is neither modal nor an overlay, and adding it there would
-  // mean Escape left gym mode INSTEAD of closing a dialog opened on top of it.
-  // Guarded on an open overlay for exactly that reason: the dialog wins.
-  document.addEventListener('keydown', (e)=>{
-    if(e.key !== 'Escape' || !gymModeActive) return;
-    if(typeof openOverlayEl === 'function' && openOverlayEl()) return;
-    exitGymMode();
-  });
-}
 
 // Total distance logged in an entry, in metres. Sets without a distance
 // contribute nothing rather than breaking the sum.
@@ -36462,8 +35966,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // Same position isBackdating() already takes for saveExSet's own
       // rest/restTarget recording ("the elapsed time between two entries
       // typed on Sunday for a workout done on Thursday is a measurement of
-      // typing speed") and that maybeOfferGymMode() guards internally with
-      // its own comment ("Backdating is not training") — a live countdown
+      // typing speed") — a live countdown
       // makes no sense while retroactively filling in a day that's already
       // over. This was the one reactive consequence of the same isRealSet
       // signal that never got the same guard.
@@ -36475,16 +35978,11 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         restTargetBySlot[exKey(activeProgram, activeDay, slot, subVariant)] = restTarget;
         startRestTimer(restTarget, getRestReasonLabel(ex));
       }
-      if(isRealSet && !fromDistance){
-        // Second consumer of the same signal: the first logged set of the day
-        // is also the moment to offer gym mode, or to enter it if that has
-        // already been answered yes.
-        maybeOfferGymMode();
-      }
+      // v3.653 (UX-17b): the "Switch to gym mode?" offer that followed here went with Gym mode.
       // A logged set also means the phone should stay awake for the next one.
       // Kept outside the isRealSet gate on purpose — typing into a set at all
-      // justifies keeping the screen on, unlike the timer/gym-mode
-      // interruptions above, which should wait for a finished entry.
+      // justifies keeping the screen on, unlike the timer above, which should
+      // wait for a finished entry.
       noteWorkoutActivity();
       checkAllSetsCompleteAndAutoCheck(row, block, exIdx);
     };
@@ -44279,7 +43777,7 @@ function syncTodayChrome(){
     if(unfolded && pane.firstElementChild !== card) pane.prepend(card);
     else if(!unfolded && card.previousSibling !== card._home) card._home.after(card);
   }
-  const on = !!(header && !header.classList.contains('header-compact') && card && !card.hidden && !document.body.classList.contains('gym-mode') && !unfolded);
+  const on = !!(header && !header.classList.contains('header-compact') && card && !card.hidden && !unfolded);
   document.body.classList.toggle('today-cover', on);
   // v3.604 (UX-23): whenever the cover shows (either layout), the list under
   // it drops its second day hero.
@@ -44381,18 +43879,8 @@ function switchView(active, opts){
   // The sticky mini-header only ever makes sense while actually scrolling
   // the Today tab's workout — an IntersectionObserver drives it while
   // there, but this is a hard guarantee it never lingers into another tab.
-  //
-  // The post-set "Switch to gym mode?" offer is the same class of bug
-  // waiting to happen: it's a position:fixed card (unlike the rest timer,
-  // which is deliberately allowed to follow you across tabs — see its own
-  // comments) with no view scoping of its own, so nothing stopped it
-  // rendering on top of Log/Analysis/History if you navigated away before
-  // answering it. Its own copy already tells the user "you can turn it on
-  // any time from the button on Today," so silently dismissing it here on
-  // navigation is consistent with what it says, not a behavior change.
   if(active !== 'today'){
     document.getElementById('stickyDayHeader').classList.remove('visible');
-    hideGymOffer();
   }
 
   // The date selector only makes sense on the two tabs with date-keyed
@@ -45204,22 +44692,19 @@ function appScrollerOf(el){
 // Validated against VIEW_KEYS rather than trusted: the value goes straight
 // into switchView, which would leave every tab hidden if handed a key it
 // doesn't know, and the URL is the one input here that anything can set.
-// `?view=gym` is an ALIAS, not an eighth entry in VIEW_KEYS. Gym mode strips the
-// Today tab rather than replacing it, so the route resolves to a real view plus
-// a flag. Adding 'gym' to VIEW_KEYS would let it reach switchView — which
-// iterates a fixed `views` map and hides every key that isn't active, so an
-// unrecognised key hides ALL of them — and would let it be written to
-// 'active-view', reproducing that blank screen on every subsequent launch.
-let pendingGymMode = false;
+// `?view=gym` is an ALIAS of Today, not an eighth entry in VIEW_KEYS. v3.653
+// (UX-17b): Gym mode is gone, so an old bookmark or home-screen shortcut opens
+// Today. Adding 'gym' to VIEW_KEYS would let it reach switchView, which
+// iterates a fixed `views` map and hides every key that isn't active (an
+// unrecognised key hides ALL of them), and would let it be written to
+// 'active-view', reproducing that blank screen on every later launch.
 
 function launchViewFromUrl(){
   try{
     const params = new URLSearchParams(window.location.search);
     const raw = params.get('view');
-    const wantsGym = raw === 'gym';
-    const requested = wantsGym ? 'today' : raw;
+    const requested = raw === 'gym' ? 'today' : raw;
     if(!requested || !VIEW_KEYS.includes(requested)) return null;
-    if(wantsGym) pendingGymMode = true;
     // Strip it once consumed. Left in place it would outrank the stored tab on
     // every subsequent reload — a shortcut would stop being a way to open one
     // tab and become a way to pin the app to it, and pull-to-refresh from
@@ -45253,8 +44738,6 @@ async function restoreActiveView(){
   // cost is one repeat read; the benefit is that this path stops being a
   // special case that silently does less than every other way into a tab.
   showView(savedView);
-  // Last, so the class lands on a Today tab that has actually been built.
-  if(pendingGymMode){ pendingGymMode = false; enterGymMode({scroll:false}); }
 }
 
 document.getElementById('tipsToggle').addEventListener('click', ()=>{
@@ -51222,12 +50705,11 @@ async function weeklyRecapSeenThisWeek(){
   try{ const r = await window.storage.get(RECAP_SEEN_KEY); return !!(r && r.value === mondayOf(getTodayKey())); }catch(e){ return false; }
 }
 // Called by VIEW_RENDERERS.today; true when it opened the sheet. Never over
-// another overlay, in gym mode, or once Today is no longer the view (checked
+// another overlay, or once Today is no longer the view (checked
 // again after the model is built, since that takes a moment). A week with
 // nothing to recap is remembered for the session, so Today doesn't rebuild it.
 let recapCheckInflight = null, recapNothingFor = null;
 function recapMayOpen(){
-  if(typeof gymModeActive !== 'undefined' && gymModeActive) return false;
   const nav = document.getElementById('navToday');
   if(nav && !nav.classList.contains('active')) return false;
   const ids = typeof SCROLL_LOCK_OVERLAYS !== 'undefined' ? SCROLL_LOCK_OVERLAYS : [];
@@ -53708,7 +53190,6 @@ if(activeUserId){
     await loadWakeLockPref();
     await loadWarmupSetsPref();
     await loadManualDeloadPref();
-    await loadGymPrefs();
     await loadEquipmentProfile();
     await loadSuggestionModePref();
     getMesocycleWeek().then(w=> renderLoadModeNote(w)).catch(()=>{});
@@ -53791,7 +53272,6 @@ if(activeUserId){
     renderStorageBanner();
     refreshImportedControls(); // v3.637 (BL-29): Remove imported history, when there is any
     await restoreActiveView();
-    await restoreGymMode();
     restoreRestTimer();
     // v3.586 (UX-16): the coach button no longer moves, so a position saved
     // by an older version is removed once (no schema bump).
@@ -53847,7 +53327,6 @@ if(activeUserId){
 // It depends on nothing but the overlay elements existing, which is
 // guaranteed: this script is the last thing in the body.
 initScrollLock();
-wireGymMode();
 wireCustomProgramUI();
 
 (function wireSettings(){

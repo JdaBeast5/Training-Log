@@ -64,10 +64,10 @@ test('criterion 1: real switchView: Today carries today-cover and the date bar i
   for(const id of ['globalSearchBtn', 'coachFab', 'settingsCog', 'streakBadge']) assert.ok(ui.$(id).parentElement.tagName === 'HEADER', id + ' back in the header');
   ui.window.switchView('today');
   assert.ok(bar.closest('#upNext'), 'and back again');
-  ui.doc.body.classList.add('gym-mode'); ui.window.syncTodayChrome();
-  assert.ok(!ui.doc.body.classList.contains('today-cover') && !bar.closest('#upNext'), 'gym mode keeps the old chrome');
-  ui.doc.body.classList.remove('gym-mode'); ui.window.syncTodayChrome();
-  assert.ok(ui.doc.body.classList.contains('today-cover'), 'anchor: back on');
+  // 2026-11-24 (v3.653, UX-17b): "gym mode keeps the old chrome" retired with
+  // Gym mode; syncTodayChrome no longer reads body.gym-mode.
+  ui.window.syncTodayChrome();
+  assert.ok(ui.doc.body.classList.contains('today-cover'), 'anchor: still on');
   ui.window.__unfolded = true; ui.window.syncTodayChrome();
   assert.ok(!ui.doc.body.classList.contains('today-cover') && !bar.closest('#upNext'), 'unfolded (the cover is in the right pane until UX-21): the old chrome');
 });

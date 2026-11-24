@@ -26,8 +26,7 @@ const { test, run } = makeRunner('test-tap-counts.js');
 const PARENT_TAPS = {logRecentFood: 1, logReadySet: 1,
   // v3.601 (UX-20): the controls that moved onto the Today cover. At v3.600 each took one tap.
   previousDay: 1, backToToday: 1, openCalendar: 1, openSettings: 1, openCoach: 1, openDaySheet: 1,
-  // v3.604 (UX-23): Gym mode became a plain text button in the "Then" head. At v3.603 it took one tap.
-  enterGymMode: 1,
+  // 2026-11-24 (v3.653, UX-17b): enterGymMode's entry (UX-23, one tap) retired with Gym mode.
   // v3.606 (UX-25): the rest day's "mark as done" moved onto the cover. At v3.605 it took one tap.
   markRestDone: 1,
   // v3.608 (UX-28): Training Style moved into Settings. At v3.607 changing program was a scroll to the foot of Today
@@ -87,7 +86,7 @@ test('log the ready set: one tap on the cover\'s Log button commits exactly the 
     var distanceUnit = 'km', weightUnit = 'lb', activeProgram = 'strength', exerciseDetailPinned = true, exerciseInfo = {};
     function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; }
     function isBarbellExercise(){ return true; } function isDumbbellExercise(){ return false; }
-    function showUndoToast(){} function refreshGymLogBtn(){} function icon(){ return ''; }
+    function showUndoToast(){} function icon(){ return ''; }
     function renderCoverBar(){} // 2026-11-17 (v3.596, UX-07): the loaded bar, driven by test-plate-stack.js
     function renderExerciseDetailBar(){} // 2026-11-22 (v3.622, UX-14): the open-screen pane's stack (test-open-screen-2-0.js)`,
     [...FNS, statement("document.getElementById('upNextLog').addEventListener('click', logUpNext);").split('\n')[0],
@@ -160,24 +159,10 @@ test('UX-20 tap parity: on the cover, previous day, back to today, the calendar,
   for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
 });
 
-test('UX-23: entering Gym mode from the "Then" head takes one tap on #gymEnterBtn (the real wiring and the real enterGymMode)', (assert)=>{
-  const btn = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.getElementById('gymEnterBtn').outerHTML;
-  const { window } = runJsdom(`<div id="workoutCard">${btn}</div>`, `
-    var gymModeActive = false, gymAutoHandledDate = null, selectedLogDate = '2026-11-02', gymClockDate = '2026-11-02', gymAccumMs = 0, gymStretchStart = 0;
-    function getTodayKey(){ return '2026-11-02'; }
-    window.__calls = [];
-    for(const f of ['hideGymOffer', 'finishGymLeave', 'cancelGymFinish', 'startGymClock', 'showView', 'openFirstIncompleteExercise', 'renderAllSetChips',
-      'refreshGymDock', 'noteWorkoutActivity', 'scrollAppToTop', 'persistGymSession', 'exitGymMode', 'answerGymOffer'])
-      window[f] = (...a) => window.__calls.push(f);`,
-    [extractFunction(src, 'enterGymMode'), extractFunction(src, 'wireGymMode'), 'wireGymMode();']);
-  const b = window.document.getElementById('gymEnterBtn');
-  assert.strictEqual(b.textContent.trim(), 'Gym mode', 'anchor: the real button');
-  b.click();
-  const taps = {enterGymMode: 1};
-  assert.ok(window.document.body.classList.contains('gym-mode'), 'one tap: gym mode is on');
-  assert.ok(window.__calls.includes('showView') && window.__calls.includes('persistGymSession'), 'the real entry ran');
-  for(const [k, n] of Object.entries(taps)) assert.ok(n <= PARENT_TAPS[k], `${k}: ${n} > parent ${PARENT_TAPS[k]}`);
-});
+// 2026-11-24 (v3.653, UX-17b): the UX-23 case, "entering Gym mode from the Then
+// head takes one tap on #gymEnterBtn", retired with Gym mode (the button,
+// enterGymMode and wireGymMode are gone). The five tap-parity cases above and
+// below are unchanged.
 
 test('UX-25: marking a rest day done takes one tap on the cover (the real renderWorkout rest branch and renderUpNext)', async (assert)=>{
   const FNS = ['escapeHtml', 'findNextSetRow', 'renderUpNext', 'syncStickyDayTitle', 'renderWorkout'].map(f => extractFunction(src, f));

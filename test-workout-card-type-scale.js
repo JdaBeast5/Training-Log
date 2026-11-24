@@ -22,7 +22,7 @@ const cs = el => window.getComputedStyle(typeof el === 'string' ? document.query
 const declared = sel => { const m = html.match(new RegExp('\\n\\s*' + sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}')); if(!m) throw new Error(sel); return m[0]; };
 
 test('REAL computed style: the actions you take now share 16px/600 — Log set is never smaller than the controls above it', (assert)=>{
-  for(const sel of ['#upNextLog', '#gymEnterBtn']){
+  for(const sel of ['#upNextLog']){ // 2026-11-24 (v3.653, UX-17b): #gymEnterBtn went with Gym mode
     assert.strictEqual(cs(sel).fontSize, '16px', sel);
     assert.strictEqual(String(cs(sel).fontWeight), '600', sel);
   }

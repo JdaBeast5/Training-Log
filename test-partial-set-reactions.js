@@ -1,4 +1,7 @@
 'use strict';
+// 2026-11-24 (v3.653, UX-17b): Gym mode is gone, so maybeOfferGymMode is never
+// called; the cases that counted one offer now count none. The rest-timer
+// assertions are unchanged.
 // Behavioral coverage for the partial-set-save bug found during a real
 // golden-path walkthrough: typing only a weight (reps still blank) used to
 // start the rest-timer countdown and pop the "Switch to gym mode?" offer
@@ -121,7 +124,7 @@ test('a barbell exercise: weight alone (reps still blank) does NOT start the res
   assert.strictEqual(win.__activityCalls, 1, 'weight-only must still count as workout activity (screen-awake signal, unaffected by this fix)');
 });
 
-test('the same barbell exercise: once reps is also filled in, the rest timer and gym-mode offer DO fire', async (assert)=>{
+test('the same barbell exercise: once reps is also filled in, the rest timer DOES start (2026-11-24, v3.653: the gym-mode offer is gone)', async (assert)=>{
   const { document, window: win } = runJsdom(bodyHtml(), globalsFor(false), [checkFnSrc, wireSetsBlockSrc, `
     wireSetsBlock(document.getElementById('row'), 0, {name:'Bench Press', sets:'4x4-6'});
   `]);
@@ -131,7 +134,7 @@ test('the same barbell exercise: once reps is also filled in, the rest timer and
   setValueAndChange(row.querySelector('.ex-reps'), '5');
   await flush();
   assert.strictEqual(win.__restCalls, 1, 'a finished set (weight + reps) must start the rest timer exactly once');
-  assert.strictEqual(win.__gymCalls, 1, 'a finished set (weight + reps) must offer gym mode exactly once');
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
 });
 
 test('a bodyweight exercise (ex.noWeight): reps alone is already a finished set, since weight was never required', async (assert)=>{
@@ -142,7 +145,7 @@ test('a bodyweight exercise (ex.noWeight): reps alone is already a finished set,
   setValueAndChange(row.querySelector('.ex-reps'), '12');
   await flush();
   assert.strictEqual(win.__restCalls, 1, 'reps alone must be enough for a noWeight exercise, not held back waiting for a weight field that does not apply');
-  assert.strictEqual(win.__gymCalls, 1);
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
 });
 
 test('a distance/cardio exercise: distance alone (reps still blank) does NOT start the rest timer or offer gym mode', async (assert)=>{
@@ -156,7 +159,7 @@ test('a distance/cardio exercise: distance alone (reps still blank) does NOT sta
   assert.strictEqual(win.__gymCalls, 0);
 });
 
-test('the same distance/cardio exercise: once reps is also filled in, the rest timer and gym-mode offer DO fire', async (assert)=>{
+test('the same distance/cardio exercise: once reps is also filled in, the rest timer DOES start (2026-11-24, v3.653: the gym-mode offer is gone)', async (assert)=>{
   const { document, window: win } = runJsdom(bodyHtml(), globalsFor(true), [checkFnSrc, wireSetsBlockSrc, `
     wireSetsBlock(document.getElementById('row'), 0, {name:'Row Sprint', sets:'5x400m', noWeight: true});
   `]);
@@ -166,7 +169,7 @@ test('the same distance/cardio exercise: once reps is also filled in, the rest t
   setValueAndChange(row.querySelector('.ex-reps'), '1');
   await flush();
   assert.strictEqual(win.__restCalls, 1);
-  assert.strictEqual(win.__gymCalls, 1);
+  assert.strictEqual(win.__gymCalls, 0, '2026-11-24 (v3.653, UX-17b): there is no gym-mode offer any more');
 });
 
 run();
