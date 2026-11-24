@@ -3606,7 +3606,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - The Priorities row and the share sheet still use the summary card (16555), so nothing changes there.
   - This year the recap reaches the dogfood group only (D16), so the line can still change before December 2027's public recap.
 - **Tools:** `Skill: impeccable` (`polish`) on the card PNG.
-- **Status:** ready (after MKT-21, which adds `APP_SLOGAN`; owner yes 2026-11-24).
+- **Status:** done (v3.647, PR #242, 2026-11-24). The end card is always appended (the set always has the summary and weeks cards).
 
 ### MKT-23: The cheer, "Step up a plate!", only when the weight really went up
 - **Why:**
