@@ -1729,3 +1729,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - Undo of a commit doesn't remove drops saved in the same Save;
   - the light-theme selected RPE pill is white on light (old).
 - **Next:** UX-17a–c (80s–80u), then the tab audit UX-38 onward.
+
+## Addendum 172: UX-17a (v3.652, PR #247)
+- The CSS: `body:not(.gym-mode) #exerciseList .exercise-block.open > .warmup-chips` shows the chips on Today. The ink comes from Today's set-chip rules, with overrides for the done outline and the 1.5 px ready border. `.warmup-editing` shows the strip.
+- The JS: `renderWarmupChips`'s chip handler offers `showUndoToast('Logged warm-up …')` on a tick. The gym dock's Log button only calls `warm.click()`.
+- **Flagged:** Undo after a re-render looks in the old block (old); Edit and Skip are link blue.
+- **Next:** UX-17b (Gym mode goes; the harness drops the `gym-*` states).
