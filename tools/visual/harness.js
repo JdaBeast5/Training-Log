@@ -208,6 +208,7 @@ function buildTodayStates(){
     t(`tday-backdated-${theme}-402`, 402, theme, { fullPage: true, back: 7 });
     t(`tday-finish-${theme}-402`, 402, theme, { finish: true });
     t(`tday-daysheet-${theme}-402`, 402, theme, { daySheet: true });
+    t(`tday-dropset-${theme}-402`, 402, theme, { dropSheet: true });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
     t(`tday-gym-${theme}-402`, 402, theme, { fullPage: true, gym: true });
@@ -584,6 +585,17 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             return true;
           });
           if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
+        }
+        // v3.651 (BL-79): a logged set's sheet, then Drop set (two taps, as a person makes them).
+        if(state.dropSheet){
+          const chip = page.locator('#upNextChips .cover-chip.is-done:visible, #exerciseList .set-chip.is-done:visible').first();
+          if(await chip.count()){
+            await chip.click();
+            await page.waitForSelector('#setSheet.open', { timeout: 10000 });
+            const drop = await page.$('#setSheetDropBtn:not([hidden])');
+            if(drop) await drop.click();
+            await page.waitForTimeout(400);
+          }
         }
         if(state.recapBlock){
           const opened = await page.evaluate(async () => {

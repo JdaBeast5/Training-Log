@@ -854,6 +854,15 @@
   .set-sheet-rpe button[aria-checked="true"]{background:#fff; color:#000; font-weight:650;}
   .set-sheet-note{margin-top:12px;}
   .set-sheet-note input{width:100%;}
+  /* v3.651 (BL-79): drop lines are ruled rows in the sheet's ink (no pill, no tint). */
+  .set-sheet-drop{margin-top:12px; padding-top:10px; border-top:1px solid var(--rule);}
+  .set-sheet-drop-cue{font-size:13px; color:var(--text-2); margin:0 0 6px;}
+  .set-sheet-drop-fields{display:flex; align-items:center; gap:8px;}
+  .set-sheet .set-sheet-drop-fields input{flex:1; min-width:0; min-height:44px; text-align:center; background:none; border:0; border-bottom:1px solid var(--rule-strong); border-radius:0; color:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:22px !important; font-weight:600;}
+  .set-sheet-drop-fields .set-sheet-pm{flex:0 0 44px; height:44px; font-size:22px;}
+  .set-sheet-drop-x{color:var(--text-muted); font-family:var(--font-mono);}
+  .set-sheet-drop-note{font-size:13px; color:var(--text-muted); margin:6px 0 0;}
+  .set-sheet-drop-note[hidden]{display:none;}
   .set-sheet-tools{display:flex; gap:8px; margin-top:14px;}
   .set-sheet-tools button{flex:1; min-height:44px; border-radius:14px; border:1px solid var(--glass-hair); background:var(--glass-fill); color:var(--text-muted); font-size:14px; font-family:var(--font-sans); cursor:pointer;}
   .set-sheet-save{margin-top:14px; font-size:16px;}
@@ -4612,7 +4621,7 @@
   /* v3.359: the step-down arrow is drawn (mask glyph, the .fi-duplicate::after
      convention) instead of a typed ⤵, which rendered at a different weight per
      platform font. ::after is already this button's 44px hit area. */
-  .set-drop-btn::before{
+  .set-drop-btn::before, .set-chip-drop{
     content:''; width:14px; height:14px; background:currentColor;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
     -webkit-mask-position:center; mask-position:center;
@@ -5663,6 +5672,8 @@
   .set-chip-check{display:none;}
   body:not(.gym-mode) #exerciseList .set-chip.is-done .set-chip-check{display:inline-flex;}
   .set-chip-check svg{width:14px; height:14px;}
+  /* v3.651 (BL-79): a logged set with drops carries the drop-step glyph (the .set-drop-btn mask). */
+  .set-chip-drop{display:inline-block; flex:0 0 auto; width:12px; height:12px;}
 
   /* ── The open exercise and the session's extras (v3.605, UX-24) ────────
      The last 2.0 surfaces in the session, in the world's ink (not in gym
@@ -8140,6 +8151,8 @@
   <div class="set-sheet-note" id="setSheetNoteWrap" hidden>
     <input type="text" id="setSheetNote" maxlength="200" placeholder="e.g. left shoulder pinched" aria-label="Note for this set">
   </div>
+  <!-- v3.651 (BL-79): drop lines, added by Drop set (setSheetAddDrop) and saved through the row's drop rows. -->
+  <div class="set-sheet-drops" id="setSheetDrops"></div>
   <div class="set-sheet-tools">
     <button type="button" id="setSheetNoteBtn">Note</button>
     <button type="button" id="setSheetDropBtn">Drop set</button>
@@ -8556,7 +8569,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.650';
+const APP_VERSION = '3.651';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10348,6 +10361,9 @@ const WHATS_NEW = {
   ]},
   '3.650': { headline: 'One week, two places', points: [
     'Your bib now shows the week of your block, WK 4/5, the same week Today\'s header names.',
+  ]},
+  '3.651': { headline: 'Drop sets are back', points: [
+    'Drop set works again. Tap a logged set, then Drop set: it adds a set about 25% lighter, rounded to weights you can load, to take close to failure with no rest.',
   ]},
 };
 
@@ -30490,6 +30506,26 @@ function targetRirLabel(ex, program, inDeload){
   if(tier === 'strength') return RIR_TARGETS.strength;
   return COMPOUND_CATEGORIES.has(category) ? RIR_TARGETS.compound : RIR_TARGETS.isolation;
 }
+// v3.651 (BL-79): one loadable step for a lift, in display units: twice the
+// smallest plate on a barbell, the dumbbell increment, else 5 lb or 2.5 kg.
+// The set sheet's -/+ and the drop set's floor both read it.
+function loadStepFor(name){
+  const eq = getEquipment();
+  if(isBarbellExercise(name) && eq.plates.length) return 2 * eq.plates[eq.plates.length - 1];
+  if(isDumbbellExercise(name) && eq.dbIncrement) return eq.dbIncrement;
+  return weightUnit === 'kg' ? 2.5 : 5;
+}
+// v3.651 (BL-79): where Drop set is offered. Only loaded rep work that is taken
+// near failure: not noWeight, distance, timed, unlabelled (cardio, core,
+// mobility, AMRAP), speed or technique work, the clinical plans, or a deload.
+function dropSetEligible(ex, program, inDeload){
+  if(!ex || ex.noWeight) return false;
+  if(isDistanceExercise(ex.name, ex.sets) || getSetFieldUnit(ex.sets) !== 'reps') return false;
+  const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[ex.name] : null;
+  if(info && info.technique) return false;
+  const t = targetRirLabel(ex, program, inDeload);
+  return !!t && t !== RIR_TARGETS.speed && t !== RIR_TARGETS.clinical && t !== RIR_TARGETS.deload;
+}
 // v3.579 (BIZ-05): the starting-load hint on an exercise's very first set,
 // in BL-10's own words (one effort vocabulary). '' where BL-10 has no label
 // (cardio, timed, AMRAP) and for noWeight rows. UX-06a's cover reads this too.
@@ -30778,7 +30814,9 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // no RPE load target either (a speed squat at RPE 8 is no longer speed work).
   // Inline, so suites extracting this one function keep their sandboxes.
   const techniqueWork = typeof exerciseInfo !== 'undefined' && !!exerciseInfo[ex.name] && !!exerciseInfo[ex.name].technique;
-  const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null && !techniqueWork)
+  // v3.651 (BL-79): a drop set is answered by its own branch below, never by the RPE target.
+  const isDrop = !!signal && signal.type === 'drop';
+  const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null && !techniqueWork && !isDrop)
     ? rpeTargetForDay(rpeCtx, inDeloadWeek) : null; // v3.641 (BL-32): capped on an easier day
   if(targetRpe != null){
     const repTarget = parseBottomRep(ex.sets);
@@ -30830,6 +30868,19 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // progression), and a deload snapped UP would be heavier than the session it
   // is supposed to be backing off from.
   const snap = (w, dir)=> snapToLoadable(w, ex.name, dir);
+
+  // 0. v3.651 (BL-79): a drop set. Drop 1 is 25% lighter than its parent, drop 2
+  // 20% lighter than drop 1 (Sødal 2023; the studies used 20-30%). Rounded and
+  // snapped DOWN (a drop rounded up is no drop); if that isn't lighter, one
+  // loadable step lower; never under the bar. null: nothing lighter is loadable.
+  if(isDrop){
+    const parent = toDisplayWeight(priorSet.weight);
+    let w = snap(scale(priorSet.weight, signal.n === 1 ? 0.75 : 0.80), 'down');
+    if(!(w < parent)) w = snap(parent - loadStepFor(ex.name), 'down');
+    const barbell = isBarbellExercise(ex.name);
+    if(!(w > 0) || !(w < parent) || (barbell && w < getEquipment().bar)) return null;
+    return {weight: w, reps: null, reason: 'drop'};
+  }
 
   // 1. Deload week overrides an increase — same precedence as the badge.
   if(signal && inDeloadWeek && signal.type === 'increase'){
@@ -31966,6 +32017,8 @@ async function renderWorkout(){
       // 1, bottom set 1, top set 2, ...) after both are built — see the
       // assembly pass below. A normal, unpaired exercise just joins its own
       // array back into one string, same output as before this change.
+      // v3.651 (BL-79): Drop set only on loaded rep work taken near failure (dropSetEligible).
+      const dropOk = dropSetEligible(ex, activeProgram, inDeloadWeek);
       setRowHtmlArr = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = priorSetForSlot(prior, setIdx, ex, priorIsCrossProgram); // v3.395
@@ -32011,7 +32064,7 @@ async function renderWorkout(){
               <span class="ex-x">×</span>` : ''}
               <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
-              <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}"></button>
+              ${dropOk ? `<button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}"></button>` : ''}
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false"></button>
               <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">${icon('chevron')}</button>
               <span class="set-status"></span>
@@ -34561,7 +34614,8 @@ function renderCoverChips(block, exIdx){
     const state = c.classList.contains('is-done') ? 'is-done' : c.classList.contains('is-ready') ? 'is-ready' : 'is-pending';
     const val = c.querySelector('.set-chip-val');
     return `<button type="button" class="cover-chip ${state}" data-ex-idx="${c.dataset.exIdx}" data-set-idx="${c.dataset.setIdx}" aria-label="${escapeHtml(c.getAttribute('aria-label') || '')}">`
-      + (state === 'is-done' ? icon('check') : '') + `<span>${escapeHtml(val ? val.textContent : '')}</span></button>`;
+      + (state === 'is-done' ? icon('check') : '') + `<span>${escapeHtml(val ? val.textContent : '')}</span>`
+      + (c.querySelector('.set-chip-drop') ? '<span class="set-chip-drop" aria-hidden="true"></span>' : '') + '</button>'; // v3.651 (BL-79): its drops
   }).join('');
 }
 
@@ -34834,10 +34888,17 @@ function renderSetChips(blockEl, glowRow){
       + (state === 'done' ? `<span class="set-chip-check" aria-hidden="true">${icon('check')}</span>` : '') // v3.604 (UX-23): shown outside gym mode
       + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
       + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '');
+    // v3.651 (BL-79): a logged set's drops (from its drop rows, the source of truth).
+    const drops = !v.done ? [] : [...row.querySelectorAll('.drop-set-row')].map(d => {
+      const dw = (d.querySelector('.drop-weight') || {}).value || '', dr = (d.querySelector('.drop-reps') || {}).value || '';
+      return dr === '' ? '' : dw ? `${dw}×${dr}` : `${dr} reps`;
+    }).filter(Boolean);
+    if(drops.length) chip.insertAdjacentHTML('beforeend', '<span class="set-chip-drop" aria-hidden="true"></span>');
     // RPE is not on the chip (four sets fit one line without it); it is spoken, and shown in the sheet.
     chip.setAttribute('aria-label', `${owner}, set ${setNum}: ${label || (target ? 'target ' + target + ' reps' : 'not logged')}${v.done && v.rpe ? ' at RPE ' + v.rpe : ''}`
       + (v.done ? ', logged' : loggable ? ', tap to log' : ', tap to enter')
-      + (v.why ? `. ${v.why}` : v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : ''));
+      + (v.why ? `. ${v.why}` : v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : '')
+      + (drops.length ? `, ${drops.length} drop${drops.length > 1 ? 's' : ''}: ${drops.join(', ')}` : ''));
     chip._values = v;
     strip.appendChild(chip);
   });
@@ -35042,11 +35103,7 @@ const setSheetState = {row:null, chip:null};
 // One press of − / + moves weight by a loadable jump: twice the smallest plate
 // on a barbell, the dumbbell increment on dumbbells, else the standard step.
 function setSheetWeightStep(row){
-  const name = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
-  const eq = getEquipment();
-  if(isBarbellExercise(name) && eq.plates.length) return 2 * eq.plates[eq.plates.length - 1];
-  if(isDumbbellExercise(name) && eq.dbIncrement) return eq.dbIncrement;
-  return weightUnit === 'kg' ? 2.5 : 5;
+  return loadStepFor(((row.querySelector('.set-row-owner') || {}).textContent || '').trim());
 }
 
 function openSetSheet(row, chip){
@@ -35090,7 +35147,15 @@ function openSetSheet(row, chip){
   document.getElementById('setSheetNote').value = note ? note.value : '';
   document.getElementById('setSheetNoteWrap').hidden = !(note && note.value);
   document.getElementById('setSheetNoteBtn').hidden = !note;
-  document.getElementById('setSheetDropBtn').hidden = !row.querySelector('.set-drop-btn');
+  // v3.651 (BL-79): a set that already has drops lists them, filled in, one
+  // line per drop row (a blank one too, so line n saves to drop n). Only where
+  // the row has the control: that is where its drop rows are wired to save.
+  document.getElementById('setSheetDrops').innerHTML = '';
+  if(row.querySelector('.set-drop-btn')) row.querySelectorAll('.drop-set-row').forEach(d => {
+    const dw = d.querySelector('.drop-weight'), dr = d.querySelector('.drop-reps');
+    setSheetAddDrop({weight: dw ? dw.value : '', reps: dr ? dr.value : ''});
+  });
+  refreshSetSheetDropBtn();
   document.getElementById('setSheetClearBtn').hidden = !v.done;
   document.getElementById('setSheetSave').textContent = v.done ? 'Save' : 'Log set';
   document.getElementById('setSheetScrim').hidden = false;
@@ -35098,6 +35163,100 @@ function openSetSheet(row, chip){
   sheet.style.transform = '';
   requestAnimationFrame(()=> sheet.classList.add('open'));
   sheet.focus({preventScroll:true});
+}
+
+// [DROP SET, v3.651 (BL-79)] Drop set adds a line to the sheet: drop 1 is 25%
+// lighter than the set, drop 2 20% lighter than drop 1 as entered, both from
+// computeSuggestedSet's drop branch (snapped down to what you can load). Reps
+// are left for the person: after a set near failure they are the result, not
+// the target. At most 2 drops; the cue reuses the RIR words.
+const DROP_SET_MAX = 2;
+function setSheetExercise(row){
+  const holder = row.closest('.exercise-block');
+  const cb = holder && holder.querySelector(`.exercise input[type=checkbox][data-idx="${row.dataset.exIdx}"]`);
+  const head = cb && cb.closest('.exercise');
+  const presc = head && head.querySelector('.ex-sets > span');
+  // A set added with "+ Add set" has no owner label: the exercise's header names it.
+  const exName = head && head.querySelector('.ex-name');
+  const name = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim()
+    || (exName && exName.firstChild ? exName.firstChild.textContent.trim() : '');
+  return {name, sets: presc ? presc.textContent.trim() : ''};
+}
+function dropSetCue(name, n){
+  const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[name] : null;
+  const words = info && COMPOUND_CATEGORIES.has(info.category) ? RIR_TARGETS.compound.words : RIR_TARGETS.isolation.words;
+  return `Drop ${n} · ${n === 1 ? 25 : 20}% lighter, no rest · ${words}`;
+}
+// The suggested drop n from a weight in display units, or null (nothing lighter is loadable).
+function suggestDropWeight(row, fromDisplay, n){
+  if(fromDisplay === '' || fromDisplay == null || isNaN(fromDisplay)) return null;
+  const ex = setSheetExercise(row);
+  const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[ex.name] : null;
+  const s = computeSuggestedSet({weight: toCanonicalLb(fromDisplay)}, {type:'drop', n}, false, info && info.category, ex);
+  return s ? s.weight : null;
+}
+// Adds a drop line; `saved` is a drop already on the row ({weight, reps} as shown there).
+function setSheetAddDrop(saved){
+  const box = document.getElementById('setSheetDrops');
+  const row = setSheetState.row;
+  if(!box || !row) return null;
+  const lines = box.querySelectorAll('.set-sheet-drop');
+  const n = lines.length + 1;
+  if(n > DROP_SET_MAX) return null;
+  let weight = saved ? saved.weight : '', lightest = false;
+  if(!saved){
+    const from = n === 1 ? document.getElementById('setSheetWeight').value : lines[n - 2].querySelector('.set-sheet-drop-weight').value;
+    const w = suggestDropWeight(row, from, n);
+    // No weight to drop from leaves the line blank; a weight with nothing lighter says so.
+    if(w != null) weight = String(trimUnitNum(w));
+    else if(from !== '' && !isNaN(from)) lightest = true;
+  }
+  const unit = document.getElementById('setSheetWeightUnit').textContent || weightUnit;
+  const ex = setSheetExercise(row);
+  box.insertAdjacentHTML('beforeend', `<div class="set-sheet-drop">
+    <p class="set-sheet-drop-cue">${escapeHtml(dropSetCue(ex.name, n))}</p>
+    <div class="set-sheet-drop-fields">
+      <button type="button" class="set-sheet-pm set-sheet-drop-pm" data-dir="-1" aria-label="Drop ${n}, less weight">−</button>
+      <input type="number" inputmode="decimal" class="set-sheet-drop-weight" aria-label="Drop ${n} weight in ${escapeHtml(unit)}" value="${escapeHtml(weight)}">
+      <button type="button" class="set-sheet-pm set-sheet-drop-pm" data-dir="1" aria-label="Drop ${n}, more weight">+</button>
+      <span class="set-sheet-drop-x" aria-hidden="true">×</span>
+      <input type="number" inputmode="numeric" class="set-sheet-drop-reps" placeholder="reps" aria-label="Drop ${n} reps" value="${escapeHtml(saved ? saved.reps : '')}">
+    </div>
+    <p class="set-sheet-drop-note"${lightest ? '' : ' hidden'}>Already at the lightest load</p>
+  </div>`);
+  refreshSetSheetDropBtn();
+  return box.lastElementChild;
+}
+function refreshSetSheetDropBtn(){
+  const row = setSheetState.row;
+  const n = document.querySelectorAll('#setSheetDrops .set-sheet-drop').length;
+  document.getElementById('setSheetDropBtn').hidden = !row || !row.querySelector('.set-drop-btn') || n >= DROP_SET_MAX;
+}
+// Saves the sheet's drop lines through the row's own drop rows, as
+// writeSetToRow does for the set: values into the inputs, one change each,
+// and the row's saveDrop -> saveExDropSet writes them. A new line without reps
+// is not saved (a saved one emptied is cleared); a drop row the set doesn't
+// have yet comes from the row's own
+// .set-drop-btn, which appends and wires it.
+function writeDropsToRow(row, drops){
+  const btn = row.querySelector('.set-drop-btn');
+  const wrap = row.querySelector('.set-drop-wrap');
+  if(!btn || !wrap) return;
+  drops.forEach((d, i) => {
+    let r = wrap.querySelector(`.drop-set-row[data-drop-idx="${i}"]`);
+    // A line without reps: a new one is not saved; a saved one is cleared
+    // (saveExDropSet trims a cleared drop at the end of the list).
+    const clear = d.reps === '';
+    if(clear && !r) return;
+    while(!r && wrap.querySelectorAll('.drop-set-row').length <= i){ btn.click(); r = wrap.querySelector(`.drop-set-row[data-drop-idx="${i}"]`); }
+    if(!r) return;
+    const weight = clear ? '' : d.weight;
+    const w = r.querySelector('.drop-weight'), reps = r.querySelector('.drop-reps');
+    if((w ? w.value : '') === weight && reps.value === d.reps) return;
+    if(w) w.value = weight;
+    reps.value = d.reps;
+    reps.dispatchEvent(new Event('change', {bubbles:true}));
+  });
 }
 
 function closeSetSheet(){
@@ -35135,14 +35294,19 @@ function saveSetSheet(){
     note.value = noteVal;
     note.dispatchEvent(new Event('change', {bubbles:true}));
   }
+  const drops = [...document.querySelectorAll('#setSheetDrops .set-sheet-drop')].map(l => ({
+    weight: l.querySelector('.set-sheet-drop-weight').value, reps: l.querySelector('.set-sheet-drop-reps').value}));
   closeSetSheet();
   // Editing a logged set writes empties too (clearing an RPE must stick).
   commitSet(row, values, wasDone);
+  // v3.651 (BL-79): then the drops, through the row (their save waits for the set's).
+  writeDropsToRow(row, drops);
+  if(drops.length) renderAllSetChips();
   return true;
 }
 
-function stepSetSheet(field, dir){
-  const input = document.getElementById('setSheet' + field[0].toUpperCase() + field.slice(1));
+function stepSetSheet(field, dir, input){
+  input = input || document.getElementById('setSheet' + field[0].toUpperCase() + field.slice(1));
   const step = field === 'weight' ? setSheetWeightStep(setSheetState.row) : 1;
   const cur = parseFloat(input.value);
   const next = Math.max(0, (isNaN(cur) ? 0 : cur) + dir * step);
@@ -35153,6 +35317,9 @@ function stepSetSheet(field, dir){
   const sheet = document.getElementById('setSheet');
   if(!sheet) return;
   sheet.addEventListener('click', (e)=>{
+    // v3.651 (BL-79): a drop line's -/+ steps its own weight by the same loadable jump.
+    const dpm = e.target.closest('.set-sheet-drop-pm');
+    if(dpm){ stepSetSheet('weight', Number(dpm.dataset.dir), dpm.closest('.set-sheet-drop').querySelector('.set-sheet-drop-weight')); return; }
     const pm = e.target.closest('.set-sheet-pm');
     if(pm){ stepSetSheet(pm.dataset.field, Number(pm.dataset.dir)); return; }
     const rpe = e.target.closest('[data-rpe]');
@@ -35170,15 +35337,12 @@ function stepSetSheet(field, dir){
     wrap.hidden = false;
     document.getElementById('setSheetNote').focus();
   });
-  // Drop sets have their own rows under the set: hand over to them in place.
+  // v3.651 (BL-79): Drop set adds a line in the sheet (it used to hand over to
+  // the row's drop rows, which have been hidden since v3.609).
   document.getElementById('setSheetDropBtn').addEventListener('click', ()=>{
-    const row = setSheetState.row;
-    closeSetSheet();
-    const block = row && row.closest('.exercise-block');
-    if(!block) return;
-    if(!block.classList.contains('open')) setExerciseBlockOpen(block, true);
-    const drop = row.querySelector('.set-drop-btn');
-    if(drop) drop.click();
+    const line = setSheetAddDrop(null);
+    const reps = line && line.querySelector('.set-sheet-drop-reps');
+    if(reps) reps.focus();
   });
   // Clearing a logged set empties its row (same as deleting the numbers by
   // hand), with Undo through commitSet.
@@ -36222,7 +36386,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
     // always targets the row's current position, not a stale one.
-    const save = async (evt)=>{
+    const saveNow = async (evt)=>{
       const setIdx = Number(setRow.dataset.setIdx);
       const weightValRaw = wInput ? wInput.value : '';
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
@@ -36304,6 +36468,14 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       noteWorkoutActivity();
       checkAllSetsCompleteAndAutoCheck(row, block, exIdx);
     };
+    // v3.651 (BL-79): the row remembers its saves in flight, so a drop saved
+    // right after its parent (the set sheet does both) reads the log after the
+    // parent's write instead of racing it for the same key.
+    const save = (evt)=>{
+      const p = saveNow(evt);
+      setRow._saving = Promise.all([setRow._saving, p]).catch(()=>{});
+      return p;
+    };
     if(wInput) wInput.addEventListener('change', save);
     if(dInput) dInput.addEventListener('change', save);
     if(nInput) nInput.addEventListener('change', save);
@@ -36384,8 +36556,13 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         dropBtn.classList.toggle('has-drops', dropWrap.querySelectorAll('.drop-set-row').length > 0);
       };
       const wireDropRow = (rowEl)=>{
+        // v3.651 (BL-79): queued behind the row's saves in flight (the parent's,
+        // and an earlier drop's), so two saves never race for the same log key.
         rowEl.querySelectorAll('.ex-input').forEach(el=>
-          el.addEventListener('change', ()=> saveDrop(rowEl)));
+          el.addEventListener('change', ()=>{
+            const p = Promise.resolve(setRow._saving).then(()=> saveDrop(rowEl));
+            setRow._saving = p.catch(()=>{});
+          }));
       };
       dropWrap.querySelectorAll('.drop-set-row').forEach(wireDropRow);
 
@@ -36492,6 +36669,8 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   block.querySelector('.add-set-btn').addEventListener('click', ()=>{
     const existingRows = block.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`);
     const newIdx = existingRows.length;
+    // v3.651 (BL-79): a new set offers Drop set when its siblings do (renderWorkout's dropSetEligible).
+    const dropOk = existingRows.length ? !!block.querySelector(`.set-row[data-ex-idx="${exIdx}"] .set-drop-btn`) : dropSetEligible(ex, activeProgram, false);
     const div = document.createElement('div');
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
@@ -36509,7 +36688,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         <span class="ex-x">×</span>` : ''}
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
-        <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}"></button>
+        ${dropOk ? `<button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}"></button>` : ''}
         <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false"></button>
         <span class="set-status"></span>
         <div class="set-drop-wrap"></div>

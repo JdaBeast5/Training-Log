@@ -41,7 +41,7 @@ function iife(startText){
   return src.slice(i, src.indexOf('\n})();', i) + 6);
 }
 const COVER_FNS = ['syncCoverRest', 'renderCoverSteppers', 'stepCoverField', 'setCoverRepsLeft'];
-const FNS = [...COVER_FNS, 'startRestTimer', 'adjustRestTimer', 'restRemainingSeconds', 'formatTimer', 'setSheetWeightStep', 'getEquipment',
+const FNS = [...COVER_FNS, 'startRestTimer', 'adjustRestTimer', 'restRemainingSeconds', 'formatTimer', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'getEquipment',
   'isBarbellExercise', 'isDumbbellExercise', 'logUpNext', 'readSetLogger', 'findNextSetRow'].map(f => extractFunction(src, f));
 
 function row(name, w){

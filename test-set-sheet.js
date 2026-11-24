@@ -12,7 +12,8 @@
 //    writeSetToRow into the REAL row, reps last, with Undo; reps are required;
 //  - Cancel, the scrim and Escape close it writing nothing; swipe down too;
 //  - a note is written to the row's own note field; "Clear set" empties a
-//    logged set (with Undo); "Drop set" hands over to the row's drop rows;
+//    logged set (with Undo); "Drop set" adds drop lines in the sheet (v3.651,
+//    BL-79; covered by test-drop-set-suggestion.js);
 //  - every control is at least 44px (HIG).
 // Confirmed in Chromium (390x844, seeded): a long press on a ready chip opened
 // the sheet on 135 × 8; + made it 140; RPE 8; Log set wrote 140 × 8 @8 into the
@@ -25,9 +26,11 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 const { test, run } = makeRunner('test-set-sheet.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'trimUnitNum', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'commitSet',
-  'setSheetWeightStep', 'openSetSheet', 'closeSetSheet', 'saveSetSheet', 'stepSetSheet'].map(n => extractFunction(src, n));
-const STATE = 'const setSheetState = {row:null, chip:null};';
-if(!src.includes(STATE)) throw new Error('setSheetState not found');
+  'setSheetWeightStep', 'loadStepFor', 'openSetSheet', 'closeSetSheet', 'saveSetSheet', 'stepSetSheet',
+  'setSheetAddDrop', 'refreshSetSheetDropBtn', 'writeDropsToRow'].map(n => extractFunction(src, n)); // v3.651 (BL-79): the sheet's drop lines
+const STATE0 = 'const setSheetState = {row:null, chip:null};';
+if(!src.includes(STATE0)) throw new Error('setSheetState not found');
+const STATE = STATE0 + '\n' + require('./testHelpers.js').extractConst(src, 'DROP_SET_MAX');
 const WIRE = (()=>{
   const start = src.indexOf('(function wireSetSheet(){');
   const end = src.indexOf('\n})();', start);

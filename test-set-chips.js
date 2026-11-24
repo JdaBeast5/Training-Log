@@ -33,7 +33,7 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   // 2026-10-26 (v3.392): and gym mode's warm-up chips (a no-op with no ramp).
   'renderWarmupChips',
   // v3.303: the set-to-set recommendation and what it needs.
-  'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
+  'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */].map(n => extractFunction(src, n));
 // 2026-10-27 (v3.426): the chips' trend marks are drawn (ICONS.arrowUp/arrowDown/equals).
 FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
 const UP = 'M12 19V5 M6.5 10.5 12 5l5.5 5.5', DOWN = 'M12 5v14 M6.5 13.5 12 19l5.5-5.5'; // ICONS.arrowUp / arrowDown
