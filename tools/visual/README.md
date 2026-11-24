@@ -95,6 +95,34 @@ Every state seeds the 8-week streak as already celebrated (`week-streak-last-cel
 
 A full-page shot draws `position: fixed` elements (the tab bar, the rest pill) where the viewport was, part-way down the page. That's how Playwright's full-page capture works, not a layout bug.
 
+## Tab audit mode (`--tabs`)
+
+```
+node tools/visual/harness.js --tabs --base <commit>
+```
+
+Added 2026-11-24 (TOOL-02) for the tab audit (`planning/backlog.md`, UX-38 to UX-50). The default matrix shoots one viewport per view and never reaches Care, Coach, Learn, Settings or an open masterclass, so a 2.0 leftover below the fold never showed in a PR's contact sheet. This mode shoots every other tab top to bottom. It doesn't touch the default mode: its states and output are separate (`out/tabs/`), and the default matrix shoots the same state list and PNG bytes with or without it. `--base`, `--rev` and `--only` work. States are shot at DPR 1, and every state seeds the 8-week streak as already celebrated (`week-streak-last-celebrated` = 8), so the milestone moment never covers a page.
+
+| State | What |
+|---|---|
+| `tabs-food-<theme>-402` | Food (the `log` view), full page |
+| `tabs-progress-<theme>-402` | Progress, full page, with every Analysis group open (seeded through `analysis-group-collapsed:insights`, `:body-health` and `:training` = `false`) |
+| `tabs-history-<theme>-402` | History, full page |
+| `tabs-care-<theme>-402` | Care, full page |
+| `tabs-coach-<theme>-402` | Coach, full page |
+| `tabs-learn-<theme>-402` | Learn, full page |
+| `tabs-masterclass-<theme>-402` | Learn with the first masterclass that isn't the program's own opened through its index button, full page |
+| `tabs-settings-<theme>-402` | Settings, opened by tapping the cog, the whole sheet |
+| `tabs-progress-dark-904` | Progress on the unfolded Duo (the dashboard grid), groups open, full page |
+| `tabs-learn-dark-904` | Learn on the unfolded Duo, both panes top to bottom |
+
+That's 18 PNGs: eight tabs in dark and light at 402×874, plus two at 904×678 in dark.
+
+- **Panels that scroll themselves.** The Settings sheet and a split tab's two panes at 904 scroll inside themselves, so a full-page capture would cut them off. For those states the run makes the viewport taller, a step at a time, until the panel no longer scrolls, then shoots the viewport. The sheet is drawn whole, and a 904 state's width (and so its layout) is unchanged.
+- **Groups open (acceptance criterion 3).** After each `tabs-progress-*` shot the run puts the groups back to their defaults (Body & Health and Training collapsed) in the same page and measures it. The shot must be taller. If it isn't, it prints `groups open FAILED` and exits with code 4. Sabotage-checked: without the seeding the three shots are exactly as tall as the defaults and the run fails.
+- **Page errors** fail a `--tabs` run (exit code 3), as blocked requests fail every run (exit code 2).
+- A full-page shot draws `position: fixed` elements (the tab bar) where the viewport was, part-way down the page, as in `--today`.
+
 ## Why two runs give the same bytes
 
 - **Fixture:** `fixture.json` is the committed seed (store mode adds two variants of it, above). Jordan, 31, on a lean bulk, has run Strength & Size since 7 September 2026, with eight weeks of history. Bench Press has the richest log, and today's Day 1 is in progress with two Bench sets logged. `make-fixture.js` generated the file deterministically. Edit that script, then rerun `node tools/visual/make-fixture.js`; don't hand-edit the JSON. `whats-new-last-seen` is filled with the shot commit's `APP_VERSION`, so What's New never opens over a state.
@@ -113,4 +141,4 @@ Every request that doesn't go to the harness's own localhost server is aborted a
 
 - **Chromium only:** WebKit waits for decision D10.
 - **Same machine for both runs:** byte identity is guaranteed between runs on one machine, because font rasterisation differs across machines. A diff always shoots both sides fresh in the same run, so it doesn't depend on a stored baseline.
-- **Viewport, not full page:** each PNG is the visible screen at that size, so a change below the fold of a view doesn't show.
+- **Viewport, not full page:** each default-mode PNG is the visible screen at that size, so a change below the fold of a view doesn't show there. `--today` and `--tabs` shoot full pages for that reason.
