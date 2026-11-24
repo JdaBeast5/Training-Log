@@ -1861,9 +1861,9 @@
      [STABILIZATION PHASE C4] Checked: box-vs-strip is a deliberate choice
      driven by the `warmupSetsEnabled` setting (persisted as
      `warmup-sets-pref`, toggled in Settings), not accidental duplication or
-     a barbell/non-barbell split. Off (default): the ramp is a read-only
+     a barbell/non-barbell split. Off: the ramp is a read-only
      suggestion, needs box chrome to separate it from the loggable sets
-     below. On: the ramp becomes real loggable rows, needs to blend into the
+     below. On (the default since v3.655): the ramp becomes real loggable rows, needs to blend into the
      set list instead — see the ternary on `warmupSetsEnabled` around the
      `.warmup-strip`/`.warmup-box` template literals in renderWorkout. */
   .warmup-strip{ margin:0; display:flex; flex-direction:column; gap:6px; }
@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.654';
+const APP_VERSION = '3.655';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9517,6 +9517,9 @@ const WHATS_NEW = {
   ]},
   '3.654': { headline: 'A lighter app', points: [
     'Behind the scenes: the last of Gym mode\'s styling is cleared out. Nothing looks different; the app just carries less.',
+  ]},
+  '3.655': { headline: 'Warm-ups on by default', points: [
+    'Warm-up sets now show as steps you can tick off. Prefer the old advice line? Turn off \'Build the ramp in as sets I can log\' in Settings.',
   ]},
 };
 
@@ -33127,15 +33130,17 @@ document.addEventListener('visibilitychange', ()=>{
   // sentinel the platform has taken back throws in some engines.
 });
 
-// Off by default. The ramp has always been advice you read; turning it into
-// rows you have to tick is a real change to what a workout screen looks like,
-// and it should be asked for rather than arrive in an update.
-let warmupSetsEnabled = false;
+// On by default since v3.655 (UX-65; owner 2026-11-24: "warm ups on by
+// default"). It was off, on the grounds that turning advice into rows you tick
+// should be asked for rather than arrive in an update; the owner has now asked,
+// so a new lifter gets a guided ramp (and UX-62's cover line has one to show).
+// An explicit stored '0' still means off: anyone who turned it off stays off.
+let warmupSetsEnabled = true;
 
 async function loadWarmupSetsPref(){
   try{
     const res = await window.storage.get('warmup-sets-pref');
-    if(res && res.value === '1') warmupSetsEnabled = true;
+    if(res && res.value === '0') warmupSetsEnabled = false; // '1' or nothing stored: on (the default)
   }catch(e){}
 }
 
