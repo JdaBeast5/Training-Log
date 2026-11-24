@@ -421,8 +421,8 @@ The owner wrote: "I love what you came up with there! The main slogan and the ch
 **Checked in the renders:** no clipping or overlap on red, yellow, white or the photo bib. On the bib, the cheer stays inside the y 250–1620 text band. On Today, the cover line fits on one line at 402 px, in dark and light.
 
 **Seen while rendering, flagged and not changed:**
-- The bib's event band reads "WK 9", while Today's header in the same fixture reads "Week 4 of 5". The bib counts weeks since the program started; Today counts the week of the block. That may be intended, but it's worth a look.
-- The footer's grey (`#4A5057` on the dark ground) is under 4.5:1. MKT-21 gives its own new line a passing colour and leaves the version line alone.
+- The bib's event band reads "WK 9", while Today's header in the same fixture reads "Week 4 of 5". The bib counts weeks since the program started; Today counts the week of the block. That may be intended, but it's worth a look. *(Now BL-78, 2026-11-24.)*
+- The footer's grey (`#4A5057` on the dark ground) is under 4.5:1. MKT-21 gives its own new line a passing colour and leaves the version line alone. *(Now UX-51, 2026-11-24.)*
 
 ### 10.4 Items
 
