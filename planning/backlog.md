@@ -3568,7 +3568,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - **Guards:** `test-app-rename.js` (it extracts `APP_NAME`; the footer's name is still drawn from it), `test-open-screen-2-0.js` (424, the footer height), `test-whats-new.js`.
 - **Risk:** low. Nothing is sent and nothing is stored. The only visible change on a phone is one grey line at the foot of each page.
 - **Tools:** `Skill: impeccable` (`typeset`) on the footer render; TOOL-01's harness.
-- **Status:** ready (owner yes 2026-11-24, `slogan.md` §10).
+- **Status:** done (v3.646, PR #236, 2026-11-24) (owner yes 2026-11-24, `slogan.md` §10). `renderAppFooter()` writes `.app-footer-slogan` and `.app-footer-build`.
 
 ### MKT-22: Year in Lifting ends on the slogan
 - **Why:**
