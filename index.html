@@ -3812,6 +3812,8 @@
     text-align:center; padding:24px 0 8px; font-size:11px; color:#4A5057;
     font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
+  /* v3.646 (MKT-21): the slogan sits above the build stamp, in the sans face. */
+  .app-footer-slogan{display:block; margin-bottom:4px; font-family:var(--font-sans); font-size:11px; color:var(--text-2);}
 
   .user-picker-overlay{
     position:fixed; inset:0; background:rgba(10,11,13,0.82);
@@ -6158,6 +6160,8 @@
     body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .app-footer{
       height:calc(20px + env(safe-area-inset-bottom, 0px)); padding:3px 0 0; text-align:right;
     }
+    /* v3.646 (MKT-21): the unfolded footer is one 20 px line, so only the stamp shows. */
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .app-footer .app-footer-slogan{display:none;}
     /* v3.499: the exercise you are on heads the right column. */
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
@@ -8546,13 +8550,16 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.645';
+const APP_VERSION = '3.646';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
 // storage keys, cache names and backup format keep their training-log names,
 // so nothing stored on a phone changes. Every on-screen name reads this.
 const APP_NAME = 'Platestep';
+// v3.646 (MKT-21, owner 2026-11-24, slogan.md §10): the app's line. The footer
+// shows it, and the Year in Lifting recap ends on it (MKT-22). One const, one place.
+const APP_SLOGAN = 'Plate by plate, step by step.';
 // v3.547 (MKT-03): the name as a file-name stem ('platestep'): lower-cased,
 // spaces as hyphens. Share cards use it; MKT-20 reuses it for the backup.
 function appSlug(){ return APP_NAME.toLowerCase().replace(/\s+/g, '-'); }
@@ -10320,6 +10327,9 @@ const WHATS_NEW = {
   ]},
   '3.645': { headline: 'Block complete', points: [
     'When you finish a 5-week block, the Monday recap becomes Block complete: the block\'s sessions, your three biggest estimated-1RM gains, and a Block complete card to share.',
+  ]},
+  '3.646': { headline: 'Plate by plate', points: [
+    'The footer now carries our line: plate by plate, step by step.',
   ]},
 };
 
@@ -53388,13 +53398,28 @@ async function renderAnalysis(){
   applyAnalysisEmptyState();
 }
 
+// v3.646 (MKT-21): the footer, in two lines: the slogan, then the build stamp
+// (byte for byte as before; diagnostics and support replies read it).
+function renderAppFooter(){
+  const el = document.getElementById('appFooter');
+  if(!el) return;
+  el.textContent = '';
+  const slogan = document.createElement('span');
+  slogan.className = 'app-footer-slogan';
+  slogan.textContent = APP_SLOGAN;
+  const build = document.createElement('span');
+  build.className = 'app-footer-build';
+  build.textContent = `${APP_NAME} v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
+  el.append(slogan, build);
+}
+
 // [INIT] ---------------------------------------------------------------
 // App startup sequence. Add new startup calls here, not scattered elsewhere.
 if(activeUserId){
   (async function init(){
     bootMark('initStart');
     await runMigrations();
-    document.getElementById('appFooter').textContent = `${APP_NAME} v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
+    renderAppFooter(); // v3.646 (MKT-21)
 
     await loadWeightUnit();
     await loadDistanceUnit();
