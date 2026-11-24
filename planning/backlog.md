@@ -1,5 +1,7 @@
 # Backlog
 
+**Slogan and cheer decided (2026-11-24, against v3.645, `origin/Branch-1` 85eca06, marketing-manager).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"** (`planning/slogan.md` §10). There are three new items at the end of the Marketing section: **MKT-21** (`APP_SLOGAN` and the footer line, `ready`), **MKT-22** (Year in Lifting's end card, `ready`) and **MKT-23** (the cheer). MKT-23 is `ready` after MKT-21: the owner picked bib A + Today T1 from the renders (`tools/design/cheer/renders/contact-sheet.png`) on 2026-11-24. All three are slotted at roadmap 80n–80p, ahead of the tab audit, because the Year in Lifting window opens 1 December. Baseline green: `check.sh` passed.
+
 **Money model answered (2026-11-23, against v3.632, business-manager).** The owner answered "1-6 yes" to BIZ-27 to BIZ-32 (`planning/monetization-2026-11.md`, `pitch.md` "Owner's answers"), and named the paid tier **Platestep Plus** ("Call it Plus"). Buildable now, behind their gates: **BIZ-28** (roadmap slot 92a, Phase 5) and **BIZ-29** (slot 99, after the launch builds, no sooner than 2027-02-01). BIZ-27, BIZ-30, BIZ-31 and BIZ-32 are `answered`; BIZ-32 is the owner's action O7 in `pitch.md`. BIZ-18's hold is lifted, and it now ships the BIZ-27 paragraph.
 
 **Today coherence audit (2026-11-17, against v3.599, design-engineer).** The owner said Today "looks hodgepodge, stuck between old and new". The audit and twelve fixes, UX-19 to UX-30, are at the end of the Design (UX) section, under "Today coherence audit". All are `ready`, slotted at roadmap 50a–50l ahead of MKT-16. The harness gained an opt-in `--today` mode (full-page Today and its states) for their evidence. Baseline green: `check.sh` and 246/246 suites.
@@ -3520,6 +3522,164 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** low. For Platestep the names don't change, so the What's New line says what is true: "Behind the scenes: every saved file takes its name from one place; old backups still restore."
 - **Spec refresh 3 (2026-11-09, against v3.528):** most of the original problem was fixed in v3.517 (see Why). The item stays as the `appSlug()` consolidation plus the wider literal guard; criteria 1–2 gained a "name with a space" check so they prove something, and criterion 4's allowlist is measured (it would otherwise fail on the AI prompt). Order kept; the PR body suggests the owner may drop it. Scope otherwise unchanged.
 - **Status:** done (v3.572, PR #148)
+
+### MKT-21: The slogan in the app footer (`APP_SLOGAN`)
+- **Why:** the owner picked the slogan "Plate by plate, step by step." (2026-11-24, `slogan.md` §10). The footer is the one quiet place in the app where the brand can speak, at no cost to any screen. A single const means a change of mind is one edit, and MKT-22 reads the same const.
+- **Change:**
+  - Add `const APP_SLOGAN = 'Plate by plate, step by step.';` on the line after `APP_NAME` (`index.html:8555`).
+  - Move the footer write in `init` (53397) into a small `renderAppFooter()` that `init` calls once, so jsdom can run it. It writes two lines into `#appFooter` (7999):
+    - first, `<span class="app-footer-slogan">` holding `APP_SLOGAN`;
+    - second, the existing text `${APP_NAME} v${APP_VERSION} · schema v${SCHEMA_VERSION}`, byte for byte, in its own `<span class="app-footer-build">`. Diagnostics, support replies and `check.sh` readers rely on it.
+  - Styles:
+    - **The slogan line:** `display:block` in the footer's own 11 px size, the sans face (not the mono), `color:var(--text-2)`. `--text-2` holds 4.5:1 on both grounds (dark `#A6A6A2`, light `#52524E`).
+    - **The version line:** keeps `.app-footer`'s grey (`#4A5057`, 3811), which is under 4.5:1. That is flagged here, not fixed in this item (no drive-by).
+    - **The unfolded posture:** the footer there is fixed at 20 px (6158), so the slogan line is `display:none` inside that rule. The pane maths pinned in `test-open-screen-2-0.js` (424) stays unchanged.
+  - `WHATS_NEW` (8570) gets one line: "The footer now carries our line: plate by plate, step by step."
+- **Acceptance criteria:**
+  1. The real `renderAppFooter()` in jsdom leaves `#appFooter` with exactly two children. The first child's text equals `APP_SLOGAN`. The second child's text equals `` `${APP_NAME} v${APP_VERSION} · schema v${SCHEMA_VERSION}` `` built in the test from the extracted consts.
+  2. `APP_SLOGAN === 'Plate by plate, step by step.'`. Only one `const APP_SLOGAN` declaration exists. Outside `WHATS_NEW` and comments, the string literal appears exactly once in `index.html`, counted on stripped source, not raw text.
+  3. `init` calls `renderAppFooter()` exactly once (a real-call count on the stripped `init` body), and nothing else writes `appFooter`'s `textContent`.
+  4. The `.app-footer-slogan` rule's colour is `var(--text-2)`. Resolved from the dark and light token blocks, its contrast against `--bg` is at least 4.5:1 in both (the test computes WCAG luminance).
+  5. Inside the unfolded-posture footer rule, `.app-footer-slogan` is `display:none`, and that rule's `height` declaration is unchanged.
+- **Test plan:** new `test-app-slogan.js` with the real extracted `renderAppFooter`, `APP_NAME`, `APP_SLOGAN`, `APP_VERSION` and `SCHEMA_VERSION`.
+  - **Sabotage:**
+    - Put the slogan into the version span, and criterion 1 must fail.
+    - Add a second literal of the slogan in a template, and criterion 2 must fail.
+  - **Visual check:** `node tools/visual/harness.js --base origin/Branch-1`. `today-*-402` must change only at the footer, and `*-904` must not change. Then check Settings scrolled to the footer, at 402 in dark and light.
+- **Files:** `index.html` (`APP_NAME` 8555; `#appFooter` 7999; `.app-footer` 3811; the unfolded footer rule 6158; `init`'s footer line 53397; `APP_VERSION` 8549; `WHATS_NEW` 8570), `sw.js`, `test-app-slogan.js` (new).
+  - **Guards:** `test-app-rename.js` (it extracts `APP_NAME`; the footer's name is still drawn from it), `test-open-screen-2-0.js` (424, the footer height), `test-whats-new.js`.
+- **Risk:** low. Nothing is sent and nothing is stored. The only visible change on a phone is one grey line at the foot of each page.
+- **Tools:** `Skill: impeccable` (`typeset`) on the footer render; TOOL-01's harness.
+- **Status:** ready (owner yes 2026-11-24, `slogan.md` §10).
+
+### MKT-22: Year in Lifting ends on the slogan
+- **Why:**
+  - The recap set ends on a stat today. A last card gives the year an ending.
+  - It carries the brand in the one card where a forward-looking line belongs (`slogan.md` §4 and §10).
+  - The window opens on 1 December (`yearRecapYearFor`, 16374), so this item is slotted ahead of the tab audit.
+- **Change:**
+  - `yearRecapCards` (16505) appends one last card: `{icon:'trophy', headline: "THAT'S YOUR YEAR.", detail: APP_SLOGAN, kind:'year-end', dayId: activeDay}`.
+    - It has no `stats`, so `drawStoryCard` (33115) draws it through its existing headline-and-detail branch (33191), the one the PR and streak cards use. No new canvas layout.
+    - The week strip sketched in §7 stays out of this version. It would be a new layout, and December is a week away. It's flagged as a possible follow-up.
+  - It's appended only when the set already has at least one other card. `yearRecapCard(r)` always exists, so in practice that means whenever the recap is in season and over `YEAR_RECAP_MIN_DATES`.
+  - In `renderYearRecapHistory` (16530), a card without `stats` gets a row with its headline and detail as text ("That's your year. Plate by plate, step by step."). Today the row maps `c.stats` and would throw.
+  - Share follows the existing rule: no Share button while the medical program is active (16542).
+  - No address (D16), no body data (MKT-02), no load totals (D15).
+  - `WHATS_NEW` gets one line.
+- **Acceptance criteria:**
+  1. With the year fixture in `test-year-recap.js`, the real `yearRecapCards` returns the end card last. Its `kind` is `'year-end'`, its `detail === APP_SLOGAN`, and it has no `stats`. The cards before it are unchanged in content and order.
+  2. The real `buildShareCardBlob`, on a recording 2D stub, draws `APP_SLOGAN`'s text exactly once for the end card. No drawn string contains a digit, except the year if the headline carries one (here it doesn't, so no digits at all).
+  3. The real `renderYearRecapHistory` renders one more `.diag-row` than before (six with the fixture). The last row's text contains `APP_SLOGAN` and has one Share button. With `activeProgram = 'medical'`, there are no Share buttons, and the rows still show.
+  4. The end card's `stats` is `undefined`, so `drawStoryCard`'s stats branch isn't taken (the stub records no rule lines).
+- **Test plan:** extend `test-year-recap.js`. It already extracts `yearRecapCards`, `computeYearRecapCards` and `renderYearRecapHistory`; add `APP_SLOGAN` to its consts.
+  - **Re-pins, with a dated note:**
+    - line 256's label list (it reads `c.stats[0]`) filters to cards that have `stats`;
+    - lines 306 and 316's counts go from 5 to 6;
+    - the `cards.find(c => c.stats[0]…)` lookups (266, 276) guard `c.stats`.
+  - **Sabotage:**
+    - Draw the end card through the stats branch with an empty array, and criterion 4 must fail.
+    - Leave out the `stats` guard in `renderYearRecapHistory`, and criterion 3 must throw.
+  - **Visual check:** Playwright PNG of the end card at 1080×1920 (from `buildShareCardBlob`, as `tools/design/cheer/render.js` does) and History at 402, dark and light, with the clock frozen at 2 December 2026.
+- **Files:** `index.html` (`yearRecapCards` 16505, `computeYearRecapCards` 16515, `renderYearRecapHistory` 16530, `drawStoryCard` 33115; `APP_SLOGAN` from MKT-21; `APP_VERSION` 8549; `WHATS_NEW` 8570), `sw.js`, `test-year-recap.js` (re-pins above).
+  - **Guards:** `test-share-card-format.js`, `test-share-card-privacy.js`, `test-moments.js`.
+- **Risk:**
+  - The Priorities row and the share sheet still use the summary card (16555), so nothing changes there.
+  - This year the recap reaches the dogfood group only (D16), so the line can still change before December 2027's public recap.
+- **Tools:** `Skill: impeccable` (`polish`) on the card PNG.
+- **Status:** ready (after MKT-21, which adds `APP_SLOGAN`; owner yes 2026-11-24).
+
+### MKT-23: The cheer, "Step up a plate!", only when the weight really went up
+- **Why:**
+  - The owner picked the cheer (2026-11-24, `slogan.md` §10): "Step up a plate!" shows only when the app has really raised a lift's weight above last time, and says nothing otherwise.
+  - It marks the moment progressive overload pays out, which is the product's core promise ("Adds weight when you earn it", store frame 3).
+  - Because it's silent on holds, drops and deloads, it's always true. That keeps the honesty rule behind §9's rejection of "Every step adds a plate".
+- **The rule (one rule, reused, not a second one):** the app already decides "the weight goes up" in exactly one place, `computeSuggestedSet` (`index.html:30718`), which returns `reason:'increase'`.
+  - It is fed by `analyzeProgressionSignal` (30074) for double progression, its step-4 single-session top-of-range branch, and BL-02's clinical load gate.
+  - The set fields read it (`renderWorkout`, 31924; class `ex-suggested-increase`, 31932), and so does the finish sheet's "Next time" (`nextTimeSuggestion`, 32585).
+  - This item adds one pure predicate beside `computeSuggestedSet`: `isStepUp(suggested, basisWeightLb)` is true only when all of these hold:
+    - `suggested` exists and `suggested.reason === 'increase'`;
+    - `basisWeightLb != null`;
+    - `Number(suggested.weight) > toDisplayWeight(basisWeightLb)`.
+  - So 'hold' (null), 'decrease', 'deload' and 'rpe' never qualify, and an increase that snapped back to the same weight doesn't either. A lift with no earlier session has no basis, so it never qualifies.
+  - The cheer's text lives in one const: `STEP_UP_CHEER = 'Step up a plate!'`.
+- **Change (bib A + Today T1, as the owner picked on 2026-11-24; the lines marked "If B", "If C" and "If the owner picks T2" are not built):**
+  - **Today (T1, the cover):**
+    - In `renderWorkout`, hoist the existing `suggestedFirst` call (31829) out of the warm-up branch, so the ramp and the cheer read one value. Consolidation: there's no second `computeSuggestedSet` call.
+    - When `isStepUp(suggestedFirst, firstBasis.weight)` and the program isn't clinical (`'medical'` or `MEDICAL_STYLES`, 12955, the programs where Share is hidden), stamp the `.exercise-block` with `data-step-up="<step>"`. The step is the display-unit difference, for example `7.5`.
+    - `renderUpNext` (34274) shows a new `<p class="cover-cheer" id="upNextCheer">` after `#upNextTarget` (6597) when the cover's block carries the stamp. It reads "Step up a plate!", then a `<small>` with "+7.5 lb on last time", in the cover's ink and display face. Otherwise the line is `hidden`. Rendered in `tools/design/cheer/renders/today-T1-*.png`.
+    - *If the owner picks T2 as well:* the same stamp adds a `.ex-cheer` line under the exercise name in "Then" for raised lifts that aren't on the cover (`today-T2-*.png`).
+  - **The bib (A, the next line):**
+    - In `finishSheetModel` (32533), the lead lift's `leadOut` (32570) gains `stepUp: {next: '190 lb'}` only when all three hold:
+      - `isStepUp(nxt, lead.topLb)` (the next-time suggestion against today's top weight);
+      - the lead lift has a logged session dated before today (`entryHasLoggedSet` on its log);
+      - share data exists (none on clinical programs, `sessionShareStats` 32505).
+    - The before-today check matters: on a first-ever session at the top of the range, step 4 of `computeSuggestedSet` already returns 'increase' (the finish sheet says "up a step"), but there is no "last time", so there is no cheer.
+    - `drawBibCard` (32966) draws, in the note's place (33052), `STEP_UP_CHEER` in the display face at 64 px, then "Next time 190 lb" at 600 32 px in the note's grey. The ink is the day's spot ink where it holds 3:1 on the paper (red, blue, green, off); otherwise (yellow, white) it's the bib's black. The note isn't drawn that day.
+    - The photo bib (MKT-18) gets the same, at its 70% scale.
+    - *If B:* a second rubber stamp beside the number, in the same ink rule. The note is kept, and the number's width is capped at `bw - 120 - 2 × 230` when the stamp shows.
+    - *If C:* a band in the day's ink above the tear-off tabs. The note is dropped.
+  - **No motion.** The cheer appears in place, so there's nothing for Reduce Motion to turn off.
+  - **VoiceOver:**
+    - The cover line is plain text in reading order after the prescription, not `aria-hidden`.
+    - The bib is a shared image with no alt text in the app today, so nothing changes there. The finish sheet's "Next time" row already says the same thing as text.
+  - `WHATS_NEW` gets one line: "When the app adds weight to a lift, Today and your bib say so: Step up a plate! When it holds or drops, they don't."
+  - **Not in this item:** Gym mode, the finish sheet's own rows (they already say "up a step"), notifications and sounds.
+- **Acceptance criteria:**
+  1. **The predicate:** the real `isStepUp` returns true for `{reason:'increase', weight:190}` against 182.5 lb. It returns false for each of these:
+     - `null` (hold);
+     - `{reason:'decrease'}`, `{reason:'deload'}` and `{reason:'rpe', weight:200}`;
+     - `{reason:'increase', weight:182.5}` against 182.5 (snapped back to the same weight);
+     - any suggestion with `basisWeightLb == null`.
+  2. **Through the real engine** (the real `analyzeProgressionSignal`, `buildPastSessions`, `computeSuggestedSet` and `snapToLoadable` over stub storage, as `test-next-set-recommendation.js` does):
+     - two past sessions with every set at the top of 4-6 make `isStepUp` true;
+     - the same log with `inDeloadWeek = true` makes it false (reason 'deload');
+     - a log whose last session missed reps makes it false ('decrease' or hold);
+     - a lift with no past session makes it false;
+     - `loadSuggestionMode = 'rpe'` makes it false.
+  3. **The cover:** the real `renderUpNext` over a fixture list:
+     - when the cover's block has `data-step-up="7.5"`, `#upNextCheer` is visible, its text starts with `STEP_UP_CHEER`, and it contains "+7.5";
+     - when the block has no stamp, `#upNextCheer.hidden === true`;
+     - after `renderUpNext` moves to a block without the stamp, the line hides again (no stale text).
+  4. **Clinical:** with `activeProgram = 'medical'` (and with a `MEDICAL_STYLES` key), the block is never stamped, even when `isStepUp` would be true, and `#upNextCheer` stays hidden. The bib isn't built (`share` undefined), as today.
+  5. **The bib model:** the real `finishSheetModel` gives these results:
+     - Bench at 185 × 6 on every set today, with earlier sessions, sets `share.bib.lead.stepUp.next === '190 lb'`;
+     - Bench at 185 × 5, 5 (hold) sets `stepUp` to null;
+     - Bench whose only session is today, at the top of the range, sets `stepUp` to null, while the "Next time" row still says "up a step" (the before-today rule).
+  6. **The bib drawing** (the real `buildShareCardBlob`, on the recording stub from `test-bib-card.js`):
+     - with `stepUp` set, `fillText` receives `STEP_UP_CHEER` exactly once, and its y lies between 250 and 1620 in the bib's frame;
+     - with `stepUp` null, no `fillText` string contains "Step up";
+     - on a yellow day, the cheer's `fillStyle` is the bib's black (`#0C0C0D`), and on a red day it's `SHARE_CARD_INKS.spot.red`;
+     - with `stepUp` and `milestone` both set, the stamp's rectangle and the cheer's text box don't intersect.
+  7. **One rule, one string:**
+     - `index.html` has exactly one definition of `isStepUp`, and its only real call sites are `renderWorkout` and `finishSheetModel` (count invocations on stripped source, not text, so a comment quoting a call can't satisfy the count);
+     - `STEP_UP_CHEER` is the only non-comment literal "Step up a plate!" outside `WHATS_NEW`;
+     - there's no second `computeSuggestedSet(` call added in `renderWorkout` (the count stays at its pre-change number).
+- **Test plan:** new `test-step-up-cheer.js` (criteria 1–5 and 7) and an extension of `test-bib-card.js` (criterion 6), all real extracted functions.
+  - **Sabotage:**
+    - Make `isStepUp` accept `reason === 'rpe'`, and criteria 1 and 2 must fail.
+    - Drop the before-today check, and criterion 5's first-session case must fail.
+    - Stamp the block on the medical program, and criterion 4 must fail.
+  - **Visual check:**
+    - Add a `tday-stepup-<theme>-402` state to the harness's `--today` mode, with a `make-fixture.js` seed variant where Bench's last two sessions top the range (as `tools/design/cheer/render.js` seeds it), and shoot it in dark and light.
+    - Render the bib PNGs on red, yellow, white and the photo bib, plus a milestone day.
+    - Compare with `tools/design/cheer/renders/`.
+- **Files:** `index.html`:
+  - `computeSuggestedSet` 30718 (the predicate goes beside it), `renderWorkout` (31829 hoist, the block stamp);
+  - `renderUpNext` 34274, the cover markup 6597, the `.cover-*` CSS 1064;
+  - `finishSheetModel` 32533 and 32570, `drawBibCard` 32966 and 33052;
+  - `MEDICAL_STYLES` 12955, `APP_VERSION` 8549, `WHATS_NEW` 8570.
+  - Also `sw.js`, `test-step-up-cheer.js` (new), `test-bib-card.js` (extended), and `tools/visual/harness.js` and `make-fixture.js` (the new state).
+  - **Guards:**
+    - the cover suites: `test-today-cover.js`, `test-up-next.js`, `test-rest-cover.js`, `test-then-now-row.js`, `test-set-chips.js` and `test-tap-counts.js`;
+    - the finish and bib suites: `test-finish-sheet.js`, `test-bib-photo.js`, `test-session-share.js` and `test-training-day-number.js`;
+    - the ramp: `test-warmup-ramp-and-plates.js` and `test-superset-warmup-ramp-eligibility.js` (the hoisted `suggestedFirst`);
+    - progression: `test-next-set-recommendation.js` and `test-rpe-safety-caps.js`.
+- **Risk:**
+  - The hoist must not change the ramp: `chooseRampBasis` still gets the same `suggestedFirst`, and the ramp suites guard it.
+  - A cheer on a lift the person then chooses to hold is still true: it describes the app's target, not what was lifted.
+  - In RPE mode the cheer never shows, even when the RPE load is heavier than last time, because that number comes from effort, not from the progression rule. If the owner wants the cheer there too, that's a one-line change to `isStepUp`, and it should be his call.
+- **Tools:** `Skill: impeccable` (`critique`, then `polish`) on the renders; `Skill: apple-hig` (Dynamic Type on the cover line at the largest size); TOOL-01's harness.
+- **Status:** ready (after MKT-21). **Owner's answer (2026-11-24):** "Go with your recommendations": bib **A** (the next line) and Today **T1** (the cover). B, C and T2 are not built; their notes above stay only as the record of the options.
 
 ---
 

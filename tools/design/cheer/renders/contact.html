@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><style>
+    body{margin:0; padding:36px; background:#1E1E21; color:#F2F2F0; font:500 15px Geist, system-ui, sans-serif; width:1880px;}
+    h1{font:800 34px system-ui; margin:0 0 4px; letter-spacing:-.01em} h2{font:700 20px system-ui; margin:34px 0 12px}
+    p.lede{margin:0 0 8px; color:#B4B4B0; max-width:1500px; line-height:1.45}
+    .row{display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start}
+    figure{margin:0} figcaption{margin-top:8px; line-height:1.35; color:#D8D8D4; max-width:270px}
+    figcaption b{color:#fff; font-size:17px; display:block}
+    .b img{width:270px; display:block; border-radius:6px} .t img{width:300px; display:block; border-radius:10px; border:1px solid #3A3A3E}
+    .t figcaption{max-width:300px}</style>
+    <h1>"Step up a plate!" on the bib and on Today</h1>
+    <p class="lede">Drawn by the app's real drawBibCard / buildShareCardBlob, fed by the real finishSheetModel, with an in-memory prototype patch (tools/design/cheer/render.js). The cheer appears only when the real next-time suggestion (computeSuggestedSet, reason "increase") is heavier than today and the lift has a session before today. Seed: the harness fixture, Bench 185 lb.</p>
+    <h2>The bib, Day 1 red</h2><div class="row">
+    <figure class="b"><img src="bib-before-red.png"><figcaption><b>Before</b>Today's bib (v3.645). Bench 185 × 5, 5: next time holds, so no cheer.</figcaption></figure>
+    <figure class="b"><img src="bib-up-nocheer-red.png"><figcaption><b>Before, raised day</b>Bench 185 × 6 on every set: the note says "up a step", no cheer yet.</figcaption></figure>
+    <figure class="b"><img src="bib-A-red.png"><figcaption><b>A · the next line</b>The cheer takes the note's place in the display face, the next weight after it.</figcaption></figure>
+    <figure class="b"><img src="bib-B-red.png"><figcaption><b>B · the stamp</b>A rubber stamp beside the number, the note kept.</figcaption></figure>
+    <figure class="b"><img src="bib-C-red.png"><figcaption><b>C · the second band</b>A band in the day's ink above the tear-off tabs, echoing the event band.</figcaption></figure>
+    </div>
+    <h2>Another ink: yellow (the hardest on paper), white, the photo bib, a milestone day</h2><div class="row">
+    <figure class="b"><img src="bib-A-yellow.png"><figcaption><b>A · yellow</b>Yellow fails 3:1 on paper, so the line goes to the bib's black.</figcaption></figure>
+    <figure class="b"><img src="bib-B-yellow.png"><figcaption><b>B · yellow</b>The stamp in black for the same reason.</figcaption></figure>
+    <figure class="b"><img src="bib-C-yellow.png"><figcaption><b>C · yellow</b>The band in yellow with black type, as the event band.</figcaption></figure>
+    <figure class="b"><img src="bib-A-white.png"><figcaption><b>A · white</b>A rest-day ink, for range.</figcaption></figure>
+    <figure class="b"><img src="bib-A-photo.png"><figcaption><b>A · photo bib</b>MKT-18, on a stand-in photo (no asset ships).</figcaption></figure>
+    <figure class="b"><img src="bib-A-milestone.png"><figcaption><b>A · milestone day</b>The No. 50 stamp and the cheer together: no collision.</figcaption></figure>
+    <figure class="b"><img src="bib-B-milestone.png"><figcaption><b>B · milestone day</b>Two stamps on one bib: the weakness of B.</figcaption></figure>
+    </div>
+    <h2>Today, 402 px: the cheer only on lifts the engine raised (store seed + Bench at the top of 4-6 twice)</h2><div class="row">
+    <figure class="t"><img src="today-T1-dark.png"><figcaption><b>T1 · cover, dark</b>Under the lift name and prescription.</figcaption></figure>
+    <figure class="t"><img src="today-T1-light.png"><figcaption><b>T1 · cover, light</b>The cover keeps the day's ink in both themes.</figcaption></figure>
+    <figure class="t"><img src="today-T2-dark.png"><figcaption><b>T2 · list row, dark</b>Under the exercise name, where the +1 set note sits.</figcaption></figure>
+    <figure class="t"><img src="today-T2-light.png"><figcaption><b>T2 · list row, light</b></figcaption></figure>
+    </div>

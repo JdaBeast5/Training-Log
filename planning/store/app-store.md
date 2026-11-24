@@ -54,10 +54,10 @@ Alternative subtitles, all 30 or fewer: `Know what to lift next` (22, the older 
 
 ## 3. Promotional text
 
-(limit 170; this is 158) It sits above the description and can change without a new build, so it's where a launch-week or December note goes.
+(limit 170; this is 165) It sits above the description and can change without a new build, so it's where a launch-week or December note goes. It leads with the slogan (owner 2026-11-24, `slogan.md` §10).
 
 ```text
-Pick a program and Platestep tells you what to lift next: the weight and reps for every set, and when you've earned more. One tap logs it. No ads. No account.
+Plate by plate, step by step. Platestep tells you what to lift next: weight and reps for every set, and when you've earned more. One tap logs it. No ads. No account.
 ```
 
 Seasonal swap, December only, once MKT-06 (Year in Lifting) ships (limit 170; this is 117):
