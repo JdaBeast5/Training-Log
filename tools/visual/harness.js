@@ -209,6 +209,8 @@ function buildTodayStates(){
     t(`tday-finish-${theme}-402`, 402, theme, { finish: true });
     t(`tday-daysheet-${theme}-402`, 402, theme, { daySheet: true });
     t(`tday-dropset-${theme}-402`, 402, theme, { dropSheet: true });
+    // v3.652 (UX-17a): warm-up sets on, Bench opened: its warm-up chips on Today.
+    t(`tday-warmup-${theme}-402`, 402, theme, { openFirst: true, storage: { ...SEEN_MILESTONE, 'warmup-sets-pref': '1' } });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
     t(`tday-gym-${theme}-402`, 402, theme, { fullPage: true, gym: true });
@@ -585,6 +587,18 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             return true;
           });
           if(opened) await page.waitForSelector('#finishSheet.active', { timeout: 10000 });
+        }
+        // v3.652 (UX-17a): open the first exercise from its header, as a tap does.
+        if(state.openFirst){
+          await page.click('#exerciseList .exercise-block .exercise .ex-name');
+          await page.waitForSelector('#exerciseList .exercise-block.open', { timeout: 10000 });
+          await page.waitForTimeout(400);
+          // Its warm-up chips (or, on a base without them, the open exercise) in the middle of the viewport.
+          await page.evaluate(() => {
+            const el = document.querySelector('#exerciseList .exercise-block.open > .warmup-chips') || document.querySelector('#exerciseList .exercise-block.open');
+            el.scrollIntoView({ block: 'center' });
+          });
+          await page.waitForTimeout(300);
         }
         // v3.651 (BL-79): a logged set's sheet, then Drop set (two taps, as a person makes them).
         if(state.dropSheet){

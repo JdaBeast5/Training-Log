@@ -14,14 +14,25 @@
 // chips above the working chips; a tap saved {weight:45, reps:8, done:true};
 // Skip then Restore round-tripped with warmupsSkipped cleared; outside gym
 // mode the chips are display:none.
+//
+// v3.652 (UX-17a, owner 2026-11-24: Gym mode goes, Today does its job): the
+// chips move to Today. An open exercise shows them in the ink; Edit shows the
+// rows. Marking a step done offers Undo ("Logged warm-up 45×8"), from the
+// chip's own handler, which the gym dock's Log button now reuses. Gym mode
+// still exists in this version and keeps its orange chips.
+// Sabotage: hide .warmup-chips on Today again and the computed-style test
+// fails; drop the toast from the chip handler and the Undo test fails; give
+// the dock its toast back and the dock test counts two.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-gym-warmup-chips.js');
 const src = readIndexSource();
-const FNS = ['escapeHtml', 'trimUnitNum', 'toDisplayWeight', 'warmupRepsValue', 'buildWarmupRampRowsHtml', 'renderWarmupChips'].map(n => extractFunction(src, n));
+const FNS = ['escapeHtml', 'trimUnitNum', 'toDisplayWeight', 'warmupRepsValue', 'buildWarmupRampRowsHtml', 'renderWarmupChips',
+  'showUndoToast' /* v3.652 (UX-17a): the real toast */].map(n => extractFunction(src, n));
+const TOAST = extractElementById(src, 'undoToast');
 const RAMP = [{idx:0, label:'Bar', short:'Bar', weight:45, reps:8}, {idx:1, label:'40%', short:'40%', weight:75, reps:5},
   {idx:2, label:'60%', short:'60%', weight:110, reps:3}, {idx:3, label:'80%', short:'80%', weight:150, reps:2}];
 
@@ -29,8 +40,8 @@ const RAMP = [{idx:0, label:'Bar', short:'Bar', weight:45, reps:8}, {idx:1, labe
 // the real ramp strip (the real row markup, from buildWarmupRampRowsHtml).
 function mount({ rows = true, restore = false, skipHook = true, saved = [] } = {}){
   const { window } = runJsdom(`<div id="exerciseList"><div class="exercise-block open"><div class="exercise"></div><div class="set-chips"></div>
-    <div class="expand-wrap"><div><div class="sets-block"><div class="warmup-strip" id="strip"><div class="warmup-title">Suggested warm-up ramp</div>__ROWS__${restore ? '<button type="button" class="warmup-restore-btn">Restore</button>' : ''}</div></div></div></div></div></div>`,
-  `var weightUnit = 'lb'; function getWeightUnit(){ return 'lb'; } var currentUnit = 'lb';`,
+    <div class="expand-wrap"><div><div class="sets-block"><div class="warmup-strip" id="strip"><div class="warmup-title">Suggested warm-up ramp</div>__ROWS__${restore ? '<button type="button" class="warmup-restore-btn">Restore</button>' : ''}</div></div></div></div></div></div>${TOAST}`,
+  `var weightUnit = 'lb'; function getWeightUnit(){ return 'lb'; } var currentUnit = 'lb'; let undoToastTimeout = null;`,
   [...FNS, `
     const strip = document.getElementById('strip');
     strip.innerHTML = strip.innerHTML.replace('__ROWS__', ${rows} ? buildWarmupRampRowsHtml(${JSON.stringify(RAMP)}, ${JSON.stringify(saved)}) : '');
@@ -65,6 +76,50 @@ test('REAL invocation: a tap ticks the REAL row (its change handler fires) and m
   ui.chips()[0].click();
   assert.deepStrictEqual([...ui.window.__changes], ['Bar:true', 'Bar:false']);
   assert.ok(ui.chips()[0].classList.contains('is-ready'));
+});
+
+test('UX-17a criterion 1: marking the ready step done shows the real undo toast "Logged warm-up 45×8"; Undo unticks it through the same handler', async (assert)=>{
+  const ui = mount();
+  ui.chips()[0].click();
+  const toast = ui.doc.getElementById('undoToast');
+  assert.ok(toast.classList.contains('active'), 'the toast shows');
+  assert.strictEqual(ui.doc.getElementById('undoToastText').textContent, 'Logged warm-up 45×8');
+  assert.ok(ui.chips()[0].classList.contains('is-done'));
+  ui.doc.getElementById('undoToastBtn').click();
+  await new Promise(r => setTimeout(r, 0));
+  assert.deepStrictEqual([...ui.window.__changes], ['Bar:true', 'Bar:false'], 'the real row was unticked');
+  assert.ok(ui.chips()[0].classList.contains('is-ready'), 'the step is ready again');
+  assert.ok(!toast.classList.contains('active'));
+  // Unticking by hand offers no toast (there is nothing to undo into).
+  ui.chips()[0].click(); // ticked again: a toast
+  toast.classList.remove('active'); // as when it times out
+  ui.chips()[0].click(); // unticked by hand
+  assert.ok(!toast.classList.contains('active'), 'a second tap (untick) shows no toast');
+});
+
+test('UX-17a: the gym dock\'s real Log button reuses the chip\'s handler: one tick, one toast', (assert)=>{
+  const i = src.indexOf("document.getElementById('gymLogBtn').addEventListener('click'");
+  assert.ok(i > 0, 'anchor: the dock handler');
+  const DOCK = src.slice(i, src.indexOf('\n});', i) + 4);
+  const { window } = runJsdom(`<div id="exerciseList"><div class="exercise-block open"><div class="exercise"></div><div class="set-chips"></div>
+    <div class="expand-wrap"><div><div class="sets-block"><div class="set-row" data-set-idx="0" data-ex-idx="0"><input class="ex-reps" value=""></div>
+    <div class="warmup-strip" id="strip"><div class="warmup-title">Ramp</div>__ROWS__</div></div></div></div></div></div><button id="gymLogBtn"></button>${TOAST}`,
+    `var weightUnit = 'lb'; let undoToastTimeout = null; var gymModeActive = true;
+     function findNextSetRow(list){ return {row: list.querySelector('.set-row')}; }
+     function openSetSheet(){ window.__sheet = (window.__sheet || 0) + 1; }
+     window.__toasts = 0;`,
+    [...FNS, extractFunction(src, 'pendingWarmupChip'), `
+     const realToast = showUndoToast; showUndoToast = function(m, f){ window.__toasts++; window.__msg = m; return realToast(m, f); };
+     const strip = document.getElementById('strip');
+     strip.innerHTML = strip.innerHTML.replace('__ROWS__', buildWarmupRampRowsHtml(${JSON.stringify(RAMP)}, []));
+     window.__changes = [];
+     strip.querySelectorAll('.warmup-done').forEach(cb => cb.addEventListener('change', () => window.__changes.push(cb.closest('.warmup-set-row').dataset.stepLabel + ':' + cb.checked)));
+     renderWarmupChips(document.querySelector('.exercise-block'));`, DOCK]);
+  window.document.getElementById('gymLogBtn').click();
+  assert.deepStrictEqual([...window.__changes], ['Bar:true'], 'one tick');
+  assert.strictEqual(window.__toasts, 1, 'one toast, from the chip\'s handler');
+  assert.strictEqual(window.__msg, 'Logged warm-up 45×8');
+  assert.strictEqual(window.__sheet, undefined, 'the warm-up, not the working set');
 });
 
 test('REAL invocation: saved progress shows on load (done steps struck through, the next one ready)', (assert)=>{
@@ -119,9 +174,11 @@ function declared(selector, prop){
   return val;
 }
 
-test('REAL CSSOM: gym mode only; the rows hide behind the chips unless editing; chips are at least 44px', (assert)=>{
+test('REAL CSSOM: an open exercise shows the chips, on Today (v3.652) and in gym mode; the rows hide behind them unless editing; chips are at least 44px', (assert)=>{
   assert.strictEqual(declared('.warmup-chips', 'display'), 'none');
   assert.strictEqual(declared('body.gym-mode .exercise-block.open > .warmup-chips', 'display'), 'block');
+  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .exercise-block.open > .warmup-chips', 'display'), 'block');
+  assert.ok(parseInt(declared('body:not(.gym-mode) #exerciseList .warmup-chips .set-chip', 'min-height'), 10) >= 44);
   assert.strictEqual(declared('body.gym-mode .exercise-block:not(.warmup-editing) .warmup-strip', 'display'), 'none');
   assert.ok(parseInt(declared('.warmup-chips .set-chip', 'min-height'), 10) >= 44);
   assert.ok(parseInt(declared('.warmup-chips-head .link-btn', 'min-height'), 10) >= 44);
@@ -153,7 +210,10 @@ test('REAL computed style (v3.394): in gym mode Same as Last Time is a link (no 
 // shows the ramp and left Today's list as it was; the owner meant the ramp
 // belongs to gym mode only. Outside gym mode no ramp shows — loggable rows,
 // read-only table or nudge. Checked on COMPUTED style of real markup.
-test('REAL computed style (v3.401): no warm-up ramp on the regular list; gym mode still shows it (rows while editing)', (assert)=>{
+// v3.652 (UX-17a): Gym mode is going, so the loggable ramp's chips come to
+// Today's open exercise (next test). The rows and the read-only ramp stay
+// hidden on Today, except that Edit shows the rows.
+test('REAL computed style (v3.401, v3.652): the ramp\'s rows stay hidden on Today unless editing; gym mode still shows it', (assert)=>{
   const at = (bodyClass, blockClass = 'exercise-block open') => {
     const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${bodyClass}"><div id="exerciseList"><div class="${blockClass}">
       <div class="sets-block"><div class="warmup-strip" id="s">rows</div><div class="warmup-box" id="b">Warm up first</div></div></div></div></body>`);
@@ -161,10 +221,34 @@ test('REAL computed style (v3.401): no warm-up ramp on the regular list; gym mod
     return { strip: d('s'), box: d('b') };
   };
   assert.deepStrictEqual(at(''), { strip: 'none', box: 'none' }, 'regular Today list');
+  assert.notStrictEqual(at('', 'exercise-block open warmup-editing').strip, 'none', 'v3.652: Edit shows the rows on Today too');
   const gym = at('gym-mode');
   assert.strictEqual(gym.strip, 'none', 'gym mode: the rows sit behind the chips…');
   assert.notStrictEqual(gym.box, 'none', '…and a read-only ramp or nudge still shows');
   assert.notStrictEqual(at('gym-mode', 'exercise-block open warmup-editing').strip, 'none', '…and Edit brings the rows back');
+});
+
+// v3.652 (UX-17a criterion 1): the chips' computed display on Today, on the
+// real stylesheet: shown in an open exercise, hidden in a closed one.
+test('UX-17a criterion 1 (REAL computed style): outside gym mode an open exercise shows its warm-up chips, in the ink; a closed one doesn\'t', (assert)=>{
+  const at = (bodyClass, blockClass) => {
+    const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${bodyClass}"><div id="exerciseList"><div class="${blockClass}">
+      <div class="warmup-chips" id="c"><div class="warmup-chips-head"><span class="warmup-chips-title" id="t">Warm-up · not counted</span></div>
+      <div class="warmup-chips-row"><button class="set-chip warmup-chip is-done" id="d">45×8</button><button class="set-chip warmup-chip is-ready" id="r">75×5</button></div></div><div class="set-chips"></div></div></div></body>`);
+    const cs = id => window.getComputedStyle(window.document.getElementById(id));
+    return { display: cs('c').display, chipHeight: cs('r').minHeight, chipBg: cs('r').backgroundColor, doneBg: cs('d').backgroundColor, doneLine: cs('d').textDecoration };
+  };
+  const open = at('', 'exercise-block open');
+  assert.strictEqual(open.display, 'block');
+  assert.strictEqual(open.chipHeight, '44px', 'Today\'s chip size, not gym mode\'s 56 px');
+  assert.ok(!/255, 122, 51/.test(open.chipBg), 'not gym mode\'s orange fill: ' + open.chipBg);
+  // jsdom can't resolve the ink fill's var(), so the computed background can't
+  // tell the two apart: the override is checked as declared on the real sheet.
+  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .warmup-chips .set-chip.is-done', 'background'), 'none', 'a done step is not the logged set\'s ink fill');
+  assert.strictEqual(declared('body:not(.gym-mode) #exerciseList .set-chip.is-done', 'background'), 'var(--text)', 'anchor: the logged set\'s fill it overrides');
+  assert.match(open.doneLine, /line-through/, 'and is struck through (not counted)');
+  assert.strictEqual(at('', 'exercise-block').display, 'none', 'a closed exercise');
+  assert.strictEqual(at('gym-mode', 'exercise-block open').display, 'block', 'gym mode keeps them');
 });
 
 run();

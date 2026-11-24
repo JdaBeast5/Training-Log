@@ -5555,6 +5555,20 @@
     background:rgba(255,122,51,.12); border-color:rgba(255,122,51,.35); color:var(--plate-orange);}
   .warmup-chips .set-chip.is-done{background:rgba(255,122,51,.06); border-color:transparent; color:var(--text-muted); text-decoration:line-through;}
   .warmup-chips .set-chip.is-ready{background:var(--plate-orange); border-color:transparent; color:#fff;}
+  /* v3.652 (UX-17a): Today's open exercise shows its warm-up chips (moved from
+     gym mode), in the ink: Today's set-chip rules (further down) colour them,
+     so only the title and gym mode's 56 px size are set back here. A done step
+     keeps its strike-through (not counted). Edit shows the rows. The cover's
+     own exercise (the compact "now" row) shows them too once opened: that is
+     the lift being warmed up. */
+  body:not(.gym-mode) #exerciseList .exercise-block.open > .warmup-chips{display:block; padding:0 0 14px;}
+  body:not(.gym-mode) #exerciseList .warmup-chips-title{color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .warmup-chips .set-chip{min-height:44px; font-size:14.5px; font-weight:400;}
+  body:not(.gym-mode) #exerciseList .exercise-block.warmup-editing .warmup-strip{display:flex;}
+  /* Not a logged set: a done step is an outline, not the ink fill; the ready
+     step a 1.5 px ink border, lighter than the working set's 2.5 px "next". */
+  body:not(.gym-mode) #exerciseList .warmup-chips .set-chip.is-done{background:none; border:1.5px solid var(--rule-strong); color:var(--text-2);}
+  body:not(.gym-mode) #exerciseList .warmup-chips .set-chip.is-ready{border:1.5px solid var(--text); font-weight:400;}
   body.gym-mode .exercise-block:not(.warmup-editing) .warmup-strip{display:none;}
   body.gym-mode .set-chip-trend{font-size:18px;}
   body.gym-mode .sets-block > .set-row{display:none;}
@@ -8569,7 +8583,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.651';
+const APP_VERSION = '3.652';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10364,6 +10378,9 @@ const WHATS_NEW = {
   ]},
   '3.651': { headline: 'Drop sets are back', points: [
     'Drop set works again. Tap a logged set, then Drop set: it adds a set about 25% lighter, rounded to weights you can load, to take close to failure with no rest.',
+  ]},
+  '3.652': { headline: 'Warm-ups on Today', points: [
+    'With warm-up sets on, an open exercise shows its warm-up steps as chips above your sets. Tap one to mark it done (with Undo). They used to show only in Gym mode.',
   ]},
 };
 
@@ -34955,6 +34972,16 @@ function renderWarmupChips(blockEl){
       cb.dispatchEvent(new Event('change', {bubbles:true}));
       renderWarmupChips(blockEl);
       if(typeof refreshGymLogBtn === 'function') refreshGymLogBtn(); // v3.393: the dock follows
+      // v3.652 (UX-17a): marking a step done offers Undo (the dock's toast, moved
+      // here so Today's chips and the dock share one handler). Undo taps the
+      // step's chip again, which unticks it through this same path.
+      if(cb.checked){
+        const step = r.dataset.stepIdx, text = chip.textContent;
+        showUndoToast(`Logged warm-up ${text}`, ()=>{
+          const again = blockEl.querySelector(`:scope > .warmup-chips .set-chip[data-step-idx="${step}"]`);
+          if(again && again.classList.contains('is-done')) again.click();
+        });
+      }
     });
     row.appendChild(chip);
   });
@@ -35031,14 +35058,7 @@ document.getElementById('gymLogBtn').addEventListener('click', ()=>{
   const block = nextRow && nextRow.closest('.exercise-block');
   const warm = gymModeActive ? pendingWarmupChip(block) : null;
   if(warm){
-    const step = warm.dataset.stepIdx, label = warm.textContent;
-    warm.click();
-    refreshGymLogBtn();
-    showUndoToast(`Logged warm-up ${label}`, ()=>{
-      const again = block.querySelector(`:scope > .warmup-chips .set-chip[data-step-idx="${step}"]`);
-      if(again && again.classList.contains('is-done')) again.click();
-      refreshGymLogBtn();
-    });
+    warm.click(); // v3.652 (UX-17a): the chip's own handler ticks it and offers Undo
     return;
   }
   const chip = list && list.querySelector('.set-chip.is-next');
