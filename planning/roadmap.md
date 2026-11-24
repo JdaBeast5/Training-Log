@@ -194,6 +194,20 @@ This is the one order every build run follows. It supersedes the "Requested buil
 78. BL-21: HRV against your own baseline (needs D10's paper-lookup for Plews 2013)
 79. MKT-07: PR and progress cards show the gain, with the record's kind named (summit R6)
 80. MKT-05: block complete, as a variant of UX-11's recap sheet
+   - *The tab audit (owner 2026-11-23; specs in `backlog.md` → "Design (UX): the tab audit"). TOOL-02 (the harness shoots every tab) goes first, outside the loop.*
+   - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
+   - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
+   - 80c. **UX-40:** in-card list rows are ruled, not tiles
+   - 80d. **UX-41:** chevrons, links and "Done" in the ink (no link blue)
+   - 80e. **UX-42:** selected chips select in the ink
+   - 80f. **UX-43:** state notes flat, with a state bar and no glow (`--warning`, `--positive`, `--negative`)
+   - 80g. **UX-44:** trend charts are ink lines with no fill
+   - 80h. **UX-45:** Geist Mono leaves the UI except the build stamp
+   - 80i. **UX-46:** Food's lower half in the world's ink
+   - 80j. **UX-47:** Progress below the lead in the world's ink
+   - 80k. **UX-48:** History's PR timeline in the world's ink
+   - 80l. **UX-49:** Care and Learn in the world's ink (neutral, no day ink)
+   - 80m. **UX-50:** cards become ruled sections, as on Today
 81. BL-34: RPE-adjusted e1RM for RPE-mode targets only; PR history stays put *(owner yes 2026-11-08, D3)*
 82. BL-32: one-tap "make today easier", never automatic *(owner yes 2026-11-08, D3; after BL-21)*
 83. BL-27: weekly calorie check-in, applied only on Accept *(owner yes 2026-11-08, D5; no sooner than 21 days after BL-17's merge)*
