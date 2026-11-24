@@ -2619,7 +2619,7 @@ All four are now ready after Phase 3. The owner answered "41a, 42a, 45a" on PR #
   - **Q3, bodyweight moves.** (a) hidden *(recommended)*; (b) a reps-only drop with a line such as "switch to an easier version" and no number.
   - **Q4, deload weeks.** (a) hidden *(recommended: a deload asks for 3–4 RIR)*; (b) shown.
   - **Q5, the most drops.** (a) 2 *(recommended: most studies)*; (b) 3 (Fink 2018).
-- **Status:** ready (owner request, 2026-11-24). Roadmap slot 80r1, right after BL-78 and before Gym mode's retirement (UX-17a–c, 80s–80u). The owner's questions don't block it; it builds on the recommended defaults.
+- **Status:** done (v3.651, PR #246, 2026-11-24). Built on the recommended defaults (Q1 a: 25% then 20%; set sheet only). Review fixes: drop saves queue on the row (two drops in one Save both persist), an emptied saved drop is cleared, drops on a row without the control aren't editable, a blank middle drop keeps its index, no weight to drop from isn't "lightest", and an added set takes its name from the header.
 
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. They now ship with BL-59 (needs-owner). BL-03 and BL-04 cover the safety half.

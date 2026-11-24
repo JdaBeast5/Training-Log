@@ -1711,3 +1711,21 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `share.bib.week` is `cycleWeekOf(week)` and `weeks` is `DELOAD_CYCLE_WEEKS`. The band reads `WK n/5`, has a 22 px floor, and a cut shortens the name, not the week.
 - **Flagged:** `finishSheetModel` uses today's mesocycle week even for a backdated `dateKey`.
 - **Next:** BL-79 (drop set), then UX-17a–c.
+
+## Addendum 171: BL-79 (v3.651, PR #246)
+- The engine:
+  - `computeSuggestedSet` has a `drop` branch: `isDrop` keeps it out of the RPE short-circuit. It sits after `snap`, before the deload branch.
+  - `loadStepFor(name)` is the one loadable step; `setSheetWeightStep` reads it.
+  - `dropSetEligible(ex, program, inDeload)` sits beside `targetRirLabel`. `renderWorkout` and the add-set path render `.set-drop-btn` only where it holds.
+- The sheet:
+  - It holds `#setSheetDrops` lines, managed by `setSheetAddDrop`, `refreshSetSheetDropBtn`, `setSheetExercise`, `dropSetCue` and `suggestDropWeight`.
+  - `DROP_SET_MAX = 2`.
+  - `saveSetSheet` → `commitSet`, then `writeDropsToRow`: the values go into the row's `.drop-set-row` inputs, with one `change` each.
+- The row: `wireSetRow`'s `save` wrapper records `setRow._saving`. Drop saves chain on it, so the parent's and the drops' read-modify-writes never interleave.
+- The chips: `renderSetChips` adds `.set-chip-drop` (the `.set-drop-btn` mask) and the aria suffix. `renderCoverChips` copies the glyph.
+- **Flagged:**
+  - custom exercises lose Drop set (no category means no RIR label, per the spec);
+  - `+ Add set` rows have no `.set-row-owner` (old);
+  - Undo of a commit doesn't remove drops saved in the same Save;
+  - the light-theme selected RPE pill is white on light (old).
+- **Next:** UX-17a–c (80s–80u), then the tab audit UX-38 onward.
