@@ -113,24 +113,24 @@ const GAPS = [
       { key: 'B', label: 'B, the chart capped at a phone column', css: CSS_LEAD('B') }] },
   { n: 10, title: 'The rest-timer pill (resting, 2:30 of 4:00 left)',
     // UX-29: the pill steps aside while the cover is in view, so it's shown where it really appears: Today scrolled
-    // past the cover (the cover's foot still in frame), another tab, and Gym mode (out of scope: unchanged).
+    // past the cover (the cover's foot still in frame) and another tab. Gym mode isn't shown: UX-17 retires it first.
     scenes: [{ name: 'today', view: 'today', rest: true, setup: scrollPastCover, wait: '#restTimer.active' },
-      { name: 'food', view: 'log', rest: true, wait: '#restTimer.active' },
-      { name: 'gym', view: 'today', rest: true, gym: true, wait: 'body.gym-mode' }],
+      { name: 'food', view: 'log', rest: true, wait: '#restTimer.active' }],
     options: [
-      { key: 'A', label: 'A, the rest field (a small rest cover, in the day\'s deep ink) · recommended', css: CSS_FLOAT('A') },
-      { key: 'B', label: 'B, the neutral floating surface', css: CSS_FLOAT('B') }] },
+      { key: 'A', label: 'A, the rest field (the day\'s deep ink) · picked 2026-11-24', css: CSS_FLOAT('A') },
+      { key: 'B', label: 'B, the neutral floating surface (not picked)', css: CSS_FLOAT('B') }] },
   { n: 11, title: 'The undo pill after a set is logged',
     // The real tap: the cover's Log set logs Bench set 3, starts the rest and shows "Logged Bench Press 185×6 · Undo".
     scenes: [{ name: 'logged', view: 'today', setup: logSet, wait: '#undoToast.active' },
       { name: 'logged-scrolled', view: 'today', setup: async p => { await logSet(p); await scrollPastCover(p); await p.evaluate(() => showUndoToast(document.getElementById('undoToastText').textContent, () => {})); }, wait: '#undoToast.active' }],
     options: [
-      { key: 'after', label: 'After (one item with gap 10: one floating surface, stacked; the rest pill as A)', css: CSS_FLOAT('A') }] },
+      { key: 'after', label: 'After (UX-61, the rest pill as A; Gym mode gone with UX-17b)', css: CSS_FLOAT('A') }] },
 ];
 
 // Gaps 10 and 11 share one floating surface: --r-control (not a 36 px pill), the float shadow, the figure in the
 // display face, the ink for actions (no blue), 44 pt targets, and the undo pill stacked above the rest pill when both
-// show (today they sit at the same spot and the undo pill covers the timer). Gym mode keeps its own until UX-17.
+// show (today they sit at the same spot and the undo pill covers the timer). The "after" frames hide the gym offer,
+// which UX-17b deletes before UX-61 lands.
 function CSS_FLOAT(opt){
   const shared = `
     body:not(.gym-mode) :is(.rest-timer, .undo-toast){border-radius:var(--r-control) !important; box-shadow:0 14px 34px -12px rgba(0,0,0,.55) !important;}
@@ -141,13 +141,7 @@ function CSS_FLOAT(opt){
     body:not(.gym-mode) .undo-toast button{color:var(--text) !important; font-size:15px !important; min-height:44px; min-width:64px; padding:0 14px !important; border-left:1px solid var(--rule) !important; border-radius:0;}
     body:not(.gym-mode) .undo-toast span{white-space:nowrap;}
     body:not(.gym-mode):not(.cover-in-view):has(#restTimer.active) .undo-toast{bottom:calc(var(--above-bar) + 12px + 72px + 8px) !important;}
-    body:not(.gym-mode) .gym-offer{background:var(--surface-1) !important; border:1px solid var(--rule-strong) !important; border-radius:var(--r-control) !important; box-shadow:0 14px 34px -12px rgba(0,0,0,.55) !important;}
-    body:not(.gym-mode) .gym-offer-title{font-family:var(--font-display); font-stretch:68%; font-weight:800 !important; font-size:22px !important;}
-    body:not(.gym-mode) .gym-offer-body{color:var(--text-2) !important; font-size:14px !important;}
-    body:not(.gym-mode) .gym-offer-yes{background:var(--text) !important; color:var(--ground) !important; border-color:var(--text) !important;}
-    body:not(.gym-mode) .gym-offer-no{background:var(--surface-2) !important; color:var(--text) !important; border:1px solid var(--rule) !important;}
-    body:not(.gym-mode):has(#undoToast.active) .gym-offer{bottom:calc(var(--above-bar) + 12px + 52px + 8px) !important;}
-    body:not(.gym-mode):not(.cover-in-view):has(#restTimer.active):has(#undoToast.active) .gym-offer{bottom:calc(var(--above-bar) + 12px + 72px + 8px + 52px + 8px) !important;}`;
+    #gymOffer, #gymEnterBtn{display:none !important;} /* UX-17b deletes the "Switch to gym mode?" card and the Gym mode button */`;
   if(opt === 'A') return shared + `
     body:not(.gym-mode) .rest-timer{background:var(--spot-deep, var(--surface-1)) !important; border:0 !important;}
     body:not(.gym-mode) .rest-timer :is(.rest-timer-time, .rt-add, .rt-close){color:#FFFFFF !important;}
