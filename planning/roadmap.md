@@ -209,11 +209,23 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80f. **UX-43:** state notes flat, with a state bar and no glow (`--warning`, `--positive`, `--negative`)
    - 80g. **UX-44:** trend charts are ink lines with no fill
    - 80h. **UX-45:** Geist Mono leaves the UI except the build stamp
+   - *One app, every screen like Today (owner 2026-11-24; specs and renders in `backlog.md` → "Design (UX): one app, every screen like Today", `tools/design/unify/renders/`). The two pieces seen on every screen ride with the shared-pieces group:*
+   - 80h1. **UX-52:** tab headers, bare icons and the display face *(ready)*
+   - 80h2. **UX-53:** buttons, the ink rectangle and the secondary control, never a pill *(ready; after UX-38, which defines the secondary)*
    - 80i. **UX-46:** Food's lower half in the world's ink
    - 80j. **UX-47:** Progress below the lead in the world's ink
    - 80k. **UX-48:** History's PR timeline in the world's ink
    - 80l. **UX-49:** Care and Learn in the world's ink (neutral, no day ink)
    - 80m. **UX-50:** cards become ruled sections, as on Today
+   - *The rest of "one app" (owner 2026-11-24), after UX-50. The needs-owner items wait for his A/B picks, and the builder skips them until then.*
+   - 80m1. **UX-54:** one text field *(needs-owner: A outlined, recommended, or B filled)*
+   - 80m2. **UX-55:** the More sheet, ruled rows and bare icons *(needs-owner: A text face or B display face, recommended)*
+   - 80m3. **UX-56:** the coach chat as a sheet *(needs-owner: A bottom sheet, recommended, or B the corner card)*
+   - 80m4. **UX-57:** exercise history and Search sheets, ruled figures, and focus that lands on the sheet *(ready; check VoiceOver on device before merge)*
+   - 80m5. **UX-58:** "Who's training?", first screen and switcher *(needs-owner: A sheet, B full screen, or C both, recommended)*
+   - 80m6. **UX-59:** History's month, no empty rows after today *(needs-owner: A faint numerals, recommended, or B end at this week)*
+   - 80m7. **UX-60:** Progress unfolded, the lead at phone scale *(needs-owner: A two columns, recommended, or B capped)*
+   - 80m8. **UX-61:** the floating layer: rest pill, undo pill and gym offer as one surface, stacked (fixes the undo pill covering the timer) *(needs-owner: rest pill A rest field, recommended, or B neutral)*
 81. BL-34: RPE-adjusted e1RM for RPE-mode targets only; PR history stays put *(owner yes 2026-11-08, D3)*
 82. BL-32: one-tap "make today easier", never automatic *(owner yes 2026-11-08, D3; after BL-21)*
 83. BL-27: weekly calorie check-in, applied only on Accept *(owner yes 2026-11-08, D5; no sooner than 21 days after BL-17's merge)*
