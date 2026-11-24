@@ -1689,3 +1689,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 165: MKT-05 (v3.645, PR #230)
 - `blockRecap(cycleStart, weekStartKey, end, plannedPerWeek)` returns null unless the 5th, 10th, ... counted block (`activity-dates`, 2+ dates) ends in that Mon–Sun week. Added `blockShareCardData` (kind `block`) and `blockGainShown`. `weeklyRecapModel` returns `block` and the title "Block complete", and `openRecapSheet` renders the block totals and gains.
 - **Flagged (pre-existing):** `getMesocycleWeek` floors the days since the cycle start (DST).
+
+## Addendum 166: MKT-21 (v3.646, PR #236)
+- `APP_SLOGAN` (after `APP_NAME`) and `renderAppFooter()`, which `init` calls. In the unfolded posture the slogan is hidden.
+- **Next:** MKT-22 (Year in Lifting ends on `APP_SLOGAN`), then MKT-23.
+- **Test note:** strip comments line by line, not with a `/* */` regex. `accept="image/*"` breaks the regex.
