@@ -1,5 +1,7 @@
 # Backlog
 
+**One app, every screen like Today (2026-11-24, against v3.646, `origin/Branch-1` 67e4c0f, design-engineer).** After TOOL-02's before-sheets, the owner asked for every screen to match Today and for renders of each gap. There are ten new items, UX-52 to UX-61, in a new section after the tab audit. Each one's before and after is rendered from the real app in `tools/design/unify/renders/unify-1.png` to `unify-11.png`. UX-52, UX-53 and UX-57 are `ready`. The other seven are `needs-owner`, each with lettered options and a recommendation. Slots: 80h1–80h2 and 80m1–80m8.
+
 **Slogan and cheer decided (2026-11-24, against v3.645, `origin/Branch-1` 85eca06, marketing-manager).** The owner picked the slogan **"Plate by plate, step by step."** and the cheer **"Step up a plate!"** (`planning/slogan.md` §10). There are three new items at the end of the Marketing section: **MKT-21** (`APP_SLOGAN` and the footer line, `ready`), **MKT-22** (Year in Lifting's end card, `ready`) and **MKT-23** (the cheer). MKT-23 is `ready` after MKT-21: the owner picked bib A + Today T1 from the renders (`tools/design/cheer/renders/contact-sheet.png`) on 2026-11-24. All three are slotted at roadmap 80n–80p, ahead of the tab audit, because the Year in Lifting window opens 1 December. Baseline green: `check.sh` passed.
 
 **Money model answered (2026-11-23, against v3.632, business-manager).** The owner answered "1-6 yes" to BIZ-27 to BIZ-32 (`planning/monetization-2026-11.md`, `pitch.md` "Owner's answers"), and named the paid tier **Platestep Plus** ("Call it Plus"). Buildable now, behind their gates: **BIZ-28** (roadmap slot 92a, Phase 5) and **BIZ-29** (slot 99, after the launch builds, no sooner than 2027-02-01). BIZ-27, BIZ-30, BIZ-31 and BIZ-32 are `answered`; BIZ-32 is the owner's action O7 in `pitch.md`. BIZ-18's hold is lifted, and it now ships the BIZ-27 paragraph.
@@ -4754,6 +4756,352 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-footer-contrast.js` (the real CSS and the real init line in jsdom for criterion 2; a contrast ratio computed from the real stylesheet's resolved token). Sabotage: restore `#4A5057`, and criterion 1 fails.
 - **Files:** `index.html` (~3811), `sw.js`, the new test.
 - **Status:** ready, after MKT-21 (same rule; it lands second so the two don't conflict).
+
+## Design (UX): one app, every screen like Today (design-engineer, 2026-11-24)
+
+The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of leftovers that UX-38 to UX-50 don't cover. He said: "Yes, let's figure out how we can make them match the today page better, so it can be one unified app, let's make some renderings for each and make a plan." These items cover those nine gaps. On the same day the owner added two more: "Also add the rest Timer floating pill and the undo set pill, they both were not updated" (gaps 10 and 11, one item, UX-61).
+
+- **Renders:** each gap is rendered before and after from the real app, with a prototype patch applied in memory: `tools/design/unify/render.js`, contact sheets in `tools/design/unify/renders/unify-1.png` to `unify-11.png`.
+  - Each sheet has dark above light at 402, gap 9 at 904, and gap 10 also in Gym mode (unchanged, out of scope).
+  - The prototypes use broad `!important` selectors to show the look. Each item below says how the real change consolidates the existing rules instead.
+- **What every "after" is built from:** what Today and the finish sheet already use.
+  - The display face (`--font-display`, stretch 68%, 800) for names and figures.
+  - The ink rectangle: `.cover-go`, 1079, `--r-control` 14, no glow.
+  - UX-38's secondary control.
+  - Bare 44 pt icons (`.cover-icons`, 941).
+  - Ruled rows (`.finish-next-row`, 985) and ruled figures (`.finish-totals`, 978).
+  - Colour only for the day's ink and for state.
+- **Line numbers** are against `origin/Branch-1` 67e4c0f (v3.646).
+- **The slots:** UX-52 (headers) and UX-53 (buttons) are seen on every screen, so they ride with the shared-pieces group, right after UX-45 (roadmap 80h1, 80h2). The rest follow UX-50 (80m1 to 80m8). Gym mode is out of scope in every item.
+
+### UX-52: Tab headers: bare icons and the display face, as on Today
+- **Why:**
+  - Off Today, every tab's header is 2.0. Search, coach and Settings are glass circles: `.header-search` 2057, `.settings-cog` 2066 and `.coach-fab` 2836, all `--glass-fill` with a `--glass-hair` ring.
+  - The title is Geist 34/750 (`h1`, 637).
+  - Today puts the same three buttons on the cover as bare 44 pt icons in the ink (`.cover-icons > button`, 941), and names the day in the display face (`.cover-day`, 962).
+  - The header is the first thing on every tab, so this is the most visible mismatch left. Render: `unify-1.png`.
+- **Change (outside gym mode, off the cover, i.e. `body:not(.today-cover)`):**
+  - The three buttons lose their fill, border and shadow. Each is 44 × 44, with a 21 px icon in `--text`, as `.cover-icons > button`. They stay on one 44 pt row: the cog at `right:-10px`, then search and coach 44 px apart. `.eyebrow-row`'s `padding-right` (607) is recomputed to clear them.
+  - `#viewTitle` takes the display face: `--font-display`, `font-stretch:68%`, 800, 44 px, line-height 1. Today's visually-hidden rule (927) is untouched.
+  - `.eyebrow` (627) goes to 14/500 in `--text-2`.
+  - The brand mark stays. It is the home button, so removing it would drop a feature.
+  - IDs, `aria-label`s and handlers don't change. The cog keeps its rotate on `:active`, with no `box-shadow`.
+- **Acceptance criteria:**
+  1. CSSOM (the real stylesheet): under `body:not(.today-cover):not(.gym-mode)`, `#globalSearchBtn`, `#coachFab` and `#settingsCog` resolve `background` to none or transparent, border width to 0, and width and height to ≥ 44 px. No rule for them outside gym mode reads `--glass-fill` or `--glass-hair`.
+  2. `#viewTitle` off Today resolves `font-family` to `--font-display` and `font-size` to ≥ 40 px. On Today, rule 927 still clips it (a 1 px box).
+  3. The real `showView('log')`, `showView('history')` and `showView('analysis')` still set the title text ("Food", "History", "Progress"). The three buttons keep their names: "Search the app", "Ask your coach", "Settings".
+  4. Contrast: the eyebrow in `--text-2` on `--ground` is ≥ 4.5:1, and the icons in `--text` are ≥ 3:1, in both themes.
+- **Harness:** must change every `tabs-*` except `tabs-settings-*` (behind the sheet it does change; list it), plus the default `food-*`, `progress-*` and `history-*`. Must stay identical: `tday-*`, `today-*`, `gym-*`, `rest-*`.
+- **Test plan:** new `test-tab-header.js`. Sabotage: restore `background:var(--glass-fill)` on `.settings-cog`, and criterion 1 must fail.
+- **Files:**
+  - `index.html`: 607, 627, 637, 2057, 2066, 2836; `APP_VERSION` 8553; `WHATS_NEW` 8577.
+  - `sw.js` and the test.
+  - Re-pin with dated notes, if they pin the glass or the 40 px circles (grep): `test-coach-header-button.js`, `test-header-refresh.js` and `test-nav-search-pill-peek-through.js`.
+- **Risk:** low. A long profile name still wraps before the icons.
+- **Status:** ready (one option: Today shows the answer).
+
+### UX-53: Buttons: the ink rectangle and the secondary control, never a pill
+- **Why:**
+  - Today's main action is a 14 px-radius ink rectangle (`.cover-go`, 1079). Everywhere else it is a pill: `.save-btn` (2443: `--radius-pill` and `--cta-glow`) is "Log & check", "Get recommendations", "Send", "+ Create my profile" and the finish sheet's "Done".
+  - The secondary buttons are glass pills:
+    - `.switch-profile-btn` (3856): "Print workout report", "Print analysis snapshot";
+    - `.custom-toggle` (4411): "+ Add custom item", "Add your API key", "Get supplement recommendations";
+    - `.photo-log-btn` (2642): "Upload or record a clip";
+    - `.reorder-btn` (673): "Add from yesterday", "Save as meal";
+    - `.settings-jump` (2225): "See the sessions these came from";
+    - `.finish-share` (990): the finish and recap sheets' "Share" and "Pin on a photo".
+  - Render: `unify-2.png`.
+- **Change (outside gym mode; after UX-38, which defines the secondary control):**
+  - **Primary:** `.save-btn` uses `--r-control`, `min-height:52px` and no `box-shadow`. The label is 16/600, and the fill stays `--text` on `--ground`.
+  - **Secondary:** the six classes above take UX-38's secondary control: `--surface-2` fill, a 1 px `--rule`, `--r-control`, the label in `--text` at 15/600, and at least 44 px tall.
+  - **Toggles:** `.reorder-btn.active` selects in the ink (UX-42's grammar).
+  - **Not buttons:** chips stay chips (UX-42's food categories and quick picks, Photo/Barcode/Describe, `.pl-lift`). Destructive buttons keep their red.
+  - **Consolidation:** the six secondary rules share one declaration block.
+- **Acceptance criteria:**
+  1. CSSOM: outside gym mode, none of `.save-btn`, `.switch-profile-btn`, `.custom-toggle`, `.photo-log-btn`, `.reorder-btn`, `.settings-jump` and `.finish-share` resolves `border-radius` to `--radius-pill`, or reads `--glass-fill` or `--cta-glow`. Each resolves to 14 px.
+  2. Each secondary has a computed `min-height` ≥ 44 px, and `.save-btn` ≥ 48 px.
+  3. Every label is ≥ 4.5:1 on its own fill, in both themes.
+  4. The real handlers are unchanged: a click on `#careSubmit`, `#saveMealBtn` and `#historyExportBtn` runs the same paths as at v3.646 (the existing suites stay green).
+- **Harness:** must change `tabs-food-*`, `tabs-care-*`, `tabs-coach-*`, `tabs-history-*`, `tabs-progress-*`, `tabs-masterclass-*`, `finish-*`, `recap-*` and `firstrun-*`. Must stay identical: the cover in `tday-*` (its own rules), `gym-*`.
+- **Test plan:** new `test-button-grammar.js`. Sabotage: restore `border-radius:var(--radius-pill)` on `.save-btn`, and criterion 1 must fail.
+- **Files:**
+  - `index.html`: 673, 990, 2225, 2443, 2642, 3856, 4411; `APP_VERSION`; `WHATS_NEW`.
+  - `sw.js` and the test.
+  - Re-pin with dated notes: `test-glass-controls.js` (the `.save-btn` pill) and `test-app-2-0.js` (grep for `radius-pill` on these classes).
+- **Risk:** low. Many screens change at once, but it is one shape.
+- **Status:** ready (one option: Today's Log set and UX-38's secondary).
+
+### UX-54: Text fields and pickers, one field
+- **Why:**
+  - There are at least six field styles, each 2.0: `.care-input` (3908: glass, `--rim`), `.weight-input-row input` (2459), `.macro-input-row input` (2439), `.custom-form input[type=text]` (4427), `.history-export-select` (4147) and Settings' `select, input{box-shadow:var(--rim)}` (2149).
+  - Focus is plate blue with a blue glow (580, `--focus-ring-glow` 320), and the caret is blue (568).
+  - Today's only fields, the cover's (1084), are a 1.5 px outline in the ink with the 14 px radius.
+  - Render: `unify-3.png`.
+- **Options (the owner picks):**
+  - **A, outlined (recommended):** a transparent fill, 1 px `--text-3` (a ≥ 3:1 boundary on the ground in both themes, WCAG 1.4.11), `--r-control`, `min-height:48px`, 12 px/14 px padding.
+  - **B, filled:** a `--surface-2` fill with no border, the same radius and size.
+
+  The recommendation is A:
+  - B's fill vanishes on Settings' grouped cards (`--surface-2` on `--surface-2`; see the profile rows in the render).
+  - B reads as a tile on UX-50's ruled sections.
+  - The fill alone is about 1.2:1 against the ground, so B would need a border anyway.
+- **Change (either option, outside gym mode, off the cover and `.up-next`):**
+  - One field declaration for text inputs, number inputs, `textarea` and the free-standing `select`s.
+  - The per-component rules above keep only their layout: width, flex and margins.
+  - Labels (`.care-label`, 3885) go to 13 px in `--text-2`.
+  - Focus: the border goes to `--text`, plus a 2 px `--text` outline at 2 px offset. No blue glow; `--focus-ring-glow` goes unused.
+  - The caret goes to `--text`.
+  - Settings' inline pickers (a value plus a chevron, iOS grammar) stay as they are, as UX-50 keeps Settings' grouped cards.
+  - Field `font-size` stays 16 px (550), so iOS doesn't zoom.
+- **Acceptance criteria:**
+  1. CSSOM: outside gym mode, each listed field class resolves to the chosen spec. No field rule reads `--glass-fill`, `--rim`, `--focus-ring-glow` or `--plate-blue`.
+  2. Boundary contrast: A's border (or B's fill, if picked) is ≥ 3:1 against the surface the field sits on, in both themes. That surface is `--ground`, `--surface-1` or Settings' `--surface-2`. (B fails this without a border; if picked, it gets one.)
+  3. `font-size` ≥ 16 px on every field.
+  4. The real Care submit (`#careSubmit`, with the fields filled) and the profile save still store the same values (existing suites).
+- **Harness:** must change `tabs-care-*`, `tabs-coach-*`, `tabs-food-*`, `tabs-history-*`, `tabs-progress-*` (the range picker), `tabs-settings-*` (the text inputs only) and `firstrun-*`. Must stay identical: `tday-*` (the cover fields), `gym-*`.
+- **Test plan:** new `test-field-grammar.js`. Sabotage: restore `background:var(--glass-fill)` on `.care-input`, and criterion 1 must fail.
+- **Files:** `index.html` (550, 568, 580, 2149, 2439, 2459, 3885, 3908, 4147, 4427; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes: `test-fields-translucent.js`.
+- **Risk:** low to medium. Many forms change at once; the harness covers each one.
+- **Status:** needs-owner (A or B; recommend A).
+
+### UX-55: The More sheet: ruled rows, bare icons
+- **Why:**
+  - The More sheet (`#navMoreOverlay`, 8358) is a glass group (`.nav-more-list`, 3542) whose rows carry **blue-tinted icon tiles** (`.nav-more-icon`, 3550).
+  - Blue is retired (UX-41), and icons on Today are bare.
+  - It is the door to Care, Coach and Learn.
+  - Render: `unify-4.png`.
+- **Options (the owner picks):**
+  - **A:** ruled rows in the text face, 17/600 (like Today's "Then" list).
+  - **B (recommended):** ruled rows with each name in the display face (26 px, stretch 68%, 800). These are the names of tabs, and after UX-52 every tab's title is in that face, so the door and the room match.
+- **Change (either option):**
+  - The list loses its fill, border and radius, with a 1 px `--rule` above and under each row. Rows are at least 64 px tall.
+  - The icon is bare: 22 px in `--text-2`, with no tile and no blue.
+  - The description is 14 px in `--text-2`, and the chevron is in `--text-3`.
+  - The sheet's title is in the display face (30 px), as the finish sheet's head (`.finish-day`, 975). Its "Done" is in the ink via UX-41.
+  - IDs, order and handlers are unchanged. So is the "current view is marked" rule (its marker becomes a 2 px `--text` bar at the row's leading edge, not a fill).
+- **Acceptance criteria:**
+  1. CSSOM: `.nav-more-icon` resolves no background and its colour to `--text-2`. No `.nav-more-*` rule reads `--plate-blue`, `--glass-fill` or `--glass-hair`.
+  2. Each `.nav-more-item` is ≥ 44 px tall (64 by spec).
+  3. The real `#navMore` click opens the sheet, and a click on `#navCare` shows Care and closes it, as at v3.646 (`test-nav-more-panel.js` stays green).
+  4. Contrast: label ≥ 4.5:1 and icon ≥ 3:1, in both themes.
+- **Harness:** a `more-*` state does not exist yet. The PR adds the sheet to `--tabs` as `tabs-more-<theme>-402`, as a tooling change in the same PR, and shows it. Everything else must stay identical.
+- **Test plan:** new `test-more-sheet.js`. Sabotage: restore the blue tile background, and criterion 1 must fail.
+- **Files:** `index.html` (3540–3556, the 904 override 6221; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, and `tools/visual/harness.js` (one state).
+- **Risk:** low.
+- **Status:** needs-owner (A or B; recommend B).
+
+### UX-56: The coach chat: a sheet like every other
+- **Why:**
+  - The coach button's panel (`#coachFabModal`, 8393; `.coach-fab-panel`, 2881) is a floating 22 px card that scales out of the corner, with a small Geist title.
+  - Its focused input opens with the blue ring (`floatingChatInput.focus()`, 48956).
+  - Every other sheet in the app comes up from the bottom.
+  - Render: `unify-5.png`.
+- **Options (the owner picks):**
+  - **A (recommended):** a bottom sheet in the sub-modal frame: full width up to 520 px, `--r-sheet` top corners, a grabber, at least 62 vh and at most 88 vh tall, and a dimmed backdrop. Unfolded, it takes the right column (`--open-col2-*`), as `.set-sheet` does (6222).
+  - **B:** keep the corner card, restyled: `--r-sheet`, a 1 px `--rule`, no lit inset edge.
+- **Change (either option):**
+  - The title "Ask Your Coach" is in the display face, 30 px.
+  - The close ✕ is in `--text`, with a 44 pt target. Its `aria-label` is unchanged.
+  - The input follows UX-54, and Send follows UX-53.
+  - The input's focus on open stays (it is the point of the panel), with the ring in the ink.
+  - Markup, IDs and the open, close, Escape and focus-trap behaviour are unchanged.
+- **Acceptance criteria:**
+  1. CSSOM: `.coach-fab-panel` resolves the chosen geometry (A: `width:100%`, `max-width:520px`, bottom-anchored, top radii `--r-sheet`). No rule reads `--plate-blue` or the lit inset.
+  2. The real `#coachFab` click opens `#coachFabModal.active`; Escape closes it, and focus returns to `#coachFab` (existing focus-trap suites).
+  3. The close button is ≥ 44 × 44.
+  4. The sheet fits a 402 × 874 screen with the keyboard's height reserved (A: `max-height` ≤ 88 vh).
+- **Harness:** add `tabs-chat-<theme>-402` to `--tabs` (tooling, same PR). Must stay identical: everything not behind the panel.
+- **Test plan:** new `test-coach-sheet.js`. Sabotage: restore `border-radius:22px` and the corner margin, and criterion 1 must fail (for A).
+- **Files:** `index.html` (2836–2900, 4946–4948, the 904 block ~6219; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, and `tools/visual/harness.js` (one state). Re-pin `test-coach-header-button.js` if it pins the panel geometry.
+- **Risk:** low.
+- **Status:** needs-owner (A or B; recommend A).
+
+### UX-57: Exercise history and Search sheets: ruled figures, no mono, and focus that lands on the sheet
+- **Why:**
+  - **Tiles and mono:** the exercise-history sheet (`#exHistoryOverlay`, 8269) opens with two rounded stat tiles (`.exh-stats`, 4118: `--row-fill`, mono figures) over mono "Vol" lines and set rows (`.exh-vol` 4142, `.exh-sets` 4160). The finish sheet shows the same kind of figures as ruled columns in the display face (`.finish-totals`, 978).
+  - **The blue box on open:** every sheet with a button opens with a blue box round its first control ("Done", "Cancel", the first profile in "Who's training?"). `syncFocusTrap` (44313) focuses `items[0]`, and the keyboard ring (4882) is `--focus-ring-color` (311), a light blue.
+  - **The halo:** the sheet frame still casts a plate-blue halo (`.sub-modal-sheet`, 1583).
+  - Render: `unify-6.png`.
+- **Change (one option: the finish sheet shows it):**
+  - **Figures:** `.exh-stats` takes `.finish-totals`' grammar: ruled top and bottom, columns split by a 1 px rule, figures in the display face (stretch 84%, 30/700, tabular), labels 13 px in `--text-2`, no tiles. This consolidates onto the finish sheet's classes rather than copying them.
+  - **No mono:** `.exh-vol` and `.exh-sets` use Geist `tabular-nums` at 14 px in `--text-2`. (If UX-45 already converted them, this criterion only re-checks.)
+  - **Titles:** `#exHistoryTitle` and `#globalSearchTitle` take the display face (30 px), as the finish sheet's day does.
+  - **Halo:** `.sub-modal-sheet`'s shadow loses the `--plate-blue-rgb` layer.
+  - **Focus:**
+    - On open, `syncFocusTrap` focuses the dialog itself (`tabindex="-1"`, as the set editor has done since v3.507), not its first control.
+    - VoiceOver then lands on the sheet and reads its name (`aria-labelledby`).
+    - Tab moves to the first control.
+    - Openers that place focus on purpose keep doing so: the day sheet's active day (28456), the coach input (48956) and the set editor.
+  - **The ring:** `--focus-ring-color` becomes `--text` outside gym mode, so the keyboard ring is the ink (≥ 3:1 on every surface), not blue.
+- **Acceptance criteria:**
+  1. CSSOM: `.exh-stats > div` resolves no background and radius 0; `.exh-stats b` resolves `--font-display`; `.exh-vol` and `.exh-sets` resolve no `--font-mono`. `.sub-modal-sheet`'s `box-shadow` contains no `--plate-blue-rgb` colour.
+  2. Focus, with the real `syncFocusTrap` in jsdom:
+     - After the real `openExerciseHistory` (35468) adds `.active`, `document.activeElement` is `#exHistoryOverlay`, with `tabindex="-1"`.
+     - A Tab keydown through the real `handleFocusTrapKeydown` moves focus to the first focusable inside it.
+     - Escape still closes it and returns focus to the opener.
+  3. The day sheet still focuses its active day, and the coach panel its input (real openers).
+  4. `--focus-ring-color` against `--ground`, `--surface-1` and `--surface-2` is ≥ 3:1 in both themes.
+- **Harness:**
+  - Must change `recap-*`, `finish-*` (the halo only) and `tday-daysheet-*` (the halo).
+  - Add `tabs-exhistory-<theme>-402` and `tabs-search-<theme>-402` to `--tabs` (tooling, same PR).
+  - Must stay identical: tabs with no sheet open.
+- **Test plan:** new `test-sheet-focus-and-figures.js`. Sabotage: put `items[0].focus()` back in `syncFocusTrap`, and criterion 2 must fail.
+- **Files:**
+  - `index.html`: 311, 1583, 4118–4163, 8269–8276, `syncFocusTrap` 44313; `APP_VERSION`; `WHATS_NEW`.
+  - `sw.js`, the test and `tools/visual/harness.js` (two states).
+  - Re-pin with dated notes: `test-dialog-focus-ring.js` and `test-a11y-keyboard-focus.js`. Focus moving from the first control to the dialog is a deliberate behaviour change, with VoiceOver reading the sheet's name first.
+- **Risk:** medium, because focus behaviour changes. Before merge, check on the owner's iPhone with VoiceOver on that each sheet announces its title.
+- **Status:** ready (one option). Flagged for the device check above.
+
+### UX-58: "Who's training?": the first screen, and the profile switcher
+- **Why:**
+  - The first screen a new person sees (an empty device) and the profile switcher are both a centred 2.0 card (`.user-picker-box`, 3829) over the empty app.
+  - The card has a 25 px Geist title (3834), glass profile buttons (`.user-pick-btn`, 3839), the blue focus box on the first profile, and a pill "Create my profile".
+  - It is the app's first impression, and it looks like none of the rest.
+  - Render: `unify-7.png`.
+- **Options (the owner picks):**
+  - **A, a sheet:** the finish sheet's frame from the bottom, the title in the display face at 44 px.
+  - **B, a full screen on the ground:** opaque `--ground`, no card. "Who's training?" is in the display face at 64 px, with the promise line under it in 17 px `--text`, and the form at the foot, in thumb reach.
+  - **C (recommended):** B when there are no profiles yet (`showUserPicker`, 11159, already knows: it shows the promise only then), and A when switching between profiles.
+- **Change (any option):**
+  - Profiles are ruled rows with the name in the display face (26 px). The selected one is marked by the ink, not a blue box (UX-57 removes the box on open).
+  - The divider "— or —" and the label are 13 px in `--text-2`.
+  - The field follows UX-54, and "+ Create my profile" follows UX-53. "Cancel" is a 44 pt text button in `--text`.
+  - The quick start (BIZ-01, `.quick-start` inside the same overlay) inherits the frame unchanged.
+  - Markup, IDs, `createNewUser` and `switchToUser` are unchanged. For C, `showUserPicker` toggles one class (`is-first-run`) on the overlay.
+- **Acceptance criteria:**
+  1. Real `showUserPicker()` in jsdom: with an empty user list the overlay has `is-first-run` (C) and `#userPickerPromise` is shown; with profiles, neither.
+  2. CSSOM for the chosen option: `.user-picker-title` resolves `--font-display`. `.user-pick-btn` resolves no background, radius 0 and a `--rule` bottom border. No `.user-picker-*` rule reads `--glass-fill` or `--plate-blue`.
+  3. The real create flow (fill `#newUserNameInput`, click `#newUserCreateBtn`) still creates the profile and runs the quick start (`test-bl-quick-start*` and the BIZ-17 and BIZ-02 suites stay green).
+  4. Contrast: the title, promise and rows ≥ 4.5:1; the field boundary ≥ 3:1 (UX-54).
+- **Harness:** must change `firstrun-*`, `firstrun-dark-402-rm` and `tday-firstrun-*` (the picker step is before the shot, so only the profile-made state; check it). Add `tabs-switch-<theme>-402` (the switcher, tooling, same PR). Must stay identical: everything else.
+- **Test plan:** new `test-picker-frame.js`. Sabotage: drop the `is-first-run` toggle, and criterion 1 must fail.
+- **Files:** `index.html` (3818–3856, 4944, 6445–6470, `showUserPicker` 11159; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, and `tools/visual/harness.js` (one state).
+- **Risk:** low. It's the first impression, so the PR shows both states in both themes.
+- **Status:** needs-owner (A, B or C; recommend C).
+
+### UX-59: History's month: the empty rows after today
+- **Why (by design or not):** not by design.
+  - `renderHistoryHeatmapMonth` (44641) draws every day after today as an empty cell. The current month therefore shows its first days, then a blank block the height of the rest of the month. On 2 November that is four empty weeks (render `unify-8.png`).
+  - Past months have no such gap, and the backdating picker draws the same future days as faint, disabled numerals (`.calendar-cell.future-disabled`, 3671). So it is an accident of reusing the empty-cell markup, not a choice.
+- **Options (the owner picks):**
+  - **A (recommended):** the rest of the month in faint numerals: `--text-3` at about 55% opacity, `aria-hidden`, not tappable. The month reads as a month, matching the backdating picker.
+  - **B:** the grid ends with this week's row, so the card is only as tall as the days so far.
+- **Change:**
+  - A: one line in `renderHistoryHeatmapMonth`. A future day becomes `<div class="calendar-cell future" aria-hidden="true">${day}</div>`, sharing the picker's future-day style (consolidated into one rule).
+  - B: the loop stops at the end of today's week.
+  - Either way, the past days, the plate blocks, navigation and `jumpToHistoryDay` are untouched.
+- **Acceptance criteria:**
+  1. The real `renderHistoryHeatmapMonth` in jsdom, frozen at 2026-11-02:
+     - A: the grid holds 30 day cells after the leading blanks, 2 of them interactive and 28 `.future` with `aria-hidden="true"`.
+     - B: the grid ends at the Saturday of today's week (7 cells in its last row), with no cell after it.
+  2. The October grid (a past month) is byte-identical to v3.646's.
+  3. The `[data-jump-date]` cells and their clicks are unchanged (`test-history-heatmap.js` stays green).
+- **Harness:** must change `tabs-history-*` and the default `history-*`. Must stay identical: everything else.
+- **Test plan:** new `test-heatmap-future-days.js`. Sabotage: restore the empty cell, and criterion 1 must fail.
+- **Files:** `index.html` (44641–44670, 3671; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low.
+- **Status:** needs-owner (A or B; recommend A).
+
+### UX-60: Progress unfolded: the lead at phone scale
+- **Why:**
+  - On the Duo unfolded (904 × 678), the Progress lead (`.progress-lead`, 1637, `max-width:640px`) stretches the e1RM chart across the column.
+  - The chart's labels are sized in viewBox units (`.e1rm-axis` 20, `.e1rm-end` 22, 1656; `e1rmChartSvg` 35486, a 600-wide viewBox), so they grow to about 21 px and the chart fills the screen. Meanwhile the next-session line and the muscle ledger drop below the fold.
+  - At 402 the same labels are about 12 px.
+  - Render: `unify-9.png`.
+- **Options (the owner picks):**
+  - **A (recommended):** at the open posture only, the lead splits into two columns on the dashboard's own grid.
+    - Left: the label, the figure and the chart, which is now about a phone column wide, so the labels are about 14 px.
+    - Right: the next-session line and "Sets per muscle this week".
+    - The lift chips span both columns.
+  - **B:** the lead is capped at one column (`--open-col-w`) and keeps its stacked order. The right half stays empty beside it.
+- **Change:**
+  - CSS only, inside the existing open-posture media block (6096). A uses `grid-template-columns` and the lead's own children (`.pl-lifts`, `.pl-label`, `.pl-answer`, `.e1rm-chart`, `.pl-next`, `.muscle-ledger`) placed on named rows. B is one `max-width`.
+  - 402 is untouched. Markup and `e1rmChartSvg` are unchanged.
+- **Acceptance criteria:**
+  1. In Chromium at 904 × 678 (the harness's `tabs-progress-dark-904`), the rendered `.e1rm-chart` is ≤ 460 px wide, so `.e1rm-axis` renders ≤ 16 px.
+     - A: `.pl-next` and `.muscle-ledger` sit beside the chart, with their top within the first 678 px.
+     - B: the lead is ≤ `--open-col-w`.
+  2. At 402 × 874 the lead's computed layout is unchanged: the default `progress-*` stay pixel-identical.
+  3. `test-progress-lead.js` stays green.
+- **Harness:** must change `tabs-progress-dark-904` and the default `progress-*-904`. Must stay identical: every 402 state.
+- **Test plan:** the CSSOM half in jsdom (the media block's rules, new `test-progress-lead-open.js`), the geometry half in the harness (criterion 1, a step in `--tabs` that prints the widths). Sabotage: drop the media rule, and the width check must fail.
+- **Files:** `index.html` (the open-posture block ~6096–6170, 1637; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js` (the width check).
+- **Risk:** low (904 only).
+- **Status:** needs-owner (A or B; recommend A).
+
+### UX-61: The floating layer: the rest pill, the undo pill and the gym offer as one surface, stacked
+- **Why:** three things float above the tab bar during a session, and none of them looks like Today. Renders: `unify-10.png` and `unify-11.png`.
+  - **The rest pill** (`#restTimer`, 8047; `.rest-timer`, 1953):
+    - UX-29 flattened it (2011–2021: `--surface-2`, the ring in the day's ink), but it is still a 36 px pill.
+    - Its time is small Geist, while Today's rest shows the time big in the display face on the day's deep ink (`.cover.is-resting`, 893, UX-08).
+    - Its expanded panel's tier label is plate blue (`.rest-timer-panel-tier`, 2032).
+    - It shows only when the cover is out of view (UX-29), so it is seen scrolled down Today and on the other tabs.
+  - **The undo pill** (`#undoToast`, 8144; `.undo-toast`, 2255):
+    - It is a `--radius-pill-lg` capsule with a 13 px message that wraps to two lines ("Logged Bench Press / 185×6"), and a blue "Undo" (2267) whose target is about 26 px tall.
+    - Bug: it sits at the **same spot** as the rest pill (both `bottom:calc(var(--above-bar) + 12px)`). When you log a set scrolled down the list, the undo pill covers the running timer for its 5 s (the before frame of `unify-11.png`, second scene).
+  - **The gym offer** (`#gymOffer`, 8038; `.gym-offer`, 5715), found while rendering: it opens with the undo pill after a first logged set.
+    - It is a 22 px glass card with a plate-blue "Use gym mode" (5738).
+    - Its fixed `bottom` (104 px over the bar) assumes only the rest pill is below it.
+- **Options for the rest pill's fill (the owner picks); everything else is one option:**
+  - **A (recommended):** the rest field, a small rest cover.
+    - The fill is the day's deep ink (`--spot-deep`, the field `.cover.is-resting` uses).
+    - The ring is white with a 28% track, and the time, +15s and × are white (`--on-rest`).
+    - Scrolled away from the cover, you still see "resting" in the same colour as the cover.
+    - On a white day, `--spot-deep` is `--rule-strong`, so the text takes the cover's own contrast-checked pair. The test checks every day ink.
+  - **B:** the neutral floating surface: `--surface-1` with a 1 px `--rule-strong`, the ring in the day's ink as today, the time in `--text`.
+- **Change (outside gym mode, which keeps its own until UX-17):**
+  - **One floating surface** for all three:
+    - `--r-control` radius (no 36 px pill, no 22 px card);
+    - the float shadow (one token, `--float-shadow`, consolidating the three literal shadows);
+    - for the undo pill and the gym offer, `--surface-1` with a 1 px `--rule-strong`.
+    - No blue anywhere: "Undo" is in `--text`, and "Use gym mode" is UX-53's ink rectangle.
+  - **The rest pill:**
+    - The time sits inside the ring in the display face (21 px, stretch 68%, 800, tabular).
+    - The width hugs the content, and +15s and × stay 44 pt (UX-33).
+    - The expanded panel's tier label goes to `--text-2`.
+  - **The undo pill:**
+    - The message is one line at 15 px (`white-space:nowrap`; a long exercise name ellipsizes rather than wraps).
+    - "Undo" is 15/700 in `--text`, a 44 × 64 pt target behind a 1 px `--rule` divider.
+  - **The gym offer:** the title in the display face (22 px), the body in `--text-2`, "No thanks" as UX-53's secondary and "Use gym mode" as its primary.
+  - **Stacking (the bug fix):** one column above the tab bar, never overlapping.
+    - The rest pill is at the bottom (bar + 12, as now), when shown.
+    - The undo pill is next: bar + 12 when the pill is hidden (the cover in view, or no rest), else bar + 12 + the pill's height + 8.
+    - The gym offer goes above whatever is showing.
+    - In CSS this is one set of `bottom` values keyed on `body.cover-in-view`, `#restTimer.active` and `#undoToast.active` (`:has()`, which the app already uses at 6130). No JS layout is needed.
+    - Unfolded, all three stay centred on the left column (6198), as now.
+  - **Unchanged behaviour:** the timings (the undo pill's 5 s, `showUndoToast` 32373; the rest countdown; the gym offer's rules in `maybeOfferGymMode`, 35324), the IDs, the handlers, `role="status"` with `aria-live="polite"` on both live regions and their announced text, UX-29's step-aside, and the tap targets (made larger, never smaller).
+  - **Motion:** the same enter and exit transitions (opacity and translate), now also on `bottom` when the stack shifts (`--dur-ui`, `--ease-out`). Under Reduce Motion the global rule (5086–5088) collapses all of them; nothing new animates without it. The urgent pulse stays gym-only.
+- **Acceptance criteria:**
+  1. CSSOM: outside gym mode, `.rest-timer`, `.undo-toast` and `.gym-offer` resolve `border-radius` to `--r-control`. None reads `--plate-blue`, `--glass-*` or `--radius-pill*`. `.undo-toast button` and `.gym-offer-yes` resolve no `--plate-blue`.
+  2. Stacking, in Chromium with the real elements:
+     - With the cover out of view, `#restTimer.active` and the real `showUndoToast('Logged …', fn)`, the two bounding boxes don't intersect, and the undo pill is above the rest pill.
+     - With `#gymOffer.active` as well, no two of the three intersect.
+     - With the cover in view (pill hidden), the undo pill sits at bar + 12.
+  3. Contrast, in both themes:
+     - Option A: the time and controls ≥ 4.5:1 on `--spot-deep`, for every day ink (red, blue, yellow, green, white, off); the ring ≥ 3:1.
+     - Option B: the time ≥ 4.5:1 on `--surface-1`.
+     - The undo message and "Undo" ≥ 4.5:1.
+  4. Targets: "Undo", +15s and × each ≥ 44 × 44.
+  5. Behaviour (jsdom, the real functions):
+     - `showUndoToast` still hides after 5000 ms (fake timers), and its undo function runs once on click.
+     - `#undoToast` keeps `role="status"` and `aria-live="polite"`.
+     - The existing rest-timer suites (`test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-rest-cover.js`) and `test-gym-offer-tab-leak.js` stay green.
+  6. Gym mode: every `body.gym-mode .rest-timer` rule is byte-identical to v3.646's.
+- **Harness:**
+  - Must change: `rest-*` (the pill is hidden behind the cover there, so likely none; say so), `tabs-*` scrolled states if the pill shows.
+  - Add three `--tabs` states (tooling, same PR):
+    - `tabs-rest-scrolled-<theme>-402`: Today scrolled past the cover, resting;
+    - `tabs-undo-<theme>-402`: Log set tapped on the cover;
+    - `tabs-undo-scrolled-<theme>-402`: logged, then scrolled, with the rest pill, undo and gym offer all showing.
+  - Must stay identical: `gym-*`, `gym-dark-402-rm`, `tday-gym-*`.
+- **Test plan:** new `test-floating-layer.js`, with the CSSOM, the contrast table and the `showUndoToast` timing in jsdom, plus the stacking geometry as a harness step that prints the three boxes and fails on overlap. Sabotage: set `.undo-toast`'s `bottom` back to bar + 12 for every state, and criterion 2 must fail.
+- **Files:**
+  - `index.html`: 1953–2056, 2246, 2255–2269, 5715–5738, 6198; `APP_VERSION`; `WHATS_NEW`.
+  - `sw.js`, the test, and `tools/visual/harness.js` (three states and the overlap check).
+  - Re-pin with dated notes any suite pinning the rest pill's 36 px radius or the undo pill's blue (grep `test-*.js`).
+- **Risk:** low to medium. These are the most-seen surfaces mid-session, and the stacking changes positions, not behaviour. Before merge, check on the owner's iPhone that "Undo" is reachable above the pill.
+- **Status:** needs-owner (A or B for the rest pill's fill; recommend A). The stacking fix is a bug and stands with either option. The gym offer was found while rendering and is folded in here because it is the same stack; drop it from this item if the owner wants only the two he named.
 
 ---
 
