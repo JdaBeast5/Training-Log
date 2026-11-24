@@ -171,7 +171,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 ### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 5 if approved)
 **Hard gate:** before any Phase 5 public step:
 - all of Phase 3 is merged, **including BL-37 and BL-38** (or an alternative the owner records for the 2–4-day bodybuilding variants);
-- **UX-17 has shipped or been dropped.**
+- **UX-17 has shipped or been dropped.** *(2026-11-24: on track. The owner confirmed on device that the new Today does Gym mode's job ("the new set up does very well"), and UX-17a–c now sit at 80s–80u. The last gate is the 14-day wait after UX-06a, which ends 2026-12-01 unless he waives it.)*
 
 63. BIZ-02: one name, asked once
 64. BIZ-01: the three-question quick start, with summit R9's routing guard
@@ -200,7 +200,11 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80p. **MKT-23:** "Step up a plate!" on Today's cover and the bib, only when `computeSuggestedSet` really raised the weight *(owner picked bib A + Today T1 on 2026-11-24, from `tools/design/cheer/renders/contact-sheet.png`. It's slotted here because it builds on MKT-16 to MKT-18 and the finished cover, and is independent of the tab audit.)*
    - 80q. **UX-51:** the footer's version line passes contrast *(ready, after MKT-21: it edits the same footer rule.)*
    - 80r. **BL-78:** the bib's week and Today's week say the same thing *(ready; owner picked (a) on 2026-11-24: the bib shows the block week, `WK n/5`, as Today does.)*
-   - 80s. **BL-79:** Drop set adds a set at a challenging lower weight *(ready; the owner asked for it on 2026-11-24. The set sheet's Drop set is a dead end since v3.609: it adds an invisible empty row. It ships on the recommended defaults, a 25% then 20% drop rounded by `computeSuggestedSet`; the owner's Q1–Q5 can change them.)*
+   - 80r1. **BL-79:** Drop set adds a set at a challenging lower weight *(ready; the owner asked for it on 2026-11-24. The set sheet's Drop set is a dead end since v3.609: it adds an invisible empty row. It ships on the recommended defaults, a 25% then 20% drop rounded by `computeSuggestedSet`; the owner's Q1–Q5 can change them.)*
+   - *Gym mode retires first (owner 2026-11-24: "I think we can get rid of gym mode, the new set up does very well"; spec in `backlog.md` → UX-17). It sits ahead of the tab audit so no audit or unify item styles or carves out Gym mode. Its gate: 14 days after UX-06a's merge (2026-11-17), so **not before 2026-12-01** unless the owner waives it. Until then the builder skips 80s–80u and goes on. An audit item built before UX-17b keeps its `body:not(.gym-mode)` scoping.*
+   - 80s. **UX-17a:** warm-up chips on Today's open exercise (moved from Gym mode)
+   - 80t. **UX-17b:** Gym mode goes: entry button, dock, offer, restore and auto-enter; `?view=gym` opens Today; session minutes from the logged-time window. The harness drops its `gym-*` and `store-gym` states in the same PR.
+   - 80u. **UX-17c:** gym-only CSS removed, including the `.exercise-block.open` literal. CLAUDE.md's note on it needs an owner-approved edit.
    - *The tab audit (owner 2026-11-23; specs in `backlog.md` → "Design (UX): the tab audit"). TOOL-02 (the harness shoots every tab) goes first, outside the loop.*
    - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
    - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
@@ -210,18 +214,30 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80f. **UX-43:** state notes flat, with a state bar and no glow (`--warning`, `--positive`, `--negative`)
    - 80g. **UX-44:** trend charts are ink lines with no fill
    - 80h. **UX-45:** Geist Mono leaves the UI except the build stamp
+   - *One app, every screen like Today (owner 2026-11-24; specs and renders in `backlog.md` → "Design (UX): one app, every screen like Today", `tools/design/unify/renders/`). The two pieces seen on every screen ride with the shared-pieces group:*
+   - 80h1. **UX-52:** tab headers, bare icons and the display face *(ready)*
+   - 80h2. **UX-53:** buttons, the ink rectangle and the secondary control, never a pill *(ready; after UX-38, which defines the secondary)*
    - 80i. **UX-46:** Food's lower half in the world's ink
    - 80j. **UX-47:** Progress below the lead in the world's ink
    - 80k. **UX-48:** History's PR timeline in the world's ink
    - 80l. **UX-49:** Care and Learn in the world's ink (neutral, no day ink)
    - 80m. **UX-50:** cards become ruled sections, as on Today
+   - *The rest of "one app" (owner 2026-11-24, "All as recommended"), after UX-50. All ready.*
+   - 80m1. **UX-54:** one text field *(A, outlined)*
+   - 80m2. **UX-55:** the More sheet, ruled rows and bare icons *(B, display face)*
+   - 80m3. **UX-56:** the coach chat as a bottom sheet *(A)*
+   - 80m4. **UX-57:** exercise history and Search sheets, ruled figures, and focus that lands on the sheet *(check VoiceOver on device before merge)*
+   - 80m5. **UX-58:** "Who's training?": a full screen on first run, a sheet when switching *(C)*
+   - 80m6. **UX-59:** History's month: faint numerals for the rest of the month *(A)*
+   - 80m7. **UX-60:** Progress unfolded: the lead in two columns *(A)*
+   - 80m8. **UX-61:** the rest pill and the undo pill as one floating surface, stacked (fixes the undo pill covering the timer) *(A, the rest field; after UX-17b, which removes the gym offer)*
 81. BL-34: RPE-adjusted e1RM for RPE-mode targets only; PR history stays put *(owner yes 2026-11-08, D3)*
 82. BL-32: one-tap "make today easier", never automatic *(owner yes 2026-11-08, D3; after BL-21)*
 83. BL-27: weekly calorie check-in, applied only on Accept *(owner yes 2026-11-08, D5; no sooner than 21 days after BL-17's merge)*
 84. BL-39: append-only accessory volume *(owner yes 2026-11-07, D4; 2026-11-08 option (b): a relocation step that needs BL-51's stamps; after BL-72)*
 85. BL-40: hypertension isometrics and medical notes *(owner yes 2026-11-07, D4; 2026-11-08: wall squat 3×/wk on d2, d5 and d6, plus a relocation step; after BL-72)*
-86. UX-17: retire Gym mode *(owner yes 2026-11-07, D2)*. Two weeks after UX-06a, once the owner records tap parity on device; it ships or is dropped before Phase 5.
-87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
+86. *(UX-17 moved to 80s–80u on 2026-11-24: the owner confirmed tap parity on device. It still waits for 2026-12-01, 14 days after UX-06a's merge, unless he waives it.)*
+87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17c and after UX-61)
 88. **Program extensions** (written by the exercise-auditor 2026-11-09, against v3.528; full specs in `backlog.md` → "Program extensions"). BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.
    - 88a. **BL-41:** Powerlifting top single at RPE 8 with −10% back-offs (RPE mode only), then an optional meet peak from a stored meet date. Two versions, part 1 first. *(owner (a) 2026-11-09; ready after Phase 3, after BL-34)*
    - 88b. **BL-42:** Olympic % bands per lift from your best made lift, a miss counter (a miss is logged as fewer reps; no new field), and optional week-4 singles. *(owner (a) 2026-11-09; ready after Phase 3, after BL-77, BL-24, BL-51, BL-54)*
