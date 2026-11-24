@@ -1706,3 +1706,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 169: UX-51 (v3.649, PR #244)
 - `.app-footer` color `var(--text-3)`.
 - **Next:** BL-78 (the block week on the bib), then BL-79, then UX-17a–c.
+
+## Addendum 170: BL-78 (v3.650, PR #245)
+- `share.bib.week` is `cycleWeekOf(week)` and `weeks` is `DELOAD_CYCLE_WEEKS`. The band reads `WK n/5`, has a 22 px floor, and a cut shortens the name, not the week.
+- **Flagged:** `finishSheetModel` uses today's mesocycle week even for a backdated `dateKey`.
+- **Next:** BL-79 (drop set), then UX-17a–c.

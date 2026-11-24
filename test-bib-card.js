@@ -296,4 +296,26 @@ test('MKT-23 review fix: a long "Next time" (kg, a fallback-wide face) shrinks w
   assert.ok(nxt.x > cheer.x, 'anchor: beside the cheer');
 });
 
+// ---- v3.650 (BL-78): the band reads WK n/5 and still fits with the longest program label ----
+test('BL-78 criterion 2: the event band shows "WK 4/5" and, with the longest program label, fits without a cut', (assert)=>{
+  const r = drawn(card({week: 4, weeks: 5}));
+  assert.ok(r.text.some(t => /^PLATESTEP · STRENGTH & SIZE · WK 4\/5$/.test(t.txt)), r.text.map(t => t.txt).filter(t => /·/.test(t)).join(' | '));
+  // The longest label a bib is built for (clinical programs get none). Measured with real Geist 700 in
+  // Chromium on 2026-11-24, "PLATESTEP · BOXING STRENGTH & CONDITIONING · WK 4/5" is 629 of 676 px at 22 px.
+  const [longest] = runSandbox([...DATA, extractConst(src, 'MEDICAL_STYLES')], `__capture.push(Object.entries(programs).filter(([k]) => k !== 'medical' && !MEDICAL_STYLES[k]).map(([, p]) => p.label || '').sort((a, b) => b.length - a.length)[0]);`);
+  assert.ok(longest.length > 10, 'anchor: the longest label (' + longest + ')');
+  const l = drawn(card({program: longest, week: 4, weeks: 5}));
+  const band = l.text.find(t => t.txt.startsWith('PLATESTEP ·'));
+  assert.ok(band && !band.txt.endsWith('…'), 'no cut: ' + (band && band.txt));
+  assert.ok(band.txt.endsWith('WK 4/5'));
+});
+
+test('BL-78 review fix: a program name too long for the band is shortened; the week stays whole at the end', (assert)=>{
+  const r = drawn(card({program: 'Powerbuilding Hypertrophy Phase Two With A Very Long Custom Name', week: 4, weeks: 5}));
+  const band = r.text.find(t => t.txt.startsWith('PLATESTEP ·'));
+  assert.ok(band, 'anchor: the band');
+  assert.ok(band.txt.endsWith('… · WK 4/5'), 'the name is cut, the week kept: ' + band.txt);
+  assert.ok(band.txt.length < 'PLATESTEP · POWERBUILDING HYPERTROPHY PHASE TWO WITH A VERY LONG CUSTOM NAME · WK 4/5'.length);
+});
+
 run();

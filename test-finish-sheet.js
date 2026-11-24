@@ -24,7 +24,7 @@ const { test, run } = makeRunner('test-finish-sheet.js');
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
-const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay' /* v3.641 (BL-32) */, 'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep',
+const FN_NAMES = ['cycleWeekOf', 'mesocyclePhaseTag', 'volumeModifiersApply', 'isCustomProgramKey' /* 2026-11-24 (v3.650, BL-78) */, 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay' /* v3.641 (BL-32) */, 'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep',
   'analyzeProgressionSignal', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise', 'isDumbbellExercise',
   'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'rpeAdjustedE1RM' /* v3.640 (BL-34) */, 'recentBestE1RM',
   'buildPastSessions', 'sessionTopOf', 'topSetOf', 'isMissedSet', 'priorSetForSlot',
@@ -41,7 +41,7 @@ const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetF
   'numberMilestoneOn', 'dateKeyMinusDays'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
   'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed',
-  'NUMBER_MILESTONES', 'ordinalSuffix' /* 2026-11-22 (v3.619, MKT-17) */];
+  'NUMBER_MILESTONES', 'ordinalSuffix' /* 2026-11-22 (v3.619, MKT-17) */, 'VOLUME_MODIFIER_PROGRAMS', 'CUSTOM_PROGRAM_PREFIX' /* 2026-11-24 (v3.650, BL-78) */];
 
 const TODAY = '2026-11-02';
 const BENCH = {name: 'Bench Press', sets: '4×4-6'};
@@ -413,6 +413,21 @@ test('MKT-23 criterion 5: Bench\'s only session is today, at the top: no stepUp,
   assert.strictEqual(next.reason, 'increase', 'anchor: step 4 of computeSuggestedSet raises it');
   assert.match(next.words, /up a step/);
   assert.strictEqual(lead.stepUp, null, 'no last time, no cheer');
+});
+
+// ---- v3.650 (BL-78, owner 2026-11-24 (a)): the bib's week is the block week ----
+// Sabotage: put the raw program week back and criterion 1 fails.
+test('BL-78 criteria 1 and 3: the bib\'s week is the block week Today names (weeks 1, 5 deload, 6 and 9), with the block length', async (assert)=>{
+  for(const [week, expect] of [[1, 1], [5, 5], [6, 1], [9, 4]]){
+    const ui = mount();
+    ui.window.eval(`getMesocycleWeek = async () => ${week};`);
+    const m = await ui.open();
+    const tag = ui.window.eval(`mesocyclePhaseTag(cycleWeekOf(${week}), ${week} % DELOAD_CYCLE_WEEKS === 0, 'strength').text`);
+    const shown = Number(/^Week (\d+) of (\d+)/.exec(tag)[1]), of = Number(/^Week (\d+) of (\d+)/.exec(tag)[2]);
+    assert.strictEqual(m.share.bib.week, expect, `program week ${week}`);
+    assert.strictEqual(m.share.bib.week, shown, `matches Today's "${tag}"`);
+    assert.strictEqual(m.share.bib.weeks, of, 'of 5');
+  }
 });
 
 run();
