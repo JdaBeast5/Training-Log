@@ -3811,8 +3811,9 @@
   .day-ex-logged > :not(.day-ex-name):not(.day-ex-changes){grid-column:1 / -1;}
   .day-ex-logged .day-ex-sets{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
 
+  /* v3.649 (UX-51): the build stamp in --text-3 (>= 4.5:1 on both grounds; #4A5057 was 2.4:1 on dark). */
   .app-footer{
-    text-align:center; padding:24px 0 8px; font-size:11px; color:#4A5057;
+    text-align:center; padding:24px 0 8px; font-size:11px; color:var(--text-3);
     font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
   /* v3.646 (MKT-21): the slogan sits above the build stamp, in the sans face. */
@@ -8555,7 +8556,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.648';
+const APP_VERSION = '3.649';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -10341,6 +10342,9 @@ const WHATS_NEW = {
   ]},
   '3.648': { headline: 'Step up a plate!', points: [
     'When the app adds weight to a lift, Today and your bib say so: Step up a plate! When it holds or drops, they don\'t.',
+  ]},
+  '3.649': { headline: 'A readable footer', points: [
+    'The version line at the foot of each page now passes the contrast check in both themes (it was too faint in dark mode).',
   ]},
 };
 
