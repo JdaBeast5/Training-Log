@@ -7778,7 +7778,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.665';
+const APP_VERSION = '3.666';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9619,6 +9619,9 @@ const WHATS_NEW = {
   ]},
   '3.665': { headline: 'Records, without the interruptions', points: [
     'A personal record mid-workout now shows as a small PR tag on that set instead of a banner, so it never covers Undo. Your best record of the day is on the session summary when you finish.',
+  ]},
+  '3.666': { headline: 'Your RPE, not a guess', points: [
+    'Log set no longer fills in an RPE for you. Add how hard a set felt (Reps left, or RPE) and the app can raise the weight for the next set.',
   ]},
 };
 
@@ -33885,10 +33888,14 @@ function fillSetLogger(panel, n, chip, target){
     const prevSrc = n.prev && n.prev.querySelector('.ex-' + field);
     // v3.303: the chip for this set already holds the set-to-set call.
     const chipV = chip && chip._values;
-    input.value = chipV && chipV[field] != null && chipV[field] !== '' && field !== 'rpe' ? chipV[field] : (numericPlaceholder(src) || (prevSrc ? prevSrc.value : ''));
+    const carried = numericPlaceholder(src) || (prevSrc ? prevSrc.value : '');
+    // v3.666 (BL-83, owner 2026-11-25): RPE is never filled in. Last session's
+    // or the previous set's shows as ghost text (readSetLogger reads values
+    // only), so Log set stores an RPE only when the lifter gave one.
+    input.value = field === 'rpe' ? '' : chipV && chipV[field] != null && chipV[field] !== '' ? chipV[field] : carried;
     // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
     const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
-    input.placeholder = field === 'reps' && range ? range : ''; // v3.292: no '–' filler — the label already names the tile
+    input.placeholder = field === 'reps' && range ? range : field === 'rpe' ? carried : ''; // v3.292: no '–' filler — the label already names the tile
   }
   const unit = n.row.querySelector('.ex-weight');
   if(unit) panel.querySelector('.up-next-field[data-field="weight"] small').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
@@ -34049,9 +34056,12 @@ function recommendNextSet(prev, setsStr, step, inDeload){
   const top = parseTopRep(setsStr || ''), bottom = parseBottomRep(setsStr || '') || top;
   const rpe = prev.rpe === '' || prev.rpe == null ? null : parseFloat(prev.rpe);
   const hitTop = top != null && r >= top;
-  const easyEnough = rpe == null || rpe <= 8;
+  // v3.666 (BL-83, owner 2026-11-25): no RPE never raises the weight; an
+  // entered one at 8 or under does, set after set, with no session cap.
+  const easyEnough = rpe != null && rpe <= 8;
   const same = {dir:'same', weight:trimUnitNum(w), reps:String(r)};
   if(inDeload) return {...same, why:'Deload week — hold the weight'};
+  if(hitTop && rpe == null) return {...same, why:'Add how hard it felt to let the weight go up'};
   if(hitTop && easyEnough && step > 0){
     return {dir:'up', weight:trimUnitNum(Math.round((w + step) * 100) / 100), reps:String(bottom || r),
             why:`Go up ${trimUnitNum(step)} — ${r} reps${rpe != null ? ` at RPE ${trimUnitNum(rpe)}` : ''} last set`};

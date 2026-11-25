@@ -79,7 +79,10 @@ test('REAL invocation: suggestions — numeric placeholder first, else carry for
   ui.render();
   assert.strictEqual(ui.$('upNextWeight').value, '135', 'carried forward from set 1');
   assert.strictEqual(ui.$('upNextReps').value, '8');
-  assert.strictEqual(ui.$('upNextRpe').value, '7');
+  // Re-pinned v3.666 (BL-83, owner 2026-11-25): RPE is never filled in; the
+  // set just logged shows as ghost text only (was value '7').
+  assert.strictEqual(ui.$('upNextRpe').value, '');
+  assert.strictEqual(ui.$('upNextRpe').placeholder, '7');
   // Log set 2, then OHP's own numeric suggestion must win.
   ui.log();
   assert.strictEqual(ui.$('upNextLift').textContent, 'Overhead Press');

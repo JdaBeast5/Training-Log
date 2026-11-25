@@ -1835,3 +1835,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `triggerCelebration` holds calls while `#undoToast` or `#finishSheet` is active (`triggerCelebration.held`, retried every 600 ms; queued ones 3 s apart). Note: the list lives on the global binding, so a test spy that reassigns `triggerCelebration` holds it.
 - **Flagged:** the PR tag isn't rebuilt after a re-render.
 - **Next:** BL-83 (80c4), no invented RPE (stored-data change, owner-confirmed).
+
+## Addendum 186: BL-83 (v3.666, PR #265, stacked on #264)
+- `fillSetLogger`: the RPE tile's value is always `''`; its placeholder is `numericPlaceholder(src) || prevSrc.value` (last session's RPE first, else the set just logged). `readSetLogger` reads values only, so nothing invented is stored; `renderCoverSteppers` leaves the Reps-left pills unselected.
+- `recommendNextSet`: `easyEnough = rpe != null && rpe <= 8`; at the top with no RPE it returns `same` with why "Add how hard it felt to let the weight go up" (cover `#upNextWhy`, the open logger's why, the chip's label, the set sheet's subtitle). An entered RPE ≤ 8 raises every time (no session cap).
+- Unchanged: `analyzeProgressionSignal` (two no-RPE sessions at the top still increase), branch 4, the clinical gate. No migration; stored RPEs stay.
+- **Next:** batch 2, 80c5 UX-66 (a cover chip opens the set sheet; only Log commits).
