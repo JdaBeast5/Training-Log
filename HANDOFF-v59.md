@@ -1767,3 +1767,13 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `warmupSetsEnabled` starts true. `loadWarmupSetsPref` turns it off only for a stored `'0'`.
 - **Flagged:** the caption in `tools/design/flow/render.js` still says off by default.
 - **Next:** UX-62 (80v), the warm-up line on the cover. It re-adds the `pendingWarmupChip` rule as a pure helper.
+
+## Addendum 176: UX-62 (v3.656, PR #253)
+- **The cover:** `#coverWarmup` sits above `.cover-log`. `renderCoverWarmup` (called from `renderUpNext`) uses the pure helper `pendingWarmupChip` (back). Done clicks the chip; Skip calls `strip._skipAll`.
+- **C+:** `card._warm` makes `renderCoverBar` draw the step, with the caption "Warm-up n of m · 45 lb bar".
+- **The fallback:**
+  - `chooseRampBasis(…, coverLb)` takes the typed weight last.
+  - `coverWarmupBasis` is an in-memory `Map` keyed by program, day, date, place and name.
+  - `renderWorkout` stamps `data-ramp-from` (`none` or `cover`). The `#upNextWeight` change handler re-renders only for those, keeping the cover's fields.
+- **The owner's inbox (2026-11-25):** store frame 2 (`store-cover`) is approved.
+- **Next:** UX-63 (80w), supersets on the cover; then UX-64 (80x).
