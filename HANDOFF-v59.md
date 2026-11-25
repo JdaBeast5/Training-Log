@@ -1784,3 +1784,12 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **The harness:** `--today tday-superset-{dark,light}-402` (`supersetNext`, ticked as the flow render's `tickBefore` does).
 - **Flagged (pre-existing):** `findNextSetRow` reads only a pair's first checkbox, so ticking the second lift done early leaves its sets on the cover.
 - **Next:** UX-64 (80x), the drop set offered on the cover after the last working set.
+
+## Addendum 178: UX-64 (v3.658, PR #255)
+- **The offer:** `coverDropOffer` (in memory, `{key, exIdx, setIdx, name, weight, seconds, label, sheet}`), `coverDropKey()` (program|day|date), `isCoverDropRow`, `renderCoverDrop`, `endCoverDrop(start)`, `noteSetForCoverDrop(block, setRow, ex, rest)`, `holdRestForDrop`, `logCoverDrop`, `checkCoverDropStillValid` (on a MutationObserver over `#exerciseList`).
+- **In the save path:** `wireSetRow`'s `saveNow` works out `restTarget`/`restLabel` (UX-63's pair rule) **before** any await, calls `noteSetForCoverDrop`, and later holds that rest. `startRestTimer` ends any offer.
+- **The markup:** `#coverDrop` sits between `#upNextBar` and `#coverWarmup`; the CSS hides the warm-up line while it shows (`.cover-drop:not([hidden]) ~ .cover-warmup`).
+- **Log drop** opens the set's sheet with drop 1 filled in and watches the sheet's `hidden` to start the held rest.
+- **The harness:** `--today tday-dropoffer-{dark,light}-402` (`dropOffer`, logging on the cover until the offer shows).
+- **Flagged:** on the fixture, Lateral Raise's cover suggestion climbs +5 lb a set (same on base).
+- **Next:** the first ready item after slot 80x in the roadmap's unified sequence.

@@ -51,6 +51,7 @@ function row(name, w){
 function mount({name = 'Bench Press', weight = '160', reps = '5', reduce = false} = {}){
   const { window } = runJsdom(extractElementById(src, 'upNext').replace(' hidden>', '>') + extractElementById(src, 'restTimer') + `<div id="exerciseList">${row(name)}</div>`, `
     let restTimerSeconds = 90, restTimerTotal = 90, restTimerInterval = null, restTimerEndsAt = null;
+    let coverDropOffer = null; // v3.658 (UX-64): startRestTimer ends a drop offer (none here)
     var weightUnit = 'lb', equipmentProfile = null, loadSuggestionMode = 'progression';
     var REST_TIER_TIPS = {};
     window.matchMedia = q => ({matches: ${reduce} && /reduce/.test(q)});
@@ -250,6 +251,7 @@ test('UX-29 criterion 2: the rest runs and ends identically: the real timer\'s e
   for(const inView of [false, true]){
     const { window } = runJsdom(extractElementById(src, 'restTimer'), `
       let restTimerSeconds = 90, restTimerTotal = 90, restTimerInterval = null, restTimerEndsAt = null;
+    let coverDropOffer = null; // v3.658 (UX-64): startRestTimer ends a drop offer (none here)
       var REST_TIER_TIPS = {};
       let __now = 1000000; Date.now = () => __now; window.__advance = ms => { __now += ms; };
       window.__tick = null; window.setInterval = fn => { window.__tick = fn; return 1; }; window.clearInterval = () => {};

@@ -112,7 +112,9 @@ test('criterion 6: the bar is drawn full width of the cover\'s content box (CSSO
   // the Log row only to keep Log above y = 480 under the old header).
   const kids = [...document.getElementById('upNext').children];
   // 2026-11-25 (v3.656, UX-62): the warm-up line sits between them (hidden unless a step is next).
-  assert.strictEqual(kids.indexOf(document.getElementById('upNextBar')) + 1, kids.indexOf(document.getElementById('coverWarmup')), 'the warm-up line under the bar');
+  // 2026-11-25 (v3.658, UX-64): the drop line first (it stands in for the warm-up line while it shows).
+  assert.strictEqual(kids.indexOf(document.getElementById('upNextBar')) + 1, kids.indexOf(document.getElementById('coverDrop')), 'the drop line under the bar');
+  assert.strictEqual(kids.indexOf(document.getElementById('coverDrop')) + 1, kids.indexOf(document.getElementById('coverWarmup')), 'then the warm-up line');
   assert.strictEqual(kids.indexOf(document.getElementById('coverWarmup')) + 1, kids.indexOf(document.querySelector('.cover-log')), 'then the Log row');
 });
 

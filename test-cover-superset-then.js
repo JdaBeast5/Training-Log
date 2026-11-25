@@ -140,7 +140,9 @@ const GLOBALS = `
   window.getExLog = async ()=> [];
   window.makeSwipeable = ()=>{};
 `;
-const WIRE = [extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock')];
+// v3.658 (UX-64): wireSetsBlock's save and startRestTimer call the cover's drop-offer hooks (the real ones).
+const COVER_DROP_HOOKS = '\nlet coverDropOffer = null;\n' + ['isCoverDropRow', 'renderCoverDrop', 'endCoverDrop', 'noteSetForCoverDrop', 'holdRestForDrop'].map(n => extractFunction(src, n)).join('\n');
+const WIRE = [extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock') + COVER_DROP_HOOKS];
 // The pair's rows as renderWorkout interleaves them: the first lift's set 1
 // (logged unless \`leadLogged\` is false), then the second's, the one logged here.
 const ROW = (leadLogged = true) => `<div id="row"><input type="checkbox" data-idx="1"><div class="sets-block">

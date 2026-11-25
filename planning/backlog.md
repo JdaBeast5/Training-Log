@@ -5376,7 +5376,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-superset-then.js`. Sabotage: build the line from the same lift's next row, and criterion 1 must fail.
 - **Files:** `index.html` (6630, `renderUpNext` 34429, and for (i) 36474; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** low.
-- **Status:** shipped in v3.657 (PR #254), awaiting the owner's merge. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**, and **(i) yes**: after the pair, rest for the heavier lift.
+- **Status:** done (v3.657, PR #254). Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**, and **(i) yes**: after the pair, rest for the heavier lift.
 
 ### UX-64: Drop set offered on the cover after the last working set (BL-79's Q2 (b))
 - **Why:**
@@ -5406,7 +5406,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-drop-offer.js`. Sabotage: start the rest timer unconditionally at 36474, and criterion 1 must fail.
 - **Files:** `index.html` (cover markup 6660, the rest start 36474, `logUpNext` 34685; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** medium, because the rest timer's start moves. The hold is scoped to that one offered moment and always ends in a start.
-- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**. It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
+- **Status:** shipped in v3.658 (PR #255), awaiting the owner's merge. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**. It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
 
 ### UX-65: The warm-up ramp is loggable by default
 - **Why:** owner, 2026-11-24: "warm ups on by default". "Build the ramp in as sets I can log" (`#warmupSetsToggle`, Settings) is off by default today (`let warmupSetsEnabled = false`, ~33868 at v3.652, with a comment saying it should be asked for rather than arrive in an update). The owner has now asked for it, so new lifters get a guided ramp, and UX-62's cover line shows for everyone.
