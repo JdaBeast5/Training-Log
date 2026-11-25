@@ -4,7 +4,8 @@
 // weight today?" between SESSIONS; recommendNextSet answers it between SETS,
 // from the set just logged, with the same double-progression model:
 //  - UP one loadable step when the set reached the top of the rep range (or
-//    beat a single target) and was not a grind: RPE 8 or less, or not logged;
+//    beat a single target) and was not a grind: RPE 8 or less (since v3.666,
+//    BL-83, an RPE must be entered: none means stay);
 //    reps restart at the bottom of the range;
 //  - otherwise STAY at the same weight (short of the top: the chip shows the
 //    top of the range to build to). Never up in a deload week.
@@ -26,8 +27,12 @@ test('REAL invocation: top of the range and not a grind → up one loadable step
   assert.deepStrictEqual(rec({weight:'135', reps:'8', rpe:'7'}, '4×6-8'),
     {dir:'up', weight:'140', reps:'6', why:'Go up 5 — 8 reps at RPE 7 last set'});
   assert.strictEqual(rec({weight:'135', reps:'8', rpe:'8'}, '4×6-8').dir, 'up', 'RPE 8 still counts as not a grind');
-  assert.strictEqual(rec({weight:'135', reps:'9', rpe:''}, '4×6-8').dir, 'up', 'beat the range, RPE optional');
-  assert.deepStrictEqual(rec({weight:'225', reps:'5', rpe:''}, '5×5'), {dir:'up', weight:'230', reps:'5', why:'Go up 5 — 5 reps last set'}, 'a single target');
+  // Re-pinned v3.666 (BL-83, owner 2026-11-25: "if none was entered, weight
+  // should not go up"): at the top with no RPE the call is now 'same', asking
+  // for the effort. These two expected 'up' with no RPE before.
+  assert.deepStrictEqual(rec({weight:'135', reps:'9', rpe:''}, '4×6-8'), {dir:'same', weight:'135', reps:'9', why:'Add how hard it felt to let the weight go up'}, 'beat the range, no RPE: stay');
+  assert.deepStrictEqual(rec({weight:'225', reps:'5', rpe:''}, '5×5'), {dir:'same', weight:'225', reps:'5', why:'Add how hard it felt to let the weight go up'}, 'a single target, no RPE: stay');
+  assert.deepStrictEqual(rec({weight:'225', reps:'5', rpe:'7'}, '5×5'), {dir:'up', weight:'230', reps:'5', why:'Go up 5 — 5 reps at RPE 7 last set'}, 'a single target with an entered RPE');
   assert.strictEqual(rec({weight:'60', reps:'10', rpe:'7'}, '3×8-10', 2.5).weight, '62.5', 'kg-sized loadable step');
 });
 
