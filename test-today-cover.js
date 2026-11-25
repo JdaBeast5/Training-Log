@@ -182,7 +182,7 @@ test('GUARD: with reps empty, Log writes nothing, opens the fields and puts the 
   assert.strictEqual(ui.doc.activeElement, ui.$('upNextReps'));
 });
 
-test('the cover\'s chips are the lift\'s own: drawn from the real strip, not .set-chips (findNextSetRow and the sheet\'s twin lookup see only the real ones), and a tap is the real chip\'s tap', (assert)=>{
+test('the cover\'s chips are the lift\'s own: drawn from the real strip, not .set-chips (findNextSetRow and the sheet\'s twin lookup see only the real ones), and a tap opens the set sheet on that set (v3.667, UX-66)', (assert)=>{
   const ui = mount(BENCH + block(1, 'DB Curl', '3×10-12', row(1, 0, 'DB Curl', {wp: '30'})));
   const chips = [...ui.$('upNextChips').querySelectorAll('.cover-chip')];
   assert.deepStrictEqual(chips.map(c => c.className.replace('cover-chip ', '')), ['is-done', 'is-done', 'is-ready', 'is-pending'], 'Bench only, in order');
@@ -190,8 +190,11 @@ test('the cover\'s chips are the lift\'s own: drawn from the real strip, not .se
   // The set sheet's twin lookup (closeSetSheet) finds the chip in the list.
   assert.ok(ui.doc.querySelector('.set-chip[data-ex-idx="0"][data-set-idx="0"]').closest('#exerciseList'));
   chips[2].click();
-  assert.strictEqual(ui.window.__commits.length, 1, 'a ready cover chip logs, as the real one does');
-  assert.strictEqual(ui.window.__commits[0].row.dataset.setIdx, '2');
+  // Re-pinned v3.667 (UX-66, the usability test's Friction #2): a ready cover
+  // chip opens the sheet on its set and logs nothing (it used to log, as the
+  // list's chip still does). test-cover-chip-sheet.js covers the sheet's Log.
+  assert.strictEqual(ui.window.__commits.length, 0, 'a ready cover chip logs nothing');
+  assert.strictEqual(ui.window.__sheet.row.dataset.setIdx, '2', 'it opens the sheet on its own set');
   ui.$('upNextChips').querySelector('.cover-chip.is-done').click();
   assert.strictEqual(ui.window.__sheet.row.dataset.setIdx, '0', 'a done chip opens the sheet on its own set');
   assert.ok(ui.window.__sheet.chip.closest('#exerciseList'), 'with the real chip, so focus returns into the list');

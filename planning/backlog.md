@@ -5553,7 +5553,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-chip-sheet.js`. Sabotage: restore `real.click()`, and criterion 1 must fail.
 - **Files:** `index.html` (34604; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** low. Long-press on a cover chip already opened the sheet; now a tap does too.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.667 (PR #266), awaiting the owner's merge. (Batch 2.)
 
 ### UX-67: Log stays in one place: the cover's action row pinned to a bottom band (Friction #4)
 - **Why:** "Log set" moved **278 px** during a session, and its centre was in the top half of the screen in **23 of 39** logging moments. Its height depends on what sits above it: the hint, the cheer, the superset line, the numeral's size, the plate stack, the warm-up and drop lines (cover markup 5821–5883). During rest, +30 s and Skip rest (5852–5854) sit somewhere else again.
