@@ -1841,3 +1841,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `recommendNextSet`: `easyEnough = rpe != null && rpe <= 8`; at the top with no RPE it returns `same` with why "Add how hard it felt to let the weight go up" (cover `#upNextWhy`, the open logger's why, the chip's label, the set sheet's subtitle). An entered RPE ≤ 8 raises every time (no session cap).
 - Unchanged: `analyzeProgressionSignal` (two no-RPE sessions at the top still increase), branch 4, the clinical gate. No migration; stored RPEs stay.
 - **Next:** batch 2, 80c5 UX-66 (a cover chip opens the set sheet; only Log commits).
+
+## Addendum 187: UX-66 (v3.667, PR #266)
+- `#upNextChips` click: finds the row and the real list chip by `data-ex-idx`/`data-set-idx` and calls `openSetSheet(row, realChip)` for any chip state; it no longer forwards `real.click()`. The list's delegated chip listener (one-tap log on a ready chip) is unchanged.
+- **Live:** #264 and #265 merged; the #265 Pages run deployed both (the #264 run was cancelled as superseded). Live sw.js serves 3.666.
+- **Next:** 80c6 UX-68 (the drop offer on accessories only; its held rest releases after 20 s and survives a reload).
