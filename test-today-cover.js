@@ -215,7 +215,11 @@ test('(i) a first-ever exercise shows BIZ-05\'s firstSetHint and the target reps
   assert.strictEqual(ui.$('upNextHint').textContent, ui.window.firstSetHint({name: 'Bench Press', sets: '4×4-6', noWeight: false}, 'strength'));
   assert.match(ui.$('upNextHint').textContent, /^First time: pick a weight where you’d stop/);
   const [w, u, x] = ui.$('upNextNumeral').children;
-  assert.deepStrictEqual([w.textContent, u.textContent, x.textContent], ['4-6', 'reps', '']);
+  // Re-pinned v3.669 (UX-70): the target range reads as one ("4–6", an en dash;
+  // was '4-6'), under a "Target" label, and Log says what it will open.
+  assert.deepStrictEqual([w.textContent, u.textContent, x.textContent], ['4–6', 'reps', '']);
+  assert.strictEqual(ui.$('upNextTargetLabel').hidden, false);
+  assert.strictEqual(ui.$('upNextLog').textContent, 'Enter weight');
   // Once a set is in, the hint goes (as in the set sheet).
   const seen = mount(block(0, 'Bench Press', '4×4-6', [done(0, 0, 'Bench Press', '135', '5'), row(0, 1, 'Bench Press')].join(''), {firstTime: true}));
   assert.strictEqual(seen.$('upNextHint').hidden, true);
