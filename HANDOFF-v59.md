@@ -1805,3 +1805,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `test-show-more-row.js` clicks the three real folds (tips handler, `appendItemsCollapsible`, `renderCollapsibleList`).
 - **Flagged:** no `aria-expanded`/`aria-controls` on any fold (pre-existing).
 - **Next:** UX-40 (80c), in-card list rows ruled, not tiles.
+
+## Addendum 181: UX-40 (v3.661, PR #258)
+- List rows are scoped as `.swipe-item:not(.set-row):not(.warmup-set-row)`: radius 0, no gap; `> .swipe-content` is `--surface-1` (opaque, equal to a card's `--glass-fill`); `> .swipe-content > :first-child` takes the `--rule`. `.swipe-item + .expand-wrap + .show-more-btn` drops its own top line.
+- `test-ruled-rows.js` has `winning(el, prop, theme)`: a real-CSSOM cascade (specificity, then order; light adds the light-scheme `@media` rules). Reuse it where jsdom can't resolve `var()`.
+- **Flagged:** care/coach/supplement rows keep a 14px inset; the other lists don't (a design call for the owner).
+- **Next:** UX-41 (80d), chevrons, links and "Done" in the ink.

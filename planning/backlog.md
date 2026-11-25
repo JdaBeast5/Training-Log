@@ -4717,7 +4717,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-show-more-row.js`. Sabotage: put `color:var(--plate-blue)` back, and criterion 1 must fail.
 - **Files:** `index.html` (2496–2519; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Read and keep green: `test-analysis-collapse.js`, `test-today-priorities*.js`, the weigh-in and PR fold suites (grep `show-more-btn`).
 - **Risk:** low. It's one rule family, and the text stays.
-- **Status:** shipped in v3.660 (PR #257), awaiting the owner's merge.
+- **Status:** done (v3.660, PR #257).
 
 ### UX-40: In-card list rows are ruled, not tiles
 - **Why:**
@@ -4739,7 +4739,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-ruled-rows.js`, plus the swipe suites. Sabotage: set `.swipe-content` back to `--row-fill`, and criterion 1 must fail (alpha < 1).
 - **Files:** `index.html` (1322, 1379–1381, 2485–2489, 2997, ≈3038, 4227; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes any suite pinning `--row-fill` on `.swipe-content` (`test-fields-translucent.js`, `test-rgba-background-border-consolidation.js`: check).
 - **Risk:** medium-low. Swipe-to-delete is behaviour, so criterion 2 guards it.
-- **Status:** ready
+- **Status:** shipped in v3.661 (PR #258), awaiting the owner's merge.
 
 ### UX-41: Chevrons, links and "Done" in the ink
 - **Why:** blue is the 2.0 accent. The vision keeps colour for the day's ink and for state. Today already went ink (UX-23, UX-34), so the same affordance is now grey on Today and blue everywhere else. In the screenshots: blue chevrons on Learn, "In your program", "Watch form video".
