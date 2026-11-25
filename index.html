@@ -7772,7 +7772,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.662';
+const APP_VERSION = '3.663';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9603,6 +9603,10 @@ const WHATS_NEW = {
   ]},
   '3.662': { headline: 'Links in the ink', points: [
     'Chevrons, "Watch form video", the Done button on sheets and in Settings, and links on Learn and Coach now use the same ink as the rest of the app instead of blue, as Today already does. Links inside text keep an underline.',
+  ]},
+  '3.663': { headline: 'The next set is never skipped', points: [
+    'In a superset, finishing the first lift no longer makes the cover skip the second lift\'s last set.',
+    'Undo on a lift\'s last set now also unticks the lift, so the cover goes back to that set.',
   ]},
 };
 
@@ -33450,7 +33454,10 @@ function advanceSetField(input){
 function findNextSetRow(listEl){
   const rows = [...listEl.querySelectorAll('.set-row[data-set-idx]')];
   const isDone = r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '';
-  const ticked = r => { const b = r.closest('.exercise-block'); const c = b && b.querySelector('input[type=checkbox]'); return !!(c && c.checked); };
+  // v3.663 (BL-80): the row's own lift's box (data-idx = its exIdx). The
+  // block's first box is the first lift's in a superset pair, so its auto-tick
+  // made the second lift's remaining sets read as done (B1).
+  const ticked = r => { const b = r.closest('.exercise-block'); const c = b && b.querySelector(`.exercise input[type=checkbox][data-idx="${r.dataset.exIdx}"]`); return !!(c && c.checked); };
   const done = rows.filter(isDone).length;
   const next = rows.find(r => !isDone(r) && !ticked(r)) || null;
   if(!next) return {row:null, done, total:rows.length};
@@ -34170,10 +34177,31 @@ function renderAllSetChips(){
 function commitSet(row, values, force){
   const before = {};
   for(const f of ['weight', 'distance', 'rpe', 'reps']){ const el = row.querySelector('.ex-' + f); if(el) before[f] = el.value; }
+  // v3.663 (BL-80): the lift's own box, as it was before this commit. Logging a
+  // lift's last set auto-ticks it (checkAllSetsCompleteAndAutoCheck marks the
+  // box _autoTicked); Undo takes back that tick, and only that one: a tick made
+  // by hand, before or after the commit, stays (B3). If the list was rebuilt
+  // since (the row is no longer in the page), the box is left alone.
+  const liftBox = ()=>{ if(!row.isConnected) return null; const b = row.closest('.exercise-block'); return b && b.querySelector(`.exercise input[type=checkbox][data-idx="${row.dataset.exIdx}"]`); };
+  const box = liftBox();
+  const wasTicked = !!(box && box.checked);
+  if(box && !wasTicked) box._autoTicked = false; // an old mark from an earlier tick is stale now
   writeSetToRow(row, values, force);
   renderAllSetChips();
   const owner = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
-  showUndoToast(`Logged ${owner} ${setChipLabel(values, row)}`, ()=>{ writeSetToRow(row, before, true); renderAllSetChips(); });
+  showUndoToast(`Logged ${owner} ${setChipLabel(values, row)}`, ()=>{
+    writeSetToRow(row, before, true);
+    const now = liftBox();
+    if(now && !wasTicked && now.checked && now._autoTicked){
+      now._autoTicked = false;
+      now.checked = false;
+      now.dispatchEvent(new Event('change'));
+      // The auto-tick opened the finish sheet if it completed the day; the
+      // day isn't complete now (closeFinishSheet does nothing if it's shut).
+      closeFinishSheet();
+    }
+    renderAllSetChips();
+  });
 }
 function logSetChip(chip, row){ commitSet(row, chip._values); }
 
@@ -35249,6 +35277,7 @@ function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
   const cb = row.querySelector(`input[type=checkbox][data-idx="${exIdx}"]`);
   if(!cb || cb.checked) return;
   cb.checked = true;
+  cb._autoTicked = true; // v3.663 (BL-80): Undo takes back only this tick
   cb.dispatchEvent(new Event('change'));
 }
 
