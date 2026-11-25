@@ -1829,3 +1829,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `renderUpNext`: `#upNextTarget` reads "All N" only when `n.done === n.total`; `can-finish` on the card and "Finish session" on `#upNextLog` when `!n.row && n.done > 0`; the rest-day branch clears both. CSS: `.cover.is-done.can-finish .cover-log` shows the row, `.cover-adjust` hidden.
 - **Live:** #262 (v3.663) merged, but its Pages deploy failed (GitHub 500, run 45650814711); the next deploy carries it.
 - **Next:** BL-82 (80c3), the PR moment once per lift per session.
+
+## Addendum 185: BL-82 (v3.665, PR #264)
+- The save path's PR branch runs only on a real set; it sets `setRow.dataset.pr = '1'` (chips and the cover chip draw a `.set-chip-pr` tag, 11px) and calls `triggerCelebration` only when backdating, once per `exKey|date` (`prCelebrated`). A set with no reps loses `data-pr` synchronously at the start of the save; a non-PR re-save loses it too.
+- `triggerCelebration` holds calls while `#undoToast` or `#finishSheet` is active (`triggerCelebration.held`, retried every 600 ms; queued ones 3 s apart). Note: the list lives on the global binding, so a test spy that reassigns `triggerCelebration` holds it.
+- **Flagged:** the PR tag isn't rebuilt after a re-render.
+- **Next:** BL-83 (80c4), no invented RPE (stored-data change, owner-confirmed).

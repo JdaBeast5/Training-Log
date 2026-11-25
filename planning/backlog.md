@@ -5474,7 +5474,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-finish-sheet.js` (criteria 3, 4) and a new `test-cover-finish.js` (1, 2, 5). Sabotage: print `All ${n.total}` unconditionally, and criterion 1 must fail.
 - **Files:** `index.html` (`renderUpNext` 33542; `logUpNext` 33847; the completing tick 31609; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
 - **Risk:** low. Guards: `test-finish-sheet.js`, `test-today-cover.js`, `test-tap-counts.js`.
-- **Status:** shipped in v3.664 (PR #263), awaiting the owner's merge. (Batch 1; after BL-80.)
+- **Status:** done (v3.664, PR #263; deployed with v3.663). (Batch 1; after BL-80.)
 
 ### BL-82: The PR moment: once per lift per session, an inline mark mid-workout, never over Undo or Share (B2)
 - **Why:**
@@ -5497,7 +5497,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-pr-moment-once.js`; `test-moments.js` must pass unchanged. Sabotage: call the PR branch on every field change again, and criterion 2 must fail (3 calls).
 - **Files:** `index.html` (`saveNow` 35399–35440, `triggerCelebration` 31811, `renderSetChips` 34020, `renderCoverChips` 33788; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with a dated note any suite that expected a banner per PR set (the ten `triggerCelebration` suites listed in UX-30 stub it; read them first).
 - **Risk:** medium: the PR moment changes. The PR itself, its storage and the timeline are untouched (`reconstructAllPRs`, `test-pr-timeline.js`). Mark UX-09b's criterion 4 as moved here when this ships.
-- **Status:** ready (batch 1, owner yes 2026-11-24).
+- **Status:** shipped in v3.665 (PR #264), awaiting the owner's merge. (Batch 1, owner yes 2026-11-24.) UX-09b's criterion 4 (one celebration per PR) is covered here.
 
 ### BL-83: No invented RPE: one-tap Log saves only an RPE the lifter entered, and no RPE never raises the weight (Friction #1) — **stored-data change**
 - **Why (the tester's evidence):**
