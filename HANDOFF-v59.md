@@ -1811,3 +1811,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `test-ruled-rows.js` has `winning(el, prop, theme)`: a real-CSSOM cascade (specificity, then order; light adds the light-scheme `@media` rules). Reuse it where jsdom can't resolve `var()`.
 - **Flagged:** care/coach/supplement rows keep a 14px inset; the other lists don't (a design call for the owner).
 - **Next:** UX-41 (80d), chevrons, links and "Done" in the ink.
+
+## Addendum 182: UX-41 (v3.662, PR #260)
+- `.ex-chevron` defaults to `--text-3`; its Priorities, Settings and `#exerciseList` overrides went (Settings' chevrons are one step lighter, intended). `.ex-video-link` is `--text` 14px; `.sub-modal-close` and `.settings-panel-close` are `--text` (the finish and day sheet overrides went); the cites and the coach key link are `--text`, underlined; the current masterclass note is `--text-2` at 600.
+- **Flagged (still blue, outside UX-41's list):** `.set-sheet-cancel`, `.back-btn`, `.ex-swap-icon`, the supplement links, the Settings notify row.
+- **Next:** UX-42 (80e), selected chips in the ink.
