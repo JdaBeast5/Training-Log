@@ -7778,7 +7778,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.667';
+const APP_VERSION = '3.668';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9625,6 +9625,9 @@ const WHATS_NEW = {
   ]},
   '3.667': { headline: 'Look before you log', points: [
     'Tapping a set under the big number now opens it to check or adjust. Only Log set logs it.',
+  ]},
+  '3.668': { headline: 'Drop sets, for accessories', points: [
+    'The drop set offer now comes after accessory lifts only, not heavy compound lifts. Leave it for 20 seconds and your rest starts by itself, counted from your set, and a held rest survives the app reloading.',
   ]},
 };
 
@@ -32931,6 +32934,8 @@ const REST_TIMER_STATE_KEY = 'rest-timer-state';
 function persistRestTimer(){
   try{
     if(restTimerEndsAt) window.storage.set(REST_TIMER_STATE_KEY, JSON.stringify({endsAt: restTimerEndsAt, total: restTimerTotal}));
+    // v3.668 (UX-68): a rest held by a drop offer, so a reload still starts it, from the set.
+    else if(coverDropOffer) window.storage.set(REST_TIMER_STATE_KEY, JSON.stringify({held: true, seconds: coverDropOffer.seconds, label: coverDropOffer.label, heldAt: coverDropOffer.setAt}));
     else window.storage.delete(REST_TIMER_STATE_KEY);
   }catch(e){}
 }
@@ -32940,6 +32945,13 @@ async function restoreRestTimer(){
     const res = await window.storage.get(REST_TIMER_STATE_KEY);
     if(!res || !res.value) return;
     const st = JSON.parse(res.value);
+    // v3.668 (UX-68): a rest a drop offer was holding starts, counted from its set
+    // (the offer itself isn't restored).
+    if(st && st.held && st.heldAt && st.seconds){
+      if(st.heldAt + st.seconds * 1000 <= Date.now()){ try{ window.storage.delete(REST_TIMER_STATE_KEY); }catch(e){} return; }
+      startRestTimer(st.seconds, st.label, st.heldAt);
+      return;
+    }
     if(!st || !st.endsAt) return;
     const remaining = Math.round((st.endsAt - Date.now()) / 1000);
     // Expired while the app was gone. Nothing to announce — the rest is long
@@ -33123,11 +33135,13 @@ document.addEventListener('visibilitychange', ()=>{
   else tickRestTimer();
 });
 
-function startRestTimer(seconds, label){
+// v3.668 (UX-68): startedAt (ms) counts a rest from an earlier moment, its set's,
+// for a rest a drop offer held; omitted, it starts now.
+function startRestTimer(seconds, label, startedAt){
   if(coverDropOffer) endCoverDrop(false); // v3.658 (UX-64): a rest starting ends a drop offer
-  restTimerSeconds = seconds || 90;
-  restTimerTotal = restTimerSeconds;
-  restTimerEndsAt = Date.now() + restTimerSeconds * 1000;
+  restTimerTotal = seconds || 90;
+  restTimerEndsAt = (startedAt || Date.now()) + restTimerTotal * 1000;
+  restTimerSeconds = restRemainingSeconds();
   const el = document.getElementById('restTimer');
   const timeEl = document.getElementById('restTimerTime');
   el.classList.add('active');
@@ -33707,9 +33721,11 @@ function renderCoverWarmup(card, block){
 // logged or turned down. Only for a lift whose row has the drop control
 // (renderWorkout's dropSetEligible), not backdating, not a superset's lead-in,
 // and only when something lighter is loadable (suggestDropWeight). In memory
-// only: {key, exIdx, setIdx, name, weight, seconds, label, sheet}; key is the
+// (its held rest is persisted since v3.668, UX-68, through persistRestTimer):
+// {key, exIdx, setIdx, name, weight, seconds, label, sheet, setAt, timer}; key is the
 // workout it belongs to (program, day, date), so another day's set never matches.
 let coverDropOffer = null;
+const COVER_DROP_RELEASE_MS = 20000; // v3.668 (UX-68): an unanswered offer releases its rest
 function coverDropKey(){ return `${activeProgram}|${activeDay}|${selectedLogDate}`; }
 function isCoverDropRow(o, setRow){
   return !!o && o.key === coverDropKey() && o.exIdx === setRow.dataset.exIdx && o.setIdx === setRow.dataset.setIdx;
@@ -33725,11 +33741,14 @@ function renderCoverDrop(){
   line.hidden = false;
 }
 // Ends the offer; with start, the held rest starts (Log done, Not now, or another set logged).
-function endCoverDrop(start){
+// v3.668 (UX-68): fromSet counts it from the set (the offer's 20 s ran out).
+function endCoverDrop(start, fromSet){
   const o = coverDropOffer;
   coverDropOffer = null;
+  if(o) clearTimeout(o.timer);
   renderCoverDrop();
-  if(o && start) startRestTimer(o.seconds, o.label);
+  if(o && start) startRestTimer(o.seconds, o.label, fromSet ? o.setAt : undefined);
+  else if(o) persistRestTimer(); // the held rest goes from storage too
 }
 // Called as a set row saves, before anything is awaited (a commit dispatches
 // its fields one after another; only the reps change is the set going from
@@ -33748,14 +33767,20 @@ function noteSetForCoverDrop(block, setRow, ex, rest){
   const noRest = !!ex.superTag || isBackdating();
   if(o) endCoverDrop(!noRest);
   if(noRest || !setRow.querySelector('.set-drop-btn') || setRow.querySelector('.drop-set-row')) return;
+  // v3.668 (UX-68): the cover offers drops on accessories only (the isolation
+  // effort target); the set sheet's Drop set keeps BL-79's wider eligibility.
+  if(targetRirLabel(ex, activeProgram, false) !== RIR_TARGETS.isolation) return;
   const rows = [...block.querySelectorAll(`.set-row[data-ex-idx="${setRow.dataset.exIdx}"]`)];
   if(!rows.every(r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '')) return;
   const w = setRow.querySelector('.ex-weight');
   const weight = w ? suggestDropWeight(setRow, w.value, 1) : null;
   if(weight == null) return;
   if(restTimerEndsAt){ const close = document.getElementById('restTimerClose'); if(close) close.click(); }
-  coverDropOffer = {key: coverDropKey(), exIdx: setRow.dataset.exIdx, setIdx: setRow.dataset.setIdx, name: setSheetExercise(setRow).name,
-    weight, seconds: rest.seconds, label: rest.label, sheet: false};
+  const offer = coverDropOffer = {key: coverDropKey(), exIdx: setRow.dataset.exIdx, setIdx: setRow.dataset.setIdx, name: setSheetExercise(setRow).name,
+    weight, seconds: rest.seconds, label: rest.label, sheet: false, setAt: Date.now()};
+  // v3.668 (UX-68): unanswered for 20 s, the offer goes and its rest starts, counted from the set.
+  offer.timer = setTimeout(()=>{ if(coverDropOffer === offer && !offer.sheet) endCoverDrop(true, true); }, COVER_DROP_RELEASE_MS);
+  persistRestTimer();
   renderCoverDrop();
 }
 // At the rest start for a set: true when that set's drop is on offer, so its
@@ -33764,6 +33789,7 @@ function holdRestForDrop(setRow, seconds, label){
   const o = coverDropOffer;
   if(!isCoverDropRow(o, setRow)) return false;
   o.seconds = seconds; o.label = label;
+  persistRestTimer(); // v3.668 (UX-68)
   return true;
 }
 

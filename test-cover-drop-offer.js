@@ -26,6 +26,14 @@
 // don't dismiss a running rest, start the held rest before a superset lead-in,
 // drop the workout key from the validity check, offer on a set that already has
 // a drop: each fails its own test.
+//
+// v3.668 (UX-68, amends UX-64): the cover offers drops on accessories only
+// (targetRirLabel === RIR_TARGETS.isolation; a 4×4-6 Bench gets none); an
+// offer left unanswered for 20 s ends and starts its rest counted from the set;
+// the held rest is stored in the rest timer's own key ({held, seconds, label,
+// heldAt}) and restoreRestTimer starts it after a reload. Sabotage (each run
+// and seen failing): no isolation check, no release timer, the release not
+// counted from the set, the held rest not stored, restore ignoring it.
 const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-cover-drop-offer.js');
@@ -33,11 +41,13 @@ const src = readIndexSource();
 
 const ENGINE_CONSTS = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES',
   'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'exerciseInfo',
-  'RIR_TARGETS', 'COMPOUND_CATEGORIES', 'DROP_SET_MAX'];
+  'RIR_TARGETS', 'COMPOUND_CATEGORIES', 'DROP_SET_MAX',
+  // v3.668 (UX-68): the cover offers drops on accessories only (targetRirLabel), and an unanswered offer releases after 20 s.
+  'RIR_SPEED_CATEGORIES', 'RIR_NO_LABEL_CATEGORIES', 'RIR_NO_LABEL_NAME', 'COVER_DROP_RELEASE_MS'];
 const ENGINE_FNS = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rpeTargetForDay', 'rirFromRpe', 'loadForRpeTarget',
   'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable',
   'getEquipment', 'isBarbellExercise', 'isDumbbellExercise', 'toDisplayWeight', 'toCanonicalLb', 'trimUnitNum',
-  'smallestLoadStep', 'capClinicalRpeLoad', 'loadStepFor', 'platesPerSide'];
+  'smallestLoadStep', 'capClinicalRpeLoad', 'loadStepFor', 'platesPerSide', 'targetRirLabel', 'getRepRangeTier'];
 const UI_FNS = ['escapeHtml', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'setChipOwnerTag', 'commitSet',
   'setSheetWeightStep', 'openSetSheet', 'closeSetSheet', 'saveSetSheet', 'setSheetExercise', 'dropSetCue', 'suggestDropWeight',
   'setSheetAddDrop', 'refreshSetSheetDropBtn', 'writeDropsToRow', 'buildDropRowsHtml', 'recommendNextSet',
@@ -71,10 +81,15 @@ function block(exIdx, name, sets, logged, total, w, r, drop){
 }
 // Lateral Raise 3×12-15 at 45 lb with two sets logged (the drop control: renderWorkout's
 // dropSetEligible said yes), then Face Pull with none logged (no drop control).
-function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, faceTag = false, savedDrop = false} = {}){
+// v3.668 (UX-68): lift/liftSets swap the first lift (Bench Press, a compound);
+// persist runs the real persistRestTimer / restoreRestTimer over an in-memory
+// window.storage (store, shared across a "reload"); the clock is fake (__now),
+// and timers of a second or more wait for __fireLong().
+function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, faceTag = false, savedDrop = false,
+    lift = 'Lateral Raise', liftSets = '3×12-15', persist = false, store = {}, now = 1764000000000} = {}){
   const body = extractElementById(src, 'upNext').replace(' hidden>', '>') + extractElementById(src, 'restTimer')
     + extractElementById(src, 'setSheetScrim') + extractElementById(src, 'setSheet')
-    + `<div id="exerciseList">${block(0, 'Lateral Raise', '3×12-15', logged, 3, weight, '12', drop)}${block(1, 'Face Pull', '3×15', 0, 3, '40', '15', false)}</div>`;
+    + `<div id="exerciseList">${block(0, lift, liftSets, logged, 3, weight, '12', drop)}${block(1, 'Face Pull', '3×15', 0, 3, '40', '15', false)}</div>`;
   const { window } = runJsdom(body, `
     var weightUnit = 'lb', distanceUnit = 'km', activeProgram = 'strength', activeDay = 'd1', selectedLogDate = ${JSON.stringify(date)};
     var loadSuggestionMode = 'auto', equipmentProfile = null, restTargetBySlot = {}, SpeechRecognitionCtor = null;
@@ -83,7 +98,13 @@ function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, fac
     window.requestAnimationFrame = fn => fn(); window.setInterval = () => 1; window.clearInterval = () => {};
     function getTodayKey(){ return '2026-11-24'; }
     function applyRestTimerCollapsedWidth(){} function applyRestTimerExpandHeight(){} function refreshRestNotifyControls(){}
-    function updateRestTimerRing(){} function persistRestTimer(){} function scheduleRestNotification(){} function cancelRestNotification(){} function tickRestTimer(){}
+    window.__now = ${now}; Date.now = () => window.__now;
+    window.__long = []; const __setTimeout = window.setTimeout.bind(window);
+    window.setTimeout = (fn, ms) => { if(ms >= 1000){ window.__long.push(fn); return window.__long.length; } return __setTimeout(fn, ms); };
+    window.__fireLong = () => { const l = window.__long.splice(0); l.forEach(f => f()); };
+    window.__store = ${JSON.stringify(store)};
+    window.storage = { get: async k => k in window.__store ? {value: window.__store[k]} : null, set: async (k, v) => { window.__store[k] = v; }, delete: async k => { delete window.__store[k]; } };
+    function updateRestTimerRing(){} ${persist ? '' : 'function persistRestTimer(){}'} function scheduleRestNotification(){} function cancelRestNotification(){} function tickRestTimer(){}
     window.__rests = [];
     function getDefaultRestSeconds(ex){ return ex.name === 'Lateral Raise' ? 75 : 60; }
     function getRestReasonLabel(ex){ return 'rest for ' + ex.name; }
@@ -98,10 +119,12 @@ function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, fac
     function buildPastSessions(){ return []; } async function getExLog(){ return []; } function makeSwipeable(){} function noteWorkoutActivity(){}
     function firstSetHint(){ return ''; } function deleteSet(){}
   `, [...ENGINE_CONSTS.map(n => extractConst(src, n)), ...ENGINE_FNS.map(n => extractFunction(src, n)), STATE, OFFER,
+    ...(persist ? [extractConst(src, 'REST_TIMER_STATE_KEY'), extractFunction(src, 'persistRestTimer'), extractFunction(src, 'restoreRestTimer')] : []),
     ...UI_FNS.map(n => extractFunction(src, n)), ...BUTTONS, CLOSE, `
     // The real ends of startRestTimer write the cover's rest state; record each start.
-    const __start = startRestTimer; startRestTimer = (s, l) => { window.__rests.push([s, l]); __start(s, l); };
-    wireSetsBlock(document.getElementById('b0'), 0, {name:'Lateral Raise', sets:'3×12-15'});
+    const __start = startRestTimer; startRestTimer = (s, l, at) => { window.__rests.push([s, l]); __start(s, l, at); };
+    wireSetsBlock(document.getElementById('b0'), 0, {name:${JSON.stringify(lift)}, sets:${JSON.stringify(liftSets)}});
+    window.__restore = typeof restoreRestTimer === 'function' ? restoreRestTimer : null;
     wireSetsBlock(document.getElementById('b1'), 1, {name:'Face Pull', sets:'3×15'${faceTag ? ", superTag:'Superset with next'" : ''}});
     window.__state = () => ({offer: coverDropOffer, endsAt: restTimerEndsAt});
     window.__logCoverDrop = logCoverDrop; window.__endCoverDrop = endCoverDrop; window.__logUpNext = logUpNext; window.__saveSetSheet = saveSetSheet; window.__closeSetSheet = closeSetSheet;
@@ -285,6 +308,72 @@ test('review fix: no offer for a set that already has a drop', async (assert)=>{
   ui.logOnCover('45', '12'); await ui.flush();
   assert.strictEqual(ui.line(), null);
   assert.deepStrictEqual(ui.rests()[0], [75, 'rest for Lateral Raise']);
+});
+
+// v3.668 (UX-68): accessories only; an unanswered offer releases its rest; a reload keeps it.
+test('UX-68 criterion 1: Bench Press 4×4-6 (a compound, with the drop control): its last set offers no drop and the rest starts at once; Lateral Raise still offers', async (assert)=>{
+  const bench = mount({lift: 'Bench Press', liftSets: '4×4-6', weight: '185', logged: 2});
+  assert.ok(bench.window.document.querySelector('#b0 .set-row[data-set-idx="2"] .set-drop-btn'), 'anchor: the row has the drop control (the set sheet keeps it)');
+  bench.logOnCover('185', '5'); await bench.flush();
+  assert.ok(bench.window.__sets.some(s => s[0] === 0 && s[1] === 2), 'anchor: set 3 saved');
+  assert.strictEqual(bench.line(), null, 'no .cover-drop');
+  assert.strictEqual(bench.state().offer, null);
+  assert.ok(bench.rests().length >= 1 && bench.rests().every(r => r[0] === 60 && r[1] === 'rest for Bench Press'), 'the rest starts at once: ' + JSON.stringify(bench.rests()));
+  assert.ok(bench.state().endsAt > 0);
+  const raise = mount();
+  raise.logOnCover('45', '12'); await raise.flush();
+  assert.ok(raise.line(), 'Lateral Raise: the offer shows (UX-64 criterion 1)');
+});
+
+test('UX-68 criterion 2: no answer for 20 s: the offer goes, and the rest ends at the set\'s time + its seconds', async (assert)=>{
+  const T0 = 1764000000000;
+  const ui = mount({now: T0});
+  ui.logOnCover('45', '12'); await ui.flush();
+  assert.ok(ui.line(), 'anchor: offered');
+  ui.window.__now = T0 + 20000;
+  ui.window.__fireLong();
+  assert.strictEqual(ui.line(), null, 'the offer went');
+  assert.strictEqual(ui.state().offer, null);
+  assert.strictEqual(ui.state().endsAt, T0 + 75 * 1000, 'counted from the set');
+  assert.deepStrictEqual(ui.rests(), [[75, 'rest for Lateral Raise']]);
+});
+
+test('UX-68: an answered offer cancels its release (Not now starts the rest once; the timer firing later does nothing)', async (assert)=>{
+  const ui = mount();
+  ui.logOnCover('45', '12'); await ui.flush();
+  ui.$('coverDropSkip').click();
+  ui.window.__fireLong();
+  assert.deepStrictEqual(ui.rests(), [[75, 'rest for Lateral Raise']]);
+});
+
+test('UX-68 criterion 3: a reload during the offer: the held rest is stored, and the reloaded page starts it, ending at the set\'s time + its seconds', async (assert)=>{
+  const T0 = 1764000000000;
+  const ui = mount({persist: true, now: T0});
+  ui.logOnCover('45', '12'); await ui.flush();
+  assert.ok(ui.line(), 'anchor: offered');
+  const stored = JSON.parse(ui.window.__store['rest-timer-state']);
+  assert.deepStrictEqual(stored, {held: true, seconds: 75, label: 'rest for Lateral Raise', heldAt: T0});
+  // The page script runs again, 5 s later, from the same storage.
+  const again = mount({persist: true, now: T0 + 5000, store: JSON.parse(JSON.stringify(ui.window.__store))});
+  assert.strictEqual(again.state().endsAt, null, 'anchor: nothing running before the restore');
+  await again.window.__restore(); await again.flush();
+  assert.strictEqual(again.state().endsAt, T0 + 75 * 1000, 'a rest is running, ending at set time + 75 s');
+  assert.strictEqual(again.line(), null, 'the offer itself isn\'t restored');
+  assert.strictEqual(JSON.parse(again.window.__store['rest-timer-state']).endsAt, T0 + 75 * 1000, 'stored as a running rest from then on');
+});
+
+test('UX-68: a held rest already over by the reload is dropped; Undo of the offered set removes it from storage', async (assert)=>{
+  const T0 = 1764000000000;
+  const late = mount({persist: true, now: T0 + 90000, store: {'rest-timer-state': JSON.stringify({held: true, seconds: 75, label: 'x', heldAt: T0})}});
+  await late.window.__restore();
+  assert.strictEqual(late.state().endsAt, null);
+  assert.ok(!('rest-timer-state' in late.window.__store));
+  const ui = mount({persist: true, now: T0});
+  ui.logOnCover('45', '12'); await ui.flush();
+  assert.ok('rest-timer-state' in ui.window.__store, 'anchor: stored');
+  ui.window.__endCoverDrop(false);
+  await ui.flush();
+  assert.ok(!('rest-timer-state' in ui.window.__store), 'an offer ended with no rest leaves nothing to restore');
 });
 
 test('REAL source: the cover markup puts the drop line just above the warm-up line, and the CSS hides the warm-up line while it shows', (assert)=>{
