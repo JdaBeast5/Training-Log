@@ -29,7 +29,9 @@ const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./te
 
 const src = readIndexSource();
 const checkFnSrc = extractFunction(src, 'checkAllSetsCompleteAndAutoCheck');
-const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
+// v3.658 (UX-64): wireSetsBlock's save and startRestTimer call the cover's drop-offer hooks (the real ones).
+const COVER_DROP_HOOKS = '\nlet coverDropOffer = null;\n' + ['isCoverDropRow', 'renderCoverDrop', 'endCoverDrop', 'noteSetForCoverDrop', 'holdRestForDrop'].map(n => extractFunction(src, n)).join('\n');
+const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock') + COVER_DROP_HOOKS;
 
 function bodyHtml(){
   return `

@@ -1097,6 +1097,14 @@
   .cover-warmup-step small{display:block; font-family:var(--font-sans); font-size:var(--meta-on-spot); font-weight:600;}
   .cover-warmup button{flex:0 0 auto; min-width:44px; min-height:44px; padding:0 14px; border-radius:var(--r-control); background:none; color:inherit; font:inherit; font-size:16px; font-weight:600; cursor:pointer; border:0;}
   .cover-warmup .cover-warmup-done{border:1.5px solid currentColor;}
+  /* v3.658 (UX-64): a drop set offered after a lift's last set, one line above
+     Log (renderCoverDrop). It stands in for the warm-up line while it shows. */
+  .cover-drop{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:14px;}
+  .cover-drop[hidden], .cover.is-resting .cover-drop, .cover-drop:not([hidden]) ~ .cover-warmup{display:none;}
+  .cover-drop-what{flex:1 1 150px; min-width:0; font-size:var(--meta-on-spot); font-weight:600; line-height:1.3;}
+  .cover-drop-what strong{display:block; font-family:var(--font-display); font-size:20px; font-weight:700; line-height:1.15; white-space:nowrap;}
+  .cover-drop button{flex:0 0 auto; min-width:44px; min-height:44px; padding:0 12px; border-radius:var(--r-control); background:none; color:inherit; font:inherit; font-size:16px; font-weight:600; cursor:pointer; border:0;}
+  .cover-drop .cover-drop-log{border:1.5px solid currentColor;}
   .cover .cover-go{margin:0; min-height:56px; border-radius:var(--r-control); background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:16px; font-weight:600;}
   .cover-adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; background:none; color:inherit; display:grid; place-items:center; cursor:pointer;}
   .cover-adjust svg{width:22px; height:22px;}
@@ -5834,6 +5842,12 @@
       </div>
     </div>
     <div class="cover-bar" id="upNextBar" hidden></div>
+    <!-- v3.658 (UX-64): a drop set offered right after a lift's last set (renderCoverDrop). -->
+    <div class="cover-drop" id="coverDrop" hidden>
+      <span class="cover-drop-what"><strong id="coverDropWhat"></strong><span id="coverDropCue"></span></span>
+      <button type="button" class="cover-drop-log" id="coverDropLog">Log drop</button>
+      <button type="button" class="cover-drop-skip" id="coverDropSkip">Not now</button>
+    </div>
     <!-- v3.656 (UX-62): the warm-up step still to do, when this lift has one (renderCoverWarmup). -->
     <div class="cover-warmup" id="coverWarmup" hidden>
       <span class="cover-warmup-step"><small id="coverWarmupOf"></small><span id="coverWarmupStep"></span></span>
@@ -7733,7 +7747,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.657';
+const APP_VERSION = '3.658';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9548,6 +9562,10 @@ const WHATS_NEW = {
   '3.657': { headline: 'Supersets on the cover', points: [
     'In a superset, the cover now names the other lift\'s next set under your target ("Then Triceps Pushdown · 60×12 · no rest between"), so you can set up the next station.',
     'After the pair, you rest for the heavier lift\'s time.',
+  ]},
+  '3.658': { headline: 'Drop sets on the cover', points: [
+    'After the last set of a lift that suits a drop set, the cover offers one ("Drop set · 35 lb"). Log opens the set with the lighter weight filled in; Not now carries on.',
+    'Your rest waits until you\'ve done the drop or turned it down, since a drop set goes straight after the set.',
   ]},
 };
 
@@ -33021,6 +33039,7 @@ document.addEventListener('visibilitychange', ()=>{
 });
 
 function startRestTimer(seconds, label){
+  if(coverDropOffer) endCoverDrop(false); // v3.658 (UX-64): a rest starting ends a drop offer
   restTimerSeconds = seconds || 90;
   restTimerTotal = restTimerSeconds;
   restTimerEndsAt = Date.now() + restTimerSeconds * 1000;
@@ -33585,6 +33604,71 @@ function renderCoverWarmup(card, block){
   document.getElementById('coverWarmupStep').textContent = warm.textContent;
   document.getElementById('coverWarmupDone').setAttribute('aria-label', `Mark warm-up ${[wv && `${wv} ${weightUnit}`, rv && `${rv} reps`].filter(Boolean).join(' × ') || warm.textContent} done`);
   line.hidden = false;
+}
+
+// v3.658 (UX-64, owner C 2026-11-24): a drop set offered on the cover right
+// after a lift's last working set, with that set's rest held until the drop is
+// logged or turned down. Only for a lift whose row has the drop control
+// (renderWorkout's dropSetEligible), not backdating, not a superset's lead-in,
+// and only when something lighter is loadable (suggestDropWeight). In memory
+// only: {key, exIdx, setIdx, name, weight, seconds, label, sheet}; key is the
+// workout it belongs to (program, day, date), so another day's set never matches.
+let coverDropOffer = null;
+function coverDropKey(){ return `${activeProgram}|${activeDay}|${selectedLogDate}`; }
+function isCoverDropRow(o, setRow){
+  return !!o && o.key === coverDropKey() && o.exIdx === setRow.dataset.exIdx && o.setIdx === setRow.dataset.setIdx;
+}
+function renderCoverDrop(){
+  const line = document.getElementById('coverDrop');
+  if(!line) return;
+  const o = coverDropOffer;
+  if(!o || o.sheet){ line.hidden = true; return; }
+  document.getElementById('coverDropWhat').textContent = `Drop set · ${trimUnitNum(o.weight)} ${weightUnit}`;
+  document.getElementById('coverDropCue').textContent = `${o.name} · ${dropSetCue(o.name, 1).replace(/^Drop 1 · /, '')}`;
+  document.getElementById('coverDropLog').setAttribute('aria-label', `Log a drop set of ${o.name} at ${trimUnitNum(o.weight)} ${weightUnit}`);
+  line.hidden = false;
+}
+// Ends the offer; with start, the held rest starts (Log done, Not now, or another set logged).
+function endCoverDrop(start){
+  const o = coverDropOffer;
+  coverDropOffer = null;
+  renderCoverDrop();
+  if(o && start) startRestTimer(o.seconds, o.label);
+}
+// Called as a set row saves, before anything is awaited (a commit dispatches
+// its fields one after another; only the reps change is the set going from
+// not logged to logged). rest is {seconds, label}, what this set would rest.
+// Undo of the offered set ends the offer; another set logged starts the held
+// rest (unless that set starts none: a superset's lead-in, or backdating); the
+// last working set logged may offer a drop, and then a rest still running from
+// the set before is dismissed, so the offer shows and its own rest waits.
+function noteSetForCoverDrop(block, setRow, ex, rest){
+  const was = setRow._repsLogged;
+  const reps = setRow.querySelector('.ex-reps');
+  const now = setRow._repsLogged = !!(reps && reps.value !== '');
+  const o = coverDropOffer;
+  if(isCoverDropRow(o, setRow)){ if(!now) endCoverDrop(false); return; }
+  if(was || !now) return;
+  const noRest = !!ex.superTag || isBackdating();
+  if(o) endCoverDrop(!noRest);
+  if(noRest || !setRow.querySelector('.set-drop-btn') || setRow.querySelector('.drop-set-row')) return;
+  const rows = [...block.querySelectorAll(`.set-row[data-ex-idx="${setRow.dataset.exIdx}"]`)];
+  if(!rows.every(r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '')) return;
+  const w = setRow.querySelector('.ex-weight');
+  const weight = w ? suggestDropWeight(setRow, w.value, 1) : null;
+  if(weight == null) return;
+  if(restTimerEndsAt){ const close = document.getElementById('restTimerClose'); if(close) close.click(); }
+  coverDropOffer = {key: coverDropKey(), exIdx: setRow.dataset.exIdx, setIdx: setRow.dataset.setIdx, name: setSheetExercise(setRow).name,
+    weight, seconds: rest.seconds, label: rest.label, sheet: false};
+  renderCoverDrop();
+}
+// At the rest start for a set: true when that set's drop is on offer, so its
+// rest waits (with the seconds and reason it would have started with).
+function holdRestForDrop(setRow, seconds, label){
+  const o = coverDropOffer;
+  if(!isCoverDropRow(o, setRow)) return false;
+  o.seconds = seconds; o.label = label;
+  return true;
 }
 
 // v3.597 (UX-08): rest takes over the cover. It follows the rest timer (a
@@ -34381,6 +34465,40 @@ document.getElementById('coverWarmupSkip').addEventListener('click', ()=>{
   const strip = block && [...block.querySelectorAll('.warmup-strip')].find(s => s._skipAll);
   if(strip) strip._skipAll();
 });
+// v3.658 (UX-64): the cover's drop line. Log opens the set's sheet with drop 1
+// filled in (reps are the result, so they're typed there: Log, then Save); the
+// held rest starts when the sheet closes, saved or not. Not now starts it.
+function logCoverDrop(){
+  const o = coverDropOffer;
+  if(!o) return;
+  const sel = `[data-ex-idx="${o.exIdx}"][data-set-idx="${o.setIdx}"]`;
+  const row = document.querySelector(`#exerciseList .sets-block .set-row${sel}`);
+  if(!row){ endCoverDrop(true); return; }
+  o.sheet = true;
+  renderCoverDrop();
+  openSetSheet(row, document.querySelector(`#exerciseList .set-chip${sel}`));
+  const line = document.querySelector('#setSheetDrops .set-sheet-drop') || setSheetAddDrop();
+  const sheet = document.getElementById('setSheet');
+  if(!line || sheet.hidden){ endCoverDrop(true); return; }
+  line.querySelector('.set-sheet-drop-reps').focus({preventScroll:true});
+  const watch = new MutationObserver(()=>{
+    if(!sheet.hidden) return;
+    watch.disconnect();
+    if(coverDropOffer === o) endCoverDrop(true);
+  });
+  watch.observe(sheet, {attributes:true, attributeFilter:['hidden']});
+}
+document.getElementById('coverDropLog').addEventListener('click', logCoverDrop);
+document.getElementById('coverDropSkip').addEventListener('click', ()=> endCoverDrop(true));
+// An offer for a workout no longer shown (another day or date), or for a set
+// that is gone or no longer logged (deleted, renumbered, undone), ends quietly.
+function checkCoverDropStillValid(){
+  const o = coverDropOffer;
+  if(!o || o.sheet) return;
+  const r = document.querySelector(`#exerciseList .sets-block .set-row[data-ex-idx="${o.exIdx}"][data-set-idx="${o.setIdx}"] .ex-reps`);
+  if(o.key !== coverDropKey() || !r || r.value === '') endCoverDrop(false);
+}
+new MutationObserver(checkCoverDropStillValid).observe(document.getElementById('exerciseList'), {childList: true, subtree: true});
 // v3.656 (UX-62, owner 2026-11-25): a lift with no history has no ramp to
 // build. The weight typed on the cover for its first set becomes the basis
 // (coverWarmupBasis), and the workout re-renders once with it, so the ramp
@@ -35242,12 +35360,24 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
     const rInput = setRow.querySelector('.ex-reps');
     const rpeInput = setRow.querySelector('.ex-rpe');
     const statusEl = setRow.querySelector('.set-status');
+    setRow._repsLogged = rInput.value !== ''; // v3.658 (UX-64): noteSetForCoverDrop
 
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
     // always targets the row's current position, not a stale one.
     const saveNow = async (evt)=>{
       const setIdx = Number(setRow.dataset.setIdx);
+      // v3.657 (UX-63, owner (i) yes): after a superset's second lift, the
+      // pair rests for the heavier of the two lifts' rest, and names it. Only
+      // when this round was a pair: the first lift has a logged set at this
+      // set number (its extra sets past the first lift's are rested as its own).
+      // v3.658 (UX-64): worked out before anything is awaited, so a drop offer
+      // made now holds the same rest.
+      const pairedRound = pairLead && [...row.querySelectorAll(`.set-row[data-set-idx="${setIdx}"]`)]
+        .some(r => r !== setRow && r.dataset.exIdx !== setRow.dataset.exIdx && r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '');
+      const restEx = pairedRound && getDefaultRestSeconds(pairLead) > getDefaultRestSeconds(ex) ? pairLead : ex;
+      const restTarget = getDefaultRestSeconds(restEx), restLabel = getRestReasonLabel(restEx);
+      noteSetForCoverDrop(block, setRow, ex, {seconds: restTarget, label: restLabel}); // v3.658 (UX-64)
       const weightValRaw = wInput ? wInput.value : '';
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
       const distValRaw = dInput ? dInput.value : '';
@@ -35310,16 +35440,10 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
       // countdown that the reps already started.
       const fromDistance = !!(evt && dInput && evt.target === dInput);
       if(isRealSet && !fromDistance && !isSupersetLeadIn && !isBackdating()){
-        // v3.657 (UX-63, owner (i) yes): after a superset's second lift, the
-        // pair rests for the heavier of the two lifts' rest, and names it. Only
-        // when this round was a pair: the first lift has a logged set at this
-        // set number (its extra sets past the first lift's are rested as its own).
-        const pairedRound = pairLead && [...row.querySelectorAll(`.set-row[data-set-idx="${setIdx}"]`)]
-          .some(r => r !== setRow && r.dataset.exIdx !== setRow.dataset.exIdx && r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '');
-        const restEx = pairedRound && getDefaultRestSeconds(pairLead) > getDefaultRestSeconds(ex) ? pairLead : ex;
-        const restTarget = getDefaultRestSeconds(restEx);
+        // The rest (restEx, restTarget) was worked out at the top (UX-63's pair rule).
         restTargetBySlot[exKey(activeProgram, activeDay, slot, subVariant)] = restTarget;
-        startRestTimer(restTarget, getRestReasonLabel(restEx));
+        // v3.658 (UX-64): held while this set's drop is on offer.
+        if(!holdRestForDrop(setRow, restTarget, restLabel)) startRestTimer(restTarget, restLabel);
       }
       // v3.653 (UX-17b): the "Switch to gym mode?" offer that followed here went with Gym mode.
       // A logged set also means the phone should stay awake for the next one.

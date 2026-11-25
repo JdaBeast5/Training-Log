@@ -13,6 +13,8 @@
 const { readIndexSource, extractFunction, extractConst, runSandbox, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
+// v3.658 (UX-64): wireSetsBlock's save and startRestTimer call the cover's drop-offer hooks (the real ones).
+const COVER_DROP_HOOKS = '\nlet coverDropOffer = null;\n' + ['isCoverDropRow', 'renderCoverDrop', 'endCoverDrop', 'noteSetForCoverDrop', 'holdRestForDrop'].map(n => extractFunction(src, n)).join('\n');
 const { test, run } = makeRunner('test-noweight-consistency.js');
 const DATA = ['programs', 'PROGRAM_DAY_COUNT_VARIANTS', 'MEDICAL_STYLES', 'COMBAT_STYLES', 'CYCLING_STYLES', 'WATERSPORTS_STYLES', 'YOGA_STYLES'].map(c => extractConst(src, c));
 const GLOBAL = ['Bird Dog', 'Dead Bug', 'Side Plank', 'McGill Curl-up', 'Bodyweight Squat', 'Jump Squat', 'Push-up to Plank', 'Bicycle Crunch', 'Single-Leg Bound'];
@@ -105,7 +107,7 @@ test('criterion 2: the real wireSetsBlock on the real Bodyweight d1 Push-up slot
   const html = `<div id="row"><input type="checkbox" data-idx="0"><div class="sets-block"><div class="set-row" data-set-idx="0" data-ex-idx="0">
     <span class="set-num">1</span><input class="ex-reps" value=""><input class="ex-rpe" value=""><span class="set-status"></span></div>
     <button class="add-set-btn">Add Set</button></div></div>`;
-  const { document, window: win } = runJsdom(html, globalsFor(false).replace(/wireSetsBlock\([^\n]*\n/, ''), [extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock'),
+  const { document, window: win } = runJsdom(html, globalsFor(false).replace(/wireSetsBlock\([^\n]*\n/, ''), [extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock') + COVER_DROP_HOOKS,
     `wireSetsBlock(document.getElementById('row'), 0, ${JSON.stringify(slot)});`]);
   const reps = document.querySelector('.ex-reps');
   reps.value = '12'; reps.dispatchEvent(new win.Event('change', {bubbles: true}));

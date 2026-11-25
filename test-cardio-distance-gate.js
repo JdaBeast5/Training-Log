@@ -16,6 +16,8 @@
 const { readIndexSource, extractFunction, extractConst, runSandbox, runSandboxAsync, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
+// v3.658 (UX-64): wireSetsBlock's save and startRestTimer call the cover's drop-offer hooks (the real ones).
+const COVER_DROP_HOOKS = '\nlet coverDropOffer = null;\n' + ['isCoverDropRow', 'renderCoverDrop', 'endCoverDrop', 'noteSetForCoverDrop', 'holdRestForDrop'].map(n => extractFunction(src, n)).join('\n');
 const { test, run } = makeRunner('test-cardio-distance-gate.js');
 const PRED = [extractConst(src, 'exerciseInfo'), extractConst(src, 'DISTANCE_EXERCISE_NAME_RE'), extractFunction(src, 'isDistanceExercise')];
 const isDist = (pairs) => runSandbox(PRED, `__capture.push(${JSON.stringify(pairs)}.map(([n, s]) => isDistanceExercise(n, s)));`)[0];
@@ -40,7 +42,7 @@ function cardioRow(ex, withDistanceInput){
     window.getEquipment = ()=> ({bar:45, plates:[45], dbIncrement:5}); window.toDisplayWeight = (v)=> v; window.trimUnitNum = (v)=> String(v);
     window.weightUnit = 'lb'; window.analyzeProgressionSignal = ()=> null; window.buildPastSessions = ()=> []; window.getExLog = async ()=> [];
     window.makeSwipeable = ()=>{};`;
-  return runJsdom(html, globals, [...PRED, extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock'),
+  return runJsdom(html, globals, [...PRED, extractFunction(src, 'checkAllSetsCompleteAndAutoCheck'), extractFunction(src, 'wireSetsBlock') + COVER_DROP_HOOKS,
     `wireSetsBlock(document.getElementById('row'), 0, ${JSON.stringify(ex)});`]);
 }
 const change = (el, v) => { el.value = v; el.dispatchEvent(new el.ownerDocument.defaultView.Event('change', {bubbles: true})); };

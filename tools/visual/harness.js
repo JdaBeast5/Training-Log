@@ -220,6 +220,8 @@ function buildTodayStates(){
     // v3.657 (UX-63): the lifts before the superset ticked done (as the flow render
     // ticks them), so DB Curl, the pair's first lift, is next: the cover's "Then" line.
     t(`tday-superset-${theme}-402`, 402, theme, { supersetNext: 'DB Curl' });
+    // v3.658 (UX-64): Lateral Raise's sets logged on the cover, so its drop set is offered.
+    t(`tday-dropoffer-${theme}-402`, 402, theme, { dropOffer: 'Lateral Raise' });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
     t(`tday-${theme}-904`, 904, theme, {});
@@ -615,6 +617,29 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             window.scrollTo(0, 0);
           }, state.supersetNext);
           await page.waitForTimeout(500);
+        }
+        // v3.658 (UX-64): the lifts before ticked (as supersetNext), then the
+        // lift's sets logged on the cover (Log set, as a person taps it) until the
+        // drop is offered, closing each rest. On a base without the offer, its sets
+        // are simply logged.
+        if(state.dropOffer){
+          await page.evaluate(name => {
+            for(const b of document.querySelectorAll('#exerciseList > .exercise-block')){
+              if([...b.querySelectorAll('.set-row-owner')].some(o => o.textContent.trim() === name)) break;
+              b.querySelectorAll('.exercise input[type=checkbox]').forEach(c => { c.checked = true; });
+            }
+            renderAllSetChips(); renderUpNext();
+            if(restTimerEndsAt) document.getElementById('restTimerClose').click();
+          }, state.dropOffer);
+          for(let i = 0; i < 10; i++){
+            const lift = await page.evaluate(() => document.getElementById('upNextLift').textContent.trim());
+            if(lift !== state.dropOffer) break;
+            await page.click('#upNextLog');
+            await page.waitForTimeout(500);
+            await page.evaluate(() => { const d = document.getElementById('coverDrop'); if(!(d && !d.hidden) && restTimerEndsAt) document.getElementById('restTimerClose').click(); });
+          }
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.waitForTimeout(300);
         }
         // v3.651 (BL-79): a logged set's sheet, then Drop set (two taps, as a person makes them).
         if(state.dropSheet){
