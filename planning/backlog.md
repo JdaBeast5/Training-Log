@@ -5456,7 +5456,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-never-skips.js`. Sabotage: (a) restore the unscoped `querySelector('input[type=checkbox]')` in `ticked`, and criterion 1 must fail; (b) drop the checkbox restore from Undo, and criterion 2 must fail.
 - **Files:** `index.html` (`findNextSetRow` 33444, `commitSet` 34164; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the new test.
 - **Risk:** low to medium: the cover's order is the core of a session. Guards: `test-today-cover.js`, `test-cover-superset-then.js`, `test-superset-chips.js`, `test-set-chips.js`, `test-auto-check-sets.js`, `test-tap-counts.js`, `test-exercise-logger.js` (`renderExerciseLogger` also calls `findNextSetRow`).
-- **Status:** shipped in v3.663 (PR #262), awaiting the owner's merge. (Batch 1, owner yes 2026-11-24.)
+- **Status:** done (v3.663, PR #262; its Pages deploy failed on GitHub's side, a 500, so it goes live with the next deploy). (Batch 1, owner yes 2026-11-24.)
 
 ### BL-81: "Session complete" tells the truth, and the cover offers Finish (B4)
 - **Why:** **B4.** In S6 the cover read "Session complete · All 40 sets logged" at **38 of 40**: `renderUpNext` (33542–33548) prints `All ${n.total} sets logged` whenever `findNextSetRow` finds no next row, which also happens when the remaining rows belong to ticked lifts. No finish sheet opened (it opens only on the checkbox `change` that completes the day, 31609), and the cover has no way to open it, so a session that ends that way has no finish, no "Next time", no Share.
@@ -5474,7 +5474,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-finish-sheet.js` (criteria 3, 4) and a new `test-cover-finish.js` (1, 2, 5). Sabotage: print `All ${n.total}` unconditionally, and criterion 1 must fail.
 - **Files:** `index.html` (`renderUpNext` 33542; `logUpNext` 33847; the completing tick 31609; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
 - **Risk:** low. Guards: `test-finish-sheet.js`, `test-today-cover.js`, `test-tap-counts.js`.
-- **Status:** ready (batch 1; after BL-80, which removes the most common way to reach this state).
+- **Status:** shipped in v3.664 (PR #263), awaiting the owner's merge. (Batch 1; after BL-80.)
 
 ### BL-82: The PR moment: once per lift per session, an inline mark mid-workout, never over Undo or Share (B2)
 - **Why:**

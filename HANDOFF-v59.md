@@ -1823,3 +1823,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **BL-83 is ready:** the owner confirmed it in the builder session (2026-11-25), and the between-session rule stays as documented.
 - **Order:** the build sequence is now batch 1 (BL-81, BL-82, BL-83), then batch 2 (80c5–80c14), then UX-42. UX-41 was built before batch 1 by mistake (it is independent).
 - **Next:** BL-81 (80c2), "Session complete" tells the truth, and the cover offers Finish session.
+
+## Addendum 184: BL-81 (v3.664, PR #263)
+- `showFinishSheet()` (before `openFinishSheet`) builds the model and opens the sheet; the completing tick (`const finishModel = await showFinishSheet();`) and `logUpNext` (no next set, something logged) both call it. It is the only caller of `openFinishSheet(`.
+- `renderUpNext`: `#upNextTarget` reads "All N" only when `n.done === n.total`; `can-finish` on the card and "Finish session" on `#upNextLog` when `!n.row && n.done > 0`; the rest-day branch clears both. CSS: `.cover.is-done.can-finish .cover-log` shows the row, `.cover-adjust` hidden.
+- **Live:** #262 (v3.663) merged, but its Pages deploy failed (GitHub 500, run 45650814711); the next deploy carries it.
+- **Next:** BL-82 (80c3), the PR moment once per lift per session.
