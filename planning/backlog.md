@@ -4699,7 +4699,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-water-contrast.js`. Sabotage: restore the cyan colour, and criterion 1 must fail in light.
 - **Files:** `index.html` (`.water-btn` ≈2952; `#barWater` ≈7238; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with a dated note any suite pinning `#4FC3F7` on the water bar (grep `test-*.js`).
 - **Risk:** low. The water card loses its blue identity; the 💧 is already an outline icon.
-- **Status:** shipped in v3.659 (PR #256), awaiting the owner's merge.
+- **Status:** done (v3.659, PR #256).
 
 ### UX-39: "Show N more" folds as a quiet ruled row
 - **Why:** the most visible 2.0 component left: it appears in every one of the five screenshots. `.show-more-btn` (2496–2519) is a glass pill (`--glass-fill`, `--glass-hair`, `--radius-pill`) with a plate-blue label, on Today (Priorities), Food (weigh-ins, sleep, BP, glucose, quick picks), Progress (Keep In Mind, Exercise Progress) and History (PRs).
@@ -4717,7 +4717,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-show-more-row.js`. Sabotage: put `color:var(--plate-blue)` back, and criterion 1 must fail.
 - **Files:** `index.html` (2496–2519; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Read and keep green: `test-analysis-collapse.js`, `test-today-priorities*.js`, the weigh-in and PR fold suites (grep `show-more-btn`).
 - **Risk:** low. It's one rule family, and the text stays.
-- **Status:** ready
+- **Status:** shipped in v3.660 (PR #257), awaiting the owner's merge.
 
 ### UX-40: In-card list rows are ruled, not tiles
 - **Why:**

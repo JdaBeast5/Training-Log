@@ -45,7 +45,8 @@ function lum(hex){
 const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 
 const GREEN_FILLS = ['.day-done-badge', '.supplement-row.done .supplement-check', '.grocery-item.done .grocery-check', '.program-rec-btn', '.recipe-log-btn, .supplement-add-btn'];
-const GLASS_SECONDARY = ['.switch-profile-btn', '.show-more-btn', '.custom-toggle', '.adapt-workout-toggle', '.reorder-btn', '.settings-cog'];
+// 2026-11-25 (v3.660, UX-39): .show-more-btn left this list: it is a ruled row now (test-show-more-row.js).
+const GLASS_SECONDARY = ['.switch-profile-btn', '.custom-toggle', '.adapt-workout-toggle', '.reorder-btn', '.settings-cog'];
 
 // 2026-11-16 (v3.580, UX-03, flat ground): the gradients are retired. The primary is ink (--text on --ground);
 // green fills are --spot-green with --on-green; the primary no longer glows

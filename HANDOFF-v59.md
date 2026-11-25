@@ -1799,3 +1799,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `test-water-contrast.js` resolves each theme's tokens from the real `:root` rules, as UX-01's test does. Reuse it for the rest of the tab audit's contrast criteria.
 - TOOL-02 marked done (PR #237); UX-64 marked done.
 - **Next:** UX-39 (80b), "Show N more" folds as a quiet ruled row.
+
+## Addendum 180: UX-39 (v3.660, PR #257)
+- `.show-more-btn` is a ruled row: `background:none; border:0; border-top:1px solid var(--rule); border-radius:0; min-height:44px; color:var(--text-2)`, `:active{opacity:0.6}`, chevron `::after{color:var(--text-3)}` (still drawn in `currentColor`, which `test-glyphs.js` pins).
+- `test-show-more-row.js` clicks the three real folds (tips handler, `appendItemsCollapsible`, `renderCollapsibleList`).
+- **Flagged:** no `aria-expanded`/`aria-controls` on any fold (pre-existing).
+- **Next:** UX-40 (80c), in-card list rows ruled, not tiles.

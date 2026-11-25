@@ -2518,13 +2518,17 @@
   .tip-icon{flex:0 0 auto; width:6px; height:6px; border-radius:50%; background:var(--plate-yellow); margin-top:7px;}
   .tip b{color:var(--text);}
 
+  /* v3.660 (UX-39): the fold is a quiet ruled row, as Today's lists are: full
+     width, no fill, a 1px --rule on top, square ends, 44 px tall, the label in
+     --text-2 and the chevron in --text-3 (as Priorities' summary chevron). It
+     was a glass pill with a plate-blue label. A press dims it; nothing scales. */
   .show-more-btn{
-    width:100%; margin-top:10px; padding:11px; background:var(--glass-fill); border:1px solid var(--glass-hair);
-    border-radius:var(--radius-pill); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
+    width:100%; min-height:44px; margin-top:10px; padding:11px 0; background:none; border:0; border-top:1px solid var(--rule);
+    border-radius:0; color:var(--text-2); font-size:13px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
-    transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    transition:opacity 0.15s var(--ease-smooth);
   }
-  .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
+  .show-more-btn:active{opacity:0.6;}
   .usda-search-btn, .dsld-search-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(var(--plate-teal-rgb),0.4);
     border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
@@ -2540,7 +2544,7 @@
     cursor:pointer; font-family:var(--font-sans); padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
   }
   /* v3.421: a drawn chevron (was the '⌄' glyph), same 1.6px line as ICONS.chevron. */
-  .show-more-btn::after{content:''; display:inline-block; width:6px; height:6px; margin:0 2px 3px 6px; border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; transform:rotate(45deg); transition:transform 0.28s var(--ease-smooth);}
+  .show-more-btn::after{content:''; display:inline-block; width:6px; height:6px; margin:0 2px 3px 6px; border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; transform:rotate(45deg); transition:transform 0.28s var(--ease-smooth); color:var(--text-3);}
   .show-more-btn.expanded::after{transform:translateY(3px) rotate(225deg);}
 
   /* Collapsible card header.
@@ -7752,7 +7756,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.659';
+const APP_VERSION = '3.660';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9574,6 +9578,9 @@ const WHATS_NEW = {
   ]},
   '3.659': { headline: 'Easier-to-read water buttons', points: [
     'The +8oz, +16oz and +24oz buttons on Food now read clearly in light mode, and they\'re bigger to tap. The water bar fills in the same ink as your other bars.',
+  ]},
+  '3.660': { headline: 'Quieter "Show more"', points: [
+    '"Show more" under a list is now a plain line across the card instead of a blue pill, so the list itself stands out. It works the same way.',
   ]},
 };
 
