@@ -38,7 +38,9 @@ const FN_NAMES = ['cycleWeekOf', 'mesocyclePhaseTag', 'volumeModifiersApply', 'i
   // 2026-11-22 (v3.618, MKT-18): openFinishSheet wires "Pin on a photo" (test-bib-photo.js).
   'wireFinishPhoto',
   // 2026-11-22 (v3.619, MKT-17): the model carries the number and the milestone reached today.
-  'numberMilestoneOn', 'dateKeyMinusDays'];
+  'numberMilestoneOn', 'dateKeyMinusDays',
+  // 2026-11-25 (v3.664, BL-81): the cover's Finish session (logUpNext -> showFinishSheet).
+  'showFinishSheet', 'findNextSetRow', 'logUpNext'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
   'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'EXERCISE_CANONICAL', 'PLATE_INKS', 'finishFloodsPlayed',
   'NUMBER_MILESTONES', 'ordinalSuffix' /* 2026-11-22 (v3.619, MKT-17) */, 'VOLUME_MODIFIER_PROGRAMS', 'CUSTOM_PROGRAM_PREFIX' /* 2026-11-24 (v3.650, BL-78) */];
@@ -82,7 +84,8 @@ function mount({reduce = false, mode = 'progression', program = 'strength', stor
     async function readImportedCorpus(){ return []; } // v3.637 (BL-29): no imported archive here
     function preloadShareCardFont(){}
     window.__shared = [];
-    async function shareCelebrationCard(data, btn){ window.__shared.push({data, btn}); }`,
+    async function shareCelebrationCard(data, btn){ window.__shared.push({data, btn}); }
+    window.__commits = 0; function commitSet(){ window.__commits++; } function renderUpNext(){} function readSetLogger(){ return {}; } function setCoverAdjust(){}`,
     [...CONST_NAMES.map(n => extractConst(src, n)), ...FN_NAMES.map(n => extractFunction(src, n)),
      `document.getElementById('exerciseList')._finishInputs = ${JSON.stringify(inputs.map(([ex, log, category]) => ({ex, log, category})))};
       window.__model = () => finishSheetModel(document.getElementById('exerciseList'), '${TODAY}', activeProgram);`,
@@ -267,16 +270,50 @@ test('MKT-18: the real openFinishSheet offers "Pin on a photo" with the bib; a c
   }
 });
 
-test('criterion 7: renderWorkout calls openFinishSheet( at exactly one site, the completing click, and no longer raises the "Session complete!" toast (comments stripped)', (assert)=>{
-  const body = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
-  const calls = [...body.matchAll(/\bopenFinishSheet\(/g)];
+// 2026-11-25 (v3.664, BL-81): the completing click and the cover's Finish
+// session open the sheet through one helper, showFinishSheet(); it is the only
+// caller of openFinishSheet( (test-cover-finish.js covers the cover's side).
+test('criterion 7 (BL-81 criterion 4): renderWorkout opens the sheet at exactly one site, the completing click, through showFinishSheet(); openFinishSheet( is called only inside that helper; no "Session complete!" toast (comments stripped)', (assert)=>{
+  const strip = t => t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const body = strip(extractFunction(src, 'renderWorkout'));
+  assert.strictEqual((body.match(/\bopenFinishSheet\(/g) || []).length, 0, 'not directly');
+  const calls = [...body.matchAll(/\bshowFinishSheet\(/g)];
   assert.strictEqual(calls.length, 1, 'one site');
-  const at = body.indexOf('openFinishSheet(');
+  const at = body.indexOf('showFinishSheet(');
   const guard = body.lastIndexOf('if(cb.checked && dayNowComplete){', at);
   assert.ok(guard > -1 && body.slice(guard, at).split('{').length - body.slice(guard, at).split('}').length === 1, 'inside the completing-click branch');
   // 2026-11-22 (v3.619, MKT-17): the model is kept in a const so checkNumberMilestone gets the same one.
-  assert.match(body.slice(body.lastIndexOf('const finishModel', at), at + 120), /^const finishModel = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(finishModel\);\s*checkNumberMilestone\(finishModel\)\.catch\(\(\)=>\{\}\);/);
+  assert.match(body.slice(body.lastIndexOf('const finishModel', at), at + 120), /^const finishModel = await showFinishSheet\(\);\s*checkNumberMilestone\(finishModel\)\.catch\(\(\)=>\{\}\);/);
   assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'the toast is gone from renderWorkout');
+  // The helper: the same two calls the click made, and the only openFinishSheet( caller in the app.
+  const helper = strip(extractFunction(src, 'showFinishSheet'));
+  assert.match(helper, /const model = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(model\);/);
+  // Line-based, as test-gym-mode-removed.js does it (a /* */ regex runs across accept="image/*").
+  const scripts = [...require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).join('\n')
+    .split('\n').filter(l => !/^\s*(\/\/|\/\*|\*)/.test(l)).map(l => l.replace(/\s\/\/ .*$/, '')).join('\n');
+  const all = [...scripts.matchAll(/\bopenFinishSheet\(/g)].length;
+  assert.strictEqual(all, 2, 'its definition and the one call inside showFinishSheet');
+  const logUp = strip(extractFunction(src, 'logUpNext'));
+  assert.strictEqual((logUp.match(/\bshowFinishSheet\(/g) || []).length, 1, 'the cover\'s Finish session is the other way in');
+});
+
+// BL-81's spec states this with 38 of 40; the sheet's own fixture has 6 rows (5 logged), and the
+// 38-of-40 wording is test-cover-finish.js's. The path is the real one: logUpNext -> showFinishSheet.
+test('BL-81 criterion 3: with no next set (the unlogged row\'s lift ticked), the cover\'s Log (the real logUpNext) opens the sheet with the real model: 5 of 6 sets, and commits nothing', async (assert)=>{
+  const ui = mount();
+  const doc = ui.window.document;
+  // Bench (block 1) has one row with no reps; tick Bench, as the lifter did, so nothing is next.
+  const bench = doc.querySelectorAll('#exerciseList > .exercise-block')[0];
+  bench.querySelectorAll('.set-row').forEach(r => { r.dataset.exIdx = '0'; });
+  bench.insertAdjacentHTML('afterbegin', '<div class="exercise"><input type="checkbox" data-idx="0" checked></div>');
+  doc.querySelectorAll('#exerciseList > .exercise-block')[1].querySelectorAll('.set-row').forEach(r => { r.dataset.exIdx = '1'; });
+  assert.strictEqual(ui.window.findNextSetRow(doc.getElementById('exerciseList')).row, null, 'anchor: nothing is next');
+  assert.strictEqual(ui.window.logUpNext(), true);
+  for(let i = 0; i < 20 && !ui.$('finishSheet').classList.contains('active'); i++) await new Promise(r => setTimeout(r, 0));
+  assert.ok(ui.$('finishSheet').classList.contains('active'), 'the finish sheet opened');
+  const m = JSON.parse(JSON.stringify(await ui.window.__model()));
+  assert.strictEqual(m.sets, 5); assert.strictEqual(m.planned, 6);
+  assert.strictEqual(ui.window.__commits, 0, 'Finish session commits nothing');
 });
 
 // ---- v3.599 (UX-09b): the flood and its motion -----------------------------
