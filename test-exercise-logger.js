@@ -79,7 +79,10 @@ test('REAL invocation: an open exercise shows its own next set — label, carrie
   assert.strictEqual(ui.logger(0).querySelector('.ex-logger-label').textContent, 'Set 2 of 3');
   // RPE 9 at the top of the range: hold the weight (the chip's set-to-set call).
   assert.strictEqual(ui.tile(0, 'weight').value, ui.blocks()[0].querySelectorAll('.set-chip')[1]._values.weight, 'the same call the chip shows');
-  assert.strictEqual(ui.tile(0, 'rpe').value, '9', 'RPE carries forward from the set just logged, as on Up next');
+  // Re-pinned v3.666 (BL-83, owner 2026-11-25): RPE is never filled in, here
+  // as on Up next; the set just logged shows as ghost text only (was value '9').
+  assert.strictEqual(ui.tile(0, 'rpe').value, '', 'RPE is not filled in');
+  assert.strictEqual(ui.tile(0, 'rpe').placeholder, '9', 'the set just logged, as ghost text');
   assert.strictEqual(ui.logger(0).querySelector('.up-next-field[data-field="distance"]').hidden, true, 'no distance field on this lift');
   assert.match(ui.tile(0, 'reps').getAttribute('aria-label'), /^Reps for Overhead Press set 2$/);
 });

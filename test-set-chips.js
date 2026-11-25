@@ -115,8 +115,10 @@ test('REAL invocation: one tap on a ready chip writes into the REAL row (reps la
   ui.chips(0)[0].click();
   assert.deepStrictEqual(order, ['weight:135', 'reps:8'], 'weight first, reps last; no RPE invented');
   assert.strictEqual(ui.window.__toast, 'Logged Barbell Row 135×8');
-  // v3.303: 8 reps (top of 6-8), no RPE -> up one step for set 2.
-  assert.deepStrictEqual(ui.describe(0), ['done:135×8', 'ready next:140×6'], 'the strip moved on, with the set-to-set call');
+  // v3.303: 8 reps (top of 6-8) -> the set-to-set call for set 2. Re-pinned
+  // v3.666 (BL-83, owner 2026-11-25: "if none was entered, weight should not
+  // go up"): with no RPE it holds at 135 (was 'ready next:140×6').
+  assert.deepStrictEqual(ui.describe(0), ['done:135×8', 'ready next:135×8'], 'the strip moved on, with the set-to-set call');
   ui.window.__undo();
   assert.strictEqual(real.querySelector('.ex-reps').value, '');
   assert.strictEqual(real.querySelector('.ex-weight').value, '');
