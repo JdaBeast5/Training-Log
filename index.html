@@ -2969,15 +2969,20 @@
   .water-tips-list{margin:8px 0 0; padding-left:18px; font-size:12px; line-height:1.6; color:var(--text-muted);}
   .water-tips-list li{margin-bottom:6px;}
   .water-tips-list li:last-child{margin-bottom:0;}
-  /* v3.403: .water-btn and the other in-card buttons and chips listed in
-     test-fields-translucent.js (v3.399's set, plus .settings-jump outside
-     the settings sheet) wear the cards' glass rather than the flatter
-     --row-fill, matching the fields (v3.402) and the glass buttons beside
-     them. List rows that swipe keep --row-fill. */
+  /* v3.403: the in-card buttons and chips listed in test-fields-translucent.js
+     (v3.399's set, plus .settings-jump outside the settings sheet) wear the
+     cards' glass rather than the flatter --row-fill, matching the fields
+     (v3.402) and the glass buttons beside them. List rows that swipe keep
+     --row-fill. (.water-btn left that set in v3.659, UX-38: below.) */
+  /* v3.659 (UX-38): the water buttons are the standard secondary control
+     (--surface-2, a 1px --rule, --r-control, the label in --text, 44 px tall):
+     the 2.0 cyan label read 2.0:1 on the light card. The bar's fill is the
+     ink on its --surface-2 track (was an inline cyan). */
   .water-btn{
-    flex:1; background:var(--glass-fill); border:1px solid var(--glass-hair); color:#4FC3F7;
-    padding:8px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+    flex:1; min-height:44px; background:var(--surface-2); border:1px solid var(--rule); color:var(--text);
+    padding:8px; border-radius:var(--r-control); font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
   }
+  #barWater{background:var(--text);}
   .sleep-avg{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
 
   .cycle-current-banner{
@@ -6463,7 +6468,7 @@
     <!-- v3.432: Reset is a quiet action beside the total it clears, with Undo,
          not a fourth button the same weight as the three that add water. -->
     <div class="water-head"><div class="water-value-line" id="waterValText">0 / 128 oz</div><button type="button" class="water-reset" id="waterReset">Reset</button></div>
-    <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
+    <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="width:0%"></div></div>
     <div class="water-btn-row">
       <button class="water-btn" data-oz="8" aria-label="Log 8 ounces of water">+8oz</button>
       <button class="water-btn" data-oz="16" aria-label="Log 16 ounces of water">+16oz</button>
@@ -7747,7 +7752,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.658';
+const APP_VERSION = '3.659';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9566,6 +9571,9 @@ const WHATS_NEW = {
   '3.658': { headline: 'Drop sets on the cover', points: [
     'After the last set of a lift that suits a drop set, the cover offers one ("Drop set · 35 lb"). Log opens the set with the lighter weight filled in; Not now carries on.',
     'Your rest waits until you\'ve done the drop or turned it down, since a drop set goes straight after the set.',
+  ]},
+  '3.659': { headline: 'Easier-to-read water buttons', points: [
+    'The +8oz, +16oz and +24oz buttons on Food now read clearly in light mode, and they\'re bigger to tap. The water bar fills in the same ink as your other bars.',
   ]},
 };
 

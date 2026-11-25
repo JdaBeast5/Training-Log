@@ -75,7 +75,10 @@ const CONTROLS = ['.water-btn', '#researchSourcesList .program-basis-toggle', '#
 // Sources rows became plain list rows with no fill at all (test-learn-2-0.js);
 // the test below asserts that instead.
 const UNFILLED = ['.masterclass-index-btn', '#researchSourcesList .program-basis-toggle'];
-const FILLED = CONTROLS.filter(x => !UNFILLED.includes(x) && x !== '#researchSourcesList .source-row-nested .program-basis-toggle');
+// 2026-11-25 (v3.659, UX-38): the water buttons became the standard secondary
+// control (--surface-2, a 1px --rule): test-water-contrast.js asserts that.
+const SECONDARY = ['.water-btn'];
+const FILLED = CONTROLS.filter(x => !UNFILLED.includes(x) && !SECONDARY.includes(x) && x !== '#researchSourcesList .source-row-nested .program-basis-toggle');
 // The FIRST rule for each selector (where the fill lives); later rules for the
 // same selector are state or layout tweaks.
 function firstDeclared(selector, prop){

@@ -1793,3 +1793,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **The harness:** `--today tday-dropoffer-{dark,light}-402` (`dropOffer`, logging on the cover until the offer shows).
 - **Flagged:** on the fixture, Lateral Raise's cover suggestion climbs +5 lb a set (same on base).
 - **Next:** the first ready item after slot 80x in the roadmap's unified sequence.
+
+## Addendum 179: UX-38 (v3.659, PR #256), the first tab-audit item
+- `.water-btn` is the standard secondary control (`--surface-2`, a 1px `--rule`, `--r-control`, `--text`, `min-height:44px`); `#barWater{background:var(--text)}` replaces the inline cyan.
+- `test-water-contrast.js` resolves each theme's tokens from the real `:root` rules, as UX-01's test does. Reuse it for the rest of the tab audit's contrast criteria.
+- TOOL-02 marked done (PR #237); UX-64 marked done.
+- **Next:** UX-39 (80b), "Show N more" folds as a quiet ruled row.

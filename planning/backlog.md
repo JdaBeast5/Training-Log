@@ -4682,7 +4682,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** run it, plus the default-mode identity check. Sabotage: drop the group seeding, and criterion 3 must fail.
 - **Files:** `tools/visual/harness.js` and `tools/visual/README.md`. Tooling only: no version bump. (A working prototype of the state list and steps is in `scratchpad/audit/harness-audit.js`.)
 - **Risk:** none to the app.
-- **Status:** ready (outside the loop: tooling only, no version bump; build it before UX-38 so their contact sheets show these screens)
+- **Status:** done (PR #237, 2026-11-24; tooling only, no version).
 
 ### UX-38: Water buttons and bar readable in light
 - **Why:** `.water-btn` (≈2952) and `#barWater` (inline, ≈7238) use the 2.0 cyan `#4FC3F7`. On the light card the "+8oz / +16oz / +24oz" labels are **2.0:1**, against a 4.5:1 floor. This is an accessibility defect in a frequent control, so it goes first.
@@ -4699,7 +4699,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-water-contrast.js`. Sabotage: restore the cyan colour, and criterion 1 must fail in light.
 - **Files:** `index.html` (`.water-btn` ≈2952; `#barWater` ≈7238; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with a dated note any suite pinning `#4FC3F7` on the water bar (grep `test-*.js`).
 - **Risk:** low. The water card loses its blue identity; the 💧 is already an outline icon.
-- **Status:** ready
+- **Status:** shipped in v3.659 (PR #256), awaiting the owner's merge.
 
 ### UX-39: "Show N more" folds as a quiet ruled row
 - **Why:** the most visible 2.0 component left: it appears in every one of the five screenshots. `.show-more-btn` (2496–2519) is a glass pill (`--glass-fill`, `--glass-hair`, `--radius-pill`) with a plate-blue label, on Today (Priorities), Food (weigh-ins, sleep, BP, glucose, quick picks), Progress (Keep In Mind, Exercise Progress) and History (PRs).
@@ -5406,7 +5406,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-drop-offer.js`. Sabotage: start the rest timer unconditionally at 36474, and criterion 1 must fail.
 - **Files:** `index.html` (cover markup 6660, the rest start 36474, `logUpNext` 34685; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** medium, because the rest timer's start moves. The hold is scoped to that one offered moment and always ends in a start.
-- **Status:** shipped in v3.658 (PR #255), awaiting the owner's merge. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**. It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
+- **Status:** done (v3.658, PR #255). Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**. It is BL-79's Q2 option (b) as its own follow-up item; BL-79 itself stands.
 
 ### UX-65: The warm-up ramp is loggable by default
 - **Why:** owner, 2026-11-24: "warm ups on by default". "Build the ramp in as sets I can log" (`#warmupSetsToggle`, Settings) is off by default today (`let warmupSetsEnabled = false`, ~33868 at v3.652, with a comment saying it should be asked for rather than arrive in an update). The owner has now asked for it, so new lifters get a guided ramp, and UX-62's cover line shows for everyone.
