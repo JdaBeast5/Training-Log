@@ -52,7 +52,8 @@ test('criterion 2: every exKey / getExLog / saveEx* / subSelectionKey call in th
   const args = (text, at) => { const out = []; let depth = 0, cur = '', i = at; for(; i < text.length; i++){ const c = text[i];
     if(c === '(' || c === '[' || c === '{'){ depth++; cur += c; } else if(c === ')' || c === ']' || c === '}'){ if(depth === 0) break; depth--; cur += c; }
     else if(c === ',' && depth === 0){ out.push(cur.trim()); cur = ''; } else cur += c; } out.push(cur.trim()); return out; };
-  const WANT = {renderWorkout: 2, wireSetsBlock: 14, applyExerciseSubs: 1, openExerciseSubModal: 3, buildExerciseHistoryHtml: 1, refreshSessionSummary: 1, getSessionHeadsUpInsight: 1, computeProgramFitTrend: 1};
+  // 2026-11-25 (v3.665, BL-82): wireSetsBlock 14 -> 15, the PR moment's once-per-lift key (exKey(activeProgram, activeDay, slot, subVariant)).
+  const WANT = {renderWorkout: 2, wireSetsBlock: 15, applyExerciseSubs: 1, openExerciseSubModal: 3, buildExerciseHistoryHtml: 1, refreshSessionSummary: 1, getSessionHeadsUpInsight: 1, computeProgramFitTrend: 1};
   for(const [fn, want] of Object.entries(WANT)){
     const body = extractFunction(src, fn).split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
     const calls = [...body.matchAll(/\b(exKey|getExLog|saveExSet|saveExDropSet|saveExWarmupSet|saveExWarmupSkipped|subSelectionKey)\(/g)]

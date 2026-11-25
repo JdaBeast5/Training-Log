@@ -815,6 +815,8 @@
      superset owner tag ('DC', 'TP') at 3.5:1. */
   .set-chip-tag{font-family:var(--font-sans); font-size:11px; font-weight:600; color:var(--text-muted); margin-right:2px;}
   .set-chip-trend{font-family:var(--font-sans); font-size:12px; font-weight:700;}
+  /* v3.665 (BL-82): a personal record set, marked inline mid-workout (no banner). */
+  .set-chip-pr{flex:0 0 auto; font-family:var(--font-sans); font-size:10px; font-weight:700; letter-spacing:0.04em; line-height:1;}
   .set-chip-trend.is-up{color:var(--plate-green);}
   .set-chip-trend.is-down{color:var(--plate-yellow);}
   .set-chip-trend.is-same{color:var(--text-muted);}
@@ -7776,7 +7778,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.664';
+const APP_VERSION = '3.665';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9614,6 +9616,9 @@ const WHATS_NEW = {
   ]},
   '3.664': { headline: 'Finish from the cover', points: [
     'When there\'s nothing left to log, the cover now says how many sets you logged ("38 of 40 sets logged") and offers Finish session, which opens your session summary.',
+  ]},
+  '3.665': { headline: 'Records, without the interruptions', points: [
+    'A personal record mid-workout now shows as a small PR tag on that set instead of a banner, so it never covers Undo. Your best record of the day is on the session summary when you finish.',
   ]},
 };
 
@@ -31824,8 +31829,27 @@ document.addEventListener('click', (e)=>{
   if(card) shareCelebrationCard(card, btn.id);
 });
 
+// v3.665 (BL-82): lifts whose PR has had its one moment this session (an
+// exKey plus the date). In memory only.
+const prCelebrated = new Set();
 function triggerCelebration(iconName, text, sub, big, shareData){
   const banner = document.getElementById('celebrateBanner');
+  // v3.665 (BL-82): never over Undo or the finish sheet (its Share). Held,
+  // not dropped (a streak milestone is marked celebrated before it shows), and
+  // shown once both are gone, one at a time.
+  const blocked = ()=>{ const u = document.getElementById('undoToast'), f = document.getElementById('finishSheet');
+    return !!((u && u.classList.contains('active')) || (f && f.classList.contains('active'))); };
+  if(blocked()){
+    (triggerCelebration.held || (triggerCelebration.held = [])).push([iconName, text, sub, big, shareData]);
+    if(!triggerCelebration.retry) triggerCelebration.retry = setTimeout(function retry(){
+      triggerCelebration.retry = null;
+      if(blocked()){ triggerCelebration.retry = setTimeout(retry, 600); return; }
+      const next = triggerCelebration.held.shift();
+      if(next) triggerCelebration(...next);
+      if(triggerCelebration.held.length) triggerCelebration.retry = setTimeout(retry, 3000);
+    }, 600);
+    return;
+  }
   // v3.425: an ICONS name (it was an emoji typed as text).
   document.getElementById('celebrateIcon').innerHTML = icon(iconName);
   document.getElementById('celebrateText').textContent = text;
@@ -33829,7 +33853,8 @@ function renderCoverChips(block, exIdx){
     const val = c.querySelector('.set-chip-val');
     return `<button type="button" class="cover-chip ${state}" data-ex-idx="${c.dataset.exIdx}" data-set-idx="${c.dataset.setIdx}" aria-label="${escapeHtml(c.getAttribute('aria-label') || '')}">`
       + (state === 'is-done' ? icon('check') : '') + `<span>${escapeHtml(val ? val.textContent : '')}</span>`
-      + (c.querySelector('.set-chip-drop') ? '<span class="set-chip-drop" aria-hidden="true"></span>' : '') + '</button>'; // v3.651 (BL-79): its drops
+      + (c.querySelector('.set-chip-drop') ? '<span class="set-chip-drop" aria-hidden="true"></span>' : '') // v3.651 (BL-79): its drops
+      + (c.querySelector('.set-chip-pr') ? '<span class="set-chip-pr" aria-hidden="true">PR</span>' : '') + '</button>'; // v3.665 (BL-82)
   }).join('');
 }
 
@@ -34103,7 +34128,8 @@ function renderSetChips(blockEl, glowRow){
     chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
       + (state === 'done' ? `<span class="set-chip-check" aria-hidden="true">${icon('check')}</span>` : '') // v3.604 (UX-23): shown outside gym mode
       + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
-      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '');
+      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '')
+      + (v.done && row.dataset.pr === '1' ? '<span class="set-chip-pr" aria-hidden="true">PR</span>' : ''); // v3.665 (BL-82)
     // v3.651 (BL-79): a logged set's drops (from its drop rows, the source of truth).
     const drops = !v.done ? [] : [...row.querySelectorAll('.drop-set-row')].map(d => {
       const dw = (d.querySelector('.drop-weight') || {}).value || '', dr = (d.querySelector('.drop-reps') || {}).value || '';
@@ -34114,7 +34140,8 @@ function renderSetChips(blockEl, glowRow){
     chip.setAttribute('aria-label', `${owner}, set ${setNum}: ${label || (target ? 'target ' + target + ' reps' : 'not logged')}${v.done && v.rpe ? ' at RPE ' + v.rpe : ''}`
       + (v.done ? ', logged' : loggable ? ', tap to log' : ', tap to enter')
       + (v.why ? `. ${v.why}` : v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : '')
-      + (drops.length ? `, ${drops.length} drop${drops.length > 1 ? 's' : ''}: ${drops.join(', ')}` : ''));
+      + (drops.length ? `, ${drops.length} drop${drops.length > 1 ? 's' : ''}: ${drops.join(', ')}` : '')
+      + (v.done && row.dataset.pr === '1' ? ', personal record' : ''));
     chip._values = v;
     strip.appendChild(chip);
   });
@@ -35468,6 +35495,9 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
       const restEx = pairedRound && getDefaultRestSeconds(pairLead) > getDefaultRestSeconds(ex) ? pairLead : ex;
       const restTarget = getDefaultRestSeconds(restEx), restLabel = getRestReasonLabel(restEx);
       noteSetForCoverDrop(block, setRow, ex, {seconds: restTarget, label: restLabel}); // v3.658 (UX-64)
+      // v3.665 (BL-82): a set without reps (cleared, undone) is no record: its
+      // PR tag goes now, before the chips redraw (Undo redraws them at once).
+      if(rInput.value === '') delete setRow.dataset.pr;
       const weightValRaw = wInput ? wInput.value : '';
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
       const distValRaw = dInput ? dInput.value : '';
@@ -35483,14 +35513,32 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
       // test (and from the streak check inside saveExSet) so jotting "shoulder
       // felt off" on a set you never performed doesn't invent a logged set.
       if(weightValRaw === '' && rInput.value === '' && distValRaw === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
-      if(result.isPR && await isPastPrNotificationWindow()){
+      // v3.665 (BL-82): the PR reaction runs on the save that makes the row a
+      // real set (reps, and weight where the lift has it), not on each of its
+      // fields' changes; a commit fires up to three.
+      const realSetNow = rInput.value !== '' && (!showWeight || weightValRaw !== '');
+      if(!realSetNow) delete setRow.dataset.pr; // e.g. its weight cleared
+      if(result.isPR && realSetNow && await isPastPrNotificationWindow()){
         statusEl.innerHTML = icon('trophy') + ' PR';
         statusEl.className = 'set-status set-status-pr';
-        // v3.639 (MKT-07): the detail says the gain over the previous best (saveExSet's priorMax).
-        const prDetail = prGainDetail(ex.name, toCanonicalLb(weightValRaw), result.priorMax);
-        triggerCelebration('trophy', bestLabel('weight'), prDetail, true, // v3.611 (UX-30): saveExSet's isPR is a weight record
-          {icon:'trophy', headline:'NEW PR', detail: prDetail, kind:'pr', dayId: activeDay});
+        // v3.665 (BL-82): the row carries it, so its chip and the cover's show a PR tag.
+        const wasMarked = setRow.dataset.pr === '1';
+        setRow.dataset.pr = '1';
+        if(!wasMarked){ renderAllSetChips(); renderUpNext(); }
+        // While today's session is under way the mark is the moment (the
+        // finish sheet shows today's records). A backdated PR celebrates,
+        // once per lift per day.
+        const prKey = exKey(activeProgram, activeDay, slot, subVariant) + '|' + selectedLogDate;
+        if(isBackdating() && !prCelebrated.has(prKey)){
+          prCelebrated.add(prKey);
+          // v3.639 (MKT-07): the detail says the gain over the previous best (saveExSet's priorMax).
+          const prDetail = prGainDetail(ex.name, toCanonicalLb(weightValRaw), result.priorMax);
+          triggerCelebration('trophy', bestLabel('weight'), prDetail, true, // v3.611 (UX-30): saveExSet's isPR is a weight record
+            {icon:'trophy', headline:'NEW PR', detail: prDetail, kind:'pr', dayId: activeDay});
+        }
       } else {
+        // v3.665 (BL-82): no longer a record (edited, or undone to other values): its tag goes.
+        if(setRow.dataset.pr === '1'){ delete setRow.dataset.pr; renderAllSetChips(); renderUpNext(); }
         // v3.422: the drawn check (was the ✓ glyph).
         statusEl.innerHTML = icon('check');
         statusEl.className = 'set-status set-status-saved';
