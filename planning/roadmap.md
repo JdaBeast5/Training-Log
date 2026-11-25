@@ -218,7 +218,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80c1. **BL-80:** the cover never skips a set: ticks belong to one lift, and Undo takes back the auto-tick (B1, B3) *(ready)*
    - 80c2. **BL-81:** "Session complete" tells the truth, and the cover offers Finish session (B4) *(ready)*
    - 80c3. **BL-82:** the PR moment: once per lift per session, inline mid-workout, never over Undo or Share (B2; takes over UX-09b's criterion 4) *(ready)*
-   - 80c4. **BL-83:** no invented RPE: one-tap Log stores only an RPE the lifter entered, and no RPE never raises the weight mid-session (owner's rule 2026-11-25) *(**stored-data change**: ready once the owner confirms in the builder session; skipped until then)*
+   - 80c4. **BL-83:** no invented RPE: one-tap Log stores only an RPE the lifter entered, and no RPE never raises the weight mid-session (owner's rule 2026-11-25) *(ready: **stored-data change**, owner confirmed in the builder session 2026-11-25)*
    - *Batch 2:*
    - 80c5. **UX-66:** a cover chip opens the set sheet; only Log commits *(ready)*
    - 80c6. **UX-68:** the drop offer on accessories only; its held rest releases after 20 s and survives a reload (amends UX-64) *(ready)*

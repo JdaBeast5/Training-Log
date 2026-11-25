@@ -1816,3 +1816,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `.ex-chevron` defaults to `--text-3`; its Priorities, Settings and `#exerciseList` overrides went (Settings' chevrons are one step lighter, intended). `.ex-video-link` is `--text` 14px; `.sub-modal-close` and `.settings-panel-close` are `--text` (the finish and day sheet overrides went); the cites and the coach key link are `--text`, underlined; the current masterclass note is `--text-2` at 600.
 - **Flagged (still blue, outside UX-41's list):** `.set-sheet-cancel`, `.back-btn`, `.ex-swap-icon`, the supplement links, the Settings notify row.
 - **Next:** UX-42 (80e), selected chips in the ink.
+
+## Addendum 183: BL-80 (v3.663, PR #262), and BL-83 confirmed
+- `findNextSetRow`'s `ticked` reads the row's own lift's box (`.exercise input[type=checkbox][data-idx=exIdx]`). `commitSet` remembers that box; Undo unticks it only if the commit's auto-tick made it (`checkAllSetsCompleteAndAutoCheck` sets `cb._autoTicked`; the commit clears a stale mark), skips a detached row, and calls `closeFinishSheet()`.
+- **Flagged (pre-existing):** "+ Add set" or Clear on an auto-ticked lift still leaves it ticked, so the cover skips the new or cleared set; Undo doesn't restore drops saved from the set sheet.
+- **BL-83 is ready:** the owner confirmed it in the builder session (2026-11-25), and the between-session rule stays as documented.
+- **Order:** the build sequence is now batch 1 (BL-81, BL-82, BL-83), then batch 2 (80c5–80c14), then UX-42. UX-41 was built before batch 1 by mistake (it is independent).
+- **Next:** BL-81 (80c2), "Session complete" tells the truth, and the cover offers Finish session.

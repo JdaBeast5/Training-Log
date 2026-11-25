@@ -40,8 +40,12 @@ function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', 
     <input class="ex-input ex-weight" placeholder="${w}" value="${wv}"><input class="ex-input ex-reps" placeholder="${r}" value="${rv}">
     <input class="ex-input ex-rpe" placeholder="${rpe}" value="${rpev}"></div></div>`;
 }
+// 2026-11-25 (v3.663, BL-80): the lift's box sits in its .exercise head with
+// data-idx = the lift's exIdx, as renderWorkout builds it; findNextSetRow reads
+// that box, not the block's first (test-cover-never-skips.js).
 function block(sets, rowsHtml, ticked = false){
-  return `<div class="exercise-block"><input type="checkbox"${ticked ? ' checked' : ''}><div class="ex-sets"><span>${sets}</span><div class="ex-cal-tag">~50 cal</div></div>${rowsHtml}</div>`;
+  const exIdx = (rowsHtml.match(/data-ex-idx="(\d+)"/) || [])[1];
+  return `<div class="exercise-block"><div class="exercise"><input type="checkbox" data-idx="${exIdx}"${ticked ? ' checked' : ''}><div class="ex-sets"><span>${sets}</span><div class="ex-cal-tag">~50 cal</div></div></div>${rowsHtml}</div>`;
 }
 function mount(listHtml){
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${listHtml}</div>`,
