@@ -68,7 +68,8 @@ test('REAL CSSOM (v3.459): an index row is a plain 44px row with a hairline, no 
   assert.strictEqual(cs('b').minHeight, '44px');
   assert.strictEqual(cs('b').boxShadow, '');
   assert.strictEqual(cs('m').fontFamily, 'var(--font-sans)');
-  assert.match(CSS, /\.masterclass-index-btn\.current \.mc-index-meta\{ color:var\(--plate-blue\); \}/);
+  // 2026-11-25 (v3.662, UX-41): the note is a label in --text-2 at 600, not link blue (test-ink-affordances.js).
+  assert.match(CSS, /\.masterclass-index-btn\.current \.mc-index-meta\{ color:var\(--text-2\); font-weight:600; \}/);
 });
 
 test('REAL invocation (v3.459): every masterclass gets a row; only yours carries the note', (assert)=>{

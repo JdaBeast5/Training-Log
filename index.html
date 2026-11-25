@@ -1019,7 +1019,6 @@
   .quick-start[hidden]{display:none;}
   .quick-start-step{font-size:13px; color:var(--text-2); margin-bottom:4px;}
   .quick-start-options{display:flex; flex-direction:column; gap:8px; margin:14px 0 6px;}
-  .finish-sheet .sub-modal-close{color:var(--text);} /* v3.603 (UX-22): the head's Done, in the text ink */
   .day-sheet .tabs{flex-wrap:wrap; overflow:visible; row-gap:14px;}
   /* v3.607 (UX-26): the day sheet as plate blocks. Each day is a flat
      56 × 56 square in its own ink, the pictogram 18 px in that ink's
@@ -1041,7 +1040,6 @@
   .day-sheet .tab.active .plate.p-white,
   .day-sheet .tab.active .plate.p-off{box-shadow:inset 0 0 0 1px var(--rule), 0 0 0 2px var(--surface-1), 0 0 0 4.5px var(--text);}
   .day-sheet .tab .plate-label{font-size:13px;}
-  .day-sheet .sub-modal-close{color:var(--text);}
   .day-sheet .reorder-btn,
   .day-sheet .reorder-btn.active{min-height:44px; padding:0 2px; background:none; border:none; border-radius:0; color:var(--text); font-size:15px;}
   .day-sheet .reorder-btn.active{text-decoration:underline; text-underline-offset:4px;}
@@ -1411,7 +1409,7 @@
   #todayInsightsCard.today-priorities::before{display:none;}
   .priorities-summary{display:flex; align-items:center; gap:10px; width:100%; min-height:56px; padding:0; background:none; border:none; color:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600; text-align:left; cursor:pointer;}
   .priorities-summary-text{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .priorities-summary .ex-chevron{color:var(--text-3); margin-left:0;}
+  .priorities-summary .ex-chevron{margin-left:0;}
   .priorities-summary[aria-expanded="true"] .ex-chevron{transform:rotate(90deg);}
   #todayInsightsCard #prioritiesWrap > div{min-height:0; overflow:hidden;}
   #todayInsightsCard #prioritiesWrap.open > div{padding-bottom:14px;}
@@ -1619,8 +1617,10 @@
   /* v3.356 (audit, Apple HIG sheets): every sheet closes with a text button,
      like Settings' Done (v3.307) — 'Done' when you were only looking, 'Cancel'
      when closing abandons a choice or an edit. Was a grey ✕ glyph circle. */
+  /* v3.662 (UX-41): Done and Cancel in the ink (the finish and day sheets'
+     own overrides went). */
   .sub-modal-close{
-    flex:0 0 auto; background:none; border:none; color:var(--plate-blue);
+    flex:0 0 auto; background:none; border:none; color:var(--text);
     font-family:var(--font-sans); font-size:16px; font-weight:600; line-height:1;
     padding:10px 4px; min-height:44px; cursor:pointer;
   }
@@ -1683,8 +1683,12 @@
   .e1rm-end{fill:var(--text); font-family:var(--font-sans); font-size:22px; font-weight:700;}
   /* v3.620 (BL-31): why this row has a set more or fewer than the program. */
   .ex-adjust-note{font-family:var(--font-sans); font-size:12px; line-height:1.3; color:var(--text-2); margin-top:2px;}
+  /* v3.662 (UX-41): affordances in the ink, not link blue: a chevron is
+     --text-3 everywhere. The per-screen overrides went: Priorities' and the
+     open exercise's already said --text-3; Settings' said --text-muted, so its
+     chevrons are a step lighter now, like every other one. */
   .ex-chevron{
-    flex:0 0 auto; font-size:13px; color:var(--plate-blue); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
+    flex:0 0 auto; font-size:13px; color:var(--text-3); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
   }
   .exercise-block.open .ex-chevron{transform:rotate(90deg);}
   /* v3.421: the drawn chevron (ICONS.chevron) is the whole box, so a row's
@@ -2135,8 +2139,8 @@
     font-weight:700; font-size:15px;
     margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);
   }
-  /* v3.307: "Done", trailing, in the app's interaction colour (Apple HIG sheets). */
-  .settings-panel-close{background:none; border:none; color:var(--plate-blue); font-size:16px; font-weight:600; cursor:pointer; padding:10px 4px; min-height:44px; font-family:var(--font-sans);}
+  /* v3.307: "Done", trailing (Apple HIG sheets). v3.662 (UX-41): in the ink, not link blue. */
+  .settings-panel-close{background:none; border:none; color:var(--text); font-size:16px; font-weight:600; cursor:pointer; padding:10px 4px; min-height:44px; font-family:var(--font-sans);}
   /* v3.307 (2.0, Apple HIG): on a phone, Settings is a bottom sheet with a
      grabber — the same sheet as the set logger — not a card dropped from the
      corner. Wider screens keep the panel by the cog. */
@@ -2233,7 +2237,6 @@
      in the ink across the row. */
   #settingsProgramSlot .program-select-wrap::after{display:none;}
   .settings-panel-body .settings-group #programSelector{width:100%; max-width:none; text-align:left; text-align-last:left; color:var(--text); font-weight:600;}
-  .settings-group .card .ex-chevron{color:var(--text-muted);}
   .settings-group .card .nutrition-summary{margin:2px 0;}
   /* A row's one-line summary is for when it is closed; open, the detail
      below says the same thing at length (and for AI, "Key saved — AI
@@ -2340,9 +2343,11 @@
      there; it is scoped to this link only, not a token change. The play mark
      is a mask glyph (the .fi-duplicate::after convention) instead of a typed
      ▶, and min-height gives the link a 44px tap target. */
+  /* v3.662 (UX-41): in the ink at 14px everywhere (UX-34 did this in the open
+     exercise only; that override went). */
   .ex-video-link{
     display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-top:2px; padding:0 4px 0 0;
-    font-size:12px; color:#7A93FF; text-decoration:none; font-weight:600;
+    font-size:14px; color:var(--text); text-decoration:none; font-weight:600;
   }
   .ex-video-link::before{
     content:''; flex:0 0 auto; width:11px; height:11px; background:currentColor;
@@ -2355,12 +2360,11 @@
   .ex-video-link:active{opacity:0.7;}
   /* v3.615 (UX-34): "Technique & focus" was the last plate-blue text in the
      open exercise. It reads in the ink, its chevron, the
-     pictogram and the play mark in --text-2, the summary a 44 pt row; the
-     form-video link in the ink too. */
+     pictogram and the play mark in --text-2, the summary a 44 pt row. (The
+     form-video link's ink is its own rule since v3.662, UX-41.) */
   :root body #exerciseList .ex-details summary{color:var(--text); min-height:44px; font-size:14px;}
   :root body #exerciseList .ex-details summary::before{border-color:var(--text-2);}
   :root body #exerciseList .ex-icon{color:var(--text-2); opacity:1;}
-  :root body #exerciseList .ex-video-link{color:var(--text); font-size:14px;}
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
@@ -3523,11 +3527,10 @@
     text-align:left; cursor:pointer; display:inline-flex; align-items:baseline; gap:4px;
     min-width:0;
   }
-  /* The chevron is --plate-blue, matching every other "tap to go somewhere"
-     chevron in the app (Training Style ›, Body Measurements ›, the exercise
-     rows). It was --text-muted, which made these read as decoration rather than
-     as the same affordance used everywhere else. */
-  .xlink .xlink-chev{ color:var(--plate-blue); font-size:0.9em; flex:0 0 auto; }
+  /* The chevron matches every other "tap to go somewhere" chevron in the app
+     (Training Style ›, Body Measurements ›, the exercise rows): --text-3 since
+     v3.662 (UX-41, no link blue; it was --plate-blue, and --text-muted before). */
+  .xlink .xlink-chev{ color:var(--text-3); font-size:0.9em; flex:0 0 auto; }
   /* scale(0.95) is what every pill and chip in the app does on tap; an opacity
      dip was a third interaction idiom for no reason. */
   .xlink:active{ transform:scale(0.95); }
@@ -3914,7 +3917,7 @@
   .care-disclaimer-card{background:none; border:0; box-shadow:none; padding:0;}
   .care-disclaimer-card .care-disclaimer{margin-bottom:0;}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
-  .custom-toggle.coach-key-link{margin:8px 0 14px; color:var(--plate-blue); font-weight:600;}
+  .custom-toggle.coach-key-link{margin:8px 0 14px; color:var(--text); font-weight:600; text-decoration:underline;} /* v3.662 (UX-41) */
   .custom-toggle.coach-key-link[hidden]{display:none;}
   .care-disclaimer b{color:var(--text);}
 
@@ -4449,7 +4452,7 @@
     flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--text);
     color:var(--ground); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;
   }
-  .restaurant-btn .ex-chevron{color:var(--plate-blue); font-size:16px;}
+  .restaurant-btn .ex-chevron{font-size:16px;} /* v3.662 (UX-41): the default --text-3 */
   .back-btn{
     width:100%; text-align:left; background:none; border:none; color:var(--plate-blue);
     font-size:13px; font-weight:600; padding:6px 0 12px; cursor:pointer; font-family:var(--font-sans);
@@ -4689,14 +4692,15 @@
   .warmup-foot{
     margin:0 0 2px; font-size:11px; color:var(--text-muted); line-height:1.4;
   }
-  /* v3.459: yours is marked by its note, in blue, not by a tinted tile. */
+  /* v3.459: yours is marked by its note, not by a tinted tile. v3.662
+     (UX-41): the note is a label, not a link: --text-2 at 600, not blue. */
   .masterclass-index-btn .mc-index-meta{
     display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;
     font-family:var(--font-sans);
     font-size:13px; font-weight:500;
     color:var(--text-muted);
   }
-  .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
+  .masterclass-index-btn.current .mc-index-meta{ color:var(--text-2); font-weight:600; }
 
   /* --- Research & Sources list ----------------------------------------
      Reuses .program-basis-toggle's existing open/close behavior AND its
@@ -4725,7 +4729,7 @@
   #researchSourcesList .source-cites-eyebrow{ margin-top:12px; }
   #researchSourcesList .source-cites{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
   #researchSourcesList .source-cites li{ font-size:13px; line-height:1.4; color:var(--text-muted); }
-  #researchSourcesList .source-cites a{ color:var(--plate-blue); text-decoration:none; }
+  #researchSourcesList .source-cites a{ color:var(--text); text-decoration:underline; } /* v3.662 (UX-41): a link in running text keeps its underline; colour alone isn't the affordance */
   #researchSourcesList .source-cite-note{ margin:8px 0 0; font-size:13px; line-height:1.4; color:var(--text-muted); }
   #researchSourcesList .source-program-group{ margin-bottom:4px; }
 
@@ -5217,8 +5221,7 @@
   :root body #exerciseList .ex-rir{display:inline; max-width:none; margin:0; font-size:13px; color:var(--text-2);}
   :root body #exerciseList .ex-rir::before{content:' · ';}
   :root body #exerciseList .ex-thumb{background:none; border:none;}
-  :root body #exerciseList .ex-swap-icon,
-  :root body #exerciseList .ex-chevron{color:var(--text-3); opacity:1;}
+  :root body #exerciseList .ex-swap-icon{color:var(--text-3); opacity:1;}
   :root body #exerciseList .exercise input[type=checkbox]{background:none; border:1.5px solid var(--rule-strong); border-radius:4px; box-shadow:none;}
   :root body #exerciseList .exercise input[type=checkbox]:checked{background:var(--text); border-color:var(--text);}
   :root body #exerciseList .exercise input[type=checkbox]:checked::after{border-color:var(--ground);}
@@ -7769,7 +7772,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.661';
+const APP_VERSION = '3.662';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9597,6 +9600,9 @@ const WHATS_NEW = {
   ]},
   '3.661': { headline: 'Lists as clean rows', points: [
     'Weigh-ins, sleep, blood pressure, supplements, your food log and the care and coach lists now read as simple rows with a line between them, instead of rounded tiles. Swipe a row to delete it, as before.',
+  ]},
+  '3.662': { headline: 'Links in the ink', points: [
+    'Chevrons, "Watch form video", the Done button on sheets and in Settings, and links on Learn and Coach now use the same ink as the rest of the app instead of blue, as Today already does. Links inside text keep an underline.',
   ]},
 };
 
