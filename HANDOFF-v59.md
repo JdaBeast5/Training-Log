@@ -1846,3 +1846,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `#upNextChips` click: finds the row and the real list chip by `data-ex-idx`/`data-set-idx` and calls `openSetSheet(row, realChip)` for any chip state; it no longer forwards `real.click()`. The list's delegated chip listener (one-tap log on a ready chip) is unchanged.
 - **Live:** #264 and #265 merged; the #265 Pages run deployed both (the #264 run was cancelled as superseded). Live sw.js serves 3.666.
 - **Next:** 80c6 UX-68 (the drop offer on accessories only; its held rest releases after 20 s and survives a reload).
+
+## Addendum 188: UX-68 (v3.668, PR #267)
+- `noteSetForCoverDrop` offers only when `targetRirLabel(ex, activeProgram, false) === RIR_TARGETS.isolation`. The offer carries `setAt` and a `timer` (`COVER_DROP_RELEASE_MS`, 20 s) that ends it with `endCoverDrop(true, true)`, which starts the rest counted from `setAt`.
+- `startRestTimer(seconds, label, startedAt)`: the optional third argument counts the rest from an earlier moment.
+- `persistRestTimer` stores `{held, seconds, label, heldAt}` in `rest-timer-state` while an offer holds the rest (and no timer runs); `restoreRestTimer` starts it from `heldAt`, or drops it if already over. `endCoverDrop(false)` re-persists, so an offer ended without a rest leaves nothing behind.
+- **Live:** v3.667 (UX-66) merged and live.
+- **Next:** 80c7 in the roadmap's batch 2.
