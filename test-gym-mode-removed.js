@@ -40,7 +40,7 @@ test('criterion 2: the rendered body has no Gym mode button, dock or offer', (as
 test('criterion 2: no script declares or calls the Gym mode functions, or reads its state', (assert)=>{
   assert.ok(code.split('\n').length > 30000 && code.includes('function renderWorkout(') && code.includes('function renderAppFooter('), 'anchor: the stripped scripts keep the whole app (' + code.split('\n').length + ' lines)');
   for(const name of ['enterGymMode', 'exitGymMode', 'finishGymWorkout', 'restoreGymMode', 'loadGymPrefs', 'maybeOfferGymMode', 'answerGymOffer',
-    'wireGymMode', 'refreshGymDock', 'refreshGymLogBtn', 'gymElapsedMs', 'openFirstIncompleteExercise', 'pendingWarmupChip', 'hideGymOffer', 'showGymOffer'])
+    'wireGymMode', 'refreshGymDock', 'refreshGymLogBtn', 'gymElapsedMs', 'openFirstIncompleteExercise', /* 'pendingWarmupChip' is back as the cover's rule (v3.656, UX-62) */ 'hideGymOffer', 'showGymOffer'])
     assert.strictEqual((code.match(new RegExp('\\b' + name + '\\b', 'g')) || []).length, 0, name);
   assert.strictEqual((code.match(/\bgymModeActive\b|\bpendingGymMode\b/g) || []).length, 0, 'no gym state');
   assert.strictEqual((code.match(/classList\.contains\('gym-mode'\)|classList\.(add|toggle)\('gym-mode'/g) || []).length, 0, 'no script sets or reads the gym-mode class');

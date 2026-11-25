@@ -238,7 +238,7 @@ test('criterion 6: the cover\'s exercise row carries the "now" marker, set by th
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
     'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
     'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */,
-    'renderUpNext', 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
+    'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
   FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="dayHeroEyebrow">Day 1</div><div id="dayTitle">Upper · Strength</div>
       <div id="mesocyclePhaseTag"></div><div id="exerciseList">${LIST}</div>`, `
@@ -373,7 +373,7 @@ test('UX-24 criterion 3: the sticky header prints "Set 3 of 6 · Bench Press" fr
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
     'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
     'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'syncStickyDayTitle',
-    'renderUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
+    'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'readSetLogger', 'firstSetHint'].map(n => extractFunction(src, n));
   FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
   const six = [0, 1, 2, 3, 4, 5].map(k => k < 2 ? ROW(0, k, '185', '5') : ROW(0, k)).join('');
   const list = `<div class="exercise-block">${HEAD(0, 'Bench Press').replace('4×4-6', '6×4-6')}<div class="set-chips" role="group"></div><div class="expand-wrap"><div><div class="sets-block">${six}</div></div></div></div>`;

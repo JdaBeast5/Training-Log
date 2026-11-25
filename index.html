@@ -1085,6 +1085,15 @@
   .cover-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   /* 16px between Log and adjust, so a wet thumb doesn't hit adjust. */
   .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px; margin-top:14px;}
+  /* v3.656 (UX-62, owner C+ 2026-11-24): the warm-up step, one line above Log
+     in the cover's ink. Done ticks it (the chip's own handler, with Undo);
+     Skip hides the ramp for today. The big number and Log stay the working set. */
+  .cover-warmup{display:flex; align-items:center; gap:8px; margin-top:14px;}
+  .cover-warmup[hidden], .cover.is-resting .cover-warmup{display:none;}
+  .cover-warmup-step{flex:1 1 auto; min-width:0; font-family:var(--font-display); font-size:24px; font-weight:700; line-height:1.1;}
+  .cover-warmup-step small{display:block; font-family:var(--font-sans); font-size:var(--meta-on-spot); font-weight:600;}
+  .cover-warmup button{flex:0 0 auto; min-width:44px; min-height:44px; padding:0 14px; border-radius:var(--r-control); background:none; color:inherit; font:inherit; font-size:16px; font-weight:600; cursor:pointer; border:0;}
+  .cover-warmup .cover-warmup-done{border:1.5px solid currentColor;}
   .cover .cover-go{margin:0; min-height:56px; border-radius:var(--r-control); background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:16px; font-weight:600;}
   .cover-adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; background:none; color:inherit; display:grid; place-items:center; cursor:pointer;}
   .cover-adjust svg{width:22px; height:22px;}
@@ -5820,6 +5829,12 @@
       </div>
     </div>
     <div class="cover-bar" id="upNextBar" hidden></div>
+    <!-- v3.656 (UX-62): the warm-up step still to do, when this lift has one (renderCoverWarmup). -->
+    <div class="cover-warmup" id="coverWarmup" hidden>
+      <span class="cover-warmup-step"><small id="coverWarmupOf"></small><span id="coverWarmupStep"></span></span>
+      <button type="button" class="cover-warmup-done" id="coverWarmupDone">Done</button>
+      <button type="button" class="cover-warmup-skip" id="coverWarmupSkip" aria-label="Skip the warm-up">Skip</button>
+    </div>
     <div class="cover-log">
       <button type="button" class="save-btn cover-go" id="upNextLog">Log set</button>
       <button type="button" class="cover-adjust" id="upNextAdjust" aria-expanded="false" aria-controls="upNextFieldsWrap" aria-label="Adjust weight, reps or effort"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -7713,7 +7728,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.655';
+const APP_VERSION = '3.656';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9520,6 +9535,10 @@ const WHATS_NEW = {
   ]},
   '3.655': { headline: 'Warm-ups on by default', points: [
     'Warm-up sets now show as steps you can tick off. Prefer the old advice line? Turn off \'Build the ramp in as sets I can log\' in Settings.',
+  ]},
+  '3.656': { headline: 'Warm-ups on the cover', points: [
+    'The next warm-up step sits on the cover, above Log set: tap Done as you go, or Skip. The plates show what to load for it.',
+    'A lift you have never logged gets a warm-up too: set your weight on the cover and the steps are built from it.',
   ]},
 };
 
@@ -30123,7 +30142,7 @@ function roundToIncrement(n, increment){ return Math.round(n/increment)*incremen
 // placeholder, and the ramp builders take lb — toCanonicalLb is the inverse,
 // and skipping it silently ramps a kg user off a number 2.2x too big. Stored
 // set weights are already lb and must NOT be converted again.
-function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
+function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop, coverLb){
   if(todayFirstSet && todayFirstSet.weight != null){
     return {weight: todayFirstSet.weight, from: 'logged'};
   }
@@ -30131,7 +30150,29 @@ function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
     return {weight: toCanonicalLb(suggestedFirst.weight), from: 'target'};
   }
   if(priorTop && priorTop.weight != null) return {weight: priorTop.weight, from: 'last'};
+  // v3.656 (UX-62, owner 2026-11-25): a lift with no history at all (the first
+  // session of a program) builds its ramp from the weight typed on the cover.
+  if(coverLb != null && coverLb > 0) return {weight: coverLb, from: 'cover'};
   return null;
+}
+
+// v3.656 (UX-62): the working weight typed on the cover for a lift with no
+// history, by program, day, date, the lift's place in today's list and its name. In
+// memory only (no stored key): once set 1 is logged, the logged weight is the
+// basis, as it always was.
+const coverWarmupBasis = new Map();
+function coverBasisKey(i, name){ return `${activeProgram}|${activeDay}|${selectedLogDate}|${i}|${name}`; }
+
+// The warm-up step to do next: the ready chip, but only while none of the
+// exercise's working sets is logged (once you are into them, the ramp is
+// behind you whether or not every step was ticked). v3.656 (UX-62): back as
+// the cover's rule (it was Gym mode's dock's, removed in v3.653).
+function pendingWarmupChip(block){
+  if(!block) return null;
+  const warm = block.querySelector(':scope > .warmup-chips .set-chip.is-ready');
+  if(!warm) return null;
+  const started = [...block.querySelectorAll('.sets-block .set-row[data-set-idx] .ex-reps')].some(r => r.value !== '');
+  return started ? null : warm;
 }
 
 // One nudge, three reasons. An eligible exercise that cannot get a numeric
@@ -30951,6 +30992,7 @@ async function renderWorkout(){
     let badge = '';
     let noPrior = false; // v3.579 (BIZ-05)
     let stepUp = null; // v3.648 (MKT-23): the cheer's step, set below
+    let rampFrom = ''; // v3.656 (UX-62): 'none' wants a ramp with no basis yet; 'cover' built from the typed weight
     {
       const log = logs[i];
       // Own-slot history first; if there's genuinely none, fall back to the
@@ -31081,7 +31123,8 @@ async function renderWorkout(){
         // and skipping it silently ramps a kg user off a number 2.2x too big.
         const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
         // v3.648 (MKT-23): firstBasis and suggestedFirst are computed above.
-        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop);
+        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop, coverWarmupBasis.get(coverBasisKey(i, ex.name)));
+        rampFrom = !rampBasis ? 'none' : rampBasis.from === 'cover' ? 'cover' : '';
         if(rampBasis && rampBasis.weight >= minWeight){
           // The name goes in so the steps can be snapped to what this person can
           // actually load, the same way the working-set suggestion already is.
@@ -31108,7 +31151,8 @@ async function renderWorkout(){
             : '';
           // Says what it was built from. A ramp that silently changed basis
           // between sessions would look like the app forgetting your numbers.
-          const basisNote = rampBasis.from === 'logged'
+          const basisNote = rampBasis.from === 'cover' ? '(built from the weight you entered)' // v3.656 (UX-62)
+            : rampBasis.from === 'logged'
             ? "(built from today's logged working weight)"
             : rampBasis.from === 'target'
               ? "(built from today's target working weight)"
@@ -31178,9 +31222,12 @@ async function renderWorkout(){
         // actually done, and a suggestion has no business overwriting the
         // display of a fact.
         const suggested = savedSet ? null : computeSuggestedSet(placeholderSet, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx, prior);
+        // v3.656 (UX-62): with no history, the weight typed on the cover stays the ghost, so the cover keeps showing it.
+        const typedLb = coverWarmupBasis.get(coverBasisKey(i, ex.name));
         const weightPlaceholder = suggested
           ? trimUnitNum(suggested.weight)
-          : (placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit);
+          : (placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight))
+          : typedLb != null ? trimUnitNum(toDisplayWeight(typedLb)) : weightUnit);
         const repsPlaceholder = suggested && suggested.reps!=null
           ? suggested.reps
           : (repSug && repSug.value != null && !savedSet) ? repSug.value
@@ -31295,7 +31342,7 @@ async function renderWorkout(){
       headerInnerHtml, sameAsLastHtml, warmupHtml, setRowHtmlArr, summaryHtml, badge,
       cautionHtml, detailsHtml: buildDetailsHtml(ex),
       fallbackEntry: fallbackPriorEntries[i],
-      noPrior, stepUp,
+      noPrior, stepUp, rampFrom,
     };
   });
 
@@ -31319,6 +31366,7 @@ async function renderWorkout(){
     row.className = 'exercise-block';
     if(piece.noPrior) row.dataset.firstTime = '1'; // v3.579 (BIZ-05): read by openSetSheet
     if(piece.stepUp != null) row.dataset.stepUp = String(piece.stepUp); // v3.648 (MKT-23): read by renderUpNext
+    if(piece.rampFrom) row.dataset.rampFrom = piece.rampFrom; // v3.656 (UX-62): read by the cover's weight field
     const trackingHtml = `
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
           <div class="set-actions" data-ex-idx="${i}">${piece.sameAsLastHtml}</div>
@@ -33396,6 +33444,7 @@ function renderUpNext(){
     document.getElementById('upNextChips').innerHTML = '';
     document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
     document.getElementById('upNextProgress').textContent = '';
+    renderCoverWarmup(card, null); // v3.656 (UX-62)
     syncStickyDayTitle(); // v3.605 (UX-24)
     renderExerciseDetailBar(); // v3.622 (UX-14): no next set, no stack
     return;
@@ -33410,6 +33459,7 @@ function renderUpNext(){
     document.getElementById('upNextTarget').textContent = `All ${n.total} sets logged`;
     document.getElementById('upNextChips').innerHTML = '';
     hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
+    renderCoverWarmup(card, null); // v3.656 (UX-62)
     syncStickyDayTitle(); // v3.605 (UX-24)
     renderExerciseDetailBar(); // v3.622 (UX-14): session complete clears the pane's stack
     return;
@@ -33440,6 +33490,7 @@ function renderUpNext(){
   card._range = target ? (target.textContent.split('×')[1] || '').trim() : '';
   card._exName = n.name.trim(); // v3.596 (UX-07): the plate stack is for barbell lifts only
   card._row = n.row; card._rirWords = rir ? rir.getAttribute('aria-label') : ''; // v3.597 (UX-08): the rest steppers
+  renderCoverWarmup(card, block); // v3.656 (UX-62): before the numeral, whose plate stack follows the step
   renderCoverNumeral(card);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
@@ -33465,7 +33516,33 @@ function renderCoverNumeral(card){
   el.classList.toggle('is-m', len >= 4 && len <= 5);
   el.classList.toggle('is-s', len >= 6);
   el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
-  renderCoverBar(card, hasWeight ? v.weight : '');
+  // v3.656 (UX-62, C+): while a warm-up step is next, the plate stack is that step's load.
+  // (The open-screen pane's stack keeps showing the working set.)
+  if(card._warm) renderCoverBar(card, card._warm.weight, card._warm.of);
+  else renderCoverBar(card, hasWeight ? v.weight : '');
+}
+
+// v3.656 (UX-62, owner C+ 2026-11-24): the warm-up step still to do on the
+// cover's lift, as one line above Log: "Warm-up 1 of 4" over "45×8", Done and
+// Skip. Done is the step's own chip (its handler saves and offers Undo); Skip
+// is the ramp's own skip-all. Nothing shows with the ramp off (it is then the
+// advice line, with no chips) or on a lift without one.
+function renderCoverWarmup(card, block){
+  const line = document.getElementById('coverWarmup');
+  if(!line) return;
+  const warm = pendingWarmupChip(block);
+  card._warm = null;
+  if(!warm){ line.hidden = true; return; }
+  const chips = [...block.querySelectorAll(':scope > .warmup-chips .set-chip')];
+  const of = `Warm-up ${chips.indexOf(warm) + 1} of ${chips.length}`;
+  const row = block.querySelector(`.warmup-strip .warmup-set-row[data-step-idx="${warm.dataset.stepIdx}"]`);
+  const w = row && row.querySelector('.warmup-weight'), r = row && row.querySelector('.warmup-reps');
+  const wv = w ? w.value : '', rv = r ? r.value : '';
+  card._warm = {weight: wv, of};
+  document.getElementById('coverWarmupOf').textContent = of;
+  document.getElementById('coverWarmupStep').textContent = warm.textContent;
+  document.getElementById('coverWarmupDone').setAttribute('aria-label', `Mark warm-up ${[wv && `${wv} ${weightUnit}`, rv && `${rv} reps`].filter(Boolean).join(' × ') || warm.textContent} done`);
+  line.hidden = false;
 }
 
 // v3.597 (UX-08): rest takes over the cover. It follows the rest timer (a
@@ -33532,20 +33609,20 @@ function setCoverRepsLeft(rir){
 // the plates on each side, heaviest against the collar, and a caption that is
 // what VoiceOver reads (the drawing is aria-hidden). Follows the weight as it
 // is adjusted.
-function renderCoverBar(card, weight){
+function renderCoverBar(card, weight, caption){
   const box = document.getElementById('upNextBar');
   if(!box) return;
   const w = parseFloat(weight);
   const eq = getEquipment();
   if(!card._exName || !isBarbellExercise(card._exName) || !(w >= eq.bar)){ box.hidden = true; box.innerHTML = ''; return; }
-  box.innerHTML = plateStackInner(platesPerSide(w, eq), eq);
+  box.innerHTML = plateStackInner(platesPerSide(w, eq), eq, caption);
   box.hidden = false;
   renderExerciseDetailBar(); // v3.622 (UX-14): the pane's stack follows the cover's weight as it's stepped
 }
 // The drawing and its caption, shared by the cover and the open-screen pane (v3.622, UX-14).
-function plateStackInner(load, eq){
+function plateStackInner(load, eq, caption){
   return barStackSvg(load.plates, weightUnit)
-    + `<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span><span>${escapeHtml(String(eq.bar))} ${escapeHtml(weightUnit)} bar</span></div>`;
+    + `<div class="cover-bar-cap"><span>${escapeHtml(plateCaption(load))}</span><span>${escapeHtml((caption ? caption + ' · ' : '') + `${eq.bar} ${weightUnit} bar`)}</span></div>`;
 }
 
 // The lift's own set chips, drawn for the cover from the real strip in
@@ -34247,6 +34324,50 @@ function stepSetSheet(field, dir, input){
 document.getElementById('upNextLog').addEventListener('click', logUpNext);
 document.getElementById('upNextAdjust').addEventListener('click', ()=> setCoverAdjust(document.getElementById('upNextAdjust').getAttribute('aria-expanded') !== 'true'));
 document.getElementById('upNextFields').addEventListener('input', ()=> renderCoverNumeral(document.getElementById('upNext')));
+// v3.656 (UX-62): the cover's warm-up line. Done and Skip find the step and
+// the ramp afresh at the tap (the list re-renders under them).
+function coverWarmupBlock(){
+  const card = document.getElementById('upNext');
+  return card && card._row ? card._row.closest('.exercise-block') : null;
+}
+document.getElementById('coverWarmupDone').addEventListener('click', ()=>{
+  const warm = pendingWarmupChip(coverWarmupBlock());
+  if(warm) warm.click();
+});
+document.getElementById('coverWarmupSkip').addEventListener('click', ()=>{
+  const block = coverWarmupBlock();
+  const strip = block && [...block.querySelectorAll('.warmup-strip')].find(s => s._skipAll);
+  if(strip) strip._skipAll();
+});
+// v3.656 (UX-62, owner 2026-11-25): a lift with no history has no ramp to
+// build. The weight typed on the cover for its first set becomes the basis
+// (coverWarmupBasis), and the workout re-renders once with it, so the ramp
+// (and the cover's warm-up line) appear before the first set is logged.
+// Only a lift renderWorkout stamped as wanting a ramp with nothing to build it
+// from (data-ramp-from="none"), or one already built from the typed weight
+// ("cover", so a corrected weight rebuilds it). The cover's fields are kept
+// through the re-render, so nothing typed is lost.
+document.getElementById('upNextWeight').addEventListener('change', async (e)=>{
+  const card = document.getElementById('upNext');
+  const row = card && card._row;
+  const block = row && row.closest('.exercise-block');
+  if(!warmupSetsEnabled || !block) return;
+  if(block.dataset.rampFrom !== 'none' && block.dataset.rampFrom !== 'cover') return;
+  if([...block.querySelectorAll('.sets-block .set-row[data-set-idx] .ex-reps')].some(r => r.value !== '')) return; // under way
+  const w = parseFloat(e.target.value);
+  if(!(w > 0)) return;
+  const key = coverBasisKey(row.dataset.exIdx, card._exName);
+  const lb = toCanonicalLb(w);
+  if(coverWarmupBasis.get(key) === lb) return;
+  coverWarmupBasis.set(key, lb);
+  const kept = readSetLogger(card);
+  await renderWorkout();
+  for(const f of ['weight', 'distance', 'reps', 'rpe']){
+    const input = document.getElementById('upNext' + f[0].toUpperCase() + f.slice(1));
+    if(input && kept[f] != null && kept[f] !== '') input.value = kept[f];
+  }
+  renderCoverNumeral(card);
+});
 // v3.597 (UX-08): the rest controls on the cover call the timer's own.
 document.getElementById('coverRest').addEventListener('click', (e)=>{
   const b = e.target.closest && e.target.closest('button');
