@@ -1067,6 +1067,9 @@
   .cover-lift-row{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:8px;}
   .cover-lift{font-size:22px; font-weight:600; letter-spacing:-0.01em; line-height:1.2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
+  /* v3.669 (UX-70): "Target" over a numeral that is the prescription, not a set to log. */
+  .cover-target-label{display:block; margin-top:10px; font-size:var(--meta-on-spot); font-weight:600;} /* the .cover-of style; no forced caps (test-label-floor) */
+  .cover-target-label[hidden], .cover.is-rest .cover-target-label, .cover.is-done .cover-target-label{display:none;}
   .cover-rx, .cover-hint, .cover-why, .cover-caution{font-size:var(--meta-on-spot); line-height:1.35;}
   .cover-rx{margin-top:2px;}
   /* v3.657 (UX-63, owner C 2026-11-24): in a superset, the other lift's next set, so you can set up the next station. */
@@ -5849,6 +5852,8 @@
     <!-- v3.606 (UX-25): a rest day's note and its one action, written by renderWorkout's rest branch. -->
     <div class="cover-rest-day" id="coverRestDay" hidden></div>
     <p class="cover-hint" id="upNextHint" hidden></p>
+    <!-- v3.669 (UX-70): over the numeral while it shows the target, not a set Log would write. -->
+    <span class="cover-target-label" id="upNextTargetLabel" hidden>Target</span>
     <div class="cover-numeral" id="upNextNumeral"><span class="cover-w"></span><span class="cover-u"></span><span class="cover-x"></span></div>
     <span class="cover-sr" id="upNextProgress"></span>
     <!-- v3.597 (UX-08): rest takes over the cover. Shown while the rest timer
@@ -7778,7 +7783,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.668';
+const APP_VERSION = '3.669';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9628,6 +9633,9 @@ const WHATS_NEW = {
   ]},
   '3.668': { headline: 'Drop sets, for accessories', points: [
     'The drop set offer now comes after accessory lifts only, not heavy compound lifts. Leave it for 20 seconds and your rest starts by itself, counted from your set, and a held rest survives the app reloading.',
+  ]},
+  '3.669': { headline: 'A clear first set', points: [
+    'On a lift you haven\'t logged before, the big number is marked Target, and the button says what it will do (Enter weight) until there\'s a set to log. The −/+ buttons start an empty weight at the bar, not at zero.',
   ]},
 };
 
@@ -33676,7 +33684,14 @@ function renderCoverNumeral(card){
   const hasWeight = !card.querySelector('.up-next-field[data-field="weight"]').hidden;
   const unit = card.querySelector('.up-next-field[data-field="weight"] small').textContent;
   const repsUnit = card.querySelector('.up-next-field[data-field="reps"] small').textContent.toLowerCase();
-  const reps = v.reps || card._range || '';
+  // v3.669 (UX-70): nothing to log yet (no reps): the numeral is the target, the
+  // range read as one ("12–15"), labelled so; Log says what it will open.
+  const isTarget = !v.reps;
+  const reps = v.reps || (card._range || '').replace(/(\d)\s*-\s*(\d)/, '$1–$2');
+  const label = document.getElementById('upNextTargetLabel');
+  const live = !card.classList.contains('is-done') && !!card._row;
+  if(label) label.hidden = !(live && isTarget && reps);
+  if(live) document.getElementById('upNextLog').textContent = !isTarget ? 'Log set' : hasWeight && !v.weight ? 'Enter weight' : 'Enter reps';
   const el = document.getElementById('upNextNumeral');
   const [w, u, x] = el.children;
   if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
@@ -33685,7 +33700,7 @@ function renderCoverNumeral(card){
   const len = w.textContent.length;
   el.classList.toggle('is-m', len >= 4 && len <= 5);
   el.classList.toggle('is-s', len >= 6);
-  el.setAttribute('aria-label', hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : ''));
+  el.setAttribute('aria-label', (label && !label.hidden ? 'Target: ' : '') + (hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : '')));
   // v3.656 (UX-62, C+): while a warm-up step is next, the plate stack is that step's load.
   // (The open-screen pane's stack keeps showing the working set.)
   if(card._warm) renderCoverBar(card, card._warm.weight, card._warm.of);
@@ -33830,8 +33845,9 @@ function renderCoverSteppers(card){
   const w = card.querySelector('.up-next-field[data-field="weight"]');
   steppers.querySelector('.cover-step[data-field="weight"]').hidden = !w || w.hidden;
   const unit = w ? w.querySelector('small').textContent : '';
-  document.getElementById('coverStepWeight').textContent = (document.getElementById('upNextWeight').value || '0') + ' ' + unit;
-  document.getElementById('coverStepReps').textContent = document.getElementById('upNextReps').value || '0';
+  // v3.669 (UX-70): an empty field reads "–", not 0.
+  document.getElementById('coverStepWeight').textContent = (document.getElementById('upNextWeight').value || '–') + ' ' + unit;
+  document.getElementById('coverStepReps').textContent = document.getElementById('upNextReps').value || '–';
   const rpe = parseFloat(document.getElementById('upNextRpe').value);
   const rir = isNaN(rpe) ? null : Math.max(0, Math.min(3, Math.round(10 - rpe)));
   steppers.querySelectorAll('.cover-rir [data-rir]').forEach(b => b.setAttribute('aria-checked', String(rir != null && Number(b.dataset.rir) === rir)));
@@ -33841,6 +33857,16 @@ function stepCoverField(field, dir){
   const card = document.getElementById('upNext');
   const input = document.getElementById(field === 'weight' ? 'upNextWeight' : 'upNextReps');
   const step = field === 'weight' ? (card._row ? setSheetWeightStep(card._row) : (weightUnit === 'kg' ? 2.5 : 5)) : 1;
+  // v3.669 (UX-70): from an empty weight, + starts at the bar (a barbell lift) or
+  // one loadable step, not 0 + step; - leaves it empty.
+  if(field === 'weight' && input.value === ''){
+    if(dir < 0) return;
+    const bar = card._exName && isBarbellExercise(card._exName) ? getEquipment().bar : 0;
+    input.value = String(bar || step);
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    renderCoverSteppers(card);
+    return;
+  }
   const next = Math.max(0, Math.round(((parseFloat(input.value) || 0) + dir * step) * 100) / 100);
   input.value = String(next);
   input.dispatchEvent(new Event('input', {bubbles: true}));
@@ -33947,7 +33973,12 @@ function logUpNext(){
   // session, which opens the finish sheet and commits nothing.
   if(!n.row){ if(n.done > 0){ showFinishSheet().catch(()=>{}); return true; } return false; }
   const values = readSetLogger(document.getElementById('upNext'));
-  if(values.reps === ''){ setCoverAdjust(true); document.getElementById('upNextReps').focus(); return false; }
+  // Nothing to log yet: open the fields at the one Log's label named (v3.669, UX-70: the weight first when it's empty).
+  if(values.reps === ''){
+    const weightTile = document.getElementById('upNextWeight');
+    const first = !weightTile.closest('.up-next-field').hidden && values.weight === '' ? weightTile : document.getElementById('upNextReps');
+    setCoverAdjust(true); first.focus(); return false;
+  }
   // v3.593 (UX-06a): through commitSet, as a chip tap: same row write, same Undo.
   commitSet(n.row, values);
   renderUpNext();
