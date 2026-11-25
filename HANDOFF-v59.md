@@ -1853,3 +1853,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `persistRestTimer` stores `{held, seconds, label, heldAt}` in `rest-timer-state` while an offer holds the rest (and no timer runs); `restoreRestTimer` starts it from `heldAt`, or drops it if already over. `endCoverDrop(false)` re-persists, so an offer ended without a rest leaves nothing behind.
 - **Live:** v3.667 (UX-66) merged and live.
 - **Next:** 80c7 in the roadmap's batch 2.
+
+## Addendum 189: UX-70 (v3.669, PR #268)
+- `renderCoverNumeral`: with no reps (`isTarget`), shows `#upNextTargetLabel` ("Target", over the numeral), reads the range with an en dash, prefixes the numeral's aria-label "Target: ", and sets `#upNextLog` to "Enter weight" / "Enter reps" / "Log set". Only while the cover has a next set (`!is-done && card._row`), so Finish session and the rest day keep their labels.
+- `logUpNext` with no reps focuses the weight tile when it is shown and empty, else reps.
+- `renderCoverSteppers` shows "–" for an empty field; `stepCoverField` starts an empty weight at the bar (barbell) or one loadable step on +, and ignores −.
+- **Live:** v3.668 (UX-68) merged and live.
+- **Flagged:** the harness `tday-firstrun` state times out on Branch-1 as well; run `--today` with `--only` (the other 32 states) until it's looked at.
+- **Next:** 80c8 in the roadmap's batch 2.

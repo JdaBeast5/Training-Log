@@ -5621,7 +5621,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-first-time.js`. Sabotage: keep "Log set" unconditionally, and criterion 1 must fail.
 - **Files:** `index.html` (`renderUpNext`, `renderCoverNumeral` 33595, `logUpNext`, `renderCoverSteppers`, `stepCoverField`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** low. Guards: `test-today-cover.js`, `test-tap-counts.js`, `test-first-set-hint*.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.669 (PR #268), awaiting the owner's merge. (Batch 2.) The label is sentence case, not small caps (test-label-floor forbids forced uppercase).
 
 ### UX-71: Timed and cardio rows log with one tap (B8)
 - **Why (B8):**
