@@ -157,7 +157,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 51. **MKT-16:** the session bib card *(moved in; the owner's chosen edge)*
 52. **MKT-17:** "Your number"
 53. **MKT-18:** pin the bib on your own photo
-54. **UX-09b:** the PR flood and its motion; none on clinical programs
+54. **UX-09b:** the PR flood and its motion; none on clinical programs *(its criterion 4, one celebration per PR, moves to BL-82 at 80c3, 2026-11-25)*
 55. BIZ-06: AI entry points say they need a key, **and what each sends and to whom**; the AI card sorts below Trends
 55a. **BL-59:** category corrections that feed the muscle ledger, with M-8 *(audit fold-in; owner yes 2026-11-08; before BL-20)*
 56. BL-20: the per-muscle ledger, fractional; the ink fill stops at the floor
@@ -214,6 +214,23 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80a. **UX-38:** Food's water buttons readable in light (a contrast bug, first)
    - 80b. **UX-39:** "Show N more" folds as a quiet ruled row
    - 80c. **UX-40:** in-card list rows are ruled, not tiles
+   - *The Today cover usability test (planner 2026-11-25, against v3.661; specs in `backlog.md` → "The Today cover usability test"). Batch 1 moves ahead of the rest of the tab audit (owner 2026-11-24, asked "move batch 1 ahead of the tab cleanup?": "Yes"; 2026-11-25: "Go"). Batch 2 follows it, also ahead of UX-41: these fix daily logging (the mission's "faster or more trustworthy"), while the rest of the tab audit is visual consistency and loses nothing by waiting a few builds.*
+   - 80c1. **BL-80:** the cover never skips a set: ticks belong to one lift, and Undo takes back the auto-tick (B1, B3) *(ready)*
+   - 80c2. **BL-81:** "Session complete" tells the truth, and the cover offers Finish session (B4) *(ready)*
+   - 80c3. **BL-82:** the PR moment: once per lift per session, inline mid-workout, never over Undo or Share (B2; takes over UX-09b's criterion 4) *(ready)*
+   - 80c4. **BL-83:** no invented RPE: one-tap Log stores only an RPE the lifter entered, and no RPE never raises the weight mid-session (owner's rule 2026-11-25) *(**stored-data change**: ready once the owner confirms in the builder session; skipped until then)*
+   - *Batch 2:*
+   - 80c5. **UX-66:** a cover chip opens the set sheet; only Log commits *(ready)*
+   - 80c6. **UX-68:** the drop offer on accessories only; its held rest releases after 20 s and survives a reload (amends UX-64) *(ready)*
+   - 80c7. **UX-70:** a first-time lift says what Log will do ("Target", "Enter weight") *(ready)*
+   - 80c8. **UX-71:** timed and cardio rows log with one tap ("Log 45 s", "Log 20 min") *(ready)*
+   - 80c9. **UX-72:** bodyweight reads "BW ×11" with "Added weight"; AMRAP in words *(ready)*
+   - 80c10. **BL-84:** editing a set never acts like logging one (typed reps kept, no rest restart, "Updated", Clear stops its rest) *(ready)*
+   - 80c11. **BL-85:** the drop is at least 25% lighter; the finish sheet counts lifts, not blocks *(ready)*
+   - 80c12. **UX-73:** "Rest of session", adjust closes after Log, the cover fits 320 px *(ready)*
+   - 80c13. **UX-67:** Log pinned in a bottom band of the cover *(needs-owner: A recommended)*
+   - 80c14. **UX-69:** the cover stays on the finished lift while its drop is offered *(needs-owner: B recommended; after UX-68)*
+   - 80c15. **BL-86:** a beginner's first program fits a beginner (experience question; the card never contradicts the quick start) *(needs-owner: A recommended; the exercise-auditor reviews the program choice)*
    - 80d. **UX-41:** chevrons, links and "Done" in the ink (no link blue)
    - 80e. **UX-42:** selected chips select in the ink
    - 80f. **UX-43:** state notes flat, with a state bar and no glow (`--warning`, `--positive`, `--negative`)
@@ -353,7 +370,7 @@ Scores run 1–5. Impact is impact on the owner's daily use; confidence is in th
 | Rank | Theme | I | C | E | Score | Backlog |
 |---|---|---|---|---|---|---|
 | 1 | **Program safety gates** | 4 | 5 | 5 | 100 (forced first) | BL-01 to BL-06, BL-05b, BL-13, BL-35, BL-36, BL-50, BL-51, BL-61, BL-62 |
-| 2 | **Progression engine correctness** | 5 | 4 | 4 | 80 | BL-07 to BL-11, BL-15, BL-24, BL-34, BL-58 |
+| 2 | **Progression engine correctness** | 5 | 4 | 4 | 80 | BL-07 to BL-11, BL-15, BL-24, BL-34, BL-58, BL-83 |
 | 3 | **Effort and volume programming** (RIR, per-muscle ledger, set autoregulation) | 5 | 4 | 3 | 60 | BL-12, BL-20, BL-30, BL-31 |
 | 4 | **Nutrition you can trust** (trend weight, adaptive expenditure) | 4 | 4 | 3 | 48 | BL-16, BL-17, BL-27 |
 | 5 | **Logging speed** (food) | 4 | 4 | 3 | 48 | BL-18, BL-19, BL-28 |
@@ -385,6 +402,7 @@ Theme 7 sits above theme 8 despite the lower score. Readiness is seen every trai
   - All-set double progression, free, with the reason shown in one line (the badge already explains itself).
   - Increments that scale with strength (BL-24), instead of Hevy's fixed jumps.
   - Every rule unit-tested against the coached rule it cites (GZCLP, Helms [PRAC]).
+  - *(2026-11-25, usability test)* Only the lifter's own effort moves the weight: one-tap Log no longer saves an RPE nobody entered, so a set with no RPE never reads as "easy" (BL-83; owner's rule). Hevy and Strong don't autoregulate within a session at all; Alpha Progression's per-set advice does, behind Pro. Ours is free, set to set, and never raises on an echo.
 
 ### 3. Effort and volume programming
 - **Problem:** in default mode no set has an effort target (H-5). Weekly volume is counted by coarse category with no per-muscle dose (`renderVolumeTrend` 45482).
