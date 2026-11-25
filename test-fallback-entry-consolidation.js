@@ -125,7 +125,7 @@ test('the real call site (renderWorkout) threads the precomputed fallbackPriorEn
   assert.match(renderWorkoutSrc, /fallbackEntry:\s*fallbackPriorEntries\[i\]/, 'each exercise\'s piece must capture its own fallbackPriorEntries[i]');
   assert.ok(renderWorkoutSrc.includes('wireSetsBlock(row, i, ex, piece.fallbackEntry)'), 'the lone-exercise assembly path must thread piece.fallbackEntry through to wireSetsBlock');
   assert.ok(renderWorkoutSrc.includes('wireSetsBlock(pairRow, t, topPiece.ex, topPiece.fallbackEntry)'), 'the superset-pair assembly path must thread the TOP exercise\'s own fallbackEntry through');
-  assert.ok(renderWorkoutSrc.includes('wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry)'), 'the superset-pair assembly path must thread the BOTTOM exercise\'s own fallbackEntry through, not accidentally reuse the top\'s');
+  assert.ok(renderWorkoutSrc.includes('wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry, topPiece.ex)') /* v3.657 (UX-63): + the pair's lead, for its rest */, 'the superset-pair assembly path must thread the BOTTOM exercise\'s own fallbackEntry through, not accidentally reuse the top\'s');
 });
 
 run();

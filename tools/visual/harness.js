@@ -217,6 +217,9 @@ function buildTodayStates(){
     // default since v3.655): the cover's warm-up line, and the plates for its step.
     // (v3.652's version of this state opened Bench in the list to show its chips.)
     t(`tday-warmup-${theme}-402`, 402, theme, { storage: { ...SEEN_MILESTONE, 'ex:strength:d1:0': BENCH_NOT_STARTED } });
+    // v3.657 (UX-63): the lifts before the superset ticked done (as the flow render
+    // ticks them), so DB Curl, the pair's first lift, is next: the cover's "Then" line.
+    t(`tday-superset-${theme}-402`, 402, theme, { supersetNext: 'DB Curl' });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
     t(`tday-${theme}-904`, 904, theme, {});
@@ -599,6 +602,19 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
             el.scrollIntoView({ block: 'center' });
           });
           await page.waitForTimeout(300);
+        }
+        if(state.supersetNext){
+          // As tools/design/flow/render.js's tickBefore does it.
+          await page.evaluate(name => {
+            for(const b of document.querySelectorAll('#exerciseList > .exercise-block')){
+              if([...b.querySelectorAll('.set-row-owner')].some(o => o.textContent.trim() === name)) break;
+              b.querySelectorAll('.exercise input[type=checkbox]').forEach(c => { c.checked = true; });
+            }
+            renderAllSetChips(); renderUpNext();
+            if(restTimerEndsAt) document.getElementById('restTimerClose').click();
+            window.scrollTo(0, 0);
+          }, state.supersetNext);
+          await page.waitForTimeout(500);
         }
         // v3.651 (BL-79): a logged set's sheet, then Drop set (two taps, as a person makes them).
         if(state.dropSheet){
