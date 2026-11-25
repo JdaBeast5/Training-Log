@@ -179,7 +179,7 @@ test('REAL markup + invocation (v3.434): Log copy says each thing once and is ri
 // list padding: the check sat on the tile's left edge, the ask button on its
 // right, both floated mid-paragraph, and the tiles were 2px apart.
 const SUPP_CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
-test('REAL CSSOM (v3.462): a supplement tile has padding inside, a gap below, and its controls on the first line; the bariatric rows are untouched', (assert)=>{
+test('REAL CSSOM (v3.462; v3.661 UX-40): a supplement row has padding inside, no gap below (ruled rows), and its controls on the first line; the bariatric rows are untouched', (assert)=>{
   const { window } = new JSDOM(`<style>${SUPP_CSS}</style>
     <div id="mySupplementsList"><div class="swipe-item" id="a"><div class="swipe-content"><div class="supplement-row" id="r"><span class="supplement-check"></span><span class="supplement-name-wrap supplement-label" id="w"><span>Zinc</span><span class="supplement-benefit">Promising</span></span><button class="supplement-ask-btn"></button></div></div></div><div class="swipe-item" id="b"></div></div>
     <div class="supplement-row" id="plain"><span class="supplement-check"></span><span class="supplement-label">Take with food</span></div>`);
@@ -188,7 +188,8 @@ test('REAL CSSOM (v3.462): a supplement tile has padding inside, a gap below, an
   assert.strictEqual(cs('r').paddingRight, '12px');
   assert.strictEqual(cs('r').paddingTop, '14px');
   assert.strictEqual(cs('r').alignItems, 'flex-start', 'check and ask button sit on the name line');
-  assert.strictEqual(cs('a').marginBottom, '8px', 'tiles are spaced, not 2px apart');
+  // 2026-11-25 (v3.661, UX-40): ruled rows, not tiles: no gap, a 1px --rule between (test-ruled-rows.js).
+  assert.strictEqual(cs('a').marginBottom, '0px', 'ruled rows: no gap between');
   assert.strictEqual(cs('b').marginBottom, '0px', 'no trailing gap after the last');
   assert.strictEqual(cs('w').flexGrow, '1');
   assert.strictEqual(cs('plain').paddingLeft, '0px', 'the bariatric checklist keeps its list rows');

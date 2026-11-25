@@ -1340,14 +1340,11 @@
   .supplement-benefit-toggle:active{opacity:0.6;}
   .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
   .supplement-benefit-detail b{color:var(--text);}
-  /* v3.462: My Supplements' rows are swipe tiles with a fill (v3.388), but the
-     row kept its edge-to-edge list padding, so the check sat on the tile's
-     left edge and the tiles were 2px apart. Padding inside, a gap between
-     (as #todayInsightsList's), and the check and ask button on the first
-     line rather than floating mid-paragraph. The bariatric checklist's plain
-     rows are untouched. */
-  #mySupplementsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
-  #mySupplementsList .swipe-item:last-child{margin-bottom:0;}
+  /* v3.462: My Supplements' rows had padding inside and the check and ask
+     button on the first line rather than floating mid-paragraph. v3.661
+     (UX-40): ruled rows, not tiles (no gap, no corners). The bariatric
+     checklist's plain rows are untouched. */
+  #mySupplementsList .swipe-item{border-radius:0; margin-bottom:0;}
   #mySupplementsList .supplement-row{align-items:flex-start; gap:12px; padding:14px 12px 14px 14px;}
   #mySupplementsList .supplement-name-wrap{flex:1 1 auto; gap:4px;}
   #mySupplementsList .supplement-name-wrap .supplement-benefit{line-height:1.45;}
@@ -1403,9 +1400,9 @@
   /* v3.383: each row is a swipe item. Spacing and corners move to the
      wrapper; the row's tint sits on an opaque surface (the swipe content must
      stay fully opaque, or the red layer behind it shows through). */
-  #todayInsightsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #todayInsightsList .swipe-item{border-radius:0; margin-bottom:8px;} /* v3.661 (UX-40): square, so the note's 2px rule has straight ends */
   #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
-  #todayInsightsList .swipe-content{background:transparent; border-radius:var(--radius-md);}
+  #todayInsightsList .swipe-content{background:transparent; border-radius:0;}
   #todayInsightsList .today-insight-row{margin-bottom:0;}
   /* v3.610 (UX-27): a ruled section under the session, collapsed to one
      line; the notes as UX-24's note rows (ink, a 2 px left rule). The swipe
@@ -2507,11 +2504,13 @@
      sat only 6px below the Add row (the note's own top padding, nothing
      else), noticeably tighter than every sibling card's equivalent. */
   #groceryListItems{margin-top:12px;}
+  /* v3.661 (UX-40): a ruled row: the date 15px in --text-2, the value in the
+     text face with tabular figures (was mono). */
   .weight-item{
-    display:flex; justify-content:space-between; font-size:13px;
-    padding:6px 0; border-bottom:1px solid var(--line-soft); color:var(--text-muted);
+    display:flex; justify-content:space-between; font-size:15px;
+    padding:12px 0; border-bottom:1px solid var(--rule); color:var(--text-2);
   }
-  .weight-item span:last-child{color:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  .weight-item span:last-child{color:var(--text); font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
 
   .tip{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px; line-height:1.45; color:var(--text-muted);}
   .tip:last-child{border-bottom:none;}
@@ -3073,6 +3072,22 @@
     position:relative; background:var(--row-fill); touch-action:pan-y; cursor:grab;
     overflow:hidden;
   }
+  /* v3.661 (UX-40): list rows (buildSwipeItem's: weigh-ins, sleep, BP,
+     glucose, measurements, supplements, grocery, the food log, care log,
+     coach history and Saved Weeks, all in cards) are ruled rows, not tiles:
+     square, no gap, a 1px --rule under each, and an OPAQUE fill equal to the
+     card they sit in (--surface-1, what a card's --glass-fill is), so the red
+     delete layer can never show through (the v3.383 rule). Set rows and
+     warm-up rows are .swipe-items too and keep their own shape. The row (the
+     content's first child; the food log's .fl-detail after it keeps its own
+     line) takes the --rule; the :last-child rules that dropped it inside a
+     one-row wrapper no longer win. Where a fold follows the rows, the last
+     row's rule is the fold's top line, so the fold drops its own (one line,
+     not two). */
+  .swipe-item:not(.set-row):not(.warmup-set-row){border-radius:0; margin-bottom:0;}
+  .swipe-item:not(.set-row):not(.warmup-set-row) > .swipe-content{background:var(--surface-1);}
+  .swipe-item:not(.set-row):not(.warmup-set-row) > .swipe-content > :first-child{border-bottom:1px solid var(--rule);}
+  .swipe-item + .expand-wrap + .show-more-btn{border-top:0; margin-top:0;}
 
   .water-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
   .water-reset{background:none; border:none; padding:10px 0 10px 12px; margin:-10px 0; color:var(--text-muted); font:inherit; font-size:13px; cursor:pointer;}
@@ -4257,13 +4272,11 @@
     padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;
   }
   .care-log-item:last-child{border-bottom:none;}
-  /* v3.485: Care's check-ins and Coach's past reviews are swipe tiles with a
-     fill (v3.388) whose rows kept edge-to-edge list padding: the text sat on
-     the tile's edge and the tiles were 2px apart. The same fix as My
-     Supplements (v3.462). */
-  #careLogList .swipe-item, #coachHistoryList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
-  #careLogList .swipe-item:last-child, #coachHistoryList .swipe-item:last-child{margin-bottom:0;}
-  #careLogList .care-log-item, #coachHistoryList .care-log-item{padding:12px 14px; border-bottom:none;}
+  /* v3.485: Care's check-ins and Coach's past reviews got padding inside, as
+     My Supplements (v3.462). v3.661 (UX-40): ruled rows, not tiles: no gap,
+     no corners, and a --rule under each (the tiles had no line). */
+  #careLogList .swipe-item, #coachHistoryList .swipe-item{border-radius:0; margin-bottom:0;}
+  #careLogList .care-log-item, #coachHistoryList .care-log-item{padding:12px 14px; border-bottom:1px solid var(--rule);}
   .care-log-date{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:11.5px; color:var(--text);}
   .care-log-detail{color:var(--text-muted); margin-top:3px; line-height:1.4;}
   .care-pattern-title{
@@ -7756,7 +7769,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.660';
+const APP_VERSION = '3.661';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9581,6 +9594,9 @@ const WHATS_NEW = {
   ]},
   '3.660': { headline: 'Quieter "Show more"', points: [
     '"Show more" under a list is now a plain line across the card instead of a blue pill, so the list itself stands out. It works the same way.',
+  ]},
+  '3.661': { headline: 'Lists as clean rows', points: [
+    'Weigh-ins, sleep, blood pressure, supplements, your food log and the care and coach lists now read as simple rows with a line between them, instead of rounded tiles. Swipe a row to delete it, as before.',
   ]},
 };
 
