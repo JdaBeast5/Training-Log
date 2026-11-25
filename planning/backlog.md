@@ -4761,7 +4761,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-ink-affordances.js`. Sabotage: restore `.ex-chevron{color:var(--plate-blue)}`, and criterion 1 must fail.
 - **Files:** `index.html` (the lines above; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes: `test-cta-blue-unification.js` and `test-learn-rework.js` if they pin the blue meta or link (grep), and `test-dialog-focus-ring.js` (read and keep green).
 - **Risk:** low.
-- **Status:** shipped in v3.662 (PR #260), awaiting the owner's merge. (Owner 2026-11-23: no link blue; links and affordances in ink.)
+- **Status:** done (v3.662, PR #260). (Owner 2026-11-23: no link blue; links and affordances in ink.)
 
 ### UX-42: Selected chips select in the ink
 - **Why:** Food's category chips select in solid plate blue (`.food-cat-btn.active`, 4346), while Progress's lift chips (UX-10) select in ink (an ink fill with ground text). There are two selection grammars a tab apart.
@@ -5456,7 +5456,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-never-skips.js`. Sabotage: (a) restore the unscoped `querySelector('input[type=checkbox]')` in `ticked`, and criterion 1 must fail; (b) drop the checkbox restore from Undo, and criterion 2 must fail.
 - **Files:** `index.html` (`findNextSetRow` 33444, `commitSet` 34164; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the new test.
 - **Risk:** low to medium: the cover's order is the core of a session. Guards: `test-today-cover.js`, `test-cover-superset-then.js`, `test-superset-chips.js`, `test-set-chips.js`, `test-auto-check-sets.js`, `test-tap-counts.js`, `test-exercise-logger.js` (`renderExerciseLogger` also calls `findNextSetRow`).
-- **Status:** ready (batch 1, owner yes 2026-11-24).
+- **Status:** shipped in v3.663 (PR #262), awaiting the owner's merge. (Batch 1, owner yes 2026-11-24.)
 
 ### BL-81: "Session complete" tells the truth, and the cover offers Finish (B4)
 - **Why:** **B4.** In S6 the cover read "Session complete · All 40 sets logged" at **38 of 40**: `renderUpNext` (33542–33548) prints `All ${n.total} sets logged` whenever `findNextSetRow` finds no next row, which also happens when the remaining rows belong to ticked lifts. No finish sheet opened (it opens only on the checkbox `change` that completes the day, 31609), and the cover has no way to open it, so a session that ends that way has no finish, no "Next time", no Share.
@@ -5539,7 +5539,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-no-invented-rpe.js`. Sabotage: (a) restore the RPE fill in `fillSetLogger` (`numericPlaceholder(src) || prevSrc.value` for `rpe`), and criteria 1 and 4 must fail (stored RPE 8; the weight climbs); (b) restore `rpe == null ||` in `recommendNextSet`, and criterion 1 must fail on the weight. **Re-pin with a dated note (owner's rule, 2026-11-25):** `test-next-set-recommendation.js` lines 29–30 ("beat the range, RPE optional" and the single-target case expect `up` with no RPE; they become `same` with the new why). Read `test-today-cover.js`, `test-set-chips.js`, `test-exercise-logger.js`, `test-step-up-cheer.js` and `test-tap-counts.js` first; they should pass unchanged.
 - **Files:** `index.html` (`fillSetLogger` 33816, `recommendNextSet` 33984, `renderCoverSteppers` 33735; `APP_VERSION`; `WHATS_NEW`, written for the lifter: "Log set no longer fills in an RPE for you. Add how hard a set felt (Reps left, or RPE) and the app can raise the weight for the next set."), `sw.js`, the new test, the re-pin.
 - **Risk:** medium. What is stored changes (fewer RPEs), and lifters who never enter RPE progress more slowly mid-session, by design. MKT-23's cheer ("only when `computeSuggestedSet` really raised the weight") reads between-session raises and is unaffected. The readiness card's RPE average (`READINESS_RPE_HIGH`) sees fewer values; it already handles missing RPE.
-- **Status:** **stored-data change.** `ready` once the owner confirms it directly in the builder session; until then the builder skips it. The confirming message is in the planning PR for this section.
+- **Status:** ready. **Stored-data change, confirmed by the owner in the builder session (2026-11-25):** "I confirm BL-83 as written: if I don't enter an RPE, Log set stores none and the weight doesn't go up for the next set; if I enter one, the weight can go up whenever it justifies it, with no limit per session; existing RPEs stay as they are, and the between-session rule stays as documented." That also answers the question above: the between-session rule stays as documented (no change to `analyzeProgressionSignal`'s no-RPE path or branch 4).
 
 ### UX-66: A cover chip opens the set sheet; only "Log set" commits (Friction #2)
 - **Why:** the cover's chips (`renderCoverChips`, 33788) forward a tap to the real list chip (`#upNextChips` click handler, 34604), and a **ready** list chip commits its set in one tap (34182, `logSetChip`). On the cover that puts a second commit button beside Log: the tester logged a set by tapping the ready chip to look at it (`s1-*-07-chip-tap-logged.png`).
