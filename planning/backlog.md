@@ -5423,7 +5423,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** a new `test-warmup-default-on.js`. Sabotage: restore `= false`, and criteria 1 and 4 must fail. Re-pin any existing test that assumed off-by-default, with a dated note.
 - **Files:** `index.html` (~33868; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the new test.
 - **Risk:** existing users who never touched the toggle see warm-up steps appear after this update. The What's New line tells them how to turn it off.
-- **Status:** ready (owner, 2026-11-24). It goes before UX-62, so UX-62's cover line has a ramp to show.
+- **Status:** done (v3.655, PR #252, 2026-11-24).
 
 ---
 
