@@ -4739,7 +4739,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-ruled-rows.js`, plus the swipe suites. Sabotage: set `.swipe-content` back to `--row-fill`, and criterion 1 must fail (alpha < 1).
 - **Files:** `index.html` (1322, 1379–1381, 2485–2489, 2997, ≈3038, 4227; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes any suite pinning `--row-fill` on `.swipe-content` (`test-fields-translucent.js`, `test-rgba-background-border-consolidation.js`: check).
 - **Risk:** medium-low. Swipe-to-delete is behaviour, so criterion 2 guards it.
-- **Status:** shipped in v3.661 (PR #258), awaiting the owner's merge.
+- **Status:** done (v3.661, PR #258).
 
 ### UX-41: Chevrons, links and "Done" in the ink
 - **Why:** blue is the 2.0 accent. The vision keeps colour for the day's ink and for state. Today already went ink (UX-23, UX-34), so the same affordance is now grey on Today and blue everywhere else. In the screenshots: blue chevrons on Learn, "In your program", "Watch form video".
@@ -4761,7 +4761,7 @@ The owner sent five screenshots of the live app (v3.645) and asked whether the t
 - **Test plan:** new `test-ink-affordances.js`. Sabotage: restore `.ex-chevron{color:var(--plate-blue)}`, and criterion 1 must fail.
 - **Files:** `index.html` (the lines above; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with dated notes: `test-cta-blue-unification.js` and `test-learn-rework.js` if they pin the blue meta or link (grep), and `test-dialog-focus-ring.js` (read and keep green).
 - **Risk:** low.
-- **Status:** ready (owner 2026-11-23: no link blue; links and affordances in ink)
+- **Status:** shipped in v3.662 (PR #260), awaiting the owner's merge. (Owner 2026-11-23: no link blue; links and affordances in ink.)
 
 ### UX-42: Selected chips select in the ink
 - **Why:** Food's category chips select in solid plate blue (`.food-cat-btn.active`, 4346), while Progress's lift chips (UX-10) select in ink (an ink fill with ground text). There are two selection grammars a tab apart.

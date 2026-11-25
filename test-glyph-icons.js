@@ -45,8 +45,9 @@ test('sabotage anchor (v3.358): all 5 form-video links lost the typed ▶, none 
 });
 
 test('REAL CSSOM (v3.358): the link draws its play mark, clears 4.5:1 on --surface2, and is a 44px target', (assert)=>{
-  const rgb = declared('.ex-video-link', 'color').match(/\d+/g).map(Number);
-  const color = '#' + rgb.map(n => n.toString(16).padStart(2, '0')).join('');
+  // 2026-11-25 (v3.662, UX-41): the link is in the ink (was the literal #7A93FF; test-ink-affordances.js).
+  assert.strictEqual(declared('.ex-video-link', 'color'), 'var(--text)');
+  const color = rootVar('--text');
   const surface2 = rootVar('--surface2');
   assert.ok(surface2, 'anchor: --surface2 resolved from the real :root');
   assert.ok(contrast(color, surface2) >= 4.5, `${color} on ${surface2} must be >= 4.5:1`);

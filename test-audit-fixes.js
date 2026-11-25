@@ -116,7 +116,8 @@ test('REAL markup + CSSOM (v3.356): every sheet closes with a Done or Cancel tex
   assert.deepStrictEqual(closes, {subModalClose:'Cancel', exEditClose:'Cancel', globalSearchClose:'Cancel', exHistoryClose:'Done', whatsNewClose:'Done', navMoreClose:'Done', daySheetClose:'Done', finishClose:'Done', recapClose:'Done'}); // + the finish sheet (v3.598, UX-09a); + the weekly recap sheet (2026-11-22, v3.623, UX-11)
   assert.strictEqual(doc.getElementById('settingsClose').textContent.trim(), 'Done', 'anchor: matches Settings');
   assert.strictEqual(declared('.sub-modal-close', 'min-height'), '44px');
-  assert.strictEqual(declared('.sub-modal-close', 'color'), 'var(--plate-blue)');
+  // 2026-11-25 (v3.662, UX-41): Done and Cancel in the ink, not link blue (test-ink-affordances.js).
+  assert.strictEqual(declared('.sub-modal-close', 'color'), 'var(--text)');
   assert.strictEqual(declared('.sub-modal-close', 'border-radius'), '', 'no circle');
 });
 

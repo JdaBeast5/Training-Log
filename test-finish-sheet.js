@@ -369,7 +369,10 @@ test('UX-22 criterion 4: no :focus-only ring on the finish sheet\'s Done; it is 
   const rules = []; (function walk(l){ for(const r of l){ if(r.selectorText) rules.push(r); else if(r.cssRules) walk(r.cssRules); } })(window.document.styleSheets[0].cssRules);
   const bad = rules.filter(r => /:focus(?!-visible|-within)/.test(r.selectorText) && /finish|save-btn|button:focus\b/.test(r.selectorText) && (r.style.getPropertyValue('outline') || r.style.getPropertyValue('box-shadow')));
   assert.deepStrictEqual(bad.map(r => r.selectorText), []);
-  assert.strictEqual(rules.find(r => r.selectorText === '.finish-sheet .sub-modal-close').style.getPropertyValue('color'), 'var(--text)');
+  // 2026-11-25 (v3.662, UX-41): every sheet's Done is in the ink now, so the finish
+  // sheet's own override went: the base rule carries it (test-ink-affordances.js).
+  assert.ok(!rules.some(r => r.selectorText === '.finish-sheet .sub-modal-close'), 'the override is gone');
+  assert.strictEqual(rules.find(r => r.selectorText === '.sub-modal-close').style.getPropertyValue('color'), 'var(--text)');
   const ui = mount();
   let opts = null;
   ui.$('finishDone').focus = function(o){ opts = o; };

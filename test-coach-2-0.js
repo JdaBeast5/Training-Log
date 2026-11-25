@@ -97,10 +97,12 @@ test('REAL markup (v3.457): the link sits in the top note and routes to the AI k
   assert.ok(link.hasAttribute('hidden'), 'hidden until renderCoach decides');
 });
 
-test('REAL CSSOM (v3.457): the key button is the secondary pill in the link colour, set apart from the note, and gone when hidden', (assert)=>{
+test('REAL CSSOM (v3.457; v3.662 UX-41): the key button is the secondary pill, in the ink and underlined, set apart from the note, and gone when hidden', (assert)=>{
   const { window } = new JSDOM(`<style>${CSS}</style><button class="custom-toggle coach-key-link" id="k">Add your API key</button><button class="custom-toggle coach-key-link" id="h" hidden>x</button>`);
   const cs = id => window.getComputedStyle(window.document.getElementById(id));
-  assert.strictEqual(cs('k').color, 'var(--plate-blue)');
+  // 2026-11-25 (v3.662, UX-41): in the ink, underlined (no link blue; test-ink-affordances.js).
+  assert.strictEqual(cs('k').color, 'var(--text)');
+  assert.strictEqual(cs('k').textDecoration || cs('k').textDecorationLine, 'underline');
   assert.strictEqual(cs('k').marginTop, '8px');
   assert.strictEqual(cs('h').display, 'none');
 });
