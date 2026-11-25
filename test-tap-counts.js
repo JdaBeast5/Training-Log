@@ -67,7 +67,7 @@ test('log a recent food: one tap on a recent-food chip adds exactly one entry (n
 test('log the ready set: one tap on the cover\'s Log button commits exactly the ready set (no more taps than the parent commit)', (assert)=>{
   const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel', 'setChipOwnerTag',
     'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips', 'trimUnitNum', 'parseTopRep', 'parseBottomRep',
-    'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger',
+    'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', /* 2026-11-17 (v3.605, UX-24): renderUpNext writes the sticky header's set line */ 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger',
     'readSetLogger', 'logUpNext', 'setCoverAdjust', 'firstSetHint', 'targetRirLabel', 'getRepRangeTier'].map(f => extractFunction(src, f));
   const row = (i, done) => `<div class="set-row" data-set-idx="${i}" data-ex-idx="0"><span class="set-row-owner">Bench Press</span>
     <input class="ex-input ex-weight" placeholder="lb" value="${done ? '185' : ''}"><input class="ex-input ex-reps" placeholder="reps" value="${done ? '5' : ''}">
@@ -165,7 +165,7 @@ test('UX-20 tap parity: on the cover, previous day, back to today, the calendar,
 // below are unchanged.
 
 test('UX-25: marking a rest day done takes one tap on the cover (the real renderWorkout rest branch and renderUpNext)', async (assert)=>{
-  const FNS = ['escapeHtml', 'findNextSetRow', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'syncStickyDayTitle', 'renderWorkout'].map(f => extractFunction(src, f));
+  const FNS = ['escapeHtml', 'findNextSetRow', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', 'renderWorkout'].map(f => extractFunction(src, f));
   const page = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document.body.innerHTML;
   const { window } = runJsdom(page, `
     var store = new Map();

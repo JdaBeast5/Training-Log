@@ -5376,7 +5376,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-superset-then.js`. Sabotage: build the line from the same lift's next row, and criterion 1 must fail.
 - **Files:** `index.html` (6630, `renderUpNext` 34429, and for (i) 36474; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** low.
-- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**, and **(i) yes**: after the pair, rest for the heavier lift.
+- **Status:** shipped in v3.657 (PR #254), awaiting the owner's merge. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C**, and **(i) yes**: after the pair, rest for the heavier lift.
 
 ### UX-64: Drop set offered on the cover after the last working set (BL-79's Q2 (b))
 - **Why:**

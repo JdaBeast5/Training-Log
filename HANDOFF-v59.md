@@ -1777,3 +1777,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
   - `renderWorkout` stamps `data-ramp-from` (`none` or `cover`). The `#upNextWeight` change handler re-renders only for those, keeping the cover's fields.
 - **The owner's inbox (2026-11-25):** store frame 2 (`store-cover`) is approved.
 - **Next:** UX-63 (80w), supersets on the cover; then UX-64 (80x).
+
+## Addendum 177: UX-63 (v3.657, PR #254)
+- **The cover:** `#upNextThen` (`.cover-then`) sits after `#upNextTarget`. `supersetThenLine(list, row)` finds the other lift's next unlogged row in the pair block and reads that row's chip value (renderSetChips' "Set N" fallback counts as no value). `setCoverThen` writes it, or hides it on the rest-day and session-complete exits.
+- **The rest:** `wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead)`. renderWorkout passes `topPiece.ex` for the pair's second lift. It uses pairLead's rest when that is longer, and only when the first lift logged a set at the same set number.
+- **The harness:** `--today tday-superset-{dark,light}-402` (`supersetNext`, ticked as the flow render's `tickBefore` does).
+- **Flagged (pre-existing):** `findNextSetRow` reads only a pair's first checkbox, so ticking the second lift done early leaves its sets on the cover.
+- **Next:** UX-64 (80x), the drop set offered on the cover after the last working set.

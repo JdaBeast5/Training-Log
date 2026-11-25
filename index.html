@@ -1069,6 +1069,9 @@
   .cover-of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
   .cover-rx, .cover-hint, .cover-why, .cover-caution{font-size:var(--meta-on-spot); line-height:1.35;}
   .cover-rx{margin-top:2px;}
+  /* v3.657 (UX-63, owner C 2026-11-24): in a superset, the other lift's next set, so you can set up the next station. */
+  .cover-then{margin-top:4px; font-size:var(--meta-on-spot); font-weight:600;}
+  .cover-then[hidden]{display:none;}
   /* v3.648 (MKT-23): the cheer, in the cover's ink and display face; no motion. */
   .cover-cheer{margin-top:6px; font-family:var(--font-display); font-weight:800; font-stretch:68%; font-size:26px; line-height:1.05; letter-spacing:.005em;}
   .cover-cheer small{font-family:var(--font-sans); font-stretch:100%; font-weight:600; font-size:var(--meta-on-spot); margin-left:8px; letter-spacing:0;}
@@ -5800,6 +5803,8 @@
       <span class="cover-of" id="upNextLabel"></span>
     </div>
     <p class="cover-rx" id="upNextTarget"></p>
+    <!-- v3.657 (UX-63): in a superset, the other lift's next set (supersetThenLine). -->
+    <p class="cover-then" id="upNextThen" hidden></p>
     <!-- v3.648 (MKT-23): the cheer, only when the app raised this lift's weight. -->
     <p class="cover-cheer" id="upNextCheer" hidden></p>
     <!-- v3.606 (UX-25): a rest day's note and its one action, written by renderWorkout's rest branch. -->
@@ -7728,7 +7733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.656';
+const APP_VERSION = '3.657';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9539,6 +9544,10 @@ const WHATS_NEW = {
   '3.656': { headline: 'Warm-ups on the cover', points: [
     'The next warm-up step sits on the cover, above Log set: tap Done as you go, or Skip. The plates show what to load for it.',
     'A lift you have never logged gets a warm-up too: set your weight on the cover and the steps are built from it.',
+  ]},
+  '3.657': { headline: 'Supersets on the cover', points: [
+    'In a superset, the cover now names the other lift\'s next set under your target ("Then Triceps Pushdown · 60×12 · no rest between"), so you can set up the next station.',
+    'After the pair, you rest for the heavier lift\'s time.',
   ]},
 };
 
@@ -31460,7 +31469,7 @@ async function renderWorkout(){
     // per exercise, so a single tap adds a set to each: "a round" without
     // any separate code path for that case.
     wireSetsBlock(pairRow, t, topPiece.ex, topPiece.fallbackEntry);
-    wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry);
+    wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry, topPiece.ex); // v3.657 (UX-63): rest for the heavier lift
     watchSetChips(pairRow);
     list.appendChild(pairRow);
   }
@@ -33395,6 +33404,35 @@ function findNextSetRow(listEl){
           name:(next.querySelector('.set-row-owner') || {}).textContent || ''};
 }
 
+// v3.657 (UX-63, owner C 2026-11-24): in a superset the cover names the other
+// lift's next set: "Then Triceps Pushdown · 60×12 · no rest between" on the
+// lead-in lift (the top of the pair, the lower index), "Then DB Curl · 30×10"
+// on the second. Built from the next unlogged row of the pair that belongs to
+// the other lift (the rows findNextSetRow reads), with that set's chip value
+// (its suggestion or the set before, as the chips show it). '' outside a
+// superset, or when the other lift has nothing left.
+function supersetThenLine(listEl, row){
+  const block = row && row.closest('.exercise-block');
+  if(!block || !block.classList.contains('superset-pair')) return '';
+  const isDone = r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '';
+  const other = [...block.querySelectorAll('.set-row[data-set-idx]')].find(r => r.dataset.exIdx !== row.dataset.exIdx && !isDone(r));
+  if(!other) return '';
+  const name = ((other.querySelector('.set-row-owner') || {}).textContent || '').trim();
+  const chip = listEl.querySelector(`.set-chip[data-ex-idx="${other.dataset.exIdx}"][data-set-idx="${other.dataset.setIdx}"] .set-chip-val`);
+  // Not renderSetChips' "Set N" fallback (no suggestion and no range): that is no value.
+  const val = chip && !/^Set \d+$/.test(chip.textContent.trim()) ? chip.textContent.trim() : '';
+  const leadIn = Number(row.dataset.exIdx) < Number(other.dataset.exIdx);
+  return ['Then ' + name, val, leadIn ? 'no rest between' : ''].filter(Boolean).join(' · ');
+}
+
+// The cover's "Then" line (v3.657, UX-63): shown only when there is text.
+function setCoverThen(text){
+  const el = document.getElementById('upNextThen');
+  if(!el) return;
+  el.textContent = text;
+  el.hidden = !text;
+}
+
 // A placeholder is a suggestion only when it is a number ("185"); otherwise it
 // is the unit hint ("lb", "reps", "RPE") and the card falls back to the set
 // just logged for the same exercise, or empty.
@@ -33445,6 +33483,7 @@ function renderUpNext(){
     document.getElementById('upNextHint').hidden = document.getElementById('upNextCaution').hidden = document.getElementById('upNextWhy').hidden = true;
     document.getElementById('upNextProgress').textContent = '';
     renderCoverWarmup(card, null); // v3.656 (UX-62)
+    setCoverThen(''); // v3.657 (UX-63)
     syncStickyDayTitle(); // v3.605 (UX-24)
     renderExerciseDetailBar(); // v3.622 (UX-14): no next set, no stack
     return;
@@ -33460,6 +33499,7 @@ function renderUpNext(){
     document.getElementById('upNextChips').innerHTML = '';
     hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
     renderCoverWarmup(card, null); // v3.656 (UX-62)
+    setCoverThen(''); // v3.657 (UX-63)
     syncStickyDayTitle(); // v3.605 (UX-24)
     renderExerciseDetailBar(); // v3.622 (UX-14): session complete clears the pane's stack
     return;
@@ -33477,6 +33517,7 @@ function renderUpNext(){
   const rir = target && target.parentElement.querySelector('.ex-rir');
   document.getElementById('upNextTarget').textContent = target
     ? `${target.textContent.trim()} reps` + (rir ? ' · ' + rir.getAttribute('aria-label') : '') : '';
+  setCoverThen(supersetThenLine(list, n.row)); // v3.657 (UX-63)
   const chip = list.querySelector(`.set-chip[data-ex-idx="${exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
   const why = document.getElementById('upNextWhy');
   if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
@@ -33527,6 +33568,7 @@ function renderCoverNumeral(card){
 // Skip. Done is the step's own chip (its handler saves and offers Undo); Skip
 // is the ramp's own skip-all. Nothing shows with the ramp off (it is then the
 // advice line, with no chips) or on a lift without one.
+
 function renderCoverWarmup(card, block){
   const line = document.getElementById('coverWarmup');
   if(!line) return;
@@ -35055,7 +35097,9 @@ function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
   cb.dispatchEvent(new Event('change'));
 }
 
-function wireSetsBlock(row, exIdx, ex, fallbackEntry){
+// pairLead (v3.657, UX-63): for a superset's second lift, the first lift's
+// exercise, so the rest after the pair is the heavier lift's (owner (i) yes).
+function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
   // v3.561 (BL-72): the storage slot; exIdx stays the render index for the DOM.
@@ -35266,9 +35310,16 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // countdown that the reps already started.
       const fromDistance = !!(evt && dInput && evt.target === dInput);
       if(isRealSet && !fromDistance && !isSupersetLeadIn && !isBackdating()){
-        const restTarget = getDefaultRestSeconds(ex);
+        // v3.657 (UX-63, owner (i) yes): after a superset's second lift, the
+        // pair rests for the heavier of the two lifts' rest, and names it. Only
+        // when this round was a pair: the first lift has a logged set at this
+        // set number (its extra sets past the first lift's are rested as its own).
+        const pairedRound = pairLead && [...row.querySelectorAll(`.set-row[data-set-idx="${setIdx}"]`)]
+          .some(r => r !== setRow && r.dataset.exIdx !== setRow.dataset.exIdx && r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '');
+        const restEx = pairedRound && getDefaultRestSeconds(pairLead) > getDefaultRestSeconds(ex) ? pairLead : ex;
+        const restTarget = getDefaultRestSeconds(restEx);
         restTargetBySlot[exKey(activeProgram, activeDay, slot, subVariant)] = restTarget;
-        startRestTimer(restTarget, getRestReasonLabel(ex));
+        startRestTimer(restTarget, getRestReasonLabel(restEx));
       }
       // v3.653 (UX-17b): the "Switch to gym mode?" offer that followed here went with Gym mode.
       // A logged set also means the phone should stay awake for the next one.
