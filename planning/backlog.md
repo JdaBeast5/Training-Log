@@ -4298,7 +4298,7 @@ Ready items are listed in build order, then needs-owner items.
     - **What's New:** "Gym mode is gone. Today does its job now: your next set, big, with one tap to log it and the rest timer on the cover. Warm-ups are in each exercise."
     - **The harness, in the same PR (it can't shoot `gym-*` once the mode is gone; its wait for `body.gym-mode` would time out):**
       - `tools/visual/harness.js` drops `gym-*-402`, `gym-dark-402-rm`, `tday-gym-*` and the store frame `store-gym`.
-      - The store frame needs a marketing call: re-shoot frame 2 as Today's cover instead. Flagged to the owner (below).
+      - The store frame needs a marketing call: re-shoot frame 2 as Today's cover instead. Flagged to the owner (below). **Owner, 2026-11-25: "yes new screenshot is fine"** (`store-cover`, shipped in v3.653).
   - **UX-17c: gym-only CSS goes.**
     - Every `body.gym-mode`, `.gym-*`, `gym-leaving` and `gym-finishing` rule and keyframe is removed (1118–6386), including `body.gym-mode .exercise-block.open` (5260), the hand-tuned literal `box-shadow`.
     - That literal's protection in `CLAUDE.md` ("Known fragile areas", the `--rim` bullet) exists only because Gym mode exists, so it becomes obsolete. **UX-17c edits CLAUDE.md** (owner, 2026-11-24: "yes to instructions update"): keep the bullet's first sentence (the `--rim` cycle fix) and replace the Gym mode literal's explanation with one dated line saying the literal and Gym mode were removed in UX-17c. Nothing else in CLAUDE.md changes.
@@ -5347,7 +5347,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-warmup.js`. Sabotage: render the line with the pref off, and criterion 5 must fail.
 - **Files:** `index.html` (cover markup 6625–6677; `renderUpNext` 34429; the warm-up helpers 34934 and 35047; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test, `tools/visual/harness.js`.
 - **Risk:** low. The working path is untouched.
-- **Status:** ready. Owner's answer (2026-11-24): "All recommended, warm ups on by default". **C+**: one line above Log, and the plate stack draws the warm-up step's load while the big number stays the working set. With UX-65 the ramp is loggable by default, so the line shows for everyone who hasn't turned it off. Restore `pendingWarmupChip`'s rule here if UX-17b removed it.
+- **Status:** done (v3.656, PR #253, 2026-11-25). Owner's addition (2026-11-25): a lift with no history builds its ramp from the weight typed on the cover (chooseRampBasis's last source, in memory, `data-ramp-from`).
 
 ### UX-63: Supersets: alternate on the cover, and name the next station
 - **Why:**

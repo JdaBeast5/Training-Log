@@ -111,7 +111,9 @@ test('criterion 6: the bar is drawn full width of the cover\'s content box (CSSO
   // screen the bar returns above Log, as the mock-up draws it (it sat under
   // the Log row only to keep Log above y = 480 under the old header).
   const kids = [...document.getElementById('upNext').children];
-  assert.strictEqual(kids.indexOf(document.getElementById('upNextBar')) + 1, kids.indexOf(document.querySelector('.cover-log')), 'directly above the Log row');
+  // 2026-11-25 (v3.656, UX-62): the warm-up line sits between them (hidden unless a step is next).
+  assert.strictEqual(kids.indexOf(document.getElementById('upNextBar')) + 1, kids.indexOf(document.getElementById('coverWarmup')), 'the warm-up line under the bar');
+  assert.strictEqual(kids.indexOf(document.getElementById('coverWarmup')) + 1, kids.indexOf(document.querySelector('.cover-log')), 'then the Log row');
 });
 
 test('criterion 7: kg: 100 kg on the 20 kg bar is 25 + 15 a side, and the 25 is drawn in the red ink', (assert)=>{

@@ -190,6 +190,11 @@ const STEPUP_BENCH = (()=>{
   const log = JSON.parse(f['trainingLog_usr1:ex:strength:d1:0']);
   return JSON.stringify(log.filter(e => e.date !== '2026-11-02').map(e => (e.date === '2026-10-19' || e.date === '2026-10-26') ? {...e, sets: e.sets.map(st => ({...st, reps: 6}))} : e));
 })();
+// v3.656 (UX-62): the fixture's Bench log without today's entry, so its warm-up is still to do.
+const BENCH_NOT_STARTED = (()=>{
+  const f = JSON.parse(fs.readFileSync(path.join(HERE, 'fixture.json'), 'utf8'));
+  return JSON.stringify(JSON.parse(f['trainingLog_usr1:ex:strength:d1:0']).filter(e => e.date !== '2026-11-02'));
+})();
 function buildTodayStates(){
   const states = [];
   const t = (id, size, theme, extra) => states.push({
@@ -208,8 +213,10 @@ function buildTodayStates(){
     t(`tday-finish-${theme}-402`, 402, theme, { finish: true });
     t(`tday-daysheet-${theme}-402`, 402, theme, { daySheet: true });
     t(`tday-dropset-${theme}-402`, 402, theme, { dropSheet: true });
-    // v3.652 (UX-17a): warm-up sets on, Bench opened: its warm-up chips on Today.
-    t(`tday-warmup-${theme}-402`, 402, theme, { openFirst: true, storage: { ...SEEN_MILESTONE, 'warmup-sets-pref': '1' } });
+    // v3.656 (UX-62): Bench not started (no entry today) and warm-ups on (the
+    // default since v3.655): the cover's warm-up line, and the plates for its step.
+    // (v3.652's version of this state opened Bench in the list to show its chips.)
+    t(`tday-warmup-${theme}-402`, 402, theme, { storage: { ...SEEN_MILESTONE, 'ex:strength:d1:0': BENCH_NOT_STARTED } });
     t(`tday-milestone-${theme}-402`, 402, theme, { storage: {} });
     t(`tday-firstrun-${theme}-402`, 402, theme, { fullPage: true, firstRun: true, createProfile: true, storage: {} });
     t(`tday-${theme}-904`, 904, theme, {});

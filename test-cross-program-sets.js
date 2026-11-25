@@ -49,7 +49,7 @@ test('REAL source: renderWorkout takes both the field basis and the ramp basis f
   assert.strictEqual((fn.match(/\bpriorSetForSlot\(/g) || []).length, 2);
   assert.match(fn, /const placeholderSet = priorSetForSlot\(prior, setIdx, ex, priorIsCrossProgram\);/);
   assert.match(fn, /const firstBasis = priorSetForSlot\(prior, 0, ex, priorIsCrossProgram\);/);
-  assert.match(fn, /chooseRampBasis\(todayFirstSet, suggestedFirst, priorIsCrossProgram \? \(firstBasis \|\| priorTop\) : priorTop\)/);
+  assert.match(fn, /chooseRampBasis\(todayFirstSet, suggestedFirst, priorIsCrossProgram \? \(firstBasis \|\| priorTop\) : priorTop, coverWarmupBasis\.get\(coverBasisKey\(i, ex\.name\)\)\)/ /* v3.656 (UX-62): + the cover's typed weight, last */);
   assert.deepStrictEqual(fn.match(/prior\.sets\[[^\]]*\]/g) || [], []);
 });
 
