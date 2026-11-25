@@ -7783,7 +7783,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.669';
+const APP_VERSION = '3.670';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9636,6 +9636,9 @@ const WHATS_NEW = {
   ]},
   '3.669': { headline: 'A clear first set', points: [
     'On a lift you haven\'t logged before, the big number is marked Target, and the button says what it will do (Enter weight) until there\'s a set to log. The −/+ buttons start an empty weight at the bar, not at zero.',
+  ]},
+  '3.670': { headline: 'Timed sets in one tap', points: [
+    'Holds and cardio show the time the program set ("4 × 45 s", "20 min"), not reps, and log in one tap: Log 45 s, Log 20 min.',
   ]},
 };
 
@@ -33652,8 +33655,12 @@ function renderUpNext(){
   const target = (header && header.querySelector('.ex-sets > span')) || (owner && owner.querySelector('.ex-sets > span'));
   // The effort in BL-10's words: the row's own label carries them (rirLabelHtml).
   const rir = target && target.parentElement.querySelector('.ex-rir');
+  // v3.670 (UX-71, B8): the unit the program wrote ("4 × 45 s", "20 min"); "reps" only on rep work.
+  const setUnit = coverSetUnit(target);
+  const presc = target ? target.textContent.trim() : '';
   document.getElementById('upNextTarget').textContent = target
-    ? `${target.textContent.trim()} reps` + (rir ? ' · ' + rir.getAttribute('aria-label') : '') : '';
+    ? (setUnit === 'reps' ? `${presc} reps` : presc.replace(/\s*×\s*/, ' × ').replace(/(\d)\s*s(?:ec)?\b/i, '$1 s'))
+      + (rir ? ' · ' + rir.getAttribute('aria-label') : '') : '';
   setCoverThen(supersetThenLine(list, n.row)); // v3.657 (UX-63)
   const chip = list.querySelector(`.set-chip[data-ex-idx="${exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
   const why = document.getElementById('upNextWhy');
@@ -33683,7 +33690,8 @@ function renderCoverNumeral(card){
   const v = readSetLogger(card);
   const hasWeight = !card.querySelector('.up-next-field[data-field="weight"]').hidden;
   const unit = card.querySelector('.up-next-field[data-field="weight"] small').textContent;
-  const repsUnit = card.querySelector('.up-next-field[data-field="reps"] small').textContent.toLowerCase();
+  const repsTile = card.querySelector('.up-next-field[data-field="reps"] small').textContent.toLowerCase();
+  const repsUnit = repsTile === 'sec' ? 's' : repsTile; // v3.670 (UX-71): "45 s", "20 min"
   // v3.669 (UX-70): nothing to log yet (no reps): the numeral is the target, the
   // range read as one ("12–15"), labelled so; Log says what it will open.
   const isTarget = !v.reps;
@@ -33691,7 +33699,10 @@ function renderCoverNumeral(card){
   const label = document.getElementById('upNextTargetLabel');
   const live = !card.classList.contains('is-done') && !!card._row;
   if(label) label.hidden = !(live && isTarget && reps);
-  if(live) document.getElementById('upNextLog').textContent = !isTarget ? 'Log set' : hasWeight && !v.weight ? 'Enter weight' : 'Enter reps';
+  // v3.670 (UX-71): a timed set names its time ("Log 45 s", "Log 20 min").
+  const timed = repsTile === 'sec' || repsTile === 'min';
+  if(live) document.getElementById('upNextLog').textContent = !isTarget ? (timed && !(hasWeight && v.weight) ? `Log ${v.reps} ${repsUnit}` : 'Log set')
+    : hasWeight && !v.weight ? 'Enter weight' : timed ? 'Enter time' : 'Enter reps';
   const el = document.getElementById('upNextNumeral');
   const [w, u, x] = el.children;
   if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
@@ -33932,6 +33943,9 @@ function renderCoverCaution(el, block, exIdx){
 // the set `n` points at: the chip's set-to-set call first, else the row's own
 // suggestion, else the set just logged for the same exercise carried forward.
 function fillSetLogger(panel, n, chip, target){
+  // v3.670 (UX-71, B8): a timed or minutes prescription ("3×45s", "20 min")
+  // names the reps tile and fills an empty one from it, so Log logs in one tap.
+  const unit = coverSetUnit(target);
   for(const field of ['weight', 'distance', 'reps', 'rpe']){
     const src = n.row.querySelector('.ex-' + field);
     const label = panel.querySelector(`.up-next-field[data-field="${field}"]`);
@@ -33948,12 +33962,25 @@ function fillSetLogger(panel, n, chip, target){
     // or the previous set's shows as ghost text (readSetLogger reads values
     // only), so Log set stores an RPE only when the lifter gave one.
     input.value = field === 'rpe' ? '' : chipV && chipV[field] != null && chipV[field] !== '' ? chipV[field] : carried;
+    if(field === 'reps' && input.value === '' && unit !== 'reps') input.value = coverTimedValue(target);
     // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
     const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
     input.placeholder = field === 'reps' && range ? range : field === 'rpe' ? carried : ''; // v3.292: no '–' filler — the label already names the tile
   }
-  const unit = n.row.querySelector('.ex-weight');
-  if(unit) panel.querySelector('.up-next-field[data-field="weight"] small').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
+  panel.querySelector('.up-next-field[data-field="reps"] small').textContent = unit === 'sec' ? 'Sec' : unit === 'min' ? 'Min' : 'Reps';
+  const w = n.row.querySelector('.ex-weight');
+  if(w) panel.querySelector('.up-next-field[data-field="weight"] small').textContent = /^\d/.test(w.placeholder) ? weightUnit : w.placeholder;
+}
+// v3.670 (UX-71): the unit a set's middle field counts (getSetFieldUnit), from the
+// prescription span ('reps' without one), and the time it prescribes ("3×45-60s"
+// → '45', "20 min" → '20'; '' when it names none).
+function coverSetUnit(target){
+  return target ? getSetFieldUnit(target.textContent) : 'reps';
+}
+function coverTimedValue(target){
+  const t = target ? target.textContent : '';
+  const m = (t.split('×')[1] || t).match(/(\d+(?:\.\d+)?)/);
+  return m ? m[1] : '';
 }
 
 // What a logger's tiles hold now, by field.

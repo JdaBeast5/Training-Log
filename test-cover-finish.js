@@ -27,7 +27,7 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 const { test, run } = makeRunner('test-cover-finish.js');
 const src = readIndexSource();
 const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle',
-  'fillSetLogger', 'readSetLogger', 'logUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
+  'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'logUpNext', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
 
 const setRow = (ex, i, logged) => `<div class="set-row" data-set-idx="${i}" data-ex-idx="${ex}"><span class="set-row-owner">Lift ${ex}</span>
   <input class="ex-input ex-weight" placeholder="lb" value="${logged ? '100' : ''}"><input class="ex-input ex-reps" placeholder="reps" value="${logged ? '8' : ''}"><input class="ex-input ex-rpe" value=""></div>`;

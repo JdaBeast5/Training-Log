@@ -21,7 +21,7 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 const { test, run } = makeRunner('test-cover-warmup.js');
 const src = readIndexSource();
 const stmt = start => { const i = src.indexOf(start); if(i < 0) throw new Error('not found: ' + start); return src.slice(i, src.indexOf('\n});', i) + 4); };
-const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', 'fillSetLogger', 'readSetLogger',
+const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger',
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'escapeHtml', 'renderWarmupChips', 'buildWarmupRampRowsHtml', 'warmupRepsValue', 'trimUnitNum',
   'toDisplayWeight', 'toCanonicalLb', 'showUndoToast', 'coverBasisKey', 'coverWarmupBlock', 'chooseRampBasis'].map(n => extractFunction(src, n));
 const WIRING = [
