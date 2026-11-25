@@ -7778,7 +7778,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.666';
+const APP_VERSION = '3.667';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9622,6 +9622,9 @@ const WHATS_NEW = {
   ]},
   '3.666': { headline: 'Your RPE, not a guess', points: [
     'Log set no longer fills in an RPE for you. Add how hard a set felt (Reps left, or RPE) and the app can raise the weight for the next set.',
+  ]},
+  '3.667': { headline: 'Look before you log', points: [
+    'Tapping a set under the big number now opens it to check or adjust. Only Log set logs it.',
   ]},
 };
 
@@ -34696,10 +34699,15 @@ document.getElementById('coverRest').addEventListener('click', (e)=>{
   const card = document.getElementById('upNext');
   if(card) mo.observe(card, {attributes: true, attributeFilter: ['hidden']});
 })();
+// v3.667 (UX-66): a cover chip, in any state, opens the set sheet on its set;
+// only the sheet's "Log set" or the cover's Log commits (a ready chip used to
+// log in one tap here, beside Log). The list's chips keep one-tap logging.
 document.getElementById('upNextChips').addEventListener('click', (e)=>{
   const c = e.target.closest && e.target.closest('.cover-chip');
-  const real = c && document.querySelector(`#exerciseList .set-chip[data-ex-idx="${c.dataset.exIdx}"][data-set-idx="${c.dataset.setIdx}"]`);
-  if(real) real.click();
+  if(!c) return;
+  const sel = `[data-ex-idx="${c.dataset.exIdx}"][data-set-idx="${c.dataset.setIdx}"]`;
+  const row = document.querySelector(`#exerciseList .sets-block .set-row${sel}`);
+  if(row) openSetSheet(row, document.querySelector(`#exerciseList .set-chip${sel}`));
 });
 // Anything typed or ticked in the real list moves the card along too.
 document.addEventListener('change', (e)=>{
