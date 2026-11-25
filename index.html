@@ -1142,6 +1142,10 @@
   .cover-caution svg{width:18px; height:18px; flex:0 0 auto; margin-top:1px;}
   .cover-why{margin-top:12px;}
   .cover.is-done .cover-log, .cover.is-done .cover-fields-wrap, .cover.is-done .cover-numeral{display:none;}
+  /* v3.664 (BL-81): a finished session with sets logged keeps one button,
+     Finish session (no adjust). */
+  .cover.is-done.can-finish .cover-log{display:grid; grid-template-columns:1fr;}
+  .cover.is-done.can-finish .cover-adjust{display:none;}
   /* [GLASS & GLOW, v3.290] "Up next" — the nested glass panel inside the workout
      card, tinted by the day's own hue (--day-hue), concept A's hero. */
   .up-next{
@@ -7772,7 +7776,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.663';
+const APP_VERSION = '3.664';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9607,6 +9611,9 @@ const WHATS_NEW = {
   '3.663': { headline: 'The next set is never skipped', points: [
     'In a superset, finishing the first lift no longer makes the cover skip the second lift\'s last set.',
     'Undo on a lift\'s last set now also unticks the lift, so the cover goes back to that set.',
+  ]},
+  '3.664': { headline: 'Finish from the cover', points: [
+    'When there\'s nothing left to log, the cover now says how many sets you logged ("38 of 40 sets logged") and offers Finish session, which opens your session summary.',
   ]},
 };
 
@@ -31618,8 +31625,7 @@ async function renderWorkout(){
       // checkbox 'change' event, so this can't replay on its own).
       if(cb.checked && dayNowComplete){
         // v3.598 (UX-09a): the finish sheet, in place of the "Session complete!" toast.
-        const finishModel = await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram);
-        openFinishSheet(finishModel);
+        const finishModel = await showFinishSheet(); // v3.664 (BL-81): shared with the cover's Finish session
         checkNumberMilestone(finishModel).catch(()=>{}); // v3.619 (MKT-17): once per milestone
         maybeShowTodayStandout();
       }
@@ -31961,6 +31967,14 @@ function nextTimeSuggestion(inp, dateKey, program, inDeload, week){
   return {name: ex.name, weight: s.weight, reps: s.reps, reason: s.reason || 'hold', words};
 }
 
+// v3.664 (BL-81): the finish sheet for the day on screen. One helper for both
+// ways in: the tick that completes the day, and the cover's Finish session.
+// It ticks nothing and stores nothing.
+async function showFinishSheet(){
+  const model = await finishSheetModel(document.getElementById('exerciseList'), selectedLogDate, activeProgram);
+  openFinishSheet(model);
+  return model;
+}
 function openFinishSheet(model){
   const sheet = document.getElementById('finishSheet');
   if(!sheet || !model) return;
@@ -33536,7 +33550,8 @@ function renderUpNext(){
     cheer.innerHTML = step ? `${escapeHtml(STEP_UP_CHEER)}<small>+${escapeHtml(step)} ${escapeHtml(weightUnit)} on last time</small>` : '';
   }
   if(n.total === 0){
-    card.classList.remove('is-done');
+    card.classList.remove('is-done', 'can-finish'); // v3.664 (BL-81): no Finish on a rest day
+    document.getElementById('upNextLog').textContent = 'Log set';
     document.getElementById('upNextLabel').textContent = '';
     document.getElementById('upNextLift').textContent = 'Rest day';
     // v3.606 (UX-25): the day's own note (renderWorkout's rest branch) replaces the generic line.
@@ -33555,10 +33570,17 @@ function renderUpNext(){
   card.classList.toggle('is-done', !n.row);
   const hint = document.getElementById('upNextHint');
   const caution = document.getElementById('upNextCaution');
+  // v3.664 (BL-81): Log set, or Finish session once there's no next set and
+  // something was logged (a session ended by ticking lifts counts too).
+  const canFinish = !n.row && n.done > 0;
+  card.classList.toggle('can-finish', canFinish);
+  document.getElementById('upNextLog').textContent = canFinish ? 'Finish session' : 'Log set';
   if(!n.row){
     document.getElementById('upNextLabel').textContent = '';
     document.getElementById('upNextLift').textContent = 'Session complete';
-    document.getElementById('upNextTarget').textContent = `All ${n.total} sets logged`;
+    // The truth: "All 40 sets logged" only when all are; "38 of 40" when some
+    // were left in lifts ticked done.
+    document.getElementById('upNextTarget').textContent = n.done === n.total ? `All ${n.total} sets logged` : `${n.done} of ${n.total} sets logged`;
     document.getElementById('upNextChips').innerHTML = '';
     hint.hidden = caution.hidden = document.getElementById('upNextWhy').hidden = true;
     renderCoverWarmup(card, null); // v3.656 (UX-62)
@@ -33860,7 +33882,9 @@ function readSetLogger(panel){
 function logUpNext(){
   const list = document.getElementById('exerciseList');
   const n = list ? findNextSetRow(list) : {row:null};
-  if(!n.row) return false;
+  // v3.664 (BL-81): no next set and something logged: the button is Finish
+  // session, which opens the finish sheet and commits nothing.
+  if(!n.row){ if(n.done > 0){ showFinishSheet().catch(()=>{}); return true; } return false; }
   const values = readSetLogger(document.getElementById('upNext'));
   if(values.reps === ''){ setCoverAdjust(true); document.getElementById('upNextReps').focus(); return false; }
   // v3.593 (UX-06a): through commitSet, as a chip tap: same row write, same Undo.

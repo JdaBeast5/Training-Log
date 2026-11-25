@@ -78,7 +78,9 @@ test('criterion 4: the session\'s share data reaches the finish sheet: one real 
   const body = strip(extractFunction(src, 'renderWorkout'));
   assert.strictEqual((body.match(/'Session complete!'/g) || []).length, 0, 'no toast');
   // 2026-11-22 (v3.619, MKT-17): the model is held in finishModel, then opened.
-  assert.strictEqual((body.match(/\bconst finishModel = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(finishModel\);/g) || []).length, 1);
+  // 2026-11-25 (v3.664, BL-81): through showFinishSheet(), shared with the cover's Finish session; the helper builds the model and opens it.
+  assert.strictEqual((body.match(/\bconst finishModel = await showFinishSheet\(\);/g) || []).length, 1);
+  assert.match(strip(extractFunction(src, 'showFinishSheet')), /const model = await finishSheetModel\(document\.getElementById\('exerciseList'\), selectedLogDate, activeProgram\);\s*openFinishSheet\(model\);/);
   const model = strip(extractFunction(src, 'finishSheetModel'));
   assert.strictEqual((model.match(/\bsessionShareStats\(listEl, dateKey, program\)/g) || []).length, 1, 'one real call');
   assert.match(strip(extractFunction(src, 'openFinishSheet')), /shareCelebrationCard\(model\.share, 'finishShare'\)/);

@@ -173,6 +173,8 @@ function buildWiredPair(){
     window.sessionShareStats = async ()=> undefined;
     // 2026-11-17 (v3.598, UX-09a): ...and opens the finish sheet (test-finish-sheet.js), stubbed the same way.
     window.finishSheetModel = async ()=> null; window.openFinishSheet = ()=>{};
+    // 2026-11-25 (v3.664, BL-81): ...through the shared helper (test-cover-finish.js), stubbed the same way.
+    window.showFinishSheet = async ()=> null;
     // 2026-11-22 (v3.619, MKT-17): ...and checks the number's milestone (test-training-day-number.js).
     window.checkNumberMilestone = async ()=> false;
     window.maybeShowTodayStandout = ()=>{};
