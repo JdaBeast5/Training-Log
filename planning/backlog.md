@@ -5590,7 +5590,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-cover-drop-offer.js`. Sabotage: drop the isolation check, and criterion 1 must fail on Bench.
 - **Files:** `index.html` (`noteSetForCoverDrop` 33676, `endCoverDrop`, `persistRestTimer` 32877, `restoreRestTimer` 32884; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** medium (the rest start). Guards: `test-cover-drop-offer.js`, `test-rest-timer*.js`, `test-backdating-rest-timer-suppression.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.668 (PR #267), awaiting the owner's merge. (Batch 2.)
 
 ### UX-69: Which lift the cover shows while a drop is on offer
 - **Why:** with UX-64's option C (the owner's pick, 2026-11-24) the cover moves to the next lift and the drop line sits above that lift's Log: "Drop set · 35 lb · Lateral Raise" over "Cable Fly · Set 1 of 3". The tester read it as the next lift's drop (Friction #5, `s1-*-17-drop-offer-lat.png`) and in one run logged Cable Fly's set while meaning the drop. This revisits a recorded owner pick, so it's his call.
