@@ -228,9 +228,9 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 80c10. **BL-84:** editing a set never acts like logging one (typed reps kept, no rest restart, "Updated", Clear stops its rest) *(ready)*
    - 80c11. **BL-85:** the drop is at least 25% lighter; the finish sheet counts lifts, not blocks *(ready)*
    - 80c12. **UX-73:** "Rest of session", adjust closes after Log, the cover fits 320 px *(ready)*
-   - 80c13. **UX-67:** Log pinned in a bottom band of the cover *(needs-owner: A recommended)*
-   - 80c14. **UX-69:** the cover stays on the finished lift while its drop is offered *(needs-owner: B recommended; after UX-68)*
-   - 80c15. **BL-86:** a beginner's first program fits a beginner (experience question; the card never contradicts the quick start) *(needs-owner: A recommended; the exercise-auditor reviews the program choice)*
+   - 80c13. **UX-67:** Log pinned in a bottom band of the cover *(ready; owner picked A on 2026-11-25)*
+   - 80c14. **UX-69:** the cover stays on the finished lift while its drop is offered *(ready; owner picked B on 2026-11-25; after UX-68)*
+   - 80c15. **BL-86:** a beginner's first program fits a beginner (experience question; the card never contradicts the quick start) *(ready once the exercise-auditor confirms the program per goal; owner picked A on 2026-11-25)*
    - 80d. **UX-41:** chevrons, links and "Done" in the ink (no link blue)
    - 80e. **UX-42:** selected chips select in the ink
    - 80f. **UX-43:** state notes flat, with a state bar and no glow (`--warning`, `--positive`, `--negative`)

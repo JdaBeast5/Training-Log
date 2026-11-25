@@ -5539,6 +5539,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-no-invented-rpe.js`. Sabotage: (a) restore the RPE fill in `fillSetLogger` (`numericPlaceholder(src) || prevSrc.value` for `rpe`), and criteria 1 and 4 must fail (stored RPE 8; the weight climbs); (b) restore `rpe == null ||` in `recommendNextSet`, and criterion 1 must fail on the weight. **Re-pin with a dated note (owner's rule, 2026-11-25):** `test-next-set-recommendation.js` lines 29–30 ("beat the range, RPE optional" and the single-target case expect `up` with no RPE; they become `same` with the new why). Read `test-today-cover.js`, `test-set-chips.js`, `test-exercise-logger.js`, `test-step-up-cheer.js` and `test-tap-counts.js` first; they should pass unchanged.
 - **Files:** `index.html` (`fillSetLogger` 33816, `recommendNextSet` 33984, `renderCoverSteppers` 33735; `APP_VERSION`; `WHATS_NEW`, written for the lifter: "Log set no longer fills in an RPE for you. Add how hard a set felt (Reps left, or RPE) and the app can raise the weight for the next set."), `sw.js`, the new test, the re-pin.
 - **Risk:** medium. What is stored changes (fewer RPEs), and lifters who never enter RPE progress more slowly mid-session, by design. MKT-23's cheer ("only when `computeSuggestedSet` really raised the weight") reads between-session raises and is unaffected. The readiness card's RPE average (`READINESS_RPE_HIGH`) sees fewer values; it already handles missing RPE.
+- **Between sessions (owner, 2026-11-25, "Your recommendations please"):** the documented double-progression rule stays as it is. With no RPE entered, a lift still goes up after two sessions in a row with every set at the top of the range.
 - **Status:** ready. **Stored-data change, confirmed by the owner in the builder session (2026-11-25):** "I confirm BL-83 as written: if I don't enter an RPE, Log set stores none and the weight doesn't go up for the next set; if I enter one, the weight can go up whenever it justifies it, with no limit per session; existing RPEs stay as they are, and the between-session rule stays as documented." That also answers the question above: the between-session rule stays as documented (no change to `analyzeProgressionSignal`'s no-RPE path or branch 4).
 
 ### UX-66: A cover chip opens the set sheet; only "Log set" commits (Friction #2)
@@ -5570,7 +5571,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** CSSOM test of the band rules (new `test-cover-band.js`) plus the harness positions as PR evidence (contact sheet required). Sabotage: remove `margin-top:auto`, and criterion 1's spread returns.
 - **Files:** `index.html` (cover CSS near 1080, markup 5821–5883; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** medium: the cover's look changes on every screen. Guards: `test-today-cover.js`, `test-rest-cover*.js`, `test-cover-warmup.js`, `test-cover-drop-offer.js`, `test-plate-stack.js`.
-- **Status:** needs-owner: "Pin Log at the bottom of the cover (A, recommended), as a sticky bar over the list (B), or leave it (C)?"
+- **Status:** ready. Owner's answer (2026-11-25): "Your recommendations please": **A**, Log pinned in a bottom band of the cover.
 
 ### UX-68: The drop offer: accessories only, and its held rest releases by itself (amends UX-64)
 - **Why:**
@@ -5602,7 +5603,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-cover-drop-offer.js`. Sabotage: render the next lift during the offer, and the criterion must fail.
 - **Files:** `index.html` (`renderUpNext` 33493, `renderCoverDrop` 33652; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test; harness contact sheet.
 - **Risk:** low to medium.
-- **Status:** needs-owner: "While a drop set is offered, keep the cover on the lift you just finished (B, recommended), or keep your earlier pick of showing the next lift (A)?" Builds after UX-68.
+- **Status:** ready. Owner's answer (2026-11-25): "Your recommendations please": **B**, the cover stays on the finished lift while its drop is offered (at most 20 s). Builds after UX-68.
 
 ### UX-70: A first-time lift says what Log will do (Friction #6 and #7)
 - **Why:**
@@ -5714,7 +5715,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-quick-start.js` and `test-program-recommendation.js`. Sabotage: drop the experience filter, and the New case must return powerbuilding.
 - **Files:** `index.html` (10466–10536, 37080, 37199, 37478; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
 - **Risk:** medium: the first screen changes and (A) the profile gains a field.
-- **Status:** needs-owner: "For a new lifter's first program: add an experience question (A, recommended), just never start anyone on Powerbuilding or Powerlifting (B), or leave it (C)? (The auditor reviews the program per goal either way.)"
+- **Status:** ready, after the exercise-auditor confirms the program for each goal. Owner's answer (2026-11-25): "Your recommendations please": **A**, add an experience question.
 
 ---
 
