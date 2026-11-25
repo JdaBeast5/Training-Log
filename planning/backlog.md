@@ -5427,6 +5427,297 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 
 ---
 
+## The Today cover usability test (planner, 2026-11-25, against v3.661)
+
+**Where this comes from.** A scripted usability test of the Today cover at v3.658 (Playwright Chromium, 402 × 874 with touch, the harness fixture, the clock frozen and fast-forwarded through rests): six sessions, about 550 taps in 12 runs, light and dark, no page or console errors. The tester's report, screenshots (`shots/`) and repro scripts (`repro.js`, `repro2.js`) were in the coordinator's session scratchpad and are **not in the repo**; each item below quotes the evidence it needs, so it stands alone. Bug numbers (B1–B9) and friction numbers are the report's.
+
+**The owner's decision (2026-11-24, in the coordinator's session).** Asked "Want me to have the team write these up (with the exercise expert checking the weight-progression fix), and move batch 1 ahead of the tab cleanup?", he said "Yes". On 2026-11-25 he set the rule for the weight-creep item (BL-83): "I don't want empty rpe to seem easy, so if none was entered, weight should not go up, but if RPE was entered appropriately, creeping up weight is ok and appropriate".
+
+- **Batch 1** (BL-80 to BL-83) is `ready` and runs before the next unbuilt tab-audit item (UX-41; UX-40 shipped in v3.661). BL-83 changes what is stored, so it waits for the owner's confirmation in the builder session.
+- **Batch 2** (UX-66 to UX-73, BL-84 to BL-86) follows batch 1, also before UX-41. These items fix daily logging (the mission's "faster or more trustworthy"); the tab audit is visual consistency and can wait a few builds.
+- **Line numbers** are against `origin/Branch-1` 2b2a2a6 (v3.661). Each item names its functions so they can be re-found after drift.
+- **What works and stays** (the report): one tap per set; the rest screen; rest timing after warm-ups and supersets; the superset "Then" line on the cover; one-tap warm-up Done and Skip with Undo; the prefilled drop sheet; state surviving tab switches, reloads and backgrounding; Reduce Motion; the finish sheet and Share. No item below may raise a count in `test-tap-counts.js`.
+
+### BL-80: The cover never skips a set: ticks belong to one lift, and Undo takes back the auto-tick (B1, B3)
+- **Why:**
+  - **B1, the superset skips Triceps set 5.** `findNextSetRow` (index.html:33444) treats a row as finished when `ticked(r)` is true, and `ticked` reads `b.querySelector('input[type=checkbox]')`: the **first** checkbox in the `.exercise-block`. In a superset pair that is always the first lift's box. Logging DB Curl's last set auto-ticks DB Curl (`checkAllSetsCompleteAndAutoCheck`, 35222, scoped correctly to its own `exIdx`), and from then on every Triceps Pushdown row counts as done. Tester's repro (`repro2.js`, fixture Day 1, the first four lifts ticked in the list, then one-tap Log through the pair): the cover goes from DB Curl set 5 to the next block, and Triceps Pushdown set 5 is never offered. In S6 ("accept every suggestion") this cost one set of 40.
+  - **B3, Undo on a lift's last set leaves the lift ticked.** `commitSet` (34164) records the row's fields for Undo but not the lift's checkbox. Undo writes the fields back (`writeSetToRow(row, before, true)`), but the auto-tick stays, so `findNextSetRow` skips the undone set. Tester's repro (`repro.js`): one-tap Log through Barbell Row to set 7 (its last), tap the toast's Undo: the row is empty again, Row's checkbox is still ticked, and the cover shows the next lift.
+  - Both are the same fault: the cover's "is this set still to do?" reads a tick that isn't that lift's own, current one.
+- **Change:**
+  - `findNextSetRow`: `ticked(r)` reads the row's own lift's box, `b.querySelector(\`.exercise input[type=checkbox][data-idx="${r.dataset.exIdx}"]\`)` (the selector `renderUpNext` already uses at 33587). For a lone lift this is the same box as now.
+  - `commitSet`: also remember the checkbox of the row's lift (`data-idx` = the row's `exIdx`) before the write. Undo writes the fields back, and if that box was unticked before and is ticked now, it unticks it and dispatches `change` (the existing handler at 31544 already supports unticking: it re-saves `completed`, the week key and the day badge).
+  - A tick the lifter made by hand is left alone: Undo only reverses a tick the commit itself caused.
+  - `renderSetChips` (34020) already scopes its `tickedEx` per lift; no change there.
+- **Acceptance criteria** (real `findNextSetRow`, `commitSet`, `writeSetToRow`, `checkAllSetsCompleteAndAutoCheck`, `renderUpNext`, `logUpNext` in jsdom, on markup built like the fixture's Day 1, storage stubbed):
+  1. **The tester's superset case.** DB Curl + Triceps Pushdown as a pair, 3 sets each (or the fixture's count). Log through the pair with `#upNextLog`: the cover visits DC1, TP1, DC2, TP2, … and after DB Curl's last set (DB Curl now auto-ticked) the cover shows **Triceps Pushdown's last set**, not the next block. All of Triceps Pushdown's rows end with reps.
+  2. **The tester's Undo case.** Barbell Row 7 sets: log sets 1–7 with `#upNextLog`; Row's box is ticked (anchor). Click `#undoToastBtn`: set 7's reps are empty, Row's box is **unticked**, and `#upNextLift` reads "Barbell Row" with `#upNextLabel` "Set 7 of 7".
+  3. A lift ticked **by hand** in the list with sets still empty is still skipped by the cover (the existing "I'm done with this lift" behaviour), and Undo of some other set never unticks it.
+  4. Lone lifts: unchanged order (the existing `test-today-cover.js` cases pass unchanged).
+- **Test plan:** new `test-cover-never-skips.js`. Sabotage: (a) restore the unscoped `querySelector('input[type=checkbox]')` in `ticked`, and criterion 1 must fail; (b) drop the checkbox restore from Undo, and criterion 2 must fail.
+- **Files:** `index.html` (`findNextSetRow` 33444, `commitSet` 34164; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the new test.
+- **Risk:** low to medium: the cover's order is the core of a session. Guards: `test-today-cover.js`, `test-cover-superset-then.js`, `test-superset-chips.js`, `test-set-chips.js`, `test-auto-check-sets.js`, `test-tap-counts.js`, `test-exercise-logger.js` (`renderExerciseLogger` also calls `findNextSetRow`).
+- **Status:** ready (batch 1, owner yes 2026-11-24).
+
+### BL-81: "Session complete" tells the truth, and the cover offers Finish (B4)
+- **Why:** **B4.** In S6 the cover read "Session complete · All 40 sets logged" at **38 of 40**: `renderUpNext` (33542–33548) prints `All ${n.total} sets logged` whenever `findNextSetRow` finds no next row, which also happens when the remaining rows belong to ticked lifts. No finish sheet opened (it opens only on the checkbox `change` that completes the day, 31609), and the cover has no way to open it, so a session that ends that way has no finish, no "Next time", no Share.
+- **Change:**
+  - **The words:** when there's no next set, `#upNextTarget` reads "All 40 sets logged" only when `n.done === n.total`; otherwise "38 of 40 sets logged".
+  - **Finish session:** in that state the cover's Log button reads **"Finish session"** and opens the finish sheet through the same two calls the completing tick makes (`finishSheetModel(list, selectedLogDate, activeProgram)` then `openFinishSheet(model)`). One shared helper is called from both sites (no copied logic). It doesn't tick anything and doesn't write storage.
+  - The completing tick still opens the sheet on its own, as now (one opening per completing tick; tapping Finish later reopens it).
+  - A rest day and a session with nothing logged show no Finish.
+- **Acceptance criteria** (real `renderUpNext`, `findNextSetRow`, `finishSheetModel`, `openFinishSheet` in jsdom):
+  1. 40 rows, 38 with reps, the remaining 2 in a ticked lift: `#upNextLift` "Session complete", `#upNextTarget` "38 of 40 sets logged", and `#upNextLog` reads "Finish session".
+  2. 40 of 40 logged: "All 40 sets logged", and the button reads "Finish session".
+  3. Clicking it opens `#finishSheet` with the model's `sets` = 38 and `planned` = 40 (from the real `finishSheetModel`), and `#upNextLog` doesn't commit anything (a `commitSet` spy stays at 0).
+  4. Real-call count (comments stripped): the shared helper is called from the completing tick and from the cover; `openFinishSheet(` is called only inside the helper.
+  5. With a next set, the button reads "Log set" and `test-tap-counts.js` is unchanged.
+- **Test plan:** extend `test-finish-sheet.js` (criteria 3, 4) and a new `test-cover-finish.js` (1, 2, 5). Sabotage: print `All ${n.total}` unconditionally, and criterion 1 must fail.
+- **Files:** `index.html` (`renderUpNext` 33542; `logUpNext` 33847; the completing tick 31609; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
+- **Risk:** low. Guards: `test-finish-sheet.js`, `test-today-cover.js`, `test-tap-counts.js`.
+- **Status:** ready (batch 1; after BL-80, which removes the most common way to reach this state).
+
+### BL-82: The PR moment: once per lift per session, an inline mark mid-workout, never over Undo or Share (B2)
+- **Why:**
+  - **B2.** "Heaviest weight yet" covered the Undo toast for 5 s, and covered the finish sheet's Share. The tester counted **31 PR banners in one session** (Friction #3).
+  - **2–3 calls per set.** `writeSetToRow` (33934) dispatches `change` on weight, RPE and reps in turn; each runs the row's `saveNow` (35399), which saves and, when `result.isPR`, calls `triggerCelebration` (35432). The weight change alone can be a "PR", so one set fires up to three banners.
+  - Every in-session weight bump on an accessory (the fixture's Lateral Raise climbed 5 lb a set) is a new "heaviest weight yet", so the banner fires on almost every set. BL-83 removes most of that climb; this item makes the moment correct whatever the numbers.
+  - UX-09b (slot 54) owns the finish sheet's flood. Its criterion 4 ("`triggerCelebration` … exactly once per PR") moves here; UX-09b keeps the flood and its motion.
+- **Change:**
+  - **One call per set:** the PR reaction runs only on the save that makes the row a real set (`isRealSet`, the same gate the rest timer uses), not on each field's change.
+  - **Once per lift per session:** a per-session set of lift keys (`exKey(activeProgram, activeDay, slot, subVariant)` + `selectedLogDate`, in memory) marks a lift celebrated; later PRs on that lift that session get the inline mark only.
+  - **Mid-workout, inline:** while the session is under way, a PR shows as the row's existing `set-status-pr` mark (35429) and as a small "PR" tag on that set's chip and the cover's logged chip. No `#celebrateBanner`. Today's PRs are already on the finish sheet (`finishSheetModel`'s best set, UX-09a), which is where the moment lands.
+  - **Never over Undo or Share:** `triggerCelebration` doesn't show while `#undoToast` is active or `#finishSheet` is open. Other callers (the streak milestone, graduation) keep their behaviour otherwise.
+  - Not on clinical programs, as now.
+- **Acceptance criteria** (real `wireSetRow`'s `saveNow` through `commitSet`, `saveExSet` stubbed to `isPR:true`, real `triggerCelebration`):
+  1. One one-tap Log of a PR set: the celebration path runs **0** banner calls and the row shows `.set-status-pr`; the chip shows the PR tag.
+  2. A `triggerCelebration` spy counts at most **1** per set for any caller path that still celebrates (the sabotage below shows 3).
+  3. Two PR sets on the same lift in one session: the second gets the inline mark and no extra celebration.
+  4. With `#undoToast.active`, a `triggerCelebration` call doesn't add `active` to `#celebrateBanner`; same with `#finishSheet` open.
+  5. The streak milestone (`checkStreakMilestone`) still shows its moment when no toast or sheet is up (`test-moments.js` unchanged).
+- **Test plan:** new `test-pr-moment-once.js`; `test-moments.js` must pass unchanged. Sabotage: call the PR branch on every field change again, and criterion 2 must fail (3 calls).
+- **Files:** `index.html` (`saveNow` 35399–35440, `triggerCelebration` 31811, `renderSetChips` 34020, `renderCoverChips` 33788; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test. Re-pin with a dated note any suite that expected a banner per PR set (the ten `triggerCelebration` suites listed in UX-30 stub it; read them first).
+- **Risk:** medium: the PR moment changes. The PR itself, its storage and the timeline are untouched (`reconstructAllPRs`, `test-pr-timeline.js`). Mark UX-09b's criterion 4 as moved here when this ships.
+- **Status:** ready (batch 1, owner yes 2026-11-24).
+
+### BL-83: No invented RPE: one-tap Log saves only an RPE the lifter entered, and no RPE never raises the weight (Friction #1) — **stored-data change**
+- **Why (the tester's evidence):**
+  - **The loop.** One-tap Log saved an RPE nobody entered (8 or 9), and the set-to-set engine raised the weight on that echo. **Lateral Raise went 25 → 45 lb in one session.** In S2 a beginner's very first Squat set (95 × 6, no RPE touched) was followed by "Go up 5 — 6 reps last set".
+  - **The owner's rule (2026-11-25):** "I don't want empty rpe to seem easy, so if none was entered, weight should not go up, but if RPE was entered appropriately, creeping up weight is ok and appropriate".
+- **Where the RPE comes from (traced at v3.661):**
+  - **The fill.** `fillSetLogger` (index.html:33816) fills every tile, RPE included, with `numericPlaceholder(src) || (prevSrc ? prevSrc.value : '')` (33828). The row's RPE placeholder is **last session's RPE for that set** (`placeholderSet.rpe`, rendered at 31321 from `priorSetForSlot`, 29979), and `prevSrc` is **the set just logged today**. So one RPE, once entered or once invented, echoes into every later set. `fillSetLogger` serves both the cover (`renderUpNext` → 33580) and each open exercise's logger (`renderExerciseLogger`).
+  - **The save.** `logUpNext` (33847) → `readSetLogger` (33838, reads the filled RPE) → `commitSet` (34164) → `writeSetToRow` (33934) writes it into `.ex-rpe` and fires `change` → `saveNow` → `saveExSet(…, rpeInput.value, …)` (35419; `saveExSet` at 30560) **stores it**.
+  - **The echo also shows** as a selected "Reps left" pill on the rest screen (`renderCoverSteppers`, 33744), so it looks entered.
+  - **Not the source:** a one-tap **chip** writes no RPE (`setChipValues` returns `rpe:''` for an unlogged set), and the set sheet starts with no pill selected unless the row has one (34253).
+- **Where stored RPE is read:**
+  - **Set to set:** `renderSetChips` (34020) → `recommendNextSet` (33984): `easyEnough = rpe == null || rpe <= 8`. A missing RPE counts as easy. This is the raise the owner's rule forbids.
+  - **Between sessions:** `buildPastSessions` (29510) → `analyzeProgressionSignal` (29358):
+    - one session with every set at the top and RPE ≤ 8 → increase (29471);
+    - two sessions at the same weight, every set at the top, RPE ≤ 8.5 **or not logged** → increase (29479, BL-08 / audit H-2);
+    - RPE 9+ for 3 sessions with no gain → the deload nudge (≈29383);
+    - RPE 10 → the decrease rule (≈29407);
+    - the clinical gate: ≤ 7 in both sessions, and no number at all without RPE (29449).
+  - `computeSuggestedSet` (30033): RPE mode loads from e1RM at the week's target (BL-34's RPE-adjusted e1RM uses a logged RPE where there is one); branch 4 (30161) is the one-session rep-only nudge.
+  - An invented 8 therefore fast-tracks the one-session increase, and an invented 9 can trigger the deload nudge or block the clinical gate. The fix makes all of these read only what the lifter said.
+- **Change:**
+  1. **Nothing invented is stored.** `fillSetLogger` never fills the RPE tile's value. Last session's or the previous set's RPE may show as the tile's **placeholder** (ghost text), which `readSetLogger` doesn't read. The "Reps left" pills start unselected. An RPE reaches storage only when the lifter types it, taps a Reps-left pill (`setCoverRepsLeft`, 33758), or picks one in the set sheet.
+  2. **No RPE never raises the weight within a session.** In `recommendNextSet`, `easyEnough` becomes `rpe != null && rpe <= 8`. With the top of the range hit and no RPE, the call is `{dir:'same'}` with the why **"Add how hard it felt to let the weight go up"**. That shows in the cover's existing quiet `#upNextWhy` line (33573) and the chip's spoken label; no new element.
+  3. **An entered RPE works as today.** Top of the range at an entered RPE ≤ 8 → up one loadable step, again on later sets if the RPE keeps justifying it. **No once-per-session cap** (owner, 2026-11-25). Entered 8.5–10 → stay.
+  4. **A set with no RPE is still a full set:** saved with reps and weight, counted for volume, history, PRs and the session's numbers, and its reps count toward the rep target (an unchanged "aim for N reps" call below the top).
+  5. **No migration.** Existing stored RPEs stay as they are (they can't be told apart from entered ones, and deleting a real one would be worse). `SCHEMA_VERSION` is unchanged; the stored set shape is unchanged (`rpe` is simply absent or empty more often).
+- **How the rule meets the programs' rep-based rules (the exercise-auditor's check, against `planning/program-audit.md`):**
+  - **Within a session**, no program progresses on reps alone except through `recommendNextSet`, which this item changes. So no RPE now means no raise mid-session, everywhere.
+  - **Between sessions**, double progression (BL-08, audit H-2) is rep-based by design: "Increase when every working set ≥ top rep at the same load in 1 session with average RPE ≤ 8, or in 2 consecutive sessions if RPE wasn't logged." That documented rule is **kept intact**. Its effect here: a lifter who never enters RPE no longer gets the one-session fast track that an invented 8 gave them, and goes up only after two sessions with every set at the top, which is the audit's rule as written. Branch 4 (the field's one-session nudge, 30161; H-2 "needs all sets at the top as well") and the clinical gate (no number without RPE, 29449) are unchanged.
+  - **Evidence:** RPE-based load selection works when the RPE is the lifter's own report: Helms et al. 2018 found RPE-based loading at least as effective as %1RM in trained men ([Front. Physiol. 9:247](https://pubmed.ncbi.nlm.nih.gov/29628895/)). But self-reported reps-in-reserve is imperfect even then: lifters under-predict reps to failure by about 1 on average, more so far from failure and on higher-rep sets ([Halperin et al. 2022, Sports Med 52:377](https://pubmed.ncbi.nlm.nih.gov/34542869/)). A number the lifter never gave carries no information, so it can't justify a raise, and a two-session rep rule is the conservative, documented fallback.
+  - **Question for the owner (doesn't block):** does "if none was entered, weight should not go up" also cover **next session**? This item reads it as within a session (the creep the tester saw), and keeps the documented between-session rule, because a lifter who never enters RPE would otherwise never progress. If he wants it stricter, that's a follow-up item that changes `analyzeProgressionSignal`'s no-RPE path and branch 4.
+- **Acceptance criteria** (real `fillSetLogger`, `readSetLogger`, `logUpNext`, `commitSet`, `writeSetToRow`, `renderSetChips`, `recommendNextSet`, `renderUpNext` and the row's real `saveNow` → `saveExSet` over stubbed `window.storage`; markup from the fixture's Lateral Raise, prior session stored with RPE 8 on every set so the placeholder is numeric):
+  1. **The tester's case.** Lateral Raise at **25 lb**: log every set with one tap on `#upNextLog`, touching nothing else, reps reaching the top of the range: every stored set has no RPE (`rpe` absent, null or `''` in the stored JSON), and the cover's weight (`#upNextWeight`, `#upNextNumeral`) is **25** before every set. After a set at the top, `#upNextWhy` reads "Add how hard it felt to let the weight go up".
+  2. **Entered RPE 6.** Same lift, RPE 6 typed in `#upNextRpe` on a set at the top: that set is stored with `rpe` 6, and the next set's suggestion is 25 + one loadable step (`loadStepFor`, 30 with a 5 lb dumbbell increment), why "Go up 5 — 15 reps at RPE 6 last set" (or the lift's top rep). Entering RPE 6 again at 30 at the top raises again (no session cap).
+  3. **Entered RPE 9 and 10.** At the top of the range: the next suggestion stays at the same weight (`dir:'same'`).
+  4. **The ghost.** After the RPE 6 set, the next set's `#upNextRpe` has `value === ''` and the Reps-left pills are all `aria-checked="false"`.
+  5. **Still a set.** The no-RPE sets count in `finishSheetModel`'s `sets` and in `sessionShareStats`.
+  6. **Between sessions unchanged:** `analyzeProgressionSignal` with two no-RPE sessions, same weight, every set at the top → `increase`; with one such session → no increase from the RPE ≤ 8 path. Existing BL-08/BL-02 suites pass unchanged.
+- **Test plan:** new `test-no-invented-rpe.js`. Sabotage: (a) restore the RPE fill in `fillSetLogger` (`numericPlaceholder(src) || prevSrc.value` for `rpe`), and criteria 1 and 4 must fail (stored RPE 8; the weight climbs); (b) restore `rpe == null ||` in `recommendNextSet`, and criterion 1 must fail on the weight. **Re-pin with a dated note (owner's rule, 2026-11-25):** `test-next-set-recommendation.js` lines 29–30 ("beat the range, RPE optional" and the single-target case expect `up` with no RPE; they become `same` with the new why). Read `test-today-cover.js`, `test-set-chips.js`, `test-exercise-logger.js`, `test-step-up-cheer.js` and `test-tap-counts.js` first; they should pass unchanged.
+- **Files:** `index.html` (`fillSetLogger` 33816, `recommendNextSet` 33984, `renderCoverSteppers` 33735; `APP_VERSION`; `WHATS_NEW`, written for the lifter: "Log set no longer fills in an RPE for you. Add how hard a set felt (Reps left, or RPE) and the app can raise the weight for the next set."), `sw.js`, the new test, the re-pin.
+- **Risk:** medium. What is stored changes (fewer RPEs), and lifters who never enter RPE progress more slowly mid-session, by design. MKT-23's cheer ("only when `computeSuggestedSet` really raised the weight") reads between-session raises and is unaffected. The readiness card's RPE average (`READINESS_RPE_HIGH`) sees fewer values; it already handles missing RPE.
+- **Status:** **stored-data change.** `ready` once the owner confirms it directly in the builder session; until then the builder skips it. The confirming message is in the planning PR for this section.
+
+### UX-66: A cover chip opens the set sheet; only "Log set" commits (Friction #2)
+- **Why:** the cover's chips (`renderCoverChips`, 33788) forward a tap to the real list chip (`#upNextChips` click handler, 34604), and a **ready** list chip commits its set in one tap (34182, `logSetChip`). On the cover that puts a second commit button beside Log: the tester logged a set by tapping the ready chip to look at it (`s1-*-07-chip-tap-logged.png`).
+- **Change:** a cover chip, in any state, opens the set sheet on its set (`openSetSheet(row, realChip)`), as a pending or logged chip already does. Only the sheet's "Log set" or the cover's Log commits. List chips in Then keep one-tap logging (v3.298, with Undo); this is the cover only.
+- **Acceptance criteria:**
+  1. Real handler: clicking the cover's `.cover-chip.is-ready` opens `#setSheet` on that set, and a `commitSet` spy stays at 0.
+  2. Then the sheet's Save ("Log set") commits exactly once.
+  3. Clicking a ready chip in `#exerciseList` still commits in one tap (`test-set-chips.js` unchanged).
+  4. `test-tap-counts.js` unchanged (its "log the ready set" is `#upNextLog`).
+- **Test plan:** new `test-cover-chip-sheet.js`. Sabotage: restore `real.click()`, and criterion 1 must fail.
+- **Files:** `index.html` (34604; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Long-press on a cover chip already opened the sheet; now a tap does too.
+- **Status:** ready (batch 2).
+
+### UX-67: Log stays in one place: the cover's action row pinned to a bottom band (Friction #4)
+- **Why:** "Log set" moved **278 px** during a session, and its centre was in the top half of the screen in **23 of 39** logging moments. Its height depends on what sits above it: the hint, the cheer, the superset line, the numeral's size, the plate stack, the warm-up and drop lines (cover markup 5821–5883). During rest, +30 s and Skip rest (5852–5854) sit somewhere else again.
+- **Options (the owner picks; a large visual change):**
+  - **A, a bottom band inside the cover (recommended):** the cover fills the first screen (`min-height` to the tab bar, as a field), and its last row is a fixed-height band: Log set and adjust, or during rest +30 s and Skip rest, in the same spot. The variable lines (hint, cheer, Then, warm-up, drop) sit above the band and push the numeral up, never the band down. Scrolling down to Then scrolls the band away as today, and UX-61's floating layer is untouched.
+  - **B, a sticky band fixed to the viewport above the tab bar,** which stays while scrolling Then. Always reachable, but it stacks with UX-61's rest and undo surface and covers list rows, and every sheet and toast has to avoid it.
+  - **C, as now.**
+- **Why A:** it fixes the measured problem (the button's height moves) with one layout rule and no new floating layer; B duplicates what UX-61 is building and costs screen on every scroll.
+- **Change (A):** the cover becomes a column with the band last (`margin-top:auto`); `#coverRest`'s two buttons render in the band's place while resting; the drop and warm-up lines move above the band. No handler changes.
+- **Acceptance criteria (A):**
+  1. Harness at 402 × 874, dark and light: `#upNextLog`'s centre `y` is the same (±2 px) in `tday`, `tday-warmup`, `tday-dropoffer`, the superset state and a first-time lift, and is in the bottom 40% of the viewport.
+  2. In a rest state `#coverRestSkip` sits at the band's position (±2 px of Log's centre).
+  3. At 320 × 568 the band is still fully on the first screen.
+  4. `test-tap-counts.js` unchanged; no listener moves (same elements).
+- **Test plan:** CSSOM test of the band rules (new `test-cover-band.js`) plus the harness positions as PR evidence (contact sheet required). Sabotage: remove `margin-top:auto`, and criterion 1's spread returns.
+- **Files:** `index.html` (cover CSS near 1080, markup 5821–5883; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** medium: the cover's look changes on every screen. Guards: `test-today-cover.js`, `test-rest-cover*.js`, `test-cover-warmup.js`, `test-cover-drop-offer.js`, `test-plate-stack.js`.
+- **Status:** needs-owner: "Pin Log at the bottom of the cover (A, recommended), as a sticky bar over the list (B), or leave it (C)?"
+
+### UX-68: The drop offer: accessories only, and its held rest releases by itself (amends UX-64)
+- **Why:**
+  - The offer came after **heavy compounds** (the tester saw it after Overhead Press and Bench, `s1-*-16-drop-offer-ohp.png`). `dropSetEligible` (29754) allows any labelled lift that isn't speed, clinical or deload work, so a 4×4-6 Bench qualifies. Drop sets are an accessory technique; heavy compounds taken near failure and then stripped are a fatigue and safety cost for little extra growth (the auditor's view, consistent with BL-79's own "isolation and machines" examples).
+  - **Ignoring it means no rest timer runs:** UX-64 holds the rest until Log or Not now (`holdRestForDrop`, 33698), so a lifter who just walks away gets none.
+  - **A reload during the offer loses the held rest** (B9): `coverDropOffer` (33647) is memory only, so neither the offer nor its rest survives.
+- **Change:**
+  - **Accessories only:** the cover offers a drop only where `targetRirLabel(ex, program, inDeload) === RIR_TARGETS.isolation` (the app's existing compound/isolation split, `COMPOUND_CATEGORIES`). The set sheet's Drop set (BL-79) keeps its wider eligibility.
+  - **Auto-release:** an unanswered offer ends after **20 s** and starts the held rest with the time already passed counted (rest ends 20 s sooner than a fresh start would, as if it had started at the set).
+  - **Reload:** when an offer is made, the held rest is written to the existing rest-timer state (`REST_TIMER_STATE_KEY`, 32866) as `{held:true, seconds, label, heldAt}`; `restoreRestTimer` (32884) starts it from `heldAt`. The offer itself isn't restored. Transient state in an existing key, not user data.
+- **Acceptance criteria** (real `noteSetForCoverDrop`, `holdRestForDrop`, `endCoverDrop`, `startRestTimer`, `restoreRestTimer`, fake timers):
+  1. Bench Press 4×4-6 last set: no `.cover-drop` and the rest starts at once. Lateral Raise last set: the offer shows (UX-64's criterion 1 unchanged).
+  2. No answer for 20 s: the offer goes, and `restTimerEndsAt` equals set time + rest seconds.
+  3. Reload during the offer (state written, page script re-run): a rest is running, ending at set time + rest seconds.
+  4. `test-cover-drop-offer.js` and `test-drop-set-suggestion.js` pass, re-pinned only where a compound was the eligible example (dated note).
+- **Test plan:** extend `test-cover-drop-offer.js`. Sabotage: drop the isolation check, and criterion 1 must fail on Bench.
+- **Files:** `index.html` (`noteSetForCoverDrop` 33676, `endCoverDrop`, `persistRestTimer` 32877, `restoreRestTimer` 32884; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** medium (the rest start). Guards: `test-cover-drop-offer.js`, `test-rest-timer*.js`, `test-backdating-rest-timer-suppression.js`.
+- **Status:** ready (batch 2).
+
+### UX-69: Which lift the cover shows while a drop is on offer
+- **Why:** with UX-64's option C (the owner's pick, 2026-11-24) the cover moves to the next lift and the drop line sits above that lift's Log: "Drop set · 35 lb · Lateral Raise" over "Cable Fly · Set 1 of 3". The tester read it as the next lift's drop (Friction #5, `s1-*-17-drop-offer-lat.png`) and in one run logged Cable Fly's set while meaning the drop. This revisits a recorded owner pick, so it's his call.
+- **Options:**
+  - **A, as shipped (C):** next lift on the cover, the drop line above Log.
+  - **B, hold the cover on the finished lift for the offer's life (recommended):** while the offer is open (at most 20 s with UX-68), the cover's lift line and numeral stay on the finished lift ("Lateral Raise · Drop set", "35 lb"), with the drop line's Log drop and Not now; when it ends the cover moves on. Log set is hidden for those seconds so there's one action.
+  - **C, UX-64's option A** (the drop takes the cover as a full step after every eligible lift).
+- **Why B:** one lift on the cover at a time, as everywhere else; after UX-68 it lasts at most 20 s and only after accessories.
+- **Acceptance criteria (B):** while `coverDropOffer` is set, `#upNextLift` is the offer's lift and `#upNextLog` is hidden; after Not now, the 20 s release or Log drop, `#upNextLift` is the next lift and Log shows. `test-tap-counts.js` unchanged.
+- **Test plan:** extend `test-cover-drop-offer.js`. Sabotage: render the next lift during the offer, and the criterion must fail.
+- **Files:** `index.html` (`renderUpNext` 33493, `renderCoverDrop` 33652; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test; harness contact sheet.
+- **Risk:** low to medium.
+- **Status:** needs-owner: "While a drop set is offered, keep the cover on the lift you just finished (B, recommended), or keep your earlier pick of showing the next lift (A)?" Builds after UX-68.
+
+### UX-70: A first-time lift says what Log will do (Friction #6 and #7)
+- **Why:**
+  - On a lift with no history the cover's numeral shows the **target** ("5 reps", "×12-15") in the same face as a logged value, and Log does nothing visible: with no reps, `logUpNext` (33852) opens adjust and focuses reps, silently. The tester's S2 beginner: 9 taps to the first working set; S6: "Log did nothing on Cable Fly (12-15 reps)".
+  - The rest steppers for a first-time lift start at **0 lb and 0 reps** (`renderCoverSteppers`, 33742: `|| '0'`).
+- **Change:**
+  - With nothing to log yet, the numeral carries a "Target" label (`.cover-of`-style small caps above it) and the reps read as the range ("12–15 reps").
+  - Log's label says what it will do: **"Enter weight"** (or "Enter reps" on a no-weight lift) when the set isn't loggable; "Log set" once it is. The action is the same as now (open adjust, focus the field), but now the label promised it.
+  - The steppers show "–" instead of 0 when the field is empty; the first tap of + on weight starts at the bar (barbell) or one loadable step (`loadStepFor`), not at 0 + step.
+- **Acceptance criteria:**
+  1. Real `renderUpNext` on a first-time Cable Fly 3×12-15: the numeral area has the "Target" label, `#upNextLog` reads "Enter weight"; clicking it opens `#upNextFieldsWrap` and focuses `#upNextWeight`; no commit.
+  2. After typing 30 and 12, the label reads "Log set" and one click commits 30 × 12.
+  3. A lift with a suggestion shows no "Target" label and "Log set" (`test-today-cover.js` unchanged).
+  4. Empty weight: `#coverStepWeight` reads "– lb"; one + on a barbell lift gives the bar weight.
+- **Test plan:** new `test-cover-first-time.js`. Sabotage: keep "Log set" unconditionally, and criterion 1 must fail.
+- **Files:** `index.html` (`renderUpNext`, `renderCoverNumeral` 33595, `logUpNext`, `renderCoverSteppers`, `stepCoverField`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Guards: `test-today-cover.js`, `test-tap-counts.js`, `test-first-set-hint*.js`.
+- **Status:** ready (batch 2).
+
+### UX-71: Timed and cardio rows log with one tap (B8)
+- **Why (B8):**
+  - Labels: the cover appends " reps" to every prescription (`renderUpNext`, 33568: `${target} reps`), giving **"4×45s reps"** on Plank and **"20 min reps"** on Incline Walk; the numeral reads "45s reps".
+  - **Log does nothing on Plank:** the reps tile is empty (no numeric suggestion), so `logUpNext` opens adjust.
+  - **Incline Walk logged "0×20"** in one run (`s4-*-11`): a distance tile with no value and the minutes in reps.
+- **Change:**
+  - The prescription line keeps the unit the program wrote ("4 × 45 s", "20 min"), adding "reps" only when `getSetFieldUnit(ex.sets)` (27827) is reps.
+  - A timed or minutes row with an empty reps tile fills it from the prescription (45, 20), so the numeral reads "45 s" / "20 min" and Log reads **"Log 45 s"** / **"Log 20 min"** and commits in one tap, as any other set. (A countdown timer for holds is a possible later item, not this one.)
+  - Distance stays optional (BL-55) and is never written as 0.
+- **Acceptance criteria:** real `renderUpNext` + `logUpNext`: Plank 4×45s → `#upNextTarget` "4 × 45 s", `#upNextLog` "Log 45 s", one click stores reps 45 with no weight; Incline Walk 20 min → "Log 20 min", stored reps 20, no weight and no distance; a reps lift unchanged.
+- **Test plan:** new `test-cover-timed-rows.js`. Sabotage: restore `${target} reps`, and the label criterion must fail.
+- **Files:** `index.html` (`renderUpNext` 33568, `fillSetLogger`, `renderCoverNumeral`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Guards: `test-cardio-distance-gate.js`, `test-today-cover.js`, `test-tap-counts.js`.
+- **Status:** ready (batch 2).
+
+### UX-72: Bodyweight and AMRAP sets read as what they are (Friction #9)
+- **Why:** Pull-ups (or assisted), 4×AMRAP, has a weight field for added load; the cover showed **"0 lb ×11"**, the weight tile "lb", the rest stepper "0 lb", and the prescription **"4×AMRAP reps"**.
+- **Change:**
+  - On a lift whose name or library entry marks it bodyweight-loadable (the rows that have a weight field but default to none), a weight of 0 or empty shows as **"BW ×11"**; with weight, "BW +25 ×8". The weight tile and stepper are labelled **"Added weight"**. Stored values unchanged (0 or empty stays as it is).
+  - AMRAP: the prescription reads "4 sets · as many reps as you can"; the numeral shows last time's reps, else "AMRAP".
+- **Acceptance criteria:** real `renderUpNext`: Pull-ups with weight 0 and reps 11 → numeral "BW ×11", tile label "Added weight"; with 25 → "BW +25 ×8"; `#upNextTarget` "4 sets · as many reps as you can"; Bench unchanged.
+- **Test plan:** new `test-cover-bodyweight.js`. Sabotage: print the weight unconditionally, and the "BW" criterion must fail.
+- **Files:** `index.html` (`renderCoverNumeral` 33595, `renderUpNext`, `renderCoverSteppers`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Guards: `test-noweight-consistency.js`, `test-today-cover.js`.
+- **Status:** ready (batch 2).
+
+### BL-84: Editing a set never acts like logging one (B5, B6, Clear set)
+- **Why:**
+  - **B5.** First-time lift: the beginner typed 95 lb and 6 reps, tapped the warm-up's Done, then Log: **nothing logged**. The Done re-renders the workout, and `renderUpNext` → `fillSetLogger` refills the cover's tiles from the row (no suggestion, so reps go empty), while the numeral still read "95 lb ×5". UX-62 kept typed fields only in the weight-change path (34541).
+  - **B6.** Editing set 1 (5 → 4 reps) through its chip's sheet restarted the **full** 4:00 rest, and the toast said "Logged Bench Press 182.5×4". `saveNow` (35399) starts the rest on every save that is a real set; `commitSet`'s toast always says "Logged".
+  - **Clear set leaves the rest running** (B9): Clear (34460) empties the row but the rest it started keeps counting.
+- **Change:**
+  - `renderUpNext` keeps whatever the lifter typed in the cover's tiles while the cover still points at the same set (`card.dataset.rowKey` unchanged), the guard `renderExerciseLogger` already uses (`panel.dataset.rowKey === key`). One rule for both loggers.
+  - `saveNow` starts the rest only when the row goes from not logged to logged (the `was`/`now` test `noteSetForCoverDrop` already computes; capture it before that call). An edit of a logged set re-saves without touching the timer.
+  - `commitSet`'s toast reads **"Updated Bench Press 182.5×4"** when the row had reps before.
+  - Clear on the row whose save started the running rest stops it (the timer remembers the row key that started it).
+- **Acceptance criteria:**
+  1. Real path, first-time lift with warm-ups: type 95 and 6, click `#coverWarmupDone`; `#upNextReps` is still 6 and `#upNextLog` commits 95 × 6.
+  2. Edit a logged set's reps through the set sheet: `restTimerEndsAt` unchanged (null stays null; a running rest keeps its end), toast text starts "Updated".
+  3. Clear the set that started the running rest: no rest running. Clear another set: the rest keeps going.
+  4. A new set still starts its rest (`test-rest-*` suites unchanged).
+- **Test plan:** new `test-edit-not-log.js`. Sabotage: drop the `was` check, and criterion 2 must fail.
+- **Files:** `index.html` (`renderUpNext` 33493, `saveNow` 35399, `commitSet` 34164, Clear 34460, `startRestTimer` 33072; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** medium (rest start). Guards: `test-cover-drop-offer.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-cover-warmup.js`.
+- **Status:** ready (batch 2).
+
+### BL-85: The numbers on the drop and the finish sheet add up (B7, lift count)
+- **Why:**
+  - **B7.** The drop isn't always 25% lighter: `computeSuggestedSet`'s drop branch (30109) calls `scale()` (30087), which rounds to the **nearest** increment before the snap down. Lateral Raise 45 → 33.75 → **35** (22% off). BL-79's own comment says "rounded and snapped DOWN (a drop rounded up is no drop)".
+  - **"7 Lifts" on an 8-lift day.** `sessionShareStats` (31854) counts `.exercise-block`s with a logged set; a superset pair is one block, so DB Curl + Triceps Pushdown count once. The finish sheet and the bib read the same number.
+- **Change:**
+  - The drop branch takes `parent × factor` and snaps it down to a loadable weight directly (no nearest rounding first): at least 25% (drop 2: 20%) lighter, never under the bar, null when nothing lighter loads. With 5 lb dumbbell steps, 45 → 30. *(Auditor: the studies used 20–30% drops [Sødal 2023]; "at least 25%" is BL-79's shipped intent, and with coarse dumbbell steps the next loadable weight down is the safe side.)*
+  - Lifts are counted as distinct lifts (`data-ex-idx`) with a logged set, not blocks.
+- **Acceptance criteria:** real `computeSuggestedSet` with a drop signal: 45 lb dumbbell → 30; 100 lb barbell → 75; 185 → 135 (≤ 138.75 and loadable); never ≥ 0.75 × parent for drop 1. Real `sessionShareStats` on a day with a logged pair → `LIFTS` counts both; `finishSheetModel().lifts` matches.
+- **Test plan:** extend `test-drop-set-suggestion.js` and `test-finish-sheet.js`. Sabotage: restore `scale()` in the drop branch, and the 45 → 30 case must fail.
+- **Files:** `index.html` (30109, 31854; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
+- **Risk:** low. Guards: `test-drop-set-suggestion.js`, `test-cover-drop-offer.js` (its "35 lb" example re-pins to the new figure with a dated note), `test-bib-card.js`, `test-session-share.js`.
+- **Status:** ready (batch 2).
+
+### UX-73: "Rest of session", the adjust panel closes after Log, and the cover fits 320 px (Friction #10, #11, B9)
+- **Why:**
+  - **"Then" means two things** (Friction #11): the list header under the cover is "Then" (5925), and the superset line on the cover starts "Then Triceps Pushdown…" (UX-63).
+  - **The adjust panel stays open** for the rest of the session once used (Friction #10): `logUpNext` never calls `setCoverAdjust(false)`.
+  - **320 px wide:** the big number overflows and the page scrolls sideways (B9); the program line clips ("Strength & Size · Week 4 of 5 · Accumula").
+- **Change:**
+  - The list header reads **"Rest of session"**. The superset line keeps "Then".
+  - After a successful Log, `logUpNext` closes the adjust panel (`setCoverAdjust(false)`). A Log that needs reps still opens it.
+  - Below 360 px wide the numeral steps down a size (`.cover-numeral` 1080–1084 get a `max-width` media rule) and the program line ellipsizes; no horizontal scroll.
+- **Acceptance criteria:**
+  1. `.then-title` text "Rest of session"; `#upNextThen` still starts "Then".
+  2. Open adjust, Log: `#upNextFieldsWrap` loses `open`, `#upNextAdjust` `aria-expanded="false"`.
+  3. CSSOM: the narrow media rule exists and sets a smaller `.cover-w` size; harness at 320 × 568 (PR evidence): `document.documentElement.scrollWidth <= 320`.
+- **Test plan:** new `test-cover-small-fixes.js`. Sabotage: remove the close call, and criterion 2 must fail.
+- **Files:** `index.html` (5925, 1080–1084, `logUpNext` 33847; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
+- **Risk:** low. Guards: `test-today-then.js` (re-pin the header text with a dated note), `test-today-cover.js`.
+- **Status:** ready (batch 2).
+
+### BL-86: A beginner's first program fits a beginner (Friction #12)
+- **Why (S2, the first-run beginner):**
+  - The quick start (`quickStartSteps`, 10466) asks goal, days and where. There is **no experience question**.
+  - Muscle Gain + 3 days + gym routed to **Powerbuilding** (`quickStartProgram`, 10478): Squat 5×5 on day 1, about 69 min with the extras. `PROGRAM_FIT_SCORES.gain` ranks bodybuilding 95, powerbuilding 92, strength 90; bodybuilding is excluded at ≤ 3 days, so the next best wins regardless of experience.
+  - The **recommendation card** then said "Recommended for your goal: **Bodybuilding** … matches a 'Lean & Toned' look" (`renderProgramRec`, 37478): it ignores the quick start's exclusion and quotes a body goal the user never picked (the profile default).
+- **Options (the owner picks; A and B change what's stored in the profile):**
+  - **A, ask experience (recommended):** a fourth one-tap question, "How long have you been lifting?" (New / under a year / 1–3 years / 3+ years), saved as `experience` on the profile. New and under-a-year lifters never route to `HIGH_INTENSITY_PROGRAMS` (powerbuilding, powerlifting, oly …); for gym goals they get **Strength & Size** at their day count, unless the exercise-auditor picks better. Existing profiles have no `experience` and route as today.
+  - **B, no new question, a safer default:** the quick start never routes to powerbuilding, powerlifting or oly (a first program is the moderate one); experienced lifters switch in Settings. No data change.
+  - **C, as now.**
+  - **For any option:** the recommendation card stays silent until the lifter has trained for 14 days after the quick start, never recommends a program the quick start excluded, and never quotes a body goal the profile doesn't hold. This part could ship on its own if he prefers.
+- **Why A:** the evidence on novices is that they progress fast on moderate volume and simple linear or double progression; a 5×5 top lift plus bodybuilding volume is built for intermediates. *(The exercise-auditor must review the program choice for each goal × day count before the build; this item names Strength & Size as the placeholder.)*
+- **Acceptance criteria (A):** real `quickStartProgram` with gain, 3 days, gym, New → not in `HIGH_INTENSITY_PROGRAMS` (Strength & Size or the auditor's pick); the same with 3+ years → today's pick; real `renderProgramRec` with a quick-start profile under 14 days → empty; with `bodyGoal` unset → no "look" sentence.
+- **Test plan:** extend `test-quick-start.js` and `test-program-recommendation.js`. Sabotage: drop the experience filter, and the New case must return powerbuilding.
+- **Files:** `index.html` (10466–10536, 37080, 37199, 37478; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
+- **Risk:** medium: the first screen changes and (A) the profile gains a field.
+- **Status:** needs-owner: "For a new lifter's first program: add an experience question (A, recommended), just never start anyone on Powerbuilding or Powerlifting (B), or leave it (C)? (The auditor reviews the program per goal either way.)"
+
+---
+
 ## Tooling and docs outside the build loop (alignment round, 2026-11-07)
 
 The loop never picks these: they aren't in the roadmap's numbered sequence, and they change neither `index.html` nor `sw.js`, so they bump no version and can't collide with the open auto-PR (consensus C3). Each is its own PR into `Branch-1`, merged by the owner.
