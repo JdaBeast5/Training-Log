@@ -1909,3 +1909,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `tools/visual/harness.js`: the drop-offer driver stops once `coverDropOffer` is set.
 - **Live:** v3.675 (UX-67) merged and live.
 - **Owner (2026-11-26): "focus on minor details instead of the big stuff for now."** Pick small items next.
+
+## Addendum 197: the owner's minor list (v3.677–v3.681, PRs #276–#280, stacked on #275)
+- v3.677 #276: timed rest stepper (Seconds / Minutes, 5 s steps, no Reps left). v3.678 #277: rows marked data-bw, chips BW×11 / BW+25×8. v3.679 #278: a seconds target chip reads "45 s". v3.680 #279: Cancel, Back, swap icon, supplement links, Settings notify row in the ink. v3.681 #280: in the drop-offer state the drop line is the band.
+- **Flagged:** the Undo toast floats over the cover's band.
+- **Next:** back to the roadmap (80c15 BL-86, then UX-42…), unless the owner names more minor items.
