@@ -5667,7 +5667,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-edit-not-log.js`. Sabotage: drop the `was` check, and criterion 2 must fail.
 - **Files:** `index.html` (`renderUpNext` 33493, `saveNow` 35399, `commitSet` 34164, Clear 34460, `startRestTimer` 33072; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** medium (rest start). Guards: `test-cover-drop-offer.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-cover-warmup.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.672 (PR #271), awaiting the owner's merge. (Batch 2.)
 
 ### BL-85: The numbers on the drop and the finish sheet add up (B7, lift count)
 - **Why:**

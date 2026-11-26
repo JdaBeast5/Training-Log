@@ -1877,3 +1877,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Live:** v3.670 (UX-71) merged and live.
 - **Flagged:** chips read "0×11" on bodyweight lifts.
 - **Next:** 80c10 in the roadmap's batch 2.
+
+## Addendum 192: BL-84 (v3.672, PR #271)
+- `saveNow` reads `wasReal = setRow._realSet` and sets `_realSet` (reps, and weight where shown) before anything is awaited; the rest starts only on not-real → real. Real → not-real (Clear, Undo) closes the rest if `restTimerFromRow === setRow` (set after `startRestTimer` in saveNow; `startRestTimer` resets it to null).
+- `commitSet` toast: "Logged" / "Updated" / "Cleared <lift> set N".
+- `renderWorkout` stamps `#exerciseList` `data-workout` = program|day|date. `renderUpNext` keys the cover `data-workout|exIdx:setIdx` and keeps typed tiles while the key is unchanged; the done and rest-day branches delete the key.
+- **Live:** v3.671 (UX-72) merged and live.
+- **Next:** 80c11 in the roadmap's batch 2.
