@@ -7783,7 +7783,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.671';
+const APP_VERSION = '3.672';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9642,6 +9642,9 @@ const WHATS_NEW = {
   ]},
   '3.671': { headline: 'Bodyweight, said plainly', points: [
     'Pull-ups, dips and other bodyweight lifts show BW ×11, or BW +25 ×8 with added weight, instead of 0 lb, and the weight is labelled Added weight. AMRAP sets read "as many reps as you can".',
+  ]},
+  '3.672': { headline: 'Editing isn\'t logging', points: [
+    'Fixing a logged set (say 5 reps to 4) now saves it as Updated without restarting your rest. Clearing the set that started your rest stops it, and what you type on the cover stays put when a warm-up is ticked off.',
   ]},
 };
 
@@ -30971,6 +30974,8 @@ async function renderWorkout(){
 
   const inDeloadWeek = await isDeloadWeek();
   document.getElementById('exerciseList').dataset.deload = inDeloadWeek ? '1' : ''; // read by the set chips (v3.303)
+  // v3.672 (BL-84): which workout the list holds, so the cover can tell "the same set, redrawn" from another day's.
+  document.getElementById('exerciseList').dataset.workout = `${activeProgram}|${activeDay}|${selectedLogDate}`;
   const mesoWeek = await getMesocycleWeek();
   // v3.641 (BL-32): today only, when the person chose an easier day.
   const easierToday = !isBackdating() && await easierDayToday();
@@ -32933,6 +32938,8 @@ function applyRestTimerExpandHeight(){
 // wall-clock deadline instead, which is also the only thing a notification can
 // honestly be scheduled against.
 let restTimerEndsAt = null;
+// v3.672 (BL-84): the set row whose save started the running rest (Clear on it stops it).
+let restTimerFromRow = null;
 const REST_NOTIFICATION_TAG = 'rest-timer';
 const REST_TIMER_STATE_KEY = 'rest-timer-state';
 
@@ -33153,6 +33160,7 @@ document.addEventListener('visibilitychange', ()=>{
 // for a rest a drop offer held; omitted, it starts now.
 function startRestTimer(seconds, label, startedAt){
   if(coverDropOffer) endCoverDrop(false); // v3.658 (UX-64): a rest starting ends a drop offer
+  restTimerFromRow = null; // v3.672 (BL-84): the set's save names itself after this call
   restTimerTotal = seconds || 90;
   restTimerEndsAt = (startedAt || Date.now()) + restTimerTotal * 1000;
   restTimerSeconds = restRemainingSeconds();
@@ -33608,6 +33616,7 @@ function renderUpNext(){
     cheer.innerHTML = step ? `${escapeHtml(STEP_UP_CHEER)}<small>+${escapeHtml(step)} ${escapeHtml(weightUnit)} on last time</small>` : '';
   }
   if(n.total === 0){
+    delete card.dataset.rowKey; // v3.672 (BL-84)
     card.classList.remove('is-done', 'can-finish'); // v3.664 (BL-81): no Finish on a rest day
     document.getElementById('upNextLog').textContent = 'Log set';
     document.getElementById('upNextLabel').textContent = '';
@@ -33634,6 +33643,7 @@ function renderUpNext(){
   card.classList.toggle('can-finish', canFinish);
   document.getElementById('upNextLog').textContent = canFinish ? 'Finish session' : 'Log set';
   if(!n.row){
+    delete card.dataset.rowKey; // v3.672 (BL-84)
     document.getElementById('upNextLabel').textContent = '';
     document.getElementById('upNextLift').textContent = 'Session complete';
     // The truth: "All 40 sets logged" only when all are; "38 of 40" when some
@@ -33676,7 +33686,16 @@ function renderUpNext(){
   hint.hidden = !hint.textContent;
   renderCoverCaution(caution, block, exIdx);
   renderCoverChips(block, exIdx);
+  // v3.672 (BL-84, B5): the same set redrawn (a warm-up's Done re-renders the
+  // list) keeps what the lifter typed on the cover, as an open exercise's
+  // logger does (its rowKey guard); another set, day or date fills afresh.
+  const coverKey = `${list.dataset.workout || ''}|${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  const typed = card.dataset.rowKey === coverKey ? readSetLogger(card) : null;
   fillSetLogger(card, n, chip, target);
+  if(typed) for(const f of ['weight', 'distance', 'reps', 'rpe']){
+    const input = card.querySelector(`.up-next-field[data-field="${f}"] input`);
+    if(typed[f] !== '' && !input.closest('.up-next-field').hidden) input.value = typed[f];
+  }
   // v3.671 (UX-72): a bodyweight lift's weight is what's added ("BW", "BW +25").
   card._bw = !!n.row.querySelector('.ex-weight') && isBodyweightLoadable(n.name.trim());
   if(card._bw) card.querySelector('.up-next-field[data-field="weight"] small').textContent = 'Added weight';
@@ -33685,7 +33704,7 @@ function renderUpNext(){
   card._row = n.row; card._rirWords = rir ? rir.getAttribute('aria-label') : ''; // v3.597 (UX-08): the rest steppers
   renderCoverWarmup(card, block); // v3.656 (UX-62): before the numeral, whose plate stack follows the step
   renderCoverNumeral(card);
-  card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  card.dataset.rowKey = coverKey;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
   renderExerciseDetailBar(); // v3.622 (UX-14): the pane's plate stack follows the next set, pinned or not
 }
@@ -34351,7 +34370,10 @@ function commitSet(row, values, force){
   writeSetToRow(row, values, force);
   renderAllSetChips();
   const owner = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
-  showUndoToast(`Logged ${owner} ${setChipLabel(values, row)}`, ()=>{
+  // v3.672 (BL-84, B6): a set that had reps is updated (or cleared), not logged.
+  const verb = (before.reps || '') === '' ? 'Logged' : (values.reps || '') === '' ? 'Cleared' : 'Updated';
+  const what = verb === 'Cleared' ? `set ${Number(row.dataset.setIdx) + 1}` : setChipLabel(values, row);
+  showUndoToast(`${verb} ${owner} ${what}`, ()=>{
     writeSetToRow(row, before, true);
     const now = liftBox();
     if(now && !wasTicked && now.checked && now._autoTicked){
@@ -35594,6 +35616,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
     const rpeInput = setRow.querySelector('.ex-rpe');
     const statusEl = setRow.querySelector('.set-status');
     setRow._repsLogged = rInput.value !== ''; // v3.658 (UX-64): noteSetForCoverDrop
+    setRow._realSet = rInput.value !== '' && (!showWeight || (!!wInput && wInput.value !== '')); // v3.672 (BL-84): saveNow
 
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
@@ -35610,6 +35633,14 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
         .some(r => r !== setRow && r.dataset.exIdx !== setRow.dataset.exIdx && r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '');
       const restEx = pairedRound && getDefaultRestSeconds(pairLead) > getDefaultRestSeconds(ex) ? pairLead : ex;
       const restTarget = getDefaultRestSeconds(restEx), restLabel = getRestReasonLabel(restEx);
+      // v3.672 (BL-84, B6): the rest starts only as the row becomes a finished
+      // set (reps, and weight where the lift has it); an edit of a logged set
+      // re-saves without touching the timer, and a set cleared or undone stops
+      // the rest its own save started. Read before anything is awaited (a
+      // commit dispatches its fields one after another).
+      const wasReal = !!setRow._realSet;
+      const realNow = setRow._realSet = rInput.value !== '' && (!showWeight || (!!wInput && wInput.value !== ''));
+      if(wasReal && !realNow && restTimerEndsAt && restTimerFromRow === setRow){ const close = document.getElementById('restTimerClose'); if(close) close.click(); }
       noteSetForCoverDrop(block, setRow, ex, {seconds: restTarget, label: restLabel}); // v3.658 (UX-64)
       // v3.665 (BL-82): a set without reps (cleared, undone) is no record: its
       // PR tag goes now, before the chips redraw (Undo redraws them at once).
@@ -35693,11 +35724,11 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
       // v3.544 (BL-55): typing the distance after the reps doesn't restart the
       // countdown that the reps already started.
       const fromDistance = !!(evt && dInput && evt.target === dInput);
-      if(isRealSet && !fromDistance && !isSupersetLeadIn && !isBackdating()){
+      if(isRealSet && !wasReal && realNow && !fromDistance && !isSupersetLeadIn && !isBackdating()){
         // The rest (restEx, restTarget) was worked out at the top (UX-63's pair rule).
         restTargetBySlot[exKey(activeProgram, activeDay, slot, subVariant)] = restTarget;
         // v3.658 (UX-64): held while this set's drop is on offer.
-        if(!holdRestForDrop(setRow, restTarget, restLabel)) startRestTimer(restTarget, restLabel);
+        if(!holdRestForDrop(setRow, restTarget, restLabel)){ startRestTimer(restTarget, restLabel); restTimerFromRow = setRow; }
       }
       // v3.653 (UX-17b): the "Switch to gym mode?" offer that followed here went with Gym mode.
       // A logged set also means the phone should stay awake for the next one.
