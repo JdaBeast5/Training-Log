@@ -1127,6 +1127,10 @@
      Log (renderCoverDrop). It stands in for the warm-up line while it shows. */
   .cover-drop{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:14px;}
   .cover-drop[hidden], .cover.is-resting .cover-drop, .cover-drop:not([hidden]) ~ .cover-warmup{display:none;}
+  /* v3.676 (UX-69): the cover holds the finished lift while its drop is offered. */
+  .cover.is-drop-offer .cover-log, .cover.is-drop-offer .cover-rx, .cover.is-drop-offer .cover-then, .cover.is-drop-offer .cover-cheer,
+  .cover.is-drop-offer .cover-hint, .cover.is-drop-offer .cover-target-label, .cover.is-drop-offer .cover-bar, .cover.is-drop-offer .cover-fields-wrap,
+  .cover.is-drop-offer .cover-chips, .cover.is-drop-offer .cover-why, .cover.is-drop-offer .cover-caution{display:none;}
   .cover-drop-what{flex:1 1 150px; min-width:0; font-size:var(--meta-on-spot); font-weight:600; line-height:1.3;}
   .cover-drop-what strong{display:block; font-family:var(--font-display); font-size:20px; font-weight:700; line-height:1.15; white-space:nowrap;}
   .cover-drop button{flex:0 0 auto; min-width:44px; min-height:44px; padding:0 12px; border-radius:var(--r-control); background:none; color:inherit; font:inherit; font-size:16px; font-weight:600; cursor:pointer; border:0;}
@@ -7806,7 +7810,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.675';
+const APP_VERSION = '3.676';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9677,6 +9681,9 @@ const WHATS_NEW = {
   ]},
   '3.675': { headline: 'Log stays put', points: [
     'Log set now sits in the same place at the bottom of the cover on every set, and +30 s and Skip rest take that same place while you rest.',
+  ]},
+  '3.676': { headline: 'One lift at a time', points: [
+    'When a drop set is offered, the cover stays on the lift you just finished (Drop set, and its weight) until you log it, say Not now, or 20 seconds pass. Then it moves on.',
   ]},
 };
 
@@ -33740,6 +33747,20 @@ function renderUpNext(){
   card._row = n.row; card._rirWords = rir ? rir.getAttribute('aria-label') : ''; // v3.597 (UX-08): the rest steppers
   renderCoverWarmup(card, block); // v3.656 (UX-62): before the numeral, whose plate stack follows the step
   renderCoverNumeral(card);
+  // v3.676 (UX-69, owner B 2026-11-25): while a drop is offered (its line shows),
+  // the cover stays on the finished lift: its name, "Drop set" and the drop's
+  // weight; Log set and the next lift's lines are hidden, so Log drop / Not now
+  // are the one action. When the offer ends the cover moves on.
+  const dropLine = document.getElementById('coverDrop');
+  const dropOn = !!dropLine && !dropLine.hidden && !!dropLine.dataset.lift;
+  card.classList.toggle('is-drop-offer', dropOn);
+  if(dropOn){
+    document.getElementById('upNextLift').textContent = dropLine.dataset.lift;
+    document.getElementById('upNextLabel').textContent = 'Drop set';
+    const [dw, du, dx] = document.getElementById('upNextNumeral').children;
+    dw.textContent = dropLine.dataset.weight; du.textContent = weightUnit; dx.textContent = '';
+    document.getElementById('upNextNumeral').setAttribute('aria-label', `Drop set, ${dropLine.dataset.weight} ${weightUnit}`);
+  }
   card.dataset.rowKey = coverKey;
   if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
   renderExerciseDetailBar(); // v3.622 (UX-14): the pane's plate stack follows the next set, pinned or not
@@ -33826,11 +33847,16 @@ function renderCoverDrop(){
   const line = document.getElementById('coverDrop');
   if(!line) return;
   const o = coverDropOffer;
-  if(!o || o.sheet){ line.hidden = true; return; }
+  // v3.676 (UX-69, owner B): the line carries the offer's lift and weight, and the
+  // cover redraws: it stays on the finished lift while the drop is offered.
+  if(!o || o.sheet){ const was = !line.hidden; line.hidden = true; if(was) renderUpNext(); return; }
+  line.dataset.lift = o.name; line.dataset.weight = trimUnitNum(o.weight);
   document.getElementById('coverDropWhat').textContent = `Drop set · ${trimUnitNum(o.weight)} ${weightUnit}`;
   document.getElementById('coverDropCue').textContent = `${o.name} · ${dropSetCue(o.name, 1).replace(/^Drop 1 · /, '')}`;
   document.getElementById('coverDropLog').setAttribute('aria-label', `Log a drop set of ${o.name} at ${trimUnitNum(o.weight)} ${weightUnit}`);
+  const was = !line.hidden;
   line.hidden = false;
+  if(!was) renderUpNext();
 }
 // Ends the offer; with start, the held rest starts (Log done, Not now, or another set logged).
 // v3.668 (UX-68): fromSet counts it from the set (the offer's 20 s ran out).
