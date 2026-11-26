@@ -7783,7 +7783,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.672';
+const APP_VERSION = '3.673';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9645,6 +9645,9 @@ const WHATS_NEW = {
   ]},
   '3.672': { headline: 'Editing isn\'t logging', points: [
     'Fixing a logged set (say 5 reps to 4) now saves it as Updated without restarting your rest. Clearing the set that started your rest stops it, and what you type on the cover stays put when a warm-up is ticked off.',
+  ]},
+  '3.673': { headline: 'Numbers that add up', points: [
+    'A drop set is now always at least 25% lighter (45 lb drops to 30, not 35), and the session summary counts each lift in a superset, not the pair as one.',
   ]},
 };
 
@@ -30154,9 +30157,13 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // 20% lighter than drop 1 (Sødal 2023; the studies used 20-30%). Rounded and
   // snapped DOWN (a drop rounded up is no drop); if that isn't lighter, one
   // loadable step lower; never under the bar. null: nothing lighter is loadable.
+  // v3.673 (BL-85, B7): floored, never rounded to the nearest first (45 lb at
+  // 0.75 is 33.75, which rounded to 35, only 22% off): at least 25% (drop 2:
+  // 20%) lighter. On kit the app has no model of, the floor is the 5 lb / 2.5 kg step.
   if(isDrop){
     const parent = toDisplayWeight(priorSet.weight);
-    let w = snap(scale(priorSet.weight, signal.n === 1 ? 0.75 : 0.80), 'down');
+    const raw = parent * (signal.n === 1 ? 0.75 : 0.80);
+    let w = snap(Math.floor(raw / roundTo + 1e-9) * roundTo, 'down');
     if(!(w < parent)) w = snap(parent - loadStepFor(ex.name), 'down');
     const barbell = isBarbellExercise(ex.name);
     if(!(w > 0) || !(w < parent) || (barbell && w < getEquipment().bar)) return null;
@@ -31919,7 +31926,8 @@ async function sessionShareStats(listEl, dateKey, program){
   const hasReps = (row)=>{ const r = row.querySelector('.ex-reps'); return !!r && String(r.value).trim() !== ''; };
   const rows = listEl ? [...listEl.querySelectorAll('.set-row')] : [];
   const sets = rows.filter(hasReps).length;
-  const lifts = listEl ? [...listEl.querySelectorAll('.exercise-block')].filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length : 0;
+  // v3.673 (BL-85): distinct lifts with a logged set; a superset pair is one block but two lifts.
+  const lifts = new Set(rows.filter(hasReps).map(r => r.dataset.exIdx)).size;
   const stats = [{value: String(sets), label: 'SETS'}, {value: String(lifts), label: 'LIFTS'}];
   // v3.653 (UX-17b): the logged-time window, the first to the last set logged
   // (Gym mode's session clock went with the mode).
@@ -31945,7 +31953,6 @@ async function finishSheetModel(listEl, dateKey, program){
   const clinical = program === 'medical' || !!MEDICAL_STYLES[program];
   const hasReps = (row)=>{ const r = row.querySelector('.ex-reps'); return !!r && String(r.value).trim() !== ''; };
   const rows = listEl ? [...listEl.querySelectorAll('.set-row')] : [];
-  const blocks = listEl ? [...listEl.querySelectorAll('.exercise-block')] : [];
   const share = clinical ? undefined : await sessionShareStats(listEl, dateKey, program);
   const min = share && share.stats.find(st=> st.label === 'MIN');
   let best = null;
@@ -31992,7 +31999,7 @@ async function finishSheetModel(listEl, dateKey, program){
   }
   const dayTitle = document.getElementById('dayTitle');
   return {key: dateKey + '|' + (typeof activeDay !== 'undefined' ? activeDay : ''), day: dayTitle ? dayTitle.textContent.trim() : '', sets: rows.filter(hasReps).length, planned: rows.length,
-    lifts: blocks.filter(b=> [...b.querySelectorAll('.set-row')].some(hasReps)).length, minutes: min ? Number(min.value) : null,
+    lifts: new Set(rows.filter(hasReps).map(r => r.dataset.exIdx)).size, minutes: min ? Number(min.value) : null, // v3.673 (BL-85): lifts, not blocks
     best, next, share, clinical, number, milestone, dateKey};
 }
 

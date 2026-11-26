@@ -5680,7 +5680,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-drop-set-suggestion.js` and `test-finish-sheet.js`. Sabotage: restore `scale()` in the drop branch, and the 45 → 30 case must fail.
 - **Files:** `index.html` (30109, 31854; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the tests.
 - **Risk:** low. Guards: `test-drop-set-suggestion.js`, `test-cover-drop-offer.js` (its "35 lb" example re-pins to the new figure with a dated note), `test-bib-card.js`, `test-session-share.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.673 (PR #272), awaiting the owner's merge. (Batch 2.)
 
 ### UX-73: "Rest of session", the adjust panel closes after Log, and the cover fits 320 px (Friction #10, #11, B9)
 - **Why:**
