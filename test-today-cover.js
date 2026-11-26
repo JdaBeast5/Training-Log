@@ -169,6 +169,11 @@ test('criterion 3: #upNextWeight, #upNextReps and #upNextRpe still exist, sit be
   ui.$('upNextLog').click();
   const r = ui.doc.querySelector('.set-row[data-set-idx="2"]');
   assert.deepStrictEqual(['weight', 'reps', 'rpe'].map(f => r.querySelector('.ex-' + f).value), ['190', '4', '8.5']);
+  // Re-pinned v3.674 (UX-73, Friction #10): a Log that commits closes the fields itself (it used to leave them open).
+  assert.ok(!wrap.classList.contains('open'), 'Log closed them');
+  assert.strictEqual(ui.$('upNextAdjust').getAttribute('aria-expanded'), 'false');
+  ui.$('upNextAdjust').click();
+  assert.ok(wrap.classList.contains('open'), 'adjust opens them again');
   ui.$('upNextAdjust').click();
   assert.ok(!wrap.classList.contains('open'), 'and closes them again');
 });
