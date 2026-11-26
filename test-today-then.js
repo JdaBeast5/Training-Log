@@ -150,7 +150,8 @@ test('criterion 2: while the cover shows, .workout-hero isn\'t displayed (the ID
   assert.strictEqual(shown.cs(shown.doc.querySelector('#workoutCard .workout-hero')).display, 'none', 'the cover names the day');
   for(const id of ['dayPlateIcon', 'dayHeroEyebrow', 'dayTitle']) assert.ok(shown.$(id), id + ' stays in the DOM');
   assert.strictEqual(shown.cs(shown.doc.querySelector('.then-title')).display, 'block', '"Then" heads the list');
-  assert.strictEqual(shown.doc.querySelector('.then-title').textContent, 'Then');
+  // Re-pinned v3.674 (UX-73, Friction #11): the header reads "Rest of session" ("Then" is the superset line's word).
+  assert.strictEqual(shown.doc.querySelector('.then-title').textContent, 'Rest of session');
   const none = page('day-red');
   assert.strictEqual(none.cs(none.doc.querySelector('#workoutCard .workout-hero')).display, 'flex', 'no cover: the hero names the day, as before');
   assert.strictEqual(none.cs(none.doc.querySelector('.then-title')).display, 'none');
