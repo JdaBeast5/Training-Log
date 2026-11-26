@@ -117,4 +117,22 @@ test('isBodyweightLoadable: bodyweight lifts yes, loaded lifts no', (assert)=>{
     assert.strictEqual(mount('').window.isBodyweightLoadable(n), false, n);
 });
 
+// v3.678: the set chips on a bodyweight lift (rows renderWorkout marks data-bw).
+test('v3.678: setChipLabel on a data-bw row reads "BW×11" (0 or empty) and "BW+25×8"; an unmarked row is unchanged', (assert)=>{
+  const ui = mount('');
+  const doc = ui.window.document;
+  const mk = bw => { const r = doc.createElement('div'); r.className = 'set-row'; if(bw) r.dataset.bw = '1'; r.innerHTML = '<input class="ex-reps" placeholder="reps">'; return r; };
+  assert.strictEqual(ui.window.setChipLabel({weight: '0', reps: '11'}, mk(true)), 'BW×11');
+  assert.strictEqual(ui.window.setChipLabel({weight: '', reps: '11'}, mk(true)), 'BW×11');
+  assert.strictEqual(ui.window.setChipLabel({weight: '25', reps: '8'}, mk(true)), 'BW+25×8');
+  assert.strictEqual(ui.window.setChipLabel({weight: '0', reps: '11'}, mk(false)), '0×11', 'unmarked: as before');
+  assert.strictEqual(ui.window.setChipLabel({weight: '185', reps: '5'}, mk(false)), '185×5');
+});
+
+test('v3.678: renderWorkout marks a bodyweight lift\'s rows (with a weight field) data-bw, and + Add set copies it (real source)', (assert)=>{
+  const src2 = require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8');
+  assert.strictEqual(src2.split("${showWeight && isBodyweightLoadable(ex.name) ? ' data-bw=\"1\"' : ''}").length, 2, 'the row template stamps it once');
+  assert.strictEqual(src2.split("if(existingRows[0] && existingRows[0].dataset.bw) div.dataset.bw = '1';").length, 2, 'a new set copies it');
+});
+
 run();
