@@ -5571,7 +5571,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** CSSOM test of the band rules (new `test-cover-band.js`) plus the harness positions as PR evidence (contact sheet required). Sabotage: remove `margin-top:auto`, and criterion 1's spread returns.
 - **Files:** `index.html` (cover CSS near 1080, markup 5821–5883; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** medium: the cover's look changes on every screen. Guards: `test-today-cover.js`, `test-rest-cover*.js`, `test-cover-warmup.js`, `test-cover-drop-offer.js`, `test-plate-stack.js`.
-- **Status:** ready. Owner's answer (2026-11-25): "Your recommendations please": **A**, Log pinned in a bottom band of the cover.
+- **Status:** shipped in v3.675 (PR #274), awaiting the owner's merge. Owner's answer (2026-11-25): **A**, Log pinned in a bottom band of the cover.
 
 ### UX-68: The drop offer: accessories only, and its held rest releases by itself (amends UX-64)
 - **Why:**

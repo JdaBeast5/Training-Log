@@ -1896,3 +1896,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - Tests that extract `logUpNext` need `setCoverAdjust` too.
 - **Live:** v3.673 (BL-85) merged and live.
 - **Next:** 80c13 in the roadmap's batch 2.
+
+## Addendum 195: UX-67 (v3.675, PR #274)
+- `.cover:not([hidden])` is a flex column, `min-height: calc(100svh - 64px - safe-area)`; `.cover > *{flex:none}`; `.cover-log` has `order:2; margin-top:auto`; chips, fields and caution `order:1`; resting: `#coverRest` `display:contents`, `.cover-rest-actions` `order:3`, `.cover-rest-btn` 56 px. Below 700 px tall the chips and caution take `order:3`.
+- Keep `.cover-log` a single rule (test-today-cover reads it as one).
+- **Live:** v3.674 (UX-73) merged and live.
+- **Not fixed:** at 320 × 568 the rest state's buttons fall below the fold (the steppers' height).
+- **Next:** 80c14 in the roadmap's batch 2.
