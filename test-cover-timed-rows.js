@@ -112,4 +112,27 @@ test('a timed row with its time cleared: "Enter time", and Log opens the field w
   assert.strictEqual(ui.window.document.activeElement, ui.$('upNextReps'));
 });
 
+// v3.677: the rest stepper on a timed set is its time, and "Reps left" is hidden.
+test('v3.677: on Plank the rest stepper reads "Seconds" and "45 s", steps by 5 s, and Reps left is hidden; a reps lift keeps Reps and Reps left', (assert)=>{
+  const ui = mount(PLANK);
+  ui.window.renderCoverSteppers(ui.$('upNext'));
+  const step = ui.window.document.querySelector('#coverSteppers .cover-step[data-field="reps"]');
+  assert.strictEqual(step.querySelector('.cover-step-label').textContent, 'Seconds');
+  assert.strictEqual(ui.$('coverStepReps').textContent, '45 s');
+  assert.strictEqual(step.querySelector('[data-step="1"]').getAttribute('aria-label'), 'More time');
+  assert.strictEqual(ui.window.document.querySelector('#coverSteppers .cover-rir').hidden, true);
+  step.querySelector('[data-step="1"]').click();
+  assert.strictEqual(ui.$('upNextReps').value, '50', '5 s a step');
+  assert.strictEqual(ui.$('coverStepReps').textContent, '50 s');
+  const walk = mount(WALK);
+  walk.window.renderCoverSteppers(walk.$('upNext'));
+  assert.strictEqual(walk.window.document.querySelector('#coverSteppers .cover-step[data-field="reps"] .cover-step-label').textContent, 'Minutes');
+  assert.strictEqual(walk.$('coverStepReps').textContent, '20 min');
+  const bench = mount(block('Bench Press', '4×4-6', [0, 1].map(i => row(0, i, 'Bench Press', {wp: '185', rp: '5'})).join(''), false));
+  bench.window.renderCoverSteppers(bench.$('upNext'));
+  assert.strictEqual(bench.window.document.querySelector('#coverSteppers .cover-step[data-field="reps"] .cover-step-label').textContent, 'Reps');
+  assert.strictEqual(bench.$('coverStepReps').textContent, '5');
+  assert.strictEqual(bench.window.document.querySelector('#coverSteppers .cover-rir').hidden, false);
+});
+
 run();
