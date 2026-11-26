@@ -135,4 +135,18 @@ test('v3.677: on Plank the rest stepper reads "Seconds" and "45 s", steps by 5 s
   assert.strictEqual(bench.window.document.querySelector('#coverSteppers .cover-rir').hidden, false);
 });
 
+// v3.679: an unlogged timed chip shows its time, not "×45s".
+test('v3.679: Plank 4×45s: the unlogged chips read "45 s"; a reps lift\'s still read its range with ×', (assert)=>{
+  const ui = mount(PLANK);
+  const vals = [...ui.window.document.querySelectorAll('#exerciseList .set-chip .set-chip-val')].map(v => v.textContent);
+  assert.ok(vals.length === 4, 'anchor: four chips');
+  assert.ok(vals.every(v => v === '45 s' || /^45/.test(v)), JSON.stringify(vals));
+  assert.ok(!vals.some(v => /×45s/.test(v)), 'no ×45s');
+  const range = mount(block('Plank', '3×30-45s', [0, 1, 2].map(i => row(0, i, 'Plank', {rp: 'sec', noWeight: true})).join('')));
+  const r2 = [...range.window.document.querySelectorAll('#exerciseList .set-chip .set-chip-val')].map(v => v.textContent);
+  assert.ok(r2.slice(1).every(v => v === '30-45 s'), JSON.stringify(r2));
+  const fly = mount(block('Cable Fly', '3×12-15', [0, 1, 2].map(i => row(0, i, 'Cable Fly')).join('')));
+  assert.ok([...fly.window.document.querySelectorAll('#exerciseList .set-chip .set-chip-val')].every(v => v.textContent === '×12-15'));
+});
+
 run();
