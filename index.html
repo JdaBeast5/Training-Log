@@ -916,6 +916,7 @@
   .cover-steppers[hidden], .cover-step[hidden]{display:none;}
   .cover-step, .cover-rir{display:grid; grid-template-columns:84px 44px 1fr 44px; align-items:center; gap:8px;}
   .cover-rir{grid-template-columns:84px repeat(4, 1fr);}
+  .cover-rir[hidden], .cover-rir-words[hidden]{display:none;} /* v3.677: not on a timed set */
   .cover-step-label{font-size:var(--meta-on-spot); font-weight:600;}
   .cover-step button, .cover-rir button{min-height:44px; border-radius:12px; border:1.5px solid currentColor; background:none; color:inherit; font-family:var(--font-sans); font-size:18px; font-weight:600; cursor:pointer;}
   .cover-step output{text-align:center; font-family:var(--font-sans); font-size:20px; font-variant-numeric:tabular-nums;}
@@ -7810,7 +7811,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.676';
+const APP_VERSION = '3.677';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9684,6 +9685,9 @@ const WHATS_NEW = {
   ]},
   '3.676': { headline: 'One lift at a time', points: [
     'When a drop set is offered, the cover stays on the lift you just finished (Drop set, and its weight) until you log it, say Not now, or 20 seconds pass. Then it moves on.',
+  ]},
+  '3.677': { headline: 'Rest on a timed set', points: [
+    'During rest on a hold like Plank, the stepper shows Seconds (45 s, in 5 s steps) instead of Reps, and Reps left is hidden.',
   ]},
 };
 
@@ -33953,7 +33957,17 @@ function renderCoverSteppers(card){
   const wv = document.getElementById('upNextWeight').value;
   steppers.querySelector('.cover-step[data-field="weight"] .cover-step-label').textContent = card._bw ? 'Added weight' : 'Weight';
   document.getElementById('coverStepWeight').textContent = card._bw ? (parseFloat(wv) > 0 ? `+${wv} ${weightUnit}` : 'BW') : (wv || '–') + ' ' + unit;
-  document.getElementById('coverStepReps').textContent = document.getElementById('upNextReps').value || '–';
+  // v3.677: a timed set's stepper is its time ("Seconds", "45 s"), and "Reps left" (reps in reserve) doesn't apply to it.
+  const timeTile = (card.querySelector('.up-next-field[data-field="reps"] small') || {}).textContent || '';
+  const timed = timeTile === 'Sec' || timeTile === 'Min';
+  const rv = document.getElementById('upNextReps').value;
+  const repsStep = steppers.querySelector('.cover-step[data-field="reps"]');
+  repsStep.querySelector('.cover-step-label').textContent = timeTile === 'Sec' ? 'Seconds' : timeTile === 'Min' ? 'Minutes' : 'Reps';
+  repsStep.querySelector('[data-step="-1"]').setAttribute('aria-label', timed ? 'Less time' : 'One rep fewer');
+  repsStep.querySelector('[data-step="1"]').setAttribute('aria-label', timed ? 'More time' : 'One rep more');
+  document.getElementById('coverStepReps').textContent = rv ? (timed ? `${rv} ${timeTile === 'Sec' ? 's' : 'min'}` : rv) : '–';
+  steppers.querySelector('.cover-rir').hidden = timed;
+  document.getElementById('coverRirWords').hidden = timed;
   const rpe = parseFloat(document.getElementById('upNextRpe').value);
   const rir = isNaN(rpe) ? null : Math.max(0, Math.min(3, Math.round(10 - rpe)));
   steppers.querySelectorAll('.cover-rir [data-rir]').forEach(b => b.setAttribute('aria-checked', String(rir != null && Number(b.dataset.rir) === rir)));
@@ -33962,7 +33976,9 @@ function renderCoverSteppers(card){
 function stepCoverField(field, dir){
   const card = document.getElementById('upNext');
   const input = document.getElementById(field === 'weight' ? 'upNextWeight' : 'upNextReps');
-  const step = field === 'weight' ? (card._row ? setSheetWeightStep(card._row) : (weightUnit === 'kg' ? 2.5 : 5)) : 1;
+  // v3.677: seconds step by 5.
+  const secs = field !== 'weight' && ((card.querySelector('.up-next-field[data-field="reps"] small') || {}).textContent || '') === 'Sec';
+  const step = field === 'weight' ? (card._row ? setSheetWeightStep(card._row) : (weightUnit === 'kg' ? 2.5 : 5)) : secs ? 5 : 1;
   // v3.669 (UX-70): from an empty weight, + starts at the bar (a barbell lift) or
   // one loadable step, not 0 + step; - leaves it empty.
   if(field === 'weight' && input.value === ''){
