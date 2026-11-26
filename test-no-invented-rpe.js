@@ -29,7 +29,7 @@ const { test, run } = makeRunner('test-no-invented-rpe.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'numericPlaceholder', 'writeSetToRow', 'setChipLabel', 'commitSet', 'findNextSetRow', 'readSetLogger', 'logUpNext',
   'setCoverAdjust', 'isBackdating', 'checkAllSetsCompleteAndAutoCheck', 'wireSetsBlock', 'showUndoToast', 'closeFinishSheet', 'showFinishSheet',
-  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */,
+  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */,
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'renderCoverSteppers', 'setCoverRepsLeft', 'triggerCelebration',
   'setChipValues', 'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'renderExerciseLogger', 'renderWarmupChips',
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor',

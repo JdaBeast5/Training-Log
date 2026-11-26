@@ -89,7 +89,7 @@ test('criterion 1: the real startRestTimer, unchanged, puts the cover into rest 
   assert.strictEqual(ui.$('coverRestOf').textContent, 'of 2:30');
   assert.strictEqual(ui.$('restTimerTime').textContent, '2:30', 'the timer itself shows the same');
   const code = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
-  for(const f of [...COVER_FNS, 'renderUpNext', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'logUpNext', 'renderCoverNumeral']) assert.ok(!/\bstartRestTimer\(/.test(code(extractFunction(src, f))), f + ' never starts a timer');
+  for(const f of [...COVER_FNS, 'renderUpNext', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'logUpNext', 'renderCoverNumeral']) assert.ok(!/\bstartRestTimer\(/.test(code(extractFunction(src, f))), f + ' never starts a timer');
   assert.ok(!/\bstartRestTimer\(/.test(code(block("document.getElementById('coverRest').addEventListener('click',"))), 'nor does the cover\'s wiring');
 });
 

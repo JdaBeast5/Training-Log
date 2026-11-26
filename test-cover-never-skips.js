@@ -27,7 +27,7 @@ const { test, run } = makeRunner('test-cover-never-skips.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'numericPlaceholder', 'writeSetToRow', 'setChipLabel', 'commitSet', 'findNextSetRow', 'readSetLogger', 'logUpNext',
   'setCoverAdjust', 'isBackdating', 'checkAllSetsCompleteAndAutoCheck', 'wireSetsBlock', 'showUndoToast', 'closeFinishSheet',
-  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */,
+  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */,
   'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution',
   'isCoverDropRow', 'renderCoverDrop', 'endCoverDrop', 'noteSetForCoverDrop', 'holdRestForDrop', 'coverDropKey'].map(n => extractFunction(src, n));
 const OFFER = (src.match(/^let coverDropOffer = null;$/m) || [])[0];

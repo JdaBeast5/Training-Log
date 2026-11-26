@@ -23,7 +23,7 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip', 'renderExerciseLogger', 'renderWarmupChips',
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor',
   'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle',
-  'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'logUpNext', 'setCoverAdjust',
+  'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'logUpNext', 'setCoverAdjust',
   'openSetSheet', 'closeSetSheet', 'saveSetSheet'].map(n => extractFunction(src, n));
 // One statement or block from the source, by its first line.
 function statement(startText){

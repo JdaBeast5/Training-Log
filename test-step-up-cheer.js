@@ -91,7 +91,7 @@ const LIST = `<div class="exercise-block" data-step-up="7.5">${HEAD(0, 'Bench Pr
 const COVER_FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'renderExerciseLogger', 'renderWarmupChips',
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
-  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'firstSetHint']
+  'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip' /* v3.656 (UX-62) */, 'setCoverThen', 'supersetThenLine' /* v3.657 (UX-63) */, 'syncStickyDayTitle', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'firstSetHint']
   .map(n => extractFunction(src, n)).concat([extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractConst(src, 'STEP_UP_CHEER')]);
 function cover(){
   const { window } = new JSDOM(`<!doctype html><html><head><style>${CSS}</style></head><body class="day-red has-cover">${BODY}</body></html>`, { pretendToBeVisual: true, runScripts: 'outside-only' });

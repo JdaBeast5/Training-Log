@@ -7783,7 +7783,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.670';
+const APP_VERSION = '3.671';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9639,6 +9639,9 @@ const WHATS_NEW = {
   ]},
   '3.670': { headline: 'Timed sets in one tap', points: [
     'Holds and cardio show the time the program set ("4 × 45 s", "20 min"), not reps, and log in one tap: Log 45 s, Log 20 min.',
+  ]},
+  '3.671': { headline: 'Bodyweight, said plainly', points: [
+    'Pull-ups, dips and other bodyweight lifts show BW ×11, or BW +25 ×8 with added weight, instead of 0 lb, and the weight is labelled Added weight. AMRAP sets read "as many reps as you can".',
   ]},
 };
 
@@ -33658,8 +33661,10 @@ function renderUpNext(){
   // v3.670 (UX-71, B8): the unit the program wrote ("4 × 45 s", "20 min"); "reps" only on rep work.
   const setUnit = coverSetUnit(target);
   const presc = target ? target.textContent.trim() : '';
+  // v3.671 (UX-72): "4×AMRAP" in words.
+  const amrap = /^(\d+)\s*×\s*AMRAP$/i.exec(presc);
   document.getElementById('upNextTarget').textContent = target
-    ? (setUnit === 'reps' ? `${presc} reps` : presc.replace(/\s*×\s*/, ' × ').replace(/(\d)\s*s(?:ec)?\b/i, '$1 s'))
+    ? (amrap ? `${amrap[1]} sets · as many reps as you can` : setUnit === 'reps' ? `${presc} reps` : presc.replace(/\s*×\s*/, ' × ').replace(/(\d)\s*s(?:ec)?\b/i, '$1 s'))
       + (rir ? ' · ' + rir.getAttribute('aria-label') : '') : '';
   setCoverThen(supersetThenLine(list, n.row)); // v3.657 (UX-63)
   const chip = list.querySelector(`.set-chip[data-ex-idx="${exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
@@ -33672,6 +33677,9 @@ function renderUpNext(){
   renderCoverCaution(caution, block, exIdx);
   renderCoverChips(block, exIdx);
   fillSetLogger(card, n, chip, target);
+  // v3.671 (UX-72): a bodyweight lift's weight is what's added ("BW", "BW +25").
+  card._bw = !!n.row.querySelector('.ex-weight') && isBodyweightLoadable(n.name.trim());
+  if(card._bw) card.querySelector('.up-next-field[data-field="weight"] small').textContent = 'Added weight';
   card._range = target ? (target.textContent.split('×')[1] || '').trim() : '';
   card._exName = n.name.trim(); // v3.596 (UX-07): the plate stack is for barbell lifts only
   card._row = n.row; card._rirWords = rir ? rir.getAttribute('aria-label') : ''; // v3.597 (UX-08): the rest steppers
@@ -33689,7 +33697,8 @@ function renderUpNext(){
 function renderCoverNumeral(card){
   const v = readSetLogger(card);
   const hasWeight = !card.querySelector('.up-next-field[data-field="weight"]').hidden;
-  const unit = card.querySelector('.up-next-field[data-field="weight"] small').textContent;
+  const bw = !!card._bw; // v3.671 (UX-72)
+  const unit = bw ? weightUnit : card.querySelector('.up-next-field[data-field="weight"] small').textContent;
   const repsTile = card.querySelector('.up-next-field[data-field="reps"] small').textContent.toLowerCase();
   const repsUnit = repsTile === 'sec' ? 's' : repsTile; // v3.670 (UX-71): "45 s", "20 min"
   // v3.669 (UX-70): nothing to log yet (no reps): the numeral is the target, the
@@ -33702,16 +33711,18 @@ function renderCoverNumeral(card){
   // v3.670 (UX-71): a timed set names its time ("Log 45 s", "Log 20 min").
   const timed = repsTile === 'sec' || repsTile === 'min';
   if(live) document.getElementById('upNextLog').textContent = !isTarget ? (timed && !(hasWeight && v.weight) ? `Log ${v.reps} ${repsUnit}` : 'Log set')
-    : hasWeight && !v.weight ? 'Enter weight' : timed ? 'Enter time' : 'Enter reps';
+    : hasWeight && !v.weight && !bw ? 'Enter weight' : timed ? 'Enter time' : 'Enter reps';
   const el = document.getElementById('upNextNumeral');
   const [w, u, x] = el.children;
-  if(hasWeight && v.weight){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
-  else { w.textContent = reps; u.textContent = reps ? repsUnit : ''; x.textContent = ''; }
+  const added = bw ? parseFloat(v.weight) || 0 : 0;
+  if(bw && v.reps){ w.textContent = 'BW'; u.textContent = added > 0 ? '+' + trimUnitNum(added) : ''; x.textContent = '×' + reps; }
+  else if(hasWeight && v.weight && !bw){ w.textContent = v.weight; u.textContent = unit; x.textContent = reps ? '×' + reps : ''; }
+  else { w.textContent = reps; u.textContent = reps && !/^AMRAP$/i.test(reps) ? repsUnit : ''; x.textContent = ''; }
   // v3.603 (UX-22): sized by its length, so "182.5 ×6" stays on one line.
   const len = w.textContent.length;
   el.classList.toggle('is-m', len >= 4 && len <= 5);
   el.classList.toggle('is-s', len >= 6);
-  el.setAttribute('aria-label', (label && !label.hidden ? 'Target: ' : '') + (hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : '')));
+  el.setAttribute('aria-label', (label && !label.hidden ? 'Target: ' : '') + (bw && v.reps ? `Bodyweight${added > 0 ? ` plus ${trimUnitNum(added)} ${unit}` : ''} for ${reps} reps` : hasWeight && v.weight ? `${v.weight} ${unit}${reps ? ' for ' + reps + ' reps' : ''}` : (reps ? `${reps} ${repsUnit}` : '')));
   // v3.656 (UX-62, C+): while a warm-up step is next, the plate stack is that step's load.
   // (The open-screen pane's stack keeps showing the working set.)
   if(card._warm) renderCoverBar(card, card._warm.weight, card._warm.of);
@@ -33856,8 +33867,11 @@ function renderCoverSteppers(card){
   const w = card.querySelector('.up-next-field[data-field="weight"]');
   steppers.querySelector('.cover-step[data-field="weight"]').hidden = !w || w.hidden;
   const unit = w ? w.querySelector('small').textContent : '';
-  // v3.669 (UX-70): an empty field reads "–", not 0.
-  document.getElementById('coverStepWeight').textContent = (document.getElementById('upNextWeight').value || '–') + ' ' + unit;
+  // v3.669 (UX-70): an empty field reads "–", not 0. v3.671 (UX-72): on a
+  // bodyweight lift the stepper is the added weight: "BW" at none, "+25 lb".
+  const wv = document.getElementById('upNextWeight').value;
+  steppers.querySelector('.cover-step[data-field="weight"] .cover-step-label').textContent = card._bw ? 'Added weight' : 'Weight';
+  document.getElementById('coverStepWeight').textContent = card._bw ? (parseFloat(wv) > 0 ? `+${wv} ${weightUnit}` : 'BW') : (wv || '–') + ' ' + unit;
   document.getElementById('coverStepReps').textContent = document.getElementById('upNextReps').value || '–';
   const rpe = parseFloat(document.getElementById('upNextRpe').value);
   const rir = isNaN(rpe) ? null : Math.max(0, Math.min(3, Math.round(10 - rpe)));
@@ -34003,7 +34017,7 @@ function logUpNext(){
   // Nothing to log yet: open the fields at the one Log's label named (v3.669, UX-70: the weight first when it's empty).
   if(values.reps === ''){
     const weightTile = document.getElementById('upNextWeight');
-    const first = !weightTile.closest('.up-next-field').hidden && values.weight === '' ? weightTile : document.getElementById('upNextReps');
+    const first = !weightTile.closest('.up-next-field').hidden && values.weight === '' && !document.getElementById('upNext')._bw ? weightTile : document.getElementById('upNextReps');
     setCoverAdjust(true); first.focus(); return false;
   }
   // v3.593 (UX-06a): through commitSet, as a chip tap: same row write, same Undo.
@@ -36460,6 +36474,11 @@ function getEquipment(){
 
 function isDumbbellExercise(name){
   return /\b(dumbbell|db)\b/i.test(name || '');
+}
+// v3.671 (UX-72): a bodyweight lift that may carry added load (a belt, a vest),
+// so its weight field is the added weight and 0 or empty means bodyweight.
+function isBodyweightLoadable(name){
+  return /\b(pull-?ups?|chin-?ups?|dips?|push-?ups?|muscle-?ups?|inverted rows?|hanging (?:leg|knee) raises?|toes-to-bar)\b/i.test(name || '');
 }
 
 function snapToLoadable(displayWeight, exName, direction){
