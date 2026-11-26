@@ -5636,7 +5636,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-timed-rows.js`. Sabotage: restore `${target} reps`, and the label criterion must fail.
 - **Files:** `index.html` (`renderUpNext` 33568, `fillSetLogger`, `renderCoverNumeral`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** low. Guards: `test-cardio-distance-gate.js`, `test-today-cover.js`, `test-tap-counts.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.670 (PR #269), awaiting the owner's merge. (Batch 2.)
 
 ### UX-72: Bodyweight and AMRAP sets read as what they are (Friction #9)
 - **Why:** Pull-ups (or assisted), 4×AMRAP, has a weight field for added load; the cover showed **"0 lb ×11"**, the weight tile "lb", the rest stepper "0 lb", and the prescription **"4×AMRAP reps"**.

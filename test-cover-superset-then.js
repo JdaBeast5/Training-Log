@@ -22,7 +22,7 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 const { test, run } = makeRunner('test-cover-superset-then.js');
 const src = readIndexSource();
 const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'renderCoverWarmup', 'pendingWarmupChip', 'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle',
-  'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
+  'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'logUpNext', 'writeSetToRow', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'setCoverAdjust', 'commitSet', 'setChipLabel', 'escapeHtml'].map(n => extractFunction(src, n));
 
 function row(ex, setIdx, owner, w, r, done){
   return `<div class="set-row" data-set-idx="${setIdx}" data-ex-idx="${ex}"><span class="set-row-owner">${owner}</span>

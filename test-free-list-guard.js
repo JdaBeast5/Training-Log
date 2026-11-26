@@ -101,7 +101,7 @@ test('criteria 2 and 4: the rendered Food log, History, Up next and set sheet ca
   { const row = (s, o, wv = '', rv = '') => `<div class="set-row swipe-item" data-set-idx="${s}" data-ex-idx="1"><div class="swipe-content set-row-content"><span class="set-num">${s + 1}</span><span class="set-row-owner">${o}</span><input class="ex-input ex-weight" placeholder="lb" value="${wv}"><input class="ex-input ex-reps" placeholder="reps" value="${rv}"><input class="ex-input ex-rpe" placeholder="RPE"></div></div>`;
     const list = `<div class="exercise-block"><input type="checkbox"><div class="ex-sets"><span>4×6-8</span></div>${row(0, 'Barbell Row', '135', '8')}${row(1, 'Barbell Row')}</div>`;
     const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${list}</div>`, 'var weightUnit = "lb"; var exerciseDetailPinned = true;',
-      [...['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow'].map(f => extractFunction(src, f)), 'renderUpNext();']);
+      [...['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'logUpNext', 'writeSetToRow'].map(f => extractFunction(src, f)), 'renderUpNext();']);
     assert.strictEqual(window.document.getElementById('upNext').hidden, false, 'anchor: Up next rendered');
     out.upNext = window.document.getElementById('upNext'); }
   // Set sheet, as test-set-sheet.js drives it.
