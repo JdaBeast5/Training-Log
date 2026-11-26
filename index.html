@@ -7811,7 +7811,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.677';
+const APP_VERSION = '3.678';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9688,6 +9688,9 @@ const WHATS_NEW = {
   ]},
   '3.677': { headline: 'Rest on a timed set', points: [
     'During rest on a hold like Plank, the stepper shows Seconds (45 s, in 5 s steps) instead of Reps, and Reps left is hidden.',
+  ]},
+  '3.678': { headline: 'Bodyweight chips', points: [
+    'The set chips on pull-ups, dips and other bodyweight lifts read BW×11, or BW+25×8 with added weight, not 0×11.',
   ]},
 };
 
@@ -31405,7 +31408,7 @@ async function renderWorkout(){
           ? `, suggested ${sugReasonWord} ${trimUnitNum(suggested.weight)} ${weightUnit}`
           : '';
         return `
-          <div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}">
+          <div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}"${showWeight && isBodyweightLoadable(ex.name) ? ' data-bw="1"' : ''}>
             <div class="swipe-delete-bg">🗑️</div>
             <div class="swipe-content set-row-content">
               <span class="set-num">${setIdx+1}</span>
@@ -34277,6 +34280,8 @@ function setChipLabel(v, row){
   const r = row.querySelector('.ex-reps');
   const unit = r && r.placeholder && !/^[\d.\s-]+$/.test(r.placeholder) ? r.placeholder : 'reps';
   if(!v.reps) return v.weight || (v.distance ? `${v.distance} ${distanceUnit}` : '');
+  // v3.678: a bodyweight lift (renderWorkout's data-bw) reads "BW×11", or "BW+25×8" with added weight, not "0×11".
+  if(row.dataset && row.dataset.bw) return parseFloat(v.weight) > 0 ? `BW+${v.weight}×${v.reps}` : `BW×${v.reps}`;
   if(v.weight) return `${v.weight}×${v.reps}`;
   if(v.distance) return `${v.distance} ${distanceUnit} × ${v.reps}`;
   return `${v.reps} ${unit}`;
@@ -36024,6 +36029,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry, pairLead){
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
     div.dataset.exIdx = exIdx;
+    if(existingRows[0] && existingRows[0].dataset.bw) div.dataset.bw = '1'; // v3.678: bodyweight chips (setChipLabel)
     // showWeight / showDistance come from the top of
     // wireSetsBlock. They used to be re-derived here, which is how the drop
     // button's handler came to reference a binding that did not reach it.
