@@ -1136,6 +1136,13 @@
   .cover-drop-what strong{display:block; font-family:var(--font-display); font-size:20px; font-weight:700; line-height:1.15; white-space:nowrap;}
   .cover-drop button{flex:0 0 auto; min-width:44px; min-height:44px; padding:0 12px; border-radius:var(--r-control); background:none; color:inherit; font:inherit; font-size:16px; font-weight:600; cursor:pointer; border:0;}
   .cover-drop .cover-drop-log{border:1.5px solid currentColor;}
+  /* v3.681: while a drop is offered (UX-69) the drop line is the cover's band (UX-67):
+     Log drop and Not now where Log set sits, at its height; Log drop filled like Log set. */
+  .cover.is-drop-offer .cover-drop{order:2; margin-top:auto; padding-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .cover.is-drop-offer .cover-drop-what{grid-column:1 / -1;}
+  .cover.is-drop-offer .cover-drop button{min-height:56px;}
+  .cover.is-drop-offer .cover-drop .cover-drop-log{background:var(--cover-action); color:var(--on-cover-action); border:0;}
+  .cover.is-drop-offer .cover-drop .cover-drop-skip{border:1.5px solid currentColor;}
   .cover .cover-go{margin:0; min-height:56px; border-radius:var(--r-control); background:var(--cover-action); color:var(--on-cover-action); box-shadow:none; font-size:16px; font-weight:600;}
   .cover-adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; background:none; color:inherit; display:grid; place-items:center; cursor:pointer;}
   .cover-adjust svg{width:22px; height:22px;}
@@ -7811,7 +7818,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.680';
+const APP_VERSION = '3.681';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9697,6 +9704,9 @@ const WHATS_NEW = {
   ]},
   '3.680': { headline: 'The last blue controls', points: [
     'Cancel on the set sheet, Back, the swap icon, the supplement links and the Settings notification row now use the app\'s ink, like every other control.',
+  ]},
+  '3.681': { headline: 'Log drop where Log set is', points: [
+    'When a drop set is offered, Log drop and Not now sit where Log set always is, at the bottom of the cover.',
   ]},
 };
 

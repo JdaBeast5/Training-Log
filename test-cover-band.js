@@ -59,4 +59,12 @@ test('no listener moved: the band\'s controls are the same elements, once each',
   assert.ok(html.indexOf('id="coverRestSkip"') < html.indexOf('id="upNextLog"'), 'markup order unchanged (rest block before the Log row)');
 });
 
+// v3.681: while a drop is offered (UX-69) its line is the band.
+test('v3.681: in the drop-offer state the drop line takes the band (order and margin-top:auto as the Log row), its buttons at Log\'s height', (assert)=>{
+  assert.strictEqual(get(top, '.cover.is-drop-offer .cover-drop', 'margin-top'), 'auto');
+  assert.strictEqual(get(top, '.cover.is-drop-offer .cover-drop', 'order'), get(top, '.cover-log', 'order'));
+  assert.strictEqual(get(top, '.cover.is-drop-offer .cover-drop button', 'min-height'), get(top, '.cover .cover-go', 'min-height'));
+  assert.strictEqual(get(top, '.cover.is-drop-offer .cover-log', 'display'), 'none', 'Log set is hidden meanwhile (UX-69)');
+});
+
 run();
