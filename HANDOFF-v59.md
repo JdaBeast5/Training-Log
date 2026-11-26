@@ -1884,3 +1884,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `renderWorkout` stamps `#exerciseList` `data-workout` = program|day|date. `renderUpNext` keys the cover `data-workout|exIdx:setIdx` and keeps typed tiles while the key is unchanged; the done and rest-day branches delete the key.
 - **Live:** v3.671 (UX-72) merged and live.
 - **Next:** 80c11 in the roadmap's batch 2.
+
+## Addendum 193: BL-85 (v3.673, PR #272)
+- `computeSuggestedSet`'s drop branch: `raw = parent × 0.75` (drop 2: 0.80), floored to `roundTo` (5 lb / 2.5 kg), then `snapToLoadable(…, 'down')`. `scale()` is still used by the deload branch.
+- `sessionShareStats` and `finishSheetModel` count lifts as distinct `data-ex-idx` among rows with reps (`finishSheetModel` no longer builds a `blocks` list).
+- **Live:** v3.672 (BL-84) merged and live.
+- **Next:** 80c12 in the roadmap's batch 2.
