@@ -166,4 +166,22 @@ test('criterion 4: --text-3 chevrons on --surface-1 and on --ground are at least
   }
 });
 
+// v3.680 (the controls UX-41 left blue; owner Go 2026-11-26, minor details first).
+test('v3.680: the set sheet\'s Cancel, Back, the swap icon, the supplement links and the Settings notify row resolve to the ink, in both themes', (assert)=>{
+  const d = new JSDOM(`<div class="card">
+    <div class="set-sheet"><button class="set-sheet-cancel" id="cancel">Cancel</button></div>
+    <button class="back-btn" id="back">‹ Back</button>
+    <div class="exercise"><span class="ex-swap-icon" id="swap">⇄</span></div>
+    <div class="supplement-name-wrap"><span class="supplement-frequency" id="freq">Daily</span></div>
+    <button class="supplement-benefit-toggle" id="why">Why</button>
+    <button class="supplement-ai-insight-btn" id="ai">Ask AI</button>
+    <div class="settings-group"><button id="settingsNotifyBtn">Notifications</button></div></div>`).window.document;
+  const want = {cancel: 'var(--text)', back: 'var(--text)', swap: 'var(--text-3)', freq: 'var(--text-2)', why: 'var(--text)', ai: 'var(--text)', settingsNotifyBtn: 'var(--text)'};
+  for(const t of ['dark', 'light']) for(const [id, w] of Object.entries(want)){
+    const c = winning(d.getElementById(id), 'color', t);
+    assert.ok(!BLUE.test(c), `${id} ${t}: ${c}`);
+    assert.strictEqual(c, w, `${id} ${t}`);
+  }
+});
+
 run();

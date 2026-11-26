@@ -835,7 +835,7 @@
   .set-sheet.open{transform:translateY(0);}
   .set-sheet-grab{width:38px; height:5px; border-radius:3px; background:rgba(var(--surface-white-rgb),.25); margin:0 auto 6px;}
   .set-sheet-bar{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; min-height:44px;}
-  .set-sheet-cancel{justify-self:start; background:none; border:0; color:var(--plate-blue); font-size:16px; padding:10px 4px; min-height:44px; cursor:pointer; font-family:var(--font-sans);}
+  .set-sheet-cancel{justify-self:start; background:none; border:0; color:var(--text); font-size:16px; padding:10px 4px; min-height:44px; cursor:pointer; font-family:var(--font-sans);}
   .set-sheet-title{font-size:16px; font-weight:650; text-align:center;}
   .set-sheet-sub{text-align:center; font-size:13px; color:var(--text-muted); margin:0 0 12px;}
   .set-sheet-hint{text-align:center; font-size:13px; color:var(--text); margin:-6px 16px 12px; line-height:1.4;}
@@ -1367,9 +1367,9 @@
      or a name+subtitle pair (My Supplements matching a known entry). */
   .supplement-name-wrap{display:flex; flex-direction:column; gap:2px; min-width:0;}
   .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
-  .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
+  .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--text-2); font-weight:600;}
   .supplement-benefit-toggle{
-    background:none; border:none; padding:0; margin:0; font-size:11.5px; font-weight:600; color:var(--plate-blue);
+    background:none; border:none; padding:0; margin:0; font-size:11.5px; font-weight:600; color:var(--text);
     cursor:pointer; font-family:var(--font-sans); text-decoration:underline; text-underline-offset:2px;
   }
   .supplement-benefit-toggle:active{opacity:0.6;}
@@ -1389,8 +1389,8 @@
   .supplement-ai-insight b{color:var(--plate-purple);}
   .supplement-ai-disclaimer{display:block; margin-top:2px; font-size:11px; color:var(--text-muted); font-style:italic; opacity:0.8;}
   .supplement-ai-insight-btn{
-    display:block; margin-top:6px; background:none; border:1px dashed rgba(var(--plate-blue-rgb),0.4); border-radius:var(--radius-sm);
-    padding:6px 10px; font-size:11.5px; font-weight:600; color:var(--plate-blue); cursor:pointer; font-family:var(--font-sans);
+    display:block; margin-top:6px; background:none; border:1px dashed var(--rule); border-radius:var(--radius-sm);
+    padding:6px 10px; font-size:11.5px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font-sans);
   }
   .supplement-ai-insight-btn:active{opacity:0.6;}
   .supplement-ai-insight-btn:disabled{opacity:0.5; cursor:default;}
@@ -1609,7 +1609,7 @@
      actions' owner label — was four colours (yellow, green, blue, purple)
      competing with the set chips for attention. */
   .ex-name .super-tag{font-size:12px; font-weight:400; color:var(--text-muted); display:block; font-family:var(--font-sans); font-variant-numeric:tabular-nums; margin-top:2px;}
-  .ex-swap-icon{display:inline-block; font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px; padding:6px 4px; margin-block:-6px; cursor:pointer;}
+  .ex-swap-icon{display:inline-block; font-size:12px; color:var(--text-3); opacity:1; margin-left:2px; padding:6px 4px; margin-block:-6px; cursor:pointer;}
   .ex-delete-custom-btn{
     flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:0;
     cursor:pointer; padding:4px; margin-right:2px;
@@ -2260,7 +2260,7 @@
   }
   /* The rest-alert action reads as a blue action row, not a boxed button. */
   #settingsNotifyRow > .care-label{margin:0; font-size:15px; color:var(--text);}
-  .settings-group #settingsNotifyBtn{width:100%; min-height:44px; margin:0; padding:0; background:none; border:0; box-shadow:none; color:var(--plate-blue); text-align:left; font-size:15px; font-weight:400;}
+  .settings-group #settingsNotifyBtn{width:100%; min-height:44px; margin:0; padding:0; background:none; border:0; box-shadow:none; color:var(--text); text-align:left; font-size:15px; font-weight:400;}
   /* Jump and card rows. */
   .settings-group .settings-jump{display:flex; width:100%; min-height:44px; background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none; font-size:15px;}
   .settings-panel-body .settings-group .card{background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none;}
@@ -4491,7 +4491,7 @@
   }
   .restaurant-btn .ex-chevron{font-size:16px;} /* v3.662 (UX-41): the default --text-3 */
   .back-btn{
-    width:100%; text-align:left; background:none; border:none; color:var(--plate-blue);
+    width:100%; text-align:left; background:none; border:none; color:var(--text);
     font-size:13px; font-weight:600; padding:6px 0 12px; cursor:pointer; font-family:var(--font-sans);
     letter-spacing:-0.005em; transition:opacity 0.15s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -7811,7 +7811,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.679';
+const APP_VERSION = '3.680';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9694,6 +9694,9 @@ const WHATS_NEW = {
   ]},
   '3.679': { headline: 'Timed chips', points: [
     'A hold\'s set chips read its time (45 s), not ×45s.',
+  ]},
+  '3.680': { headline: 'The last blue controls', points: [
+    'Cancel on the set sheet, Back, the swap icon, the supplement links and the Settings notification row now use the app\'s ink, like every other control.',
   ]},
 };
 
