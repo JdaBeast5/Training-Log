@@ -7811,7 +7811,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.678';
+const APP_VERSION = '3.679';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9691,6 +9691,9 @@ const WHATS_NEW = {
   ]},
   '3.678': { headline: 'Bodyweight chips', points: [
     'The set chips on pull-ups, dips and other bodyweight lifts read BW×11, or BW+25×8 with added weight, not 0×11.',
+  ]},
+  '3.679': { headline: 'Timed chips', points: [
+    'A hold\'s set chips read its time (45 s), not ×45s.',
   ]},
 };
 
@@ -34341,7 +34344,8 @@ function renderSetChips(blockEl, glowRow){
     if(loggable) chip.dataset.loggable = '1';
     chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
       + (state === 'done' ? `<span class="set-chip-check" aria-hidden="true">${icon('check')}</span>` : '') // v3.604 (UX-23): shown outside gym mode
-      + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
+      // v3.679: a timed target reads as its time ("45 s", "30-45 s"), not "×45s".
+      + `<span class="set-chip-val">${escapeHtml(label || (target ? (/\d\s*s(?:ec)?$/i.test(target) ? target.replace(/\s*s(?:ec)?$/i, ' s') : '×' + target) : 'Set ' + setNum))}</span>`
       + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '')
       + (v.done && row.dataset.pr === '1' ? '<span class="set-chip-pr" aria-hidden="true">PR</span>' : ''); // v3.665 (BL-82)
     // v3.651 (BL-79): a logged set's drops (from its drop rows, the source of truth).
