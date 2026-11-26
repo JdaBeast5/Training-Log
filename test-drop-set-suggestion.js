@@ -45,16 +45,34 @@ const ENGINE = [
 const sbx = body => runSandbox(ENGINE, body)[0];
 const BENCH = "{name:'Bench Press', sets:'7×4-6'}";
 
-test('criterion 1: real computeSuggestedSet: Bench 185 -> 140 -> 110 lb; a 100 kg parent -> 75 -> 60 kg; reps are not suggested', (assert)=>{
+test('criterion 1: real computeSuggestedSet: Bench 185 -> 135 -> 105 lb; a 100 kg parent -> 75 -> 60 kg; reps are not suggested', (assert)=>{
   const lb = sbx(`const a = computeSuggestedSet({weight:185}, {type:'drop', n:1}, false, 'push', ${BENCH});
-    const b = computeSuggestedSet({weight:140}, {type:'drop', n:2}, false, 'push', ${BENCH});
+    const b = computeSuggestedSet({weight:135}, {type:'drop', n:2}, false, 'push', ${BENCH});
     __capture.push([a, b]);`);
-  assert.deepStrictEqual(lb, [{weight:140, reps:null, reason:'drop'}, {weight:110, reps:null, reason:'drop'}]);
+  // Re-pinned v3.673 (BL-85, B7): the drop is floored to a loadable weight, never rounded to the nearest first, so 185 -> 135 (was 140), drop 2 from 135 -> 105 (was 110).
+  assert.deepStrictEqual(lb, [{weight:135, reps:null, reason:'drop'}, {weight:105, reps:null, reason:'drop'}]);
   const kg = sbx(`weightUnit = 'kg';
     const a = computeSuggestedSet({weight: toCanonicalLb(100)}, {type:'drop', n:1}, false, 'squat', {name:'Barbell Back Squat', sets:'5×5'});
     const b = computeSuggestedSet({weight: toCanonicalLb(a.weight)}, {type:'drop', n:2}, false, 'squat', {name:'Barbell Back Squat', sets:'5×5'});
     __capture.push([a.weight, b.weight, a.reason]);`);
   assert.deepStrictEqual(kg, [75, 60, 'drop']);
+});
+
+// v3.673 (BL-85, B7): the drop is at least 25% lighter (drop 2: 20%): floored, never rounded to the nearest first.
+test('BL-85: a 45 lb dumbbell -> 30; 45 on a lift the app has no equipment model for (Lateral Raise) -> 30, not 35; a 100 lb bar -> 75; 185 -> 135; drop 1 never above 0.75 x its parent', (assert)=>{
+  const out = sbx(`const d = (w, name, n) => { const r = computeSuggestedSet({weight:w}, {type:'drop', n: n || 1}, false, 'push', {name, sets:'3×10'}); return r && r.weight; };
+    const sweep = [];
+    for(let w = 50; w <= 400; w += 2.5) for(const name of ['Bench Press', 'DB Curl', 'Lateral Raise']){ const v = d(w, name); if(v != null) sweep.push([w, name, v]); }
+    __capture.push({db: d(45, 'DB Shoulder Press'), lateral: d(45, 'Lateral Raise'), bar100: d(100, 'Bench Press'), bench: d(185, 'Bench Press'), two: d(100, 'DB Curl', 2), sweep});`);
+  assert.strictEqual(out.db, 30);
+  assert.strictEqual(out.lateral, 30, 'the tester\'s 35 (22% off) is gone');
+  assert.strictEqual(out.bar100, 75);
+  assert.strictEqual(out.bench, 135);
+  assert.ok(out.bench <= 185 * 0.75);
+  assert.strictEqual(out.two, 80, 'drop 2: 20% lighter');
+  assert.ok(out.sweep.length > 300, 'anchor: the sweep ran');
+  const over = out.sweep.filter(([w, , v]) => v > w * 0.75 + 1e-9);
+  assert.deepStrictEqual(over, [], 'no drop 1 above 0.75 x its parent');
 });
 
 test('criterion 2: in RPE mode with a valid rpeCtx the drop still answers reason "drop" (the RPE short-circuit does not swallow it)', (assert)=>{
@@ -64,7 +82,7 @@ test('criterion 2: in RPE mode with a valid rpeCtx the drop still answers reason
     const drop = computeSuggestedSet({weight:185}, {type:'drop', n:1}, false, 'push', ${BENCH}, {weight:185, reps:5}, ctx);
     __capture.push([plain && plain.reason, drop.reason, drop.weight]);`);
   assert.strictEqual(out[0], 'rpe', 'anchor: RPE mode is really on for a normal suggestion');
-  assert.deepStrictEqual(out.slice(1), ['drop', 140]);
+  assert.deepStrictEqual(out.slice(1), ['drop', 135]); // re-pinned v3.673 (BL-85): was 140
 });
 
 test('criterion 3: the floor: a 10 lb dumbbell -> 5; the empty 45 lb bar -> null; without 2.5 lb plates Bench 185 -> 135, loadable exactly', (assert)=>{
@@ -167,7 +185,8 @@ function mount(unit, logged){
   return { window, doc, $, row, settle, stored2, open: () => window.__open(row(), doc.querySelectorAll('.set-chip')[1]) };
 }
 
-test('criterion 5: the real sheet on a logged 185×5 Bench set: Drop set -> 140 and the compound cue; 9 reps + Save stores [{140, 9}] beside an unchanged parent; then 110; no third', async (assert)=>{
+test('criterion 5: the real sheet on a logged 185×5 Bench set: Drop set -> 135 and the compound cue; 9 reps + Save stores [{135, 9}] beside an unchanged parent; then 105; no third', async (assert)=>{
+  // Re-pinned v3.673 (BL-85, B7): the drop is floored to a loadable weight, never rounded to the nearest first, so 185 -> 135 (was 140), drop 2 from 135 -> 105 (was 110).
   const ui = mount('lb', 185);
   ui.open();
   assert.strictEqual(ui.$('setSheetDropBtn').hidden, false, 'Drop set is offered on an eligible logged set');
@@ -175,7 +194,7 @@ test('criterion 5: the real sheet on a logged 185×5 Bench set: Drop set -> 140 
   ui.$('setSheetDropBtn').click();
   const lines = () => ui.doc.querySelectorAll('#setSheetDrops .set-sheet-drop');
   assert.strictEqual(lines().length, 1);
-  assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-weight').value, '140');
+  assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-weight').value, '135');
   assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-reps').value, '', 'reps are not suggested');
   assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-cue').textContent, 'Drop 1 · 25% lighter, no rest · Stop 1–3 reps short');
   assert.strictEqual(ui.doc.activeElement, lines()[0].querySelector('.set-sheet-drop-reps'), 'the cursor goes to the reps');
@@ -183,7 +202,7 @@ test('criterion 5: the real sheet on a logged 185×5 Bench set: Drop set -> 140 
   ui.$('setSheetSave').click();
   await ui.settle();
   const after = ui.stored2();
-  assert.deepStrictEqual(after.drops, [{weight: 140, reps: 9}]);
+  assert.deepStrictEqual(after.drops, [{weight: 135, reps: 9}]);
   const parent = Object.assign({}, after); delete parent.drops;
   assert.strictEqual(JSON.stringify(parent), before, 'the parent set is byte-identical');
   assert.strictEqual(ui.window.__dropChanges, 1, 'one change on the row\'s drop row: saved through the row, once');
@@ -192,10 +211,10 @@ test('criterion 5: the real sheet on a logged 185×5 Bench set: Drop set -> 140 
   // Drop 2 from drop 1's weight; no third.
   ui.open();
   assert.strictEqual(lines().length, 1, 'criterion 7: reopening lists the saved drop');
-  assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-weight').value, '140');
+  assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-weight').value, '135');
   assert.strictEqual(lines()[0].querySelector('.set-sheet-drop-reps').value, '9');
   ui.$('setSheetDropBtn').click();
-  assert.strictEqual(lines()[1].querySelector('.set-sheet-drop-weight').value, '110');
+  assert.strictEqual(lines()[1].querySelector('.set-sheet-drop-weight').value, '105');
   assert.strictEqual(lines()[1].querySelector('.set-sheet-drop-cue').textContent.slice(0, 27), 'Drop 2 · 20% lighter, no re');
   assert.strictEqual(ui.$('setSheetDropBtn').hidden, true, 'a third drop is not offered');
 });
@@ -206,7 +225,7 @@ test('criterion 5: drop 2 follows drop 1 as entered, and a line left without rep
   ui.$('setSheetDropBtn').click();
   const l1 = ui.doc.querySelector('#setSheetDrops .set-sheet-drop');
   l1.querySelector('.set-sheet-drop-pm[data-dir="1"]').click();
-  assert.strictEqual(l1.querySelector('.set-sheet-drop-weight').value, '145', '+ steps by the loadable jump (2 × 2.5 lb)');
+  assert.strictEqual(l1.querySelector('.set-sheet-drop-weight').value, '140', '+ steps by the loadable jump (2 × 2.5 lb) from 135 (re-pinned v3.673, BL-85: was 145 from 140)');
   l1.querySelector('.set-sheet-drop-weight').value = '150';
   ui.$('setSheetDropBtn').click();
   assert.strictEqual(ui.doc.querySelectorAll('#setSheetDrops .set-sheet-drop')[1].querySelector('.set-sheet-drop-weight').value, '120', '150 × 0.8');
@@ -231,7 +250,7 @@ test('criterion 5: in kg the stored drop is the lb conversion of what the sheet 
   assert.strictEqual(d.reps, 8);
 });
 
-test('criterion 7: the logged chip shows the drop glyph and its aria-label ends ", 1 drop: 140×9"', async (assert)=>{
+test('criterion 7: the logged chip shows the drop glyph and its aria-label ends ", 1 drop: 135×9" (re-pinned v3.673, BL-85: was 140)', async (assert)=>{
   const ui = mount('lb', 185);
   ui.open();
   ui.$('setSheetDropBtn').click();
@@ -240,7 +259,7 @@ test('criterion 7: the logged chip shows the drop glyph and its aria-label ends 
   await ui.settle();
   const chips = ui.doc.querySelectorAll('.set-chip');
   assert.ok(chips[1].querySelector('.set-chip-drop'), 'the glyph');
-  assert.match(chips[1].getAttribute('aria-label'), /, 1 drop: 140×9$/);
+  assert.match(chips[1].getAttribute('aria-label'), /, 1 drop: 135×9$/);
   assert.ok(!chips[0].querySelector('.set-chip-drop') && !/drop/.test(chips[0].getAttribute('aria-label')), 'set 1 has none');
 });
 
@@ -264,7 +283,7 @@ test('review: two drops saved in one Save both persist (their saves queue on the
   lines[1].querySelector('.set-sheet-drop-reps').value = '7';
   ui.$('setSheetSave').click();
   await ui.settle();
-  assert.deepStrictEqual(ui.stored2().drops, [{weight:140, reps:9}, {weight:110, reps:7}]);
+  assert.deepStrictEqual(ui.stored2().drops, [{weight:135, reps:9}, {weight:105, reps:7}]); // re-pinned v3.673 (BL-85): was 140, 110
   assert.strictEqual(ui.window.__dropChanges, 2);
 });
 

@@ -59,8 +59,9 @@ const ROW_LOG = [
 ];
 const ROW = {name: 'Barbell Row', sets: '2×6-8'};
 
-function list(rows){
-  return `<div class="exercise-block">` + rows.map((r, i) => `<div class="set-row" data-set-idx="${i}"><input class="ex-input ex-weight" value="${r ? 185 : ''}"><input class="ex-input ex-reps" value="${r || ''}"></div>`).join('') + `</div>`;
+// v3.673 (BL-85): rows carry their lift's data-ex-idx, as renderWorkout draws them (lifts are counted by it).
+function list(rows, ex = 0){
+  return `<div class="exercise-block">` + rows.map((r, i) => `<div class="set-row" data-set-idx="${i}" data-ex-idx="${ex}"><input class="ex-input ex-weight" value="${r ? 185 : ''}"><input class="ex-input ex-reps" value="${r || ''}"></div>`).join('') + `</div>`;
 }
 
 function mount({reduce = false, mode = 'progression', program = 'strength', store = {'ex:strength:d1:0': BENCH_LOG, 'ex:strength:d1:1': ROW_LOG}, inputs = [[BENCH, BENCH_LOG, 'chest'], [ROW, ROW_LOG, 'back']]} = {}){
@@ -68,7 +69,7 @@ function mount({reduce = false, mode = 'progression', program = 'strength', stor
   for(const [k, v] of Object.entries(store)) storeJson[k] = JSON.stringify(v);
   storeJson['workout-time:' + TODAY] = JSON.stringify({first: '17:05', last: '18:02'});
   const { window } = runJsdom(extractElementById(src, 'finishSheet') + '<div id="todayView" tabindex="-1"></div><button id="upNextDayBtn"></button>'
-    + `<div id="dayTitle">Upper · Strength</div><div id="exerciseList">${list([5, 5, 5, 0])}${list([8, 8])}</div>`, `
+    + `<div id="dayTitle">Upper · Strength</div><div id="exerciseList">${list([5, 5, 5, 0], 0)}${list([8, 8], 1)}</div>`, `
     var loadSuggestionMode = ${JSON.stringify(mode)}, activeProgram = ${JSON.stringify(program)}, activeDay = 'd1', weightUnit = 'lb', equipmentProfile = null;
     var selectedLogDate = '${TODAY}';
     var COMBAT_STYLES = {}, CYCLING_STYLES = {};
@@ -118,6 +119,17 @@ test('criterion 1: the last set beat the prior heaviest top set: the sheet shows
   assert.match(best.textContent, /Heaviest weight yet · Bench Press/);
   assert.match(best.querySelector('.finish-best-was').textContent, new RegExp(`\\+5 lb on your best, ${beaten.weight} lb × ${beaten.reps} on `));
   assert.match(best.querySelector('.finish-best-was').textContent, /Oct 26/);
+});
+
+test('BL-85: a superset pair is one block but two lifts: the finish sheet and the share card count both', async (assert)=>{
+  const ui = mount();
+  // DB Curl + Triceps Pushdown in one block, each with a logged set, as renderWorkout draws a pair.
+  ui.window.document.getElementById('exerciseList').insertAdjacentHTML('beforeend', `<div class="exercise-block superset-pair">`
+    + `<div class="set-row" data-set-idx="0" data-ex-idx="2"><input class="ex-input ex-weight" value="35"><input class="ex-input ex-reps" value="12"></div>`
+    + `<div class="set-row" data-set-idx="0" data-ex-idx="3"><input class="ex-input ex-weight" value="60"><input class="ex-input ex-reps" value="12"></div></div>`);
+  const m = await ui.open();
+  assert.strictEqual(m.lifts, 4, 'Bench, Row, DB Curl and Triceps Pushdown');
+  assert.strictEqual(m.share.stats.find(st => st.label === 'LIFTS').value, '4', 'the share card agrees');
 });
 
 test('no record today: no best block; the totals are sets done of planned, lifts and minutes (no volume)', async (assert)=>{

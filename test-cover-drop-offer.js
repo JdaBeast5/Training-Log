@@ -144,12 +144,13 @@ function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, fac
   return { window, $, logOnCover, line, flush, rests, state: () => window.__state() };
 }
 
-test('criterion 1: logging Lateral Raise\'s last set on the cover shows "Drop set · 35 lb" (the real suggestDropWeight), and no rest starts', async (assert)=>{
+test('criterion 1: logging Lateral Raise\'s last set on the cover shows "Drop set · 30 lb" (the real suggestDropWeight), and no rest starts', async (assert)=>{
+  // Re-pinned v3.673 (BL-85, B7): 45 × 0.75 = 33.75 is floored to 30 (at least 25% lighter), not rounded to 35.
   const ui = mount();
   assert.strictEqual(ui.logOnCover('45', '12'), true, 'anchor: the cover logged set 3');
   await ui.flush();
   assert.ok(ui.window.__sets.some(s => s[0] === 0 && s[1] === 2 && s[3] === '12'), 'anchor: set 3 saved');
-  assert.strictEqual(ui.line(), 'Drop set · 35 lb | Lateral Raise · 25% lighter, no rest · Stop 0–2 reps short');
+  assert.strictEqual(ui.line(), 'Drop set · 30 lb | Lateral Raise · 25% lighter, no rest · Stop 0–2 reps short');
   assert.strictEqual(ui.state().endsAt, null, 'restTimerEndsAt stays null');
   assert.deepStrictEqual(ui.rests(), []);
   assert.strictEqual(ui.window.document.querySelectorAll('#upNext .cover-drop:not([hidden])').length, 1, 'one .cover-drop, shown');
@@ -166,7 +167,8 @@ test('criterion 2: Not now: the line goes and the rest starts with the lift\'s o
   assert.strictEqual(ui.state().offer, null);
 });
 
-test('criterion 3: Log opens set 3\'s sheet with drop 1 at 35; Save writes it through saveExDropSet (set 3, drop 1, 35 lb) and then the rest starts', async (assert)=>{
+test('criterion 3: Log opens set 3\'s sheet with drop 1 at 30; Save writes it through saveExDropSet (set 3, drop 1, 30 lb) and then the rest starts', async (assert)=>{
+  // Re-pinned v3.673 (BL-85): 30, was 35.
   const ui = mount();
   ui.logOnCover('45', '12'); await ui.flush();
   ui.$('coverDropLog').click();
@@ -174,14 +176,14 @@ test('criterion 3: Log opens set 3\'s sheet with drop 1 at 35; Save writes it th
   assert.strictEqual(ui.$('setSheetTitle').textContent, 'Lateral Raise · Set 3');
   const lines = ui.window.document.querySelectorAll('#setSheetDrops .set-sheet-drop');
   assert.strictEqual(lines.length, 1);
-  assert.strictEqual(lines[0].querySelector('.set-sheet-drop-weight').value, '35');
+  assert.strictEqual(lines[0].querySelector('.set-sheet-drop-weight').value, '30');
   assert.strictEqual(ui.window.document.activeElement, lines[0].querySelector('.set-sheet-drop-reps'), 'reps are the result: typed here');
   assert.strictEqual(ui.line(), null, 'the line goes while the sheet is open');
   assert.deepStrictEqual(ui.rests(), [], 'still held while the sheet is open');
   lines[0].querySelector('.set-sheet-drop-reps').value = '10';
   assert.strictEqual(ui.window.__saveSetSheet(), true);
   await ui.flush();
-  assert.deepStrictEqual(JSON.parse(JSON.stringify(ui.window.__drops)), [{slot: 0, setIdx: 2, dropIdx: 0, weight: 35, reps: '10'}]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(ui.window.__drops)), [{slot: 0, setIdx: 2, dropIdx: 0, weight: 30, reps: '10'}]);
   assert.ok(ui.rests().length >= 1 && ui.rests().every(r => r[0] === 75 && r[1] === 'rest for Lateral Raise'), 'the rest starts, with the lift\'s seconds: ' + JSON.stringify(ui.rests()));
   assert.strictEqual(ui.state().offer, null);
   assert.strictEqual(ui.line(), null, 'and no second offer for the same set');

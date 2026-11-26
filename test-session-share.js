@@ -12,9 +12,12 @@ const { test, run } = makeRunner('test-session-share.js');
 const src = readIndexSource();
 const FNS = ['sessionShareStats', 'getWorkoutTimeWindow' /* v3.653 (UX-17b): no gym clock */].map(n => extractFunction(src, n));
 
+// v3.673 (BL-85): rows carry their lift's data-ex-idx, as renderWorkout draws them (lifts are counted by it).
+let __ex = 0;
 function block(reps){
+  const ex = __ex++;
   return `<div class="exercise-block"><div class="sets-block">` + reps.map((r, i) =>
-    `<div class="set-row" data-set-idx="${i + 1}"><input class="ex-input ex-weight" value="${r === '' ? '' : 100}"><input class="ex-input ex-reps" value="${r}"></div>`).join('') + `</div></div>`;
+    `<div class="set-row" data-set-idx="${i + 1}" data-ex-idx="${ex}"><input class="ex-input ex-weight" value="${r === '' ? '' : 100}"><input class="ex-input ex-reps" value="${r}"></div>`).join('') + `</div></div>`;
 }
 // 18 rows with reps across 5 exercises, plus empty rows (and one exercise with none) that must not count.
 const LIST = block([5, 5, 5, 5]) + block([8, 8, 8, '']) + block([10, 10, 10, 10]) + block([12, 12, 12, 12]) + block([6, 6, 6, '']) + block(['', '']);
