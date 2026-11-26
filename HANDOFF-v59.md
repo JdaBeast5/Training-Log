@@ -1861,3 +1861,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Live:** v3.668 (UX-68) merged and live.
 - **Flagged:** the harness `tday-firstrun` state times out on Branch-1 as well; run `--today` with `--only` (the other 32 states) until it's looked at.
 - **Next:** 80c8 in the roadmap's batch 2.
+
+## Addendum 190: UX-71 (v3.670, PR #269)
+- `coverSetUnit(target)` (getSetFieldUnit of the prescription span, 'reps' without one) and `coverTimedValue(target)` (the first number after the ×, or of the whole: "3×45-60s" → 45, "20 min" → 20), beside `fillSetLogger`.
+- `fillSetLogger` fills an empty reps tile from the prescription on a sec/min row and labels the tile Sec / Min / Reps; `renderCoverNumeral` reads that label ("s" for sec) and sets Log to "Log 45 s" / "Log 20 min" ("Enter time" when empty). `renderUpNext` writes "4 × 45 s" / "20 min", "reps" only on rep work.
+- Any test that extracts `fillSetLogger` or `renderUpNext` must also extract `getSetFieldUnit`, `coverSetUnit`, `coverTimedValue`.
+- **Live:** v3.669 (UX-70) merged and live.
+- **Flagged:** the rest steppers on a timed row (Reps label, Reps left pills); chips "×45s".
+- **Next:** 80c9 in the roadmap's batch 2.
