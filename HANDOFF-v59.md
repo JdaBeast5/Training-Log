@@ -1869,3 +1869,11 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Live:** v3.669 (UX-70) merged and live.
 - **Flagged:** the rest steppers on a timed row (Reps label, Reps left pills); chips "×45s".
 - **Next:** 80c9 in the roadmap's batch 2.
+
+## Addendum 191: UX-72 (v3.671, PR #270)
+- `isBodyweightLoadable(name)` (a name regex, beside `isDumbbellExercise`). `renderUpNext` sets `card._bw` when the next row has a weight field and the lift is one; it relabels the weight tile "Added weight". `renderCoverNumeral` reads `card._bw` ("BW ×11", "BW +25 ×8", aria "Bodyweight plus 25 lb for 8 reps"), never asks for a weight on it; `renderCoverSteppers` labels the stepper "Added weight" and reads "BW" / "+25 lb"; `logUpNext` focuses reps.
+- AMRAP: "4 sets · as many reps as you can"; a bare "AMRAP" numeral has no unit.
+- Tests that extract `renderUpNext` must also extract `isBodyweightLoadable`.
+- **Live:** v3.670 (UX-71) merged and live.
+- **Flagged:** chips read "0×11" on bodyweight lifts.
+- **Next:** 80c10 in the roadmap's batch 2.

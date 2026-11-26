@@ -24,7 +24,7 @@ const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet',
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */,
-  'exLoggerHtml', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger',
+  'exLoggerHtml', 'fillSetLogger', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */, 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger',
   // 2026-10-26 (v3.392): renderAllSetChips also draws gym mode's warm-up chips.
   'renderWarmupChips'].map(n => extractFunction(src, n));
 // 2026-10-27 (v3.426): the chips' trend marks are drawn (ICONS.arrowUp/arrowDown/equals).

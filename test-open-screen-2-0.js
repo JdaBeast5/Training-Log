@@ -142,7 +142,7 @@ test('REAL invocation (v3.499): opening an exercise pins it; Up next no longer s
   w.focusExerciseDetail('2', true); await settle();
   assert.strictEqual(w.document.getElementById('exerciseDetailTitle').textContent, 'Overhead Press');
   assert.strictEqual(w.eval('exerciseDetailPinned'), true);
-  assert.match(extractFunction(src, 'renderUpNext', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */), /if\(!exerciseDetailPinned\) focusExerciseDetail\(n\.row\.dataset\.exIdx, false\);/, 'Up next only steers while unpinned');
+  assert.match(extractFunction(src, 'renderUpNext', 'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable' /* v3.670 (UX-71): fillSetLogger and renderUpNext read the set's unit */), /if\(!exerciseDetailPinned\) focusExerciseDetail\(n\.row\.dataset\.exIdx, false\);/, 'Up next only steers while unpinned');
   assert.match(extractFunction(src, 'renderWorkout'), /if\(exerciseDetailDay !== activeDay\)\{ exerciseDetailDay = activeDay; exerciseDetailPinned = false; exerciseDetailIdx = null; \}/, 'a new day unpins');
   assert.match(extractFunction(src, 'toggleExerciseBlockFromHeader'), /focusExerciseDetail\(idxEl\.dataset\.exIdx, true\)/, 'opening an exercise pins it');
 });
