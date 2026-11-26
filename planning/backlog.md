@@ -5647,7 +5647,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-bodyweight.js`. Sabotage: print the weight unconditionally, and the "BW" criterion must fail.
 - **Files:** `index.html` (`renderCoverNumeral` 33595, `renderUpNext`, `renderCoverSteppers`; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** low. Guards: `test-noweight-consistency.js`, `test-today-cover.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.671 (PR #270), awaiting the owner's merge. (Batch 2.)
 
 ### BL-84: Editing a set never acts like logging one (B5, B6, Clear set)
 - **Why:**
