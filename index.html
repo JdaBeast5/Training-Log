@@ -1098,7 +1098,7 @@
   }
   .cover-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   /* 16px between Log and adjust, so a wet thumb doesn't hit adjust. */
-  .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px;}
+  .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px; order:2; margin-top:auto; padding-top:14px;} /* v3.675 (UX-67): the band, below */
   /* v3.675 (UX-67, owner A 2026-11-25): Log stays in one place. The cover fills
      the first screen as a column and its last row is the action band: Log and
      adjust, or while resting +30 s and Skip rest (#coverRest's children join
@@ -1108,7 +1108,6 @@
   .cover:not([hidden]){display:flex; flex-direction:column; min-height:calc(100svh - 64px - env(safe-area-inset-bottom, 0px));}
   .cover > *{flex:none;}
   .cover-fields-wrap, .cover-chips, .cover-caution{order:1;}
-  .cover-log{order:2; margin-top:auto; padding-top:14px;}
   .cover.is-resting .cover-rest:not([hidden]){display:contents;}
   .cover.is-resting .cover-rest-actions{order:3; margin-top:12px;}
   .cover.is-resting .cover-rest-btn{min-height:56px;}
