@@ -1098,7 +1098,23 @@
   }
   .cover-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   /* 16px between Log and adjust, so a wet thumb doesn't hit adjust. */
-  .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px; margin-top:14px;}
+  .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px;}
+  /* v3.675 (UX-67, owner A 2026-11-25): Log stays in one place. The cover fills
+     the first screen as a column and its last row is the action band: Log and
+     adjust, or while resting +30 s and Skip rest (#coverRest's children join
+     the column). The lines that come and go (hint, cheer, Then, warm-up, drop,
+     the chips, the adjust fields) sit above it and the free space between, so
+     they move the numeral, never the band. Markup and listeners are unchanged. */
+  .cover:not([hidden]){display:flex; flex-direction:column; min-height:calc(100svh - 64px - env(safe-area-inset-bottom, 0px));}
+  .cover > *{flex:none;}
+  .cover-fields-wrap, .cover-chips, .cover-caution{order:1;}
+  .cover-log{order:2; margin-top:auto; padding-top:14px;}
+  .cover.is-resting .cover-rest:not([hidden]){display:contents;}
+  .cover.is-resting .cover-rest-actions{order:3; margin-top:12px;}
+  .cover.is-resting .cover-rest-btn{min-height:56px;}
+  /* On a short screen the cover outgrows it whatever the order, so the chips
+     go back under the band: Log stays on the first screen (320 × 568). */
+  @media (max-height: 700px){ .cover-chips, .cover-caution{order:3;} }
   /* v3.656 (UX-62, owner C+ 2026-11-24): the warm-up step, one line above Log
      in the cover's ink. Done ticks it (the chip's own handler, with Undo);
      Skip hides the ramp for today. The big number and Log stay the working set. */
@@ -7791,7 +7807,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.674';
+const APP_VERSION = '3.675';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9659,6 +9675,9 @@ const WHATS_NEW = {
   ]},
   '3.674': { headline: 'Small fixes on Today', points: [
     'The list under the big number is now headed Rest of session, the fields you open to adjust a set close once you log it, and the big number fits small phones without the page sliding sideways.',
+  ]},
+  '3.675': { headline: 'Log stays put', points: [
+    'Log set now sits in the same place at the bottom of the cover on every set, and +30 s and Skip rest take that same place while you rest.',
   ]},
 };
 
