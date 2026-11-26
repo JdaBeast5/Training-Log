@@ -42,7 +42,7 @@ function iife(startText){
 }
 const COVER_FNS = ['syncCoverRest', 'renderCoverSteppers', 'stepCoverField', 'setCoverRepsLeft'];
 const FNS = [...COVER_FNS, 'startRestTimer', 'adjustRestTimer', 'restRemainingSeconds', 'formatTimer', 'setSheetWeightStep', 'loadStepFor' /* v3.651 (BL-79) */, 'getEquipment',
-  'isBarbellExercise', 'isDumbbellExercise', 'logUpNext', 'readSetLogger', 'findNextSetRow'].map(f => extractFunction(src, f));
+  'isBarbellExercise', 'isDumbbellExercise', 'logUpNext', 'setCoverAdjust' /* v3.674 (UX-73): logUpNext closes the fields */, 'readSetLogger', 'findNextSetRow'].map(f => extractFunction(src, f));
 
 function row(name, w){
   return `<div class="exercise-block"><div class="set-row" data-ex-idx="0" data-set-idx="1"><span class="set-row-owner">${name}</span>

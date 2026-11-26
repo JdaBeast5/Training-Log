@@ -5698,7 +5698,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** new `test-cover-small-fixes.js`. Sabotage: remove the close call, and criterion 2 must fail.
 - **Files:** `index.html` (5925, 1080–1084, `logUpNext` 33847; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test.
 - **Risk:** low. Guards: `test-today-then.js` (re-pin the header text with a dated note), `test-today-cover.js`.
-- **Status:** ready (batch 2).
+- **Status:** shipped in v3.674 (PR #273), awaiting the owner's merge. (Batch 2.)
 
 ### BL-86: A beginner's first program fits a beginner (Friction #12)
 - **Why (S2, the first-run beginner):**

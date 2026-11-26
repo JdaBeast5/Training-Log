@@ -1890,3 +1890,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - `sessionShareStats` and `finishSheetModel` count lifts as distinct `data-ex-idx` among rows with reps (`finishSheetModel` no longer builds a `blocks` list).
 - **Live:** v3.672 (BL-84) merged and live.
 - **Next:** 80c12 in the roadmap's batch 2.
+
+## Addendum 194: UX-73 (v3.674, PR #273)
+- `.then-title` reads "Rest of session". `logUpNext` calls `setCoverAdjust(false)` after a commit. A `@media (max-width: 359px)` rule sets `.cover-w` 112 / `.is-m` 88 / `.is-s` 74 px and `.cover-x` 44 px.
+- Tests that extract `logUpNext` need `setCoverAdjust` too.
+- **Live:** v3.673 (BL-85) merged and live.
+- **Next:** 80c13 in the roadmap's batch 2.

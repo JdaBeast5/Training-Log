@@ -1088,6 +1088,14 @@
   .cover-u{font-family:var(--font-sans); font-size:18px; font-weight:600;}
   .cover-x{font-size:60px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:4px;}
   .cover-x:empty, .cover-u:empty{display:none;}
+  /* v3.674 (UX-73, B9): below 360 px wide the numeral steps down a size, so
+     "182.5 lb ×10" fits a 320 px phone without the page scrolling sideways. */
+  @media (max-width: 359px){
+    .cover-w{font-size:112px;}
+    .cover-numeral.is-m .cover-w{font-size:88px;}
+    .cover-numeral.is-s .cover-w{font-size:74px;}
+    .cover-x{font-size:44px;}
+  }
   .cover-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   /* 16px between Log and adjust, so a wet thumb doesn't hit adjust. */
   .cover-log{display:grid; grid-template-columns:1fr 56px; gap:16px; margin-top:14px;}
@@ -5936,7 +5944,7 @@
       </div>
     </div>
     <!-- v3.604 (UX-23): while the cover shows, the list under it is "Then". -->
-    <h2 class="then-title">Then</h2>
+    <h2 class="then-title">Rest of session</h2><!-- v3.674 (UX-73): "Then" is the superset line's word -->
     <!-- v3.291 (Impeccable layout pass): what the session is (phase, length,
          calories) reads as one quiet line, then the session length on its
          own row (v3.653, UX-17b: Gym mode, its partner here, is gone). -->
@@ -7783,7 +7791,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.673';
+const APP_VERSION = '3.674';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9648,6 +9656,9 @@ const WHATS_NEW = {
   ]},
   '3.673': { headline: 'Numbers that add up', points: [
     'A drop set is now always at least 25% lighter (45 lb drops to 30, not 35), and the session summary counts each lift in a superset, not the pair as one.',
+  ]},
+  '3.674': { headline: 'Small fixes on Today', points: [
+    'The list under the big number is now headed Rest of session, the fields you open to adjust a set close once you log it, and the big number fits small phones without the page sliding sideways.',
   ]},
 };
 
@@ -34048,6 +34059,7 @@ function logUpNext(){
   }
   // v3.593 (UX-06a): through commitSet, as a chip tap: same row write, same Undo.
   commitSet(n.row, values);
+  setCoverAdjust(false); // v3.674 (UX-73): the fields close once the set is in
   renderUpNext();
   return true;
 }
