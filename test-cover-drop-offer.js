@@ -68,6 +68,10 @@ BUTTONS.forEach(l => { if(src.split(l).length !== 2) throw new Error('not found 
 const CLOSE = (()=>{ const a = "document.getElementById('restTimerClose').addEventListener('click', ()=>{"; const i = src.indexOf(a); const j = src.indexOf('\n});', i);
   if(i < 0 || j < 0 || src.indexOf(a, i + 1) !== -1) throw new Error('restTimerClose handler not found once'); return src.slice(i, j + 4); })();
 
+// v3.676 (UX-69): realCover loads the real cover renderer over the stubs (declared later, so it wins).
+const COVER_FNS = ['renderUpNext', 'renderAllSetChips', 'renderSetChips', 'renderExerciseLogger', 'renderWarmupChips', 'renderCoverWarmup', 'pendingWarmupChip',
+  'setCoverThen', 'supersetThenLine', 'syncStickyDayTitle', 'renderCoverNumeral', 'renderCoverChips', 'renderCoverCaution', 'fillSetLogger',
+  'getSetFieldUnit', 'coverSetUnit', 'coverTimedValue', 'isBodyweightLoadable', 'readSetLogger', 'escapeHtml'];
 function setRow(exIdx, i, name, w, r, drop){
   return `<div class="set-row" data-set-idx="${i}" data-ex-idx="${exIdx}"><span class="set-row-owner">${name}</span>
     <input class="ex-input ex-weight" placeholder="lb" value="${w}"><input class="ex-input ex-reps" placeholder="reps" value="${r}"><input class="ex-input ex-rpe" value="">
@@ -86,7 +90,7 @@ function block(exIdx, name, sets, logged, total, w, r, drop){
 // window.storage (store, shared across a "reload"); the clock is fake (__now),
 // and timers of a second or more wait for __fireLong().
 function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, faceTag = false, savedDrop = false,
-    lift = 'Lateral Raise', liftSets = '3×12-15', persist = false, store = {}, now = 1764000000000} = {}){
+    lift = 'Lateral Raise', liftSets = '3×12-15', persist = false, store = {}, now = 1764000000000, realCover = false} = {}){
   const body = extractElementById(src, 'upNext').replace(' hidden>', '>') + extractElementById(src, 'restTimer')
     + extractElementById(src, 'setSheetScrim') + extractElementById(src, 'setSheet')
     + `<div id="exerciseList">${block(0, lift, liftSets, logged, 3, weight, '12', drop)}${block(1, 'Face Pull', '3×15', 0, 3, '40', '15', false)}</div>`;
@@ -118,9 +122,10 @@ function mount({drop = true, date = '2026-11-24', weight = '45', logged = 2, fac
     function calcPlatesPerSide(){ return null; } function formatPlateResult(){ return ''; } function analyzeProgressionSignal(){ return null; }
     function buildPastSessions(){ return []; } async function getExLog(){ return []; } function makeSwipeable(){} function noteWorkoutActivity(){}
     function firstSetHint(){ return ''; } function deleteSet(){}
+    function renderCoverBar(){} function renderExerciseDetailBar(){} var exerciseDetailPinned = true; /* v3.676 (UX-69): realCover */
   `, [...ENGINE_CONSTS.map(n => extractConst(src, n)), ...ENGINE_FNS.map(n => extractFunction(src, n)), STATE, OFFER,
     ...(persist ? [extractConst(src, 'REST_TIMER_STATE_KEY'), extractFunction(src, 'persistRestTimer'), extractFunction(src, 'restoreRestTimer')] : []),
-    ...UI_FNS.map(n => extractFunction(src, n)), ...BUTTONS, CLOSE, `
+    ...UI_FNS.map(n => extractFunction(src, n)), ...(realCover ? COVER_FNS.map(n => extractFunction(src, n)) : []), ...BUTTONS, CLOSE, `
     // The real ends of startRestTimer write the cover's rest state; record each start.
     const __start = startRestTimer; startRestTimer = (s, l, at) => { window.__rests.push([s, l]); __start(s, l, at); };
     wireSetsBlock(document.getElementById('b0'), 0, {name:${JSON.stringify(lift)}, sets:${JSON.stringify(liftSets)}});
@@ -376,6 +381,41 @@ test('UX-68: a held rest already over by the reload is dropped; Undo of the offe
   ui.window.__endCoverDrop(false);
   await ui.flush();
   assert.ok(!('rest-timer-state' in ui.window.__store), 'an offer ended with no rest leaves nothing to restore');
+});
+
+// v3.676 (UX-69, owner B): the cover holds the finished lift while its drop is offered.
+const coverView = ui => ({lift: ui.$('upNextLift').textContent, label: ui.$('upNextLabel').textContent, numeral: ui.$('upNextNumeral').textContent,
+  offer: ui.$('upNext').classList.contains('is-drop-offer')});
+test('UX-69: while the drop is offered the cover shows the finished lift, "Drop set" and the drop\'s weight, with Log set hidden; Not now moves it on', async (assert)=>{
+  const ui = mount({realCover: true});
+  ui.window.renderUpNext();
+  assert.strictEqual(ui.$('upNextLift').textContent, 'Lateral Raise', 'anchor: set 3 is next');
+  ui.logOnCover('45', '12'); await ui.flush(); ui.window.renderUpNext();
+  assert.ok(ui.line(), 'anchor: offered');
+  assert.deepStrictEqual(coverView(ui), {lift: 'Lateral Raise', label: 'Drop set', numeral: '30lb', offer: true});
+  ui.$('coverDropSkip').click();
+  const after = coverView(ui);
+  assert.deepStrictEqual([after.lift, after.label, after.offer], ['Face Pull', 'Set 1 of 3', false], 'the next lift, Log set back');
+  assert.notStrictEqual(after.numeral, '30lb', 'its own numeral, not the drop\'s');
+});
+
+test('UX-69: the 20 s release and Log drop also move the cover on', async (assert)=>{
+  const rel = mount({realCover: true});
+  rel.logOnCover('45', '12'); await rel.flush(); rel.window.renderUpNext();
+  assert.ok(coverView(rel).offer, 'anchor');
+  rel.window.__fireLong();
+  assert.strictEqual(coverView(rel).lift, 'Face Pull');
+  assert.strictEqual(coverView(rel).offer, false);
+  const log = mount({realCover: true});
+  log.logOnCover('45', '12'); await log.flush(); log.window.renderUpNext();
+  log.$('coverDropLog').click();
+  assert.strictEqual(coverView(log).lift, 'Face Pull', 'the sheet takes the drop; the cover moves on');
+  assert.strictEqual(coverView(log).offer, false);
+});
+
+test('UX-69 (CSSOM): the drop-offer cover hides the Log row and the next lift\'s lines', (assert)=>{
+  for(const sel of ['.cover.is-drop-offer .cover-log', '.cover.is-drop-offer .cover-rx', '.cover.is-drop-offer .cover-chips', '.cover.is-drop-offer .cover-bar'])
+    assert.ok(new RegExp(sel.replace(/\./g, '\\.').replace(/ /g, '\\s+') + '[^{]*\\{display:none;?\\}').test(src) || src.includes(sel), sel);
 });
 
 test('REAL source: the cover markup puts the drop line just above the warm-up line, and the CSS hides the warm-up line while it shows', (assert)=>{

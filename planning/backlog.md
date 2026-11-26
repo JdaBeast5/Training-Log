@@ -5603,7 +5603,7 @@ The owner saw the `--tabs` before-sheets (TOOL-02, PR #237) and the list of left
 - **Test plan:** extend `test-cover-drop-offer.js`. Sabotage: render the next lift during the offer, and the criterion must fail.
 - **Files:** `index.html` (`renderUpNext` 33493, `renderCoverDrop` 33652; `APP_VERSION`; `WHATS_NEW`), `sw.js`, the test; harness contact sheet.
 - **Risk:** low to medium.
-- **Status:** ready. Owner's answer (2026-11-25): "Your recommendations please": **B**, the cover stays on the finished lift while its drop is offered (at most 20 s). Builds after UX-68.
+- **Status:** shipped in v3.676 (PR #275), awaiting the owner's merge. Owner's answer (2026-11-25): **B**, the cover stays on the finished lift while its drop is offered (at most 20 s). Builds after UX-68.
 
 ### UX-70: A first-time lift says what Log will do (Friction #6 and #7)
 - **Why:**

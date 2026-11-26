@@ -1903,3 +1903,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Live:** v3.674 (UX-73) merged and live.
 - **Not fixed:** at 320 × 568 the rest state's buttons fall below the fold (the steppers' height).
 - **Next:** 80c14 in the roadmap's batch 2.
+
+## Addendum 196: UX-69 (v3.676, PR #275)
+- `renderCoverDrop` stamps `#coverDrop` `data-lift` / `data-weight` and calls `renderUpNext` when the line shows or goes. `renderUpNext` (training branch, after the numeral) toggles `.is-drop-offer` while the line shows and puts the offer's lift, "Drop set" and the drop weight on the cover; CSS hides the Log row and the next lift's lines.
+- `tools/visual/harness.js`: the drop-offer driver stops once `coverDropOffer` is set.
+- **Live:** v3.675 (UX-67) merged and live.
+- **Owner (2026-11-26): "focus on minor details instead of the big stuff for now."** Pick small items next.

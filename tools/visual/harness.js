@@ -633,7 +633,8 @@ async function shootAll({ dir, label }, states, outRoot, fixtures){
           }, state.dropOffer);
           for(let i = 0; i < 10; i++){
             const lift = await page.evaluate(() => document.getElementById('upNextLift').textContent.trim());
-            if(lift !== state.dropOffer) break;
+            // v3.676 (UX-69): the cover now stays on the lift while its drop is offered.
+            if(lift !== state.dropOffer || await page.evaluate(() => typeof coverDropOffer !== 'undefined' && !!coverDropOffer)) break;
             await page.click('#upNextLog');
             await page.waitForTimeout(500);
             await page.evaluate(() => { const d = document.getElementById('coverDrop'); if(!(d && !d.hidden) && restTimerEndsAt) document.getElementById('restTimerClose').click(); });
