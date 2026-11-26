@@ -107,7 +107,8 @@ test('REAL CSS: .set-drop-btn/.set-note-btn get position:relative and a 44px-tal
 });
 
 test('REAL MARKUP: the real working-set row template emits set-drop-btn right after the RPE input, then set-note-btn — the adjacency the 6px-gap CSS comment claims (v3.300: no plate/voice button between them any more)', (assert)=>{
-  const rowStart = src.indexOf('<div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}">');
+  // Re-pinned v3.678: the tag now ends with the bodyweight stamp (data-bw), so the anchor stops before it.
+  const rowStart = src.indexOf('<div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}"');
   assert.ok(rowStart !== -1, 'sanity: the real set-row template must be found');
   const rowEnd = src.indexOf('<button class="add-set-btn"', rowStart);
   assert.ok(rowEnd !== -1, 'sanity: template must end before the real Add Set button');
